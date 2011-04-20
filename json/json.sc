@@ -1,0 +1,4 @@
+JsonParser {
+  *parse {}
+}
+

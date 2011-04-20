@@ -1,0 +1,7 @@
+(
+	\name: "jsontests",
+	\path: "jsontests", 
+	\summary: "UnitTests for json library",
+	\dependencies: ["UnitTesting","json"],
+	\author: "parking sun"
+)
