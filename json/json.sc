@@ -1,6 +1,9 @@
 /*
  * TODO - handle unicode escapes
  * call by name, ref or value semantics in the house?
+ * Supercollider is from the land before 64 bit floats. Awkward.
+ * Supercollider's unicode support is unspecified, but my heart is full of 
+ *   fear.
  */
 
 JsonParser {
@@ -36,8 +39,8 @@ JsonParser {
       \TOKEN_SQUARED_OPEN, { this.parseArray(); },
       \TOKEN_STRING, { this.parseString(); },
       \TOKEN_ATOM, { this.parseAtom(); },
-      \TOKEN_CURLY_OPEN, { ^this.parseObject(); } /*,
-      \TOKEN_NUMBER, { ^this.parseNumber(); }, 
+      \TOKEN_CURLY_OPEN, { ^this.parseObject(); },
+      \TOKEN_NUMBER, { ^this.parseNumber(); } /*, 
       \TOKEN_NONE //hmmmm;
       \TOKEN_END //hmmmm*/
     );
@@ -73,6 +76,7 @@ JsonParser {
              $8, { \TOKEN_NUMBER },
              $9, { \TOKEN_NUMBER },
              $-, { \TOKEN_NUMBER },
+             $+, { \TOKEN_NUMBER },
              $:, { \TOKEN_COLON },
              $f, { \TOKEN_ATOM },
              $t, { \TOKEN_ATOM },
@@ -212,6 +216,9 @@ JsonParser {
           \TOKEN_STRING, {
             newArray = newArray.add(this.parseString());
           },
+          \TOKEN_NUMBER, {
+            newArray = newArray.add(this.parseNumber());
+          },
           \TOKEN_ATOM, {
             newArray = newArray.add(this.parseAtom());
           },
@@ -270,6 +277,28 @@ JsonParser {
     "Returning".postln;
     ((34.asAscii) ++ newString ++ (34.asAscii)).postln;
     ^newString;
+  }
+  parseNumber {
+    var nextChar;
+    var numberString = "";
+    var legalNumberChars = Set[$0, $1, $2, $3, $4, $5, $6, $7, $8, $9,
+      $e, $E, $., $-, $+];
+    /*@
+    desc: (Private.) The token under the cursor is the start of a number. Eat tokens so long as they are plausibly numeric, then try to parse them using the asFloat method. Could do with better handling of malformed numbers (with multiple decimal points, minus signs, exponenets etc)
+    @*/
+    
+    "parseNumber".postln;
+    while (
+      { (parsedIndex < jsonString.size) &&
+          legalNumberChars.includes(jsonString[parsedIndex]) },
+      {
+        "digit %".postf(jsonString[parsedIndex]);
+        numberString = numberString ++ (jsonString[parsedIndex]);
+        this.advanceIndex();
+      }
+    );
+    "Returning %".postf(numberString);
+    ^numberString.asFloat;
   }
 }
 
