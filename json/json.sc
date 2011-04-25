@@ -108,10 +108,46 @@ JsonParser {
   }
   parseObject { 
     // Dict/Event parser. The index pointer is be set to a {
-    var newObject;
+    var newObject, name, value, done, lastPos;
+    done = false;
     newObject = Event.new();
     // skip {
     this.advanceIndex();
+    this.toCurrentToken();
+    while ( 
+      { token != \TOKEN_CURLY_CLOSE },
+      { 
+        this.toCurrentToken(); //optionally skip spaces
+        "in object % processing token %".postf(newObject, token);
+        "current pos % last pos %\n".postf(parsedIndex, lastPos);
+        if ((lastPos == parsedIndex), {
+          Error("Object parse is stuck at %!".format(parsedIndex)).throw;
+        });
+        lastPos = parsedIndex.copy;
+        if ((token != \TOKEN_STRING), {
+          Error(
+            "no string key found in object at %".format(parsedIndex)
+          ).throw;
+        });
+        name = this.parseString();
+        this.toCurrentToken(); //optionally skip spaces
+        if ((token != \TOKEN_COLON), {
+          Error(
+            "no separator : found in object at %".format(parsedIndex)
+          ).throw;
+        });
+        this.advanceIndex();
+        value = this.parseValue();
+        this.toCurrentToken();
+        if ((token == \TOKEN_COMMA), {
+          //we consume commas without checking for spurious or missing ones
+          //probably should be smarter.
+          this.advanceIndex();
+          this.toCurrentToken();
+        });
+        newObject[name] = value;
+      }
+    );
     
     
     // skip }
@@ -146,6 +182,7 @@ JsonParser {
   }
   parseArray { 
     // Array/List parser. The index pointer is set to a [
+    // The swtich could be optimised away into a parseValue as per parseArray.
     var newArray;
     var lastPos;
     var done = false;
@@ -188,7 +225,7 @@ JsonParser {
             done = true;
           },
           \TOKEN_END, { 
-            Error("string ended while parsing array");
+            Error("the string ended while parsing array");
           },
           {
             //raise some kind of parse error
