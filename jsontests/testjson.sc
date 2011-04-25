@@ -11,11 +11,11 @@ TestJsonParse : UnitTest {
     qAndAList = [
       ["[]", []],
       ["[true, false, null, true, false]", [true, false, nil, true, false]],
-      ["[\"true\", \"fot\", \"BAZ\"]", ["true", "fot", "BAZ"]] /*,
-       ["[\"foo\"]", ["foo"]],
-              ["[\"bar\", \"BAZ\"]", ["bar", "BAZ"]] */ /*,
+      ["[\"true\", \"fot\", \"BAZ\"]", ["true", "fot", "BAZ"]],
+      /* ["[\"foo\"]", ["foo"]],
+              ["[\"bar\", \"BAZ\"]", ["bar", "BAZ"]], */
        ["{}", ()],
-       ["{\"x\": 4, \"y\": 5}", (\x: 4, \y: 5)],
+       ["{\"x\": \"A\", \"y\": \"b\"}", (\x: "A", \y: "b")]  /*,
        ["[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]",
             [1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]],
        ["{ \"foo\": null }", (\foo: nil)] */

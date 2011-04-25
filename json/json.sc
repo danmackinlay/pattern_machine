@@ -35,8 +35,8 @@ JsonParser {
     parsed = token.switch(
       \TOKEN_SQUARED_OPEN, { this.parseArray(); },
       \TOKEN_STRING, { this.parseString(); },
-      \TOKEN_ATOM, { this.parseAtom(); } /*,
-      \TOKEN_CURLY_OPEN, { ^this.parseObject(); },
+      \TOKEN_ATOM, { this.parseAtom(); },
+      \TOKEN_CURLY_OPEN, { ^this.parseObject(); } /*,
       \TOKEN_NUMBER, { ^this.parseNumber(); }, 
       \TOKEN_NONE //hmmmm;
       \TOKEN_END //hmmmm*/
@@ -110,6 +110,11 @@ JsonParser {
     // Dict/Event parser. The index pointer is be set to a {
     var newObject;
     newObject = Event.new();
+    // skip {
+    this.advanceIndex();
+    
+    
+    // skip }
     this.advanceIndex();
     ^newObject;
   }
@@ -161,9 +166,9 @@ JsonParser {
         });
         lastPos = parsedIndex.copy;
         switch (token,
-          /*\TOKEN_CURLY_OPEN, { 
+          \TOKEN_CURLY_OPEN, { 
             newArray = newArray.add(this.parseObject());
-          },*/
+          },
           \TOKEN_SQUARED_OPEN, {
             newArray = newArray.add(this.parseArray());
           },
@@ -224,6 +229,7 @@ JsonParser {
     );
     this.advanceIndex();
     
+    //skip final quote mark
     "Returning".postln;
     ((34.asAscii) ++ newString ++ (34.asAscii)).postln;
     ^newString;
