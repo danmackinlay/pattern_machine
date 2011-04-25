@@ -9,8 +9,9 @@ TestJsonParse : UnitTest {
   *initClass {
     //SC complains if I do this in the classvar defn. Pfft.
     qAndAList = [
-       ["[]", []],
-       ["[true, false, null, true, false]", [true, false, nil, true, false]] /*,
+      ["[]", []],
+      ["[true, false, null, true, false]", [true, false, nil, true, false]],
+      ["[\"true\", \"fot\", \"BAZ\"]", ["true", "fot", "BAZ"]] /*,
        ["[\"foo\"]", ["foo"]],
               ["[\"bar\", \"BAZ\"]", ["bar", "BAZ"]] */ /*,
        ["{}", ()],

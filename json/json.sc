@@ -199,7 +199,6 @@ JsonParser {
     ^newArray;
   }
   parseString {
-    var incomplete = true;
     var nextChar;
     var newString = "";
     var esc = false;
@@ -208,7 +207,6 @@ JsonParser {
     
     "parseString".postln;
     this.advanceIndex();
-    die("string!");
     while ( { 
       ( 
         (parsedIndex < jsonString.size) &&
@@ -224,6 +222,8 @@ JsonParser {
         this.advanceIndex();
       }
     );
+    this.advanceIndex();
+    
     "Returning".postln;
     ((34.asAscii) ++ newString ++ (34.asAscii)).postln;
     ^newString;
