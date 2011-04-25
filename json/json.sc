@@ -1,6 +1,6 @@
 /*
  * TODO - handle unicode escapes
- * call by name, ref or value semantics in the house?
+ *
  * Supercollider is from the land before 64 bit floats. Awkward.
  * Supercollider's unicode support is unspecified, but my heart is full of 
  *   fear.
@@ -8,7 +8,7 @@
 
 JsonParser {
   //SC has a broken parser w/r to escaped quotes
-  var parsedIndex, jsonString, token;
+  var parsedIndex, jsonString, thisToken, thisChar;
   //start here
   decode { arg jsonstr;
     // light wrapper around parseValue; set up state and go.
@@ -23,7 +23,7 @@ JsonParser {
     // Then delegate to specific parser.
     var parsed;
     this.toCurrentToken();
-    parsed = token.switch(
+    parsed = thisToken.switch(
       \TOKEN_SQUARED_OPEN, { this.parseArray(); },
       \TOKEN_STRING, { this.parseString(); },
       \TOKEN_ATOM, { this.parseAtom(); },
@@ -36,13 +36,14 @@ JsonParser {
   }
   advanceIndex { arg inc=1;
     parsedIndex = parsedIndex + inc;
+    thisChar = jsonString[parsedIndex];
   }
   toCurrentToken {
     this.eatWhiteSpace();
     
     if (parsedIndex >= (jsonString.size),
       { ^\TOKEN_END; });
-    token = switch (jsonString[parsedIndex],
+    thisToken = switch (thisChar,
              ${, { \TOKEN_CURLY_OPEN },
              $}, { \TOKEN_CURLY_CLOSE },
              $[, { \TOKEN_SQUARED_OPEN },
@@ -74,7 +75,7 @@ JsonParser {
     while (
       { 
         parsedIndex < jsonString.size &&
-        (jsonString[parsedIndex]).isSpace }, 
+        thisChar.isSpace }, 
       { 
         this.advanceIndex; 
       }
@@ -89,21 +90,21 @@ JsonParser {
     this.advanceIndex();
     this.toCurrentToken();
     while ( 
-      { token != \TOKEN_CURLY_CLOSE },
+      { thisToken != \TOKEN_CURLY_CLOSE },
       { 
         this.toCurrentToken(); //optionally skip spaces
         if ((lastPos == parsedIndex), {
           Error("Object parse is stuck at %!".format(parsedIndex)).throw;
         });
         lastPos = parsedIndex.copy;
-        if ((token != \TOKEN_STRING), {
+        if ((thisToken != \TOKEN_STRING), {
           Error(
             "no string key found in object at %".format(parsedIndex)
           ).throw;
         });
         name = this.parseString();
         this.toCurrentToken(); //optionally skip spaces
-        if ((token != \TOKEN_COLON), {
+        if ((thisToken != \TOKEN_COLON), {
           Error(
             "no separator : found in object at %".format(parsedIndex)
           ).throw;
@@ -111,7 +112,7 @@ JsonParser {
         this.advanceIndex();
         value = this.parseValue();
         this.toCurrentToken();
-        if ((token == \TOKEN_COMMA), {
+        if ((thisToken == \TOKEN_COMMA), {
           //we consume commas without checking for spurious or missing ones
           //probably should be smarter.
           this.advanceIndex();
@@ -121,7 +122,6 @@ JsonParser {
       }
     );
     
-    
     // skip }
     this.advanceIndex();
     ^newObject;
@@ -129,7 +129,9 @@ JsonParser {
   parseAtom {
     var lastPos, parsedVal;
     lastPos = parsedIndex.copy;
-    //parses true/false/nil/ index pointer refers to $t/$f/$n
+    //parses true/false/nil/
+    //index pointer refers to $t/$f/$n
+    
     parsedVal = case
       { jsonString.containsStringAt(parsedIndex, "false") } { 
         this.advanceIndex(5);
@@ -142,7 +144,7 @@ JsonParser {
         nil; }
       { true }{
         Error("unknown token '%' at % while parsing true/false/null".format(
-          jsonString[parsedIndex], parsedIndex
+          thisChar, parsedIndex
         )).throw;
       };
     
@@ -153,30 +155,32 @@ JsonParser {
   }
   parseArray { 
     // Array/List parser. The index pointer is set to a [
-    // The swtich could be optimised away into a parseValue as per parseArray.
+
     var newArray;
     var lastPos;
     var done = false;
     newArray = [];
     lastPos = parsedIndex.copy;
     
-    this.advanceIndex(); //skip "["
+    //skip "["
+    this.advanceIndex();
     
     while ( 
       { (done == false) },
       { 
         this.toCurrentToken(); //optionally skip spaces
-        if ((lastPos == parsedIndex), {
+         if ((lastPos == parsedIndex), {
           Error("Arrayparse is stuck at %!".format(parsedIndex)).throw;
         });
         lastPos = parsedIndex.copy;
-        if ((token == \TOKEN_SQUARED_CLOSE), {
+        if ((thisToken == \TOKEN_SQUARED_CLOSE), {
           this.advanceIndex();
+           //skip "]"
           done = true;
         }, {
           newArray = newArray.add(this.parseValue);
           this.toCurrentToken();
-          if ((token == \TOKEN_COMMA), {
+          if ((thisToken == \TOKEN_COMMA), {
             //commas are skipped. we should *require* them.
             this.advanceIndex();
           });
@@ -188,22 +192,22 @@ JsonParser {
   parseString {
     var nextChar;
     var newString = "";
-    var esc = false;
+    var escaped = false;
     //String parser is a rule unto itself;
     //Much smaller bestiary of tokens inside strings, so we do it all by hand
     
     this.advanceIndex();
-    while ( { 
-      ( 
-        (parsedIndex < jsonString.size) &&
-        ((jsonString[parsedIndex] != 34.asAscii) || (esc==true))
-      )},
+    while (
       {
-        if ( ( (jsonString[parsedIndex] != $\\) || (esc==true) ) , {
-            newString = newString ++ (jsonString[parsedIndex]);
-            esc = false;
+        (parsedIndex < jsonString.size) &&
+        ((thisChar != 34.asAscii) || (escaped==true))
+      },
+      {
+        if (((thisChar != $\\) || (escaped==true)) , {
+            newString = newString ++ thisChar;
+            escaped = false;
         }, {
-            esc = true;
+            escaped = true;
         });
         this.advanceIndex();
       }
@@ -224,9 +228,9 @@ JsonParser {
     
     while (
       { (parsedIndex < jsonString.size) &&
-          legalNumberChars.includes(jsonString[parsedIndex]) },
+          legalNumberChars.includes(thisChar) },
       {
-        numberString = numberString ++ (jsonString[parsedIndex]);
+        numberString = numberString ++ thisChar;
         this.advanceIndex();
       }
     );
