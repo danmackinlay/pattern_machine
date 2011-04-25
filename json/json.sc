@@ -9,15 +9,12 @@
 JsonParser {
   //SC has a broken parser w/r to escaped quotes
   var parsedIndex, jsonString, token;
-  var depth;
   //start here
   decode { arg jsonstr;
     // light wrapper around parseValue; set up state and go.
     // The only public method.
-    "decode".postln;
     jsonString = jsonstr;
     parsedIndex = 0;
-    depth = 0;
     ^this.parseValue(jsonString);
   }
   parseValue {
@@ -25,16 +22,7 @@ JsonParser {
     // First, consume whitespace until unambiguous token found.
     // Then delegate to specific parser.
     var parsed;
-    "parseValue".postln;
     this.toCurrentToken();
-    "this token".postln;
-    token.postln;
-    "parsedIndex".postln;
-    parsedIndex.postln;
-    depth = depth + 1;
-    if (depth > 20, {
-      Error("recursion explosion").throw;
-    });
     parsed = token.switch(
       \TOKEN_SQUARED_OPEN, { this.parseArray(); },
       \TOKEN_STRING, { this.parseString(); },
@@ -44,16 +32,12 @@ JsonParser {
       \TOKEN_NONE //hmmmm;
       \TOKEN_END //hmmmm*/
     );
-    "parseValue parsed %\n".postf(parsed);
     ^parsed;
   }
   advanceIndex { arg inc=1;
-    "advancing index by %\n".postf(inc);
     parsedIndex = parsedIndex + inc;
   }
   toCurrentToken {
-    "toCurrentToken".postln;
-    
     this.eatWhiteSpace();
     
     if (parsedIndex >= (jsonString.size),
@@ -83,30 +67,16 @@ JsonParser {
              $n, { \TOKEN_ATOM },
              nil, { \TOKEN_END },
              { \TOKEN_UNKNOWN });
-    "found token".postln;
-    token.postln;
-    "at".postln;
-    parsedIndex.postln;
   }
   eatWhiteSpace {
     //look for whitespace under the current cursor, and advance it
     // until there is none
-    "eatWhiteSpace".postln;
-    parsedIndex.postln;
-    jsonString[parsedIndex].postln;
     while (
       { 
-        "maybe white space at".postln;
-        parsedIndex.postln;
-        " / ".postln;
-        jsonString.size.postln;
-        jsonString[parsedIndex].postln;
         parsedIndex < jsonString.size &&
         (jsonString[parsedIndex]).isSpace }, 
       { 
         this.advanceIndex; 
-        "white space at".postln;
-        parsedIndex.postln;
       }
     );
   }
@@ -122,8 +92,6 @@ JsonParser {
       { token != \TOKEN_CURLY_CLOSE },
       { 
         this.toCurrentToken(); //optionally skip spaces
-        "in object % processing token %".postf(newObject, token);
-        "current pos % last pos %\n".postf(parsedIndex, lastPos);
         if ((lastPos == parsedIndex), {
           Error("Object parse is stuck at %!".format(parsedIndex)).throw;
         });
@@ -160,7 +128,6 @@ JsonParser {
   }
   parseAtom {
     var lastPos, parsedVal;
-    "parseAtom".postln;
     lastPos = parsedIndex.copy;
     //parses true/false/nil/ index pointer refers to $t/$f/$n
     parsedVal = case
@@ -191,7 +158,6 @@ JsonParser {
     var lastPos;
     var done = false;
     newArray = [];
-    "parseArray".postln;
     lastPos = parsedIndex.copy;
     
     this.advanceIndex(); //skip "["
@@ -200,51 +166,23 @@ JsonParser {
       { (done == false) },
       { 
         this.toCurrentToken(); //optionally skip spaces
-        "in array % processing token %".postf(newArray, token);
-        "current pos % last pos %\n".postf(parsedIndex, lastPos);
         if ((lastPos == parsedIndex), {
           Error("Arrayparse is stuck at %!".format(parsedIndex)).throw;
         });
         lastPos = parsedIndex.copy;
-        switch (token,
-          \TOKEN_CURLY_OPEN, { 
-            newArray = newArray.add(this.parseObject());
-          },
-          \TOKEN_SQUARED_OPEN, {
-            newArray = newArray.add(this.parseArray());
-          },
-          \TOKEN_STRING, {
-            newArray = newArray.add(this.parseString());
-          },
-          \TOKEN_NUMBER, {
-            newArray = newArray.add(this.parseNumber());
-          },
-          \TOKEN_ATOM, {
-            newArray = newArray.add(this.parseAtom());
-          },
-          \TOKEN_COMMA, {
+        if ((token == \TOKEN_SQUARED_CLOSE), {
+          this.advanceIndex();
+          done = true;
+        }, {
+          newArray = newArray.add(this.parseValue);
+          this.toCurrentToken();
+          if ((token == \TOKEN_COMMA), {
             //commas are skipped. we should *require* them.
             this.advanceIndex();
-          },
-          \TOKEN_SQUARED_CLOSE, {
-            "end array".postln;
-            this.advanceIndex();
-            done = true;
-          },
-          \TOKEN_END, { 
-            Error("the string ended while parsing array");
-          },
-          {
-            //raise some kind of parse error
-            Error("unknown token '%' at % while parsing array".format(
-              jsonString[parsedIndex], parsedIndex
-            ));
-          }
-        );
+          });
+        });
       }
     );
-    "Returning".postln;
-    newArray.postln;
     ^newArray;
   }
   parseString {
@@ -254,7 +192,6 @@ JsonParser {
     //String parser is a rule unto itself;
     //Much smaller bestiary of tokens inside strings, so we do it all by hand
     
-    "parseString".postln;
     this.advanceIndex();
     while ( { 
       ( 
@@ -274,8 +211,6 @@ JsonParser {
     this.advanceIndex();
     
     //skip final quote mark
-    "Returning".postln;
-    ((34.asAscii) ++ newString ++ (34.asAscii)).postln;
     ^newString;
   }
   parseNumber {
@@ -287,17 +222,14 @@ JsonParser {
     desc: (Private.) The token under the cursor is the start of a number. Eat tokens so long as they are plausibly numeric, then try to parse them using the asFloat method. Could do with better handling of malformed numbers (with multiple decimal points, minus signs, exponenets etc)
     @*/
     
-    "parseNumber".postln;
     while (
       { (parsedIndex < jsonString.size) &&
           legalNumberChars.includes(jsonString[parsedIndex]) },
       {
-        "digit %".postf(jsonString[parsedIndex]);
         numberString = numberString ++ (jsonString[parsedIndex]);
         this.advanceIndex();
       }
     );
-    "Returning %".postf(numberString);
     ^numberString.asFloat;
   }
 }
