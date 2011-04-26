@@ -3,18 +3,20 @@ JsonParser {
   shortDesc: JsonParser is a parser class for JSON-serialized documents
   longDesc: JSON is a lightweight format for serializing data and communication between languages. It supports hierarchical embedding of list and dictionary types and is spoken natively by browsers. This class supports decoding of strings using a single tokenization/parsing pass, which uses less memory than a two-pass process, but isn't as svelte as an evented stream decoder. Ah well.
   seeAlso: httpCOLON//json.org for the spec. 
-  issues: Note that a full JSON implementation appears to imply utf-8 encoding, which supercollider is coy about its support for. Also, JSON uses 64 bit floats, which supercollider does not, AFAIK. This parser is a little over-liberal with regard to missing or surplus commas.
+  issues: Note that a full JSON implementation appears to imply utf-8 encoding, which supercollider is coy about its support for. This parser is a little over-liberal with regard to missing or surplus commas.
   instDesc: you must instantiate to use the parser, as state is stored in the instance. 
   longInstDesc: Instantiation takes no arguments; pass the string you want to decode to the <strong>decode</strong> method of an instance. All other methods should be considered private. The parser object is re-usable if you wish to keep it around to decode multiple strings.
   @*/
+  
   var parseCursor, jsonString, thisToken, thisChar;
-  //start here
+
   decode { arg jsonstr;
     /*@
     desc: The public interface of the instance is this method. It sets up state then invokes sub parsers to walk through the string.
     jsonstr: the string of JSON to parse.
     ex:
-    JsonParser.new.decode("[1,2,3]").postln ; 
+    JsonParser.new.decode("[1,2,3]").postln ;
+    
     @*/
     
     jsonString = jsonstr;
@@ -24,7 +26,7 @@ JsonParser {
   }
   parseValue {
     /*@
-    desc: (Private.) Parse unspecified object - first consume whitespace until unambiguous token found - then delegate to parser based on that token. TODO: handle premature json string ending and unknown characters.
+    desc: (Private.) Parse unspecified object - first consume whitespace until unambiguous token found - then delegate to parser based on that token. TODO-- handle premature json string ending and unknown characters.
     @*/
     var parsed;
     this.toCurrentToken();

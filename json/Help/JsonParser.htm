@@ -48,7 +48,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p2"><br></p>
 <p class="p4"><b>Other Issues</b></p>
 <p class="p2"><br></p>
-<p class="p1"> Note that a full JSON implementation appears to imply utf-8 encoding, which supercollider is coy about its support for. Also, JSON uses 64 bit floats, which supercollider does not, AFAIK. This parser is a little over-liberal with regard to missing or surplus commas.</a></p>
+<p class="p1"> Note that a full JSON implementation appears to imply utf-8 encoding, which supercollider is coy about its support for. This parser is a little over-liberal with regard to missing or surplus commas.</a></p>
 <p class="p2"><br></p>
  
 <p class="p4"><b>Creation / Class Methods</b></p>
@@ -72,7 +72,7 @@ span.Apple-tab-span {white-space:pre}
 <p class="p7"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
 <p class="p9"><span class="s4"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></span>// Example</p>
 <p class="p10"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></p>
- <p class="p10"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>    JsonParser.new.decode("[1,2,3]").postln ; </p> <p class="p5"><br></p>
+ <p class="p10"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>    JsonParser.new.decode("[1,2,3]").postln ;</p> <p class="p10"><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span>    </p> <p class="p5"><br></p>
  
 <p class="p6"><b><span class="Apple-tab-span">	</span>parseValue (this)</b></p>
  
@@ -118,6 +118,6 @@ span.Apple-tab-span {white-space:pre}
  
 <p class="p6"><b><span class="Apple-tab-span">	</span>parseNumber (this)</b></p>
  
-<p class="p6"><b><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b> (Private.) The token under the cursor is the start of a number. Eat tokens so long as they are plausibly numeric, then try to parse them using the asFloat method. Could do with better handling of malformed numbers (with multiple decimal points, minus signs, exponenets etc)</p>
+<p class="p6"><b><span class="Apple-tab-span">	</span><span class="Apple-tab-span">	</span></b> (Private.) The token under the cursor is the start of a number. Eat tokens so long as they are plausibly numeric, then try to parse them using the asFloat method. Could do with better handling of malformed numbers (with multiple decimal points, minus signs, exponents etc)</p>
  <p class="p5"><br></p>
  </body> </html>
