@@ -3,5 +3,5 @@
 	\path: "json",
 	\summary: "JSON parser",
 	\author: "parking sun",
-	\helpdoc: "Help/json.htm"
+	\helpdoc: "Help/JsonParser.htm"
 )

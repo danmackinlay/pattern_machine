@@ -1,26 +1,31 @@
-/*
- * TODO - handle unicode escapes
- *
- * Supercollider is from the land before 64 bit floats. Awkward.
- * Supercollider's unicode support is unspecified, but my heart is full of 
- *   fear.
- */
-
 JsonParser {
-  //SC has a broken parser w/r to escaped quotes
-  var parsedIndex, jsonString, thisToken, thisChar;
+  /*@
+  shortDesc: JsonParser is a parser class for JSON-serialized documents
+  longDesc: JSON is a lightweight format for serializing data and communication between languages. It supports hierarchical embedding of list and dictionary types and is spoken natively by browsers. This class supports decoding of strings using a single tokenization/parsing pass, which uses less memory than a two-pass process, but isn't as svelte as an evented stream decoder. Ah well.
+  seeAlso: httpCOLON//json.org for the spec. 
+  issues: Note that a full JSON implementation appears to imply utf-8 encoding, which supercollider is coy about its support for. Also, JSON uses 64 bit floats, which supercollider does not, AFAIK. This parser is a little over-liberal with regard to missing or surplus commas.
+  instDesc: you must instantiate to use the parser, as state is stored in the instance. 
+  longInstDesc: Instantiation takes no arguments; pass the string you want to decode to the <strong>decode</strong> method of an instance. All other methods should be considered private. The parser object is re-usable if you wish to keep it around to decode multiple strings.
+  @*/
+  var parseCursor, jsonString, thisToken, thisChar;
   //start here
   decode { arg jsonstr;
-    // light wrapper around parseValue; set up state and go.
-    // The only public method.
+    /*@
+    desc: The public interface of the instance is this method. It sets up state then invokes sub parsers to walk through the string.
+    jsonstr: the string of JSON to parse.
+    ex:
+    JsonParser.new.decode("[1,2,3]").postln ; 
+    @*/
+    
     jsonString = jsonstr;
-    parsedIndex = 0;
+    parseCursor = 0;
+    thisChar = jsonstr[parseCursor];
     ^this.parseValue(jsonString);
   }
   parseValue {
-    // Parse unknown object:
-    // First, consume whitespace until unambiguous token found.
-    // Then delegate to specific parser.
+    /*@
+    desc: (Private.) Parse unspecified object - first consume whitespace until unambiguous token found - then delegate to parser based on that token. TODO: handle premature json string ending and unknown characters.
+    @*/
     var parsed;
     this.toCurrentToken();
     parsed = thisToken.switch(
@@ -34,14 +39,21 @@ JsonParser {
     );
     ^parsed;
   }
-  advanceIndex { arg inc=1;
-    parsedIndex = parsedIndex + inc;
-    thisChar = jsonString[parsedIndex];
+  advanceCursor { arg inc=1;
+    /*@
+    desc: (Private.) advance the cursor by a specified increment - usually 1, since that is the length of most tokens.
+    inc: cursor increment
+    @*/
+    parseCursor = parseCursor + inc;
+    thisChar = jsonString[parseCursor];
   }
   toCurrentToken {
+    /*@
+    desc: (Private.) This method increments the cursor to the next non-whitespace character so that we are pointing to a real token.
+    @*/
     this.eatWhiteSpace();
     
-    if (parsedIndex >= (jsonString.size),
+    if (parseCursor >= (jsonString.size),
       { ^\TOKEN_END; });
     thisToken = switch (thisChar,
              ${, { \TOKEN_CURLY_OPEN },
@@ -70,52 +82,55 @@ JsonParser {
              { \TOKEN_UNKNOWN });
   }
   eatWhiteSpace {
-    //look for whitespace under the current cursor, and advance it
-    // until there is none
+    /*@
+    desc: (Private.) if there is whitespace under the  cursor, fast forward until there is not.
+    @*/
     while (
       { 
-        parsedIndex < jsonString.size &&
+        parseCursor < jsonString.size &&
         thisChar.isSpace }, 
       { 
-        this.advanceIndex; 
+        this.advanceCursor; 
       }
     );
   }
   parseObject { 
-    // Dict/Event parser. The index pointer is be set to a {
+    /*@
+    desc: (Private.) The token under the cursor is the opening curly brace of an object. parse it and successive characters accordingly 
+    @*/
     var newObject, name, value, done, lastPos;
     done = false;
     newObject = Event.new();
     // skip {
-    this.advanceIndex();
+    this.advanceCursor();
     this.toCurrentToken();
     while ( 
       { thisToken != \TOKEN_CURLY_CLOSE },
       { 
         this.toCurrentToken(); //optionally skip spaces
-        if ((lastPos == parsedIndex), {
-          Error("Object parse is stuck at %!".format(parsedIndex)).throw;
+        if ((lastPos == parseCursor), {
+          Error("Object parse is stuck at %!".format(parseCursor)).throw;
         });
-        lastPos = parsedIndex.copy;
+        lastPos = parseCursor.copy;
         if ((thisToken != \TOKEN_STRING), {
           Error(
-            "no string key found in object at %".format(parsedIndex)
+            "no string key found in object at %".format(parseCursor)
           ).throw;
         });
         name = this.parseString();
         this.toCurrentToken(); //optionally skip spaces
         if ((thisToken != \TOKEN_COLON), {
           Error(
-            "no separator : found in object at %".format(parsedIndex)
+            "no separator : found in object at %".format(parseCursor)
           ).throw;
         });
-        this.advanceIndex();
+        this.advanceCursor();
         value = this.parseValue();
         this.toCurrentToken();
         if ((thisToken == \TOKEN_COMMA), {
           //we consume commas without checking for spurious or missing ones
           //probably should be smarter.
-          this.advanceIndex();
+          this.advanceCursor();
           this.toCurrentToken();
         });
         newObject[name] = value;
@@ -123,58 +138,60 @@ JsonParser {
     );
     
     // skip }
-    this.advanceIndex();
+    this.advanceCursor();
     ^newObject;
   }
   parseAtom {
     var lastPos, parsedVal;
-    lastPos = parsedIndex.copy;
-    //parses true/false/nil/
-    //index pointer refers to $t/$f/$n
+    lastPos = parseCursor.copy;
+    /*@
+    desc: (Private.) The token under the cursor must be the start of [true|false|null].
+    @*/
     
     parsedVal = case
-      { jsonString.containsStringAt(parsedIndex, "false") } { 
-        this.advanceIndex(5);
+      { jsonString.containsStringAt(parseCursor, "false") } { 
+        this.advanceCursor(5);
         false; }
-      { jsonString.containsStringAt(parsedIndex, "true") } { 
-        this.advanceIndex(4);
+      { jsonString.containsStringAt(parseCursor, "true") } { 
+        this.advanceCursor(4);
         true; }
-      { jsonString.containsStringAt(parsedIndex, "null") } { 
-        this.advanceIndex(4);
+      { jsonString.containsStringAt(parseCursor, "null") } { 
+        this.advanceCursor(4);
         nil; }
       { true }{
         Error("unknown token '%' at % while parsing true/false/null".format(
-          thisChar, parsedIndex
+          thisChar, parseCursor
         )).throw;
       };
     
-    if ((lastPos == parsedIndex), {
-      Error("Atom parse at % while parsing atom".format(parsedIndex)).throw;
+    if ((lastPos == parseCursor), {
+      Error("Atom parse at % while parsing atom".format(parseCursor)).throw;
     });
     ^parsedVal;
   }
-  parseArray { 
-    // Array/List parser. The index pointer is set to a [
-
+  parseArray {
+    /*@
+    desc: (Private.) The token under the is the opening brace of an array. Parse the successive characters as list contents.
+    @*/
     var newArray;
     var lastPos;
     var done = false;
     newArray = [];
-    lastPos = parsedIndex.copy;
+    lastPos = parseCursor.copy;
     
     //skip "["
-    this.advanceIndex();
+    this.advanceCursor();
     
     while ( 
       { (done == false) },
       { 
         this.toCurrentToken(); //optionally skip spaces
-         if ((lastPos == parsedIndex), {
-          Error("Arrayparse is stuck at %!".format(parsedIndex)).throw;
+         if ((lastPos == parseCursor), {
+          Error("Arrayparse is stuck at %!".format(parseCursor)).throw;
         });
-        lastPos = parsedIndex.copy;
+        lastPos = parseCursor.copy;
         if ((thisToken == \TOKEN_SQUARED_CLOSE), {
-          this.advanceIndex();
+          this.advanceCursor();
            //skip "]"
           done = true;
         }, {
@@ -182,7 +199,7 @@ JsonParser {
           this.toCurrentToken();
           if ((thisToken == \TOKEN_COMMA), {
             //commas are skipped. we should *require* them.
-            this.advanceIndex();
+            this.advanceCursor();
           });
         });
       }
@@ -193,13 +210,14 @@ JsonParser {
     var nextChar;
     var newString = "";
     var escaped = false;
-    //String parser is a rule unto itself;
-    //Much smaller bestiary of tokens inside strings, so we do it all by hand
+    /*@
+    desc: (Private.) The token under the cursor is the first quote of a string. Parse the accordingly. (this string parser is a rule unto itself; there is a smaller bestiary of tokens inside strings than in lists or arrays, so we do it all by hand.
+    @*/
     
-    this.advanceIndex();
+    this.advanceCursor();
     while (
       {
-        (parsedIndex < jsonString.size) &&
+        (parseCursor < jsonString.size) &&
         ((thisChar != 34.asAscii) || (escaped==true))
       },
       {
@@ -209,10 +227,10 @@ JsonParser {
         }, {
             escaped = true;
         });
-        this.advanceIndex();
+        this.advanceCursor();
       }
     );
-    this.advanceIndex();
+    this.advanceCursor();
     
     //skip final quote mark
     ^newString;
@@ -223,15 +241,15 @@ JsonParser {
     var legalNumberChars = Set[$0, $1, $2, $3, $4, $5, $6, $7, $8, $9,
       $e, $E, $., $-, $+];
     /*@
-    desc: (Private.) The token under the cursor is the start of a number. Eat tokens so long as they are plausibly numeric, then try to parse them using the asFloat method. Could do with better handling of malformed numbers (with multiple decimal points, minus signs, exponenets etc)
+    desc: (Private.) The token under the cursor is the start of a number. Eat tokens so long as they are plausibly numeric, then try to parse them using the asFloat method. Could do with better handling of malformed numbers (with multiple decimal points, minus signs, exponents etc)
     @*/
     
     while (
-      { (parsedIndex < jsonString.size) &&
+      { (parseCursor < jsonString.size) &&
           legalNumberChars.includes(thisChar) },
       {
         numberString = numberString ++ thisChar;
-        this.advanceIndex();
+        this.advanceCursor();
       }
     );
     ^numberString.asFloat;
