@@ -29,8 +29,13 @@ SynthDef(\warp, {arg pitch = 1;
 	they_said = i_said;      //We don't have a good feedback bus yet, so just use our own outs for now.
 	loudness = Lag.ar(Mix.new(i_said*i_said), window_time); //autocorrelate.
 	A2K.kr(loudness).poll;
+	SendTrig.kr(LFPulse.kr(window_time.reciprocal),0,loudness);
 }).send(s);
 
+// register to receive this message
+OSCresponder(s.addr,'/tr',{ arg time,responder,msg;
+	[time,responder,msg].postln;
+}).add;
 )
 
 x = Synth(\warp, [\pitch, 1]);
