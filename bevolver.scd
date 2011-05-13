@@ -23,13 +23,13 @@ SynthDef(\warp, {arg pitch = 1;
 		env,		// level
 		2			// width
 	);
-	LocalOut.ar(outmono);    //This is my voice. I will look for it in the output
-	Out.ar(0, outmix);       //I output it panned
 	i_said = LocalIn.ar(1);
-	they_said = i_said;      //We don't have a good feedback bus yet, so just use our own outs for now.
+	LocalOut.ar(outmono);    //This is my voice. I will look for it in the output.
+	Out.ar(0, outmix);       //I output it panned
+	they_said = i_said;      //We don't have a good feedback bus yet
 	loudness = Lag.ar(Mix.new(i_said*i_said), window_time); //autocorrelate.
 	A2K.kr(loudness).poll;
-	SendTrig.kr(LFPulse.kr(window_time.reciprocal),0,loudness);
+	//SendTrig.kr(LFPulse.kr(window_time.reciprocal),0,loudness);
 }).send(s);
 
 // register to receive this message
@@ -42,4 +42,11 @@ x = Synth(\warp, [\pitch, 1]);
 x = Synth(\warp, [\pitch, 1.5]);
 x = Synth(\warp, [\pitch, 2]);
 x.free;
-	
+
+/*
+
+TODO:
+* do loudness calcs at kr (after autocorrelation, at least)
+
+
+*/
