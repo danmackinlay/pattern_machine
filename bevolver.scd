@@ -4,14 +4,25 @@ s.boot;
 ~chanz=2;
 b = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 (
-SynthDef(\warp, {|pitch = 1, pointer = 0.0, gain = -12.0, pan=0.0, windowSize=0.1, freqNote=64.0, rQ=0.5|
+SynthDef(\warp, {
+	|gate = 1,
+	 pitch = 1, 
+	 pointer = 0.0,
+	 gain = -12.0,
+	 pan=0.0,
+	 windowSize=0.1,
+	 freqNote=64.0,
+	 rQ=0.5|
 	//synth vars
 	var env, buffer, outMix, outMono;
 	//analysis vars
 	var iSaid, theySaid, discernability, myPresence, overallPresence, discernmentTime;
 	discernmentTime = 1; //resp time in seconds
 	buffer = b;
-	env = EnvGen.kr(Env([0.001, 1, 1, 0.001], [0.1, 14, 0.9], 'exp'), doneAction: 2);
+	env = EnvGen.kr(
+	  Env.cutoff(1, 1, 'linear'),
+	  gate: gate,
+	  doneAction: 2);
 	outMono = Resonz.ar(
 		Warp1.ar(
 		    1,				// num channels (Class claims only mono works)
@@ -39,8 +50,10 @@ SynthDef(\warp, {|pitch = 1, pointer = 0.0, gain = -12.0, pan=0.0, windowSize=0.
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
 	Out.ar(0, outMix);		//I output it panned
 	theySaid = iSaid;			//We don't have a good feedback bus yet
-	discernability = Lag.ar(Mix.new(iSaid*iSaid), discernmentTime); //autocorrelate.
-	A2K.kr(discernability).poll;
+	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
+	overallPresence = A2K.kr(Lag.ar(theySaid*theySaid, discernmentTime));
+	discernability = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime)); //autocorrelate.
+	//A2K.kr(discernability).poll;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernability);
 }).send(s);
 
@@ -51,10 +64,12 @@ OSCresponder(s.addr,'/tr',{ arg time,responder,msg;
 )
 
 x = Synth(\warp, [\pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
+x.release();
 x = Synth(\warp, [\pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
 x = Synth(\warp, [\pitch, 1.5]);
 x = Synth(\warp, [\pitch, 2]);
 x.free;
+
 
 /*
 
