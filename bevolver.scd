@@ -24,7 +24,7 @@ SynthDef(\particle, {
 	//synth vars
 	var env, outMix, outMono;
 	//analysis vars
-	var iSaid, theySaid, discernability, myPresence, overallPresence, discernmentTime;
+	var iSaid, theySaid, discernibility, myPresence, overallPresence, discernmentTime;
 	discernmentTime = 1; //resp time in seconds
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
@@ -58,9 +58,9 @@ SynthDef(\particle, {
 	theySaid = iSaid;			//We don't have a feedback bus yet
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
 	overallPresence = A2K.kr(Lag.ar(theySaid*theySaid, discernmentTime));
-	discernability = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime)); //autocorrelate.
-	//A2K.kr(discernability).poll;
-	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernability);
+	discernibility = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime)); //autocorrelate.
+	//A2K.kr(discernibility).poll;
+	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }).send(s);
 )
 
@@ -71,7 +71,7 @@ o=Proto({
 	~myBuf = nil;
 	~myOut = nil;
 	~fbin = nil;
-	~discernability = 0;
+	~discernibility = 0;
 	~responder = 0;
 	//if setUp is run lots, it leaks memory. just so you know.
 	~setUp = { |server,
@@ -84,13 +84,13 @@ o=Proto({
 		~fbin=fbin;
 		~synth=Synth.newPaused(\particle, [\fbin, ~fbin, \out, ~myOut]);
 		NodeWatcher.register(~synth, true);
-		~discernability=0.0;
+		~discernibility=0.0;
 		/* how you set up callbacks with sane binding:
 		http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Event-and-prototypes-tp6208222p6226707.html */
 		~responder = o = OSCpathResponder(~myServer.addr, ['/tr', ~synth.nodeID, 0],
 			inEnvir { |t,r,msg|
 				if (msg[1] == ~synth.nodeID) {
-					~discernability=msg[3];
+					~discernibility=msg[3];
 		    	};
 			};
 		).add;
@@ -127,7 +127,7 @@ p=o.copy();
 p.setUp(s, ~fb, ~outs, ~buf);
 p.synthesize();
 p.synthesize(4);
-p.discernability;
+p.discernibility;
 p.synth.nodeID;
 OSCResponderNode
 p.synth.responder;
@@ -143,8 +143,8 @@ x.free;
 TODO
 ====
 
-* do discernability calcs at kr (after autocorrelation, at least)
-* need discernability measured against general RMS volume
+* do discernibility calcs at kr (after autocorrelation, at least)
+* need discernibility measured against general RMS volume
 * go from stereo to ambisonic
 
 */
