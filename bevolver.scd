@@ -4,12 +4,9 @@ s.options.numInputBusChannels;
 
 (
 ~outs = Bus.new(\audio, 0, 2);
-~fb = Bus.audio(s, 2); 
-~globalPresence = Bus.audio(s,1);
-~buf = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 
 SynthDef(\particle, {
-	|fbin,
+	|fbBus,
 	 out = 0,
 	 buffer = 0,
 	 gate = 1,
@@ -18,7 +15,7 @@ SynthDef(\particle, {
 	 gain = -12.0,
 	 pan = 0.0,
 	 windowSize = 0.1,
-	 freqNote = 64.0,
+	 filtFreq = 600.0,
 	 rQ = 0.5|
 	//synth vars
 	var env, outMix, outMono;
@@ -42,7 +39,7 @@ SynthDef(\particle, {
 		    2,				// interp (2=linear)
 		    gain.dbamp	// mul
 		),
-		freqNote.midicps,
+		filtFreq,
 		rQ
 	);
 	outMix = Pan2.ar(
@@ -53,7 +50,7 @@ SynthDef(\particle, {
 	iSaid = LocalIn.ar(1);
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	//theySaid = InFeedback(fbin);
+	//theySaid = InFeedback(fbBus);
 	theySaid = iSaid;			//We don't have a feedback bus yet
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
 	overallPresence = A2K.kr(Lag.ar(theySaid*theySaid, discernmentTime));
@@ -68,33 +65,52 @@ o=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~myOut = nil;
-	~fbin = nil;
+	~fbBus = nil;
 	~discernibility = 0;
 	~responder = 0;
+	~globalPresence = nil;
+	~chromosome = nil;
+
 	/*if setUp is run lots,
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
-
-	~setUp = { |server,
-			fbin,
-			out=0,
-			buffer|
-		~myServer=server ? s;
+	~updateChromosome = { |chrom|
+		if (chrom.isNil) {chrom = Array.fill(7,{1.0.rand});};
+		~chromosome = chrom;
+		~synth.set(
+			\pitch,		chrom[0].linexp(0.0,  1.0,   0.1,     10.0),
+			\pointer,		chrom[1].linlin(0.0,  1.0,   0.0,      1.0),
+			\gain,			chrom[2].linlin(0.0,  1.0, -30.0,      6.0),
+			\pan,			chrom[3].linlin(0.0,  1.0,  -1.0,      1.0),
+			\windowSize,	chrom[4].linexp(0.0,  1.0,   0.01,    10.0),
+			\filtFreq,		chrom[5].linexp(0.0,  1.0,  40.0,  12000.0),
+			\rQ, 			chrom[6].linexp(0.0,  1.0,   0.0,      1.0)
+		);
+		~synth.run(true);
+	};
+	~setUp = {|server,
+			fbBus,
+			out,
+			buffer,
+			globalPresence,
+			chromosome|
+		~myServer=server;
 		~myOut=out;
 		~myBuf=buffer;
-		~fbin=fbin;
-		~synth=Synth.newPaused(\particle, [\fbin, ~fbin, \out, ~myOut]);
+		~globalPresence=globalPresence;
+		~fbBus=fbBus;
+		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut]);
 		NodeWatcher.register(~synth, true);
 		~discernibility=0.0;
 		/* how you set up callbacks with sane binding:
 		http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Event-and-prototypes-tp6208222p6226707.html */
-		~responder = o = OSCpathResponder(~myServer.addr, ['/tr', ~synth.nodeID, 0],
-			inEnvir { |t,r,msg|
-				if (msg[1] == ~synth.nodeID) {
-					~discernibility=msg[3];
-		    	};
-			};
-		).add;
+		~responder = OSCpathResponder(
+			~myServer.addr,
+			['/tr', ~synth.nodeID, 0],
+			inEnvir { |t,r,msg| ~discernibility=msg[3];}
+		);
+		~responder.add();
+		~updateChromosome.(chromosome);
        currentEnvironment;
 	};
 	~synthesize = { |pitch = 1,
@@ -102,44 +118,80 @@ o=Proto({
 			gain = -12.0,
 			pan=0.0,
 			windowSize=0.1,
-			freqNote=64.0,
+			filtFreq=64.0,
 			rQ=0.5|
-		pitch.postln;
+		["pitch", pitch].postln;
 		~synth.set(
 			\pitch, pitch,
 			\pointer, pointer,
 			\gain, gain,
+			\pan, pan,
 			\windowSize, windowSize,
-			\freqNote, freqNote,
+			\filtFreq, filtFreq,
 			\rQ, rQ
 		);
 		~synth.run(true);
 	};
-	~tearDown ={
+	~tearDown = {
 		~synth.release();
 		~responder.remove();
+	};
+});
+
+n=Proto({
+	//A factory and manager for a bunch of particles
+	~particles = nil;
+	~numParticles = 10;
+	~myServer = nil;
+	~myBuf = nil;
+	~myOut = nil;
+	~fb = nil;
+
+	~setUp = {|server,
+			out,
+			buffer|
+		~myServer=server;
+		~myOut=out;
+		~myBuf=buffer;
+		~particles=List();
+		~fb = Bus.audio(s, 2); 
+		~globalPresence = Bus.audio(s,1);
+		~buf = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
+		currentEnvironment;
+	};
+	~tearDown = {
+		~particles.do({|p| p.tearDown(); });
+		~fb.free();
+		~globalPresence.free();
+		~buf.free();
+	};
+	~addParticle = {
+		var particle;
+		particle = o.copy.setUp(~myServer, ~fb, ~outs, ~buf);
+		~particles.add(particle);
+		particle.synthesize();
 	};
 });
 )
 
 (
 p.tearDown();
-p=o.copy.setUp(s, ~fb, ~outs, ~buf);
-p.synth;
+//p=o.copy.setUp(s, ~fb, ~outs, ~buf);
+q=n.copy.setUp(s, ~outs, ~buf);
+p.tearDown();
 p.setUp(s, ~fb, ~outs, ~buf);
 p.synthesize();
 p.synthesize(4);
 p.discernibility;
-p.synth.nodeID;
-OSCResponderNode
-p.synth.responder;
+p.responder.remove();
 )
 
-x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
+x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
 x.release();
-x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
-x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1.5]);
-x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 2]);
+x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
+x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1.5]);
+x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 2]);
+
 x.free;
 /*
 TODO
@@ -148,5 +200,5 @@ TODO
 * do discernibility calcs at kr (after autocorrelation, at least)
 * need discernibility measured against general RMS volume
 * go from stereo to ambisonic
-
+* use Delay instead of LocalIn. (maybe faster?)
 */
