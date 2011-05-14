@@ -4,9 +4,9 @@ s.boot;
 ~chanz=2;
 b = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 (
-SynthDef(\warp, {
+SynthDef(\particle, {
 	|gate = 1,
-	 pitch = 1, 
+	 pitch = 1,
 	 pointer = 0.0,
 	 gain = -12.0,
 	 pan=0.0,
@@ -63,11 +63,11 @@ OSCresponder(s.addr,'/tr',{ arg time,responder,msg;
 }).add;
 )
 
-x = Synth(\warp, [\pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
+x = Synth(\particle, [\pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
 x.release();
-x = Synth(\warp, [\pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
-x = Synth(\warp, [\pitch, 1.5]);
-x = Synth(\warp, [\pitch, 2]);
+x = Synth(\particle, [\pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
+x = Synth(\particle, [\pitch, 1.5]);
+x = Synth(\particle, [\pitch, 2]);
 x.free;
 
 
