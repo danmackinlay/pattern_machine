@@ -1,11 +1,19 @@
 s.boot;
+s.options.numOutputBusChannels;
+s.options.numInputBusChannels;
 
-
-~chanz=2;
-b = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 (
+~chanz=2;
+~outs = Bus.new(\audio, 0, ~chanz);
+~fb = Bus.audio(s, ~chanz); 
+
+~b = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
+
+
 SynthDef(\particle, {
-	|gate = 1,
+	|fbin,
+	 out=0,
+	 gate = 1,
 	 pitch = 1,
 	 pointer = 0.0,
 	 gain = -12.0,
@@ -48,7 +56,8 @@ SynthDef(\particle, {
 	);
 	iSaid = LocalIn.ar(1);
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
-	Out.ar(0, outMix);		//I output it panned
+	Out.ar(out, outMix);		//I output it panned
+	//theySaid = InFeedback(fbin);
 	theySaid = iSaid;			//We don't have a good feedback bus yet
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
 	overallPresence = A2K.kr(Lag.ar(theySaid*theySaid, discernmentTime));
@@ -62,17 +71,15 @@ OSCresponder(s.addr,'/tr',{ arg time,responder,msg;
 	[time,responder,msg].postln;
 }).add;
 )
-
-x = Synth(\particle, [\pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
+x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
 x.release();
-x = Synth(\particle, [\pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
-x = Synth(\particle, [\pitch, 1.5]);
-x = Synth(\particle, [\pitch, 2]);
+x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
+x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1.5]);
+x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 2]);
 x.free;
 
 
 /*
-
 TODO
 ====
 
