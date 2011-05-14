@@ -3,10 +3,10 @@ s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 
 (
-~outs = Bus.new(\audio, 0, ~chanelz);
-~fb = Bus.audio(s, ~chanelz); 
+~outs = Bus.new(\audio, 0, 2);
+~fb = Bus.audio(s, 2); 
 ~globalPresence = Bus.audio(s,1);
-~b = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
+~buf = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 
 
 SynthDef(\particle, {
@@ -55,42 +55,82 @@ SynthDef(\particle, {
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
 	//theySaid = InFeedback(fbin);
-	theySaid = iSaid;			//We don't have a good feedback bus yet
+	theySaid = iSaid;			//We don't have a feedback bus yet
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
 	overallPresence = A2K.kr(Lag.ar(theySaid*theySaid, discernmentTime));
 	discernability = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime)); //autocorrelate.
 	//A2K.kr(discernability).poll;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernability);
 }).send(s);
+)
 
-~particle = Proto({
-	~setUp = { |fbin,
-			out=0|
-		~out=out;
-		~fbin=~fbin;
+(
+o=Proto({
+	~synth = nil;
+	~myServer = nil;
+	~myBuf = nil;
+	~myOut = nil;
+	~fbin = nil;
+	~discernability = 0;
+	~responder = 0;
+	//if setUp is run lots, it leaks memory. just so you know.
+	~setUp = { |server,
+			fbin,
+			out=0,
+			buffer|
+		~myServer=server ? s;
+		~myOut=out;
+		~myBuf=buffer;
+		~fbin=fbin;
+		~synth=Synth.newPaused(\particle, [\fbin, ~fbin, \out, ~myOut]);
+		NodeWatcher.register(~synth, true);
+		~discernability=0.0;
+		/* how you set up callbacks with sane binding:
+		http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Event-and-prototypes-tp6208222p6226707.html */
+		~responder = o = OSCpathResponder(~myServer.addr, ['/tr', ~synth.nodeID, 0],
+			inEnvir { |t,r,msg|
+				if (msg[1] == ~synth.nodeID) {
+					~discernability=msg[3];
+		    	};
+			};
+		).add;
+
 	};
-	~inst = { |pitch = 1,
+	~synthesize = { |pitch = 1,
 			pointer = 0.0,
 			gain = -12.0,
 			pan=0.0,
 			windowSize=0.1,
 			freqNote=64.0,
 			rQ=0.5|
-		if (~synth.isPlaying) {~synth.release();};
-		~synth = Synth(\particle, [\fbin, ~fbin, \out, ~out, \pitch, pitch,
-			\pointer, pointer, \gain, gain, \windowSize, windowSize, \freqNote, freqNote,
-			\rQ, rQ]);
-		NodeWatcher.register(~synth, true)
+		pitch.postln;
+		~synth.set(
+			\pitch, pitch,
+			\pointer, pointer,
+			\gain, gain,
+			\windowSize, windowSize,
+			\freqNote, freqNote,
+			\rQ, rQ
+		);
+		~synth.run(true);
 	};
-	~destroy ={
+	~tearDown ={
 		~synth.release();
+		~responder.remove();
 	};
 });
+)
 
-// register to receive this message
-OSCresponder(s.addr,'/tr',{ arg time,responder,msg;
-	[time,responder,msg].postln;
-}).add;
+(
+p.tearDown();
+p=o.copy();
+p.setUp(s, ~fb, ~outs, ~buf);
+p.synthesize();
+p.synthesize(4);
+p.discernability;
+p.synth.nodeID;
+OSCResponderNode
+p.synth.responder;
 )
 
 x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
@@ -104,7 +144,7 @@ TODO
 ====
 
 * do discernability calcs at kr (after autocorrelation, at least)
-* need discernability measured against general RMS vaolume
+* need discernability measured against general RMS volume
 * go from stereo to ambisonic
 
 */
