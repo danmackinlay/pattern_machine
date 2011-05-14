@@ -3,30 +3,29 @@ s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 
 (
-~chanz=2;
-~outs = Bus.new(\audio, 0, ~chanz);
-~fb = Bus.audio(s, ~chanz); 
-
+~outs = Bus.new(\audio, 0, ~chanelz);
+~fb = Bus.audio(s, ~chanelz); 
+~globalPresence = Bus.audio(s,1);
 ~b = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 
 
 SynthDef(\particle, {
 	|fbin,
-	 out=0,
+	 out = 0,
+	 buffer = 0,
 	 gate = 1,
 	 pitch = 1,
 	 pointer = 0.0,
 	 gain = -12.0,
-	 pan=0.0,
-	 windowSize=0.1,
-	 freqNote=64.0,
-	 rQ=0.5|
+	 pan = 0.0,
+	 windowSize = 0.1,
+	 freqNote = 64.0,
+	 rQ = 0.5|
 	//synth vars
-	var env, buffer, outMix, outMono;
+	var env, outMix, outMono;
 	//analysis vars
 	var iSaid, theySaid, discernability, myPresence, overallPresence, discernmentTime;
 	discernmentTime = 1; //resp time in seconds
-	buffer = b;
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
 	  gate: gate,
@@ -47,12 +46,10 @@ SynthDef(\particle, {
 		freqNote.midicps,
 		rQ
 	);
-	outMix = PanAz.ar(
-		~chanz,	// numChans
-		outMono,	// in
-		pan,		// field pos
-		env,		// level
-		2			// width
+	outMix = Pan2.ar(
+		in: outMono,	// in
+		pos: pan,		// field pos
+		level: env		// level
 	);
 	iSaid = LocalIn.ar(1);
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
@@ -66,24 +63,48 @@ SynthDef(\particle, {
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernability);
 }).send(s);
 
+~particle = Proto({
+	~setUp = { |fbin,
+			out=0|
+		~out=out;
+		~fbin=~fbin;
+	};
+	~inst = { |pitch = 1,
+			pointer = 0.0,
+			gain = -12.0,
+			pan=0.0,
+			windowSize=0.1,
+			freqNote=64.0,
+			rQ=0.5|
+		if (~synth.isPlaying) {~synth.release();};
+		~synth = Synth(\particle, [\fbin, ~fbin, \out, ~out, \pitch, pitch,
+			\pointer, pointer, \gain, gain, \windowSize, windowSize, \freqNote, freqNote,
+			\rQ, rQ]);
+		NodeWatcher.register(~synth, true)
+	};
+	~destroy ={
+		~synth.release();
+	};
+});
+
 // register to receive this message
 OSCresponder(s.addr,'/tr',{ arg time,responder,msg;
 	[time,responder,msg].postln;
 }).add;
 )
+
 x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
 x.release();
 x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
 x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 1.5]);
 x = Synth(\particle, [\fbin, ~fb, \out, ~outs, \pitch, 2]);
 x.free;
-
-
 /*
 TODO
 ====
 
 * do discernability calcs at kr (after autocorrelation, at least)
 * need discernability measured against general RMS vaolume
+* go from stereo to ambisonic
 
 */
