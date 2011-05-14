@@ -8,7 +8,6 @@ s.options.numInputBusChannels;
 ~globalPresence = Bus.audio(s,1);
 ~buf = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
 
-
 SynthDef(\particle, {
 	|fbin,
 	 out = 0,
@@ -62,9 +61,8 @@ SynthDef(\particle, {
 	//A2K.kr(discernibility).poll;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }).send(s);
-)
 
-(
+
 o=Proto({
 	~synth = nil;
 	~myServer = nil;
@@ -73,7 +71,10 @@ o=Proto({
 	~fbin = nil;
 	~discernibility = 0;
 	~responder = 0;
-	//if setUp is run lots, it leaks memory. just so you know.
+	/*if setUp is run lots,
+	it leaks memory. So use this as a constructor, which is the mandated way. See
+	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
+
 	~setUp = { |server,
 			fbin,
 			out=0,
@@ -94,7 +95,7 @@ o=Proto({
 		    	};
 			};
 		).add;
-
+       currentEnvironment;
 	};
 	~synthesize = { |pitch = 1,
 			pointer = 0.0,
@@ -123,7 +124,8 @@ o=Proto({
 
 (
 p.tearDown();
-p=o.copy();
+p=o.copy.setUp(s, ~fb, ~outs, ~buf);
+p.synth;
 p.setUp(s, ~fb, ~outs, ~buf);
 p.synthesize();
 p.synthesize(4);
