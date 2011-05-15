@@ -14,7 +14,7 @@ SynthDef(\particle, {
 	//synth vars
 	var env, outMix, outMono;
 	//analysis vars
-	var iSaid, theySaid, discernibility, myPresence, overallPresence, discernmentTime;
+	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, discernmentTime;
 	discernmentTime = 1; //resp time in seconds
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
@@ -44,11 +44,12 @@ SynthDef(\particle, {
 	iSaid = LocalIn.ar(1);
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	//theySaid = InFeedback(fbBus);
-	theySaid = iSaid;			//We don't have a feedback bus yet
-	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
-	overallPresence = A2K.kr(Lag.ar(theySaid*theySaid, discernmentTime));
-	discernibility = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime)); //autocorrelate.
+	Out.ar(fbBus, outMix);		//I output it panned
+	weSaid = InFeedback(fbBus);
+	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime))+2.0e-07;
+	overallPresence = A2K.kr(Lag.ar(weSaid*weSaid, discernmentTime))+2.0e-07;
+	crossPresence = A2K.kr(Lag.ar(Mix.new(iSaid*weSaid), discernmentTime))+2.0e-07; //autocorrelate.
+	discernibility = (myPresence.squared /(overallPresence*myPresence)).sqrt;
 	//A2K.kr(discernibility).poll;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
@@ -199,6 +200,7 @@ s.options.numInputBusChannels;
 p.tearDown();
 //p=o.copy.setUp(s, ~fb, ~outs, ~buf);
 q=n.copy.setUp(s, ~outs);
+q.particles[3].discernibility;
 q.randomize();
 q.fb;
 q.tearDown();
