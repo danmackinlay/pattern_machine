@@ -51,7 +51,7 @@ SynthDef(\particle, {
 	discernibility = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime)); //autocorrelate.
 	//A2K.kr(discernibility).poll;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
-}).send(s);
+}, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
 
 o=Proto({
@@ -149,7 +149,7 @@ n=Proto({
 	~setUp = {|server,
 			out,
 			buffer=nil,
-			population=10|
+			population=40|
 		~myServer=server;
 		~myOut=out;
 		~particles=List();
