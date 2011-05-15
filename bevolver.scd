@@ -141,7 +141,7 @@ o=Proto({
 n=Proto({
 	//A factory and manager for a bunch of particles
 	~particles = nil;
-	~numParticles = 10;
+	~population = nil;
 	~myServer = nil;
 	~myBuf = nil;
 	~myOut = nil;
@@ -149,27 +149,36 @@ n=Proto({
 
 	~setUp = {|server,
 			out,
-			buffer|
+			buffer=nil,
+			population=10|
 		~myServer=server;
 		~myOut=out;
-		~myBuf=buffer;
 		~particles=List();
+		~population=population;
 		~fb = Bus.audio(s, 2); 
 		~globalPresence = Bus.audio(s,1);
-		~buf = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
+		if (buffer.isNil()) {
+			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
+		~myBuf = buffer;
+		while ({~particles.size<~population}, {~addParticle.();});
 		currentEnvironment;
 	};
 	~tearDown = {
-		~particles.do({|p| p.tearDown(); });
+		while ({~particles.size>0}, {~removeParticle.();});
 		~fb.free();
 		~globalPresence.free();
-		~buf.free();
+		~myBuf.free();
 	};
-	~addParticle = {
+	~addParticle = {|chromosome|
 		var particle;
-		particle = o.copy.setUp(~myServer, ~fb, ~outs, ~buf);
+		particle = o.copy.setUp(~myServer, ~fb, ~outs, ~myBuf);
 		~particles.add(particle);
 		particle.synthesize();
+	};
+	~removeParticle = {|i=0|
+		["remove", i, ~particles[i]];
+		(~particles[i]).tearDown();
+		~particles.removeAt(i);
 	};
 });
 )
@@ -177,8 +186,8 @@ n=Proto({
 (
 p.tearDown();
 //p=o.copy.setUp(s, ~fb, ~outs, ~buf);
-q=n.copy.setUp(s, ~outs, ~buf);
-p.tearDown();
+q=n.copy.setUp(s, ~outs);
+q.tearDown();
 p.setUp(s, ~fb, ~outs, ~buf);
 p.synthesize();
 p.synthesize(4);
