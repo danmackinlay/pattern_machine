@@ -64,13 +64,14 @@ o=Proto({
 	~responder = 0;
 	~globalPresence = nil;
 	~chromosome = nil;
+	~particleGroup=nil;
 
 	/*if setUp is run lots,
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~updateChromosome = { |chrom|
 		if (chrom.isNil()) {chrom = Array.fill(7, {1.0.rand});};
-		["chrom", chrom, chrom[0], chrom[0].linexp(0.0,  1.0,   0.1,     10.0)].postln;
+		//["chrom", chrom, chrom[0], chrom[0].linexp(0.0,  1.0,   0.1,     10.0)].postln;
 		~chromosome = chrom;
 		~synthesize.(
 			chrom[0].linexp(0.0,  1.0,   0.1,     10.0), //pitch
@@ -86,6 +87,7 @@ o=Proto({
 	~setUp = {|server,
 			fbBus,
 			out,
+			particleGroup,
 			buffer,
 			globalPresence,
 			chromosome|
@@ -94,7 +96,8 @@ o=Proto({
 		~myBuf=buffer;
 		~globalPresence=globalPresence;
 		~fbBus=fbBus;
-		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut]);
+		~particleGroup=particleGroup;
+		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
 		NodeWatcher.register(~synth, true);
 		~discernibility=0.0;
 		/* how you set up callbacks with sane binding:
@@ -106,7 +109,7 @@ o=Proto({
 		);
 		~responder.add();
 		~updateChromosome.(chromosome);
-       currentEnvironment;
+		currentEnvironment;
 	};
 	~synthesize = { |pitch = 1,
 			pointer = 0.0,
@@ -115,7 +118,7 @@ o=Proto({
 			windowSize=0.1,
 			filtFreq=64.0,
 			rQ=0.5|
-		["pitch, pointer, gain, pan, windowSize, filtFreq, rQ", pitch, pointer, gain, pan, windowSize, filtFreq, rQ].postln;
+		//["pitch, pointer, gain, pan, windowSize, filtFreq, rQ", pitch, pointer, gain, pan, windowSize, filtFreq, rQ].postln;
 		~synth.set(
 			\pitch, pitch,
 			\pointer, pointer,
@@ -140,7 +143,8 @@ n=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~myOut = nil;
-	~fb = nil;
+	~myFb = nil;
+    ~particleGroup=nil;
 
 	~setUp = {|server,
 			out,
@@ -150,7 +154,8 @@ n=Proto({
 		~myOut=out;
 		~particles=List();
 		~population=population;
-		~fb = Bus.audio(s, 2); 
+		~myFb = Bus.audio(s, 2); 
+		~particleGroup=Group.new(~myServer);
 		~globalPresence = Bus.audio(s,1);
 		if (buffer.isNil()) {
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
@@ -160,13 +165,14 @@ n=Proto({
 	};
 	~tearDown = {
 		while ({~particles.size>0}, {~removeParticle.();});
-		~fb.free();
+		~particleGroup.free();
+		~myFb.free();
 		~globalPresence.free();
 		~myBuf.free();
 	};
 	~addParticle = {|chromosome|
 		var particle;
-		particle = o.copy.setUp(~myServer, ~fb, ~outs, ~myBuf);
+		particle = o.copy.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf);
 		~particles.add(particle);
 		particle.synthesize();
 	};
@@ -195,7 +201,6 @@ p.tearDown();
 q=n.copy.setUp(s, ~outs);
 q.randomize();
 q.fb;
-q.particles[1].synth.set(\gain,0.0);
 q.tearDown();
 q.out;
 p.setUp(s, ~fb, ~outs, ~buf);
@@ -208,13 +213,6 @@ Quarks.gui;
 j=5; (1..j);
 )
 
-x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
-x.release();
-x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.33, \gain, -20, \rQ, 1]);
-x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1.5]);
-x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 2]);
-
-x.free;
 /*
 TODO
 ====
