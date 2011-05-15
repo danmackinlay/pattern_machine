@@ -1,10 +1,4 @@
-s.boot;
-s.options.numOutputBusChannels;
-s.options.numInputBusChannels;
-
 (
-~outs = Bus.new(\audio, 0, 2);
-
 SynthDef(\particle, {
 	|fbBus,
 	 out = 0,
@@ -75,16 +69,17 @@ o=Proto({
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~updateChromosome = { |chrom|
-		if (chrom.isNil) {chrom = Array.fill(7,{1.0.rand});};
+		if (chrom.isNil()) {chrom = Array.fill(7, {1.0.rand});};
+		["chrom", chrom, chrom[0], chrom[0].linexp(0.0,  1.0,   0.1,     10.0)].postln;
 		~chromosome = chrom;
-		~synth.set(
-			\pitch,		chrom[0].linexp(0.0,  1.0,   0.1,     10.0),
-			\pointer,		chrom[1].linlin(0.0,  1.0,   0.0,      1.0),
-			\gain,			chrom[2].linlin(0.0,  1.0, -30.0,      6.0),
-			\pan,			chrom[3].linlin(0.0,  1.0,  -1.0,      1.0),
-			\windowSize,	chrom[4].linexp(0.0,  1.0,   0.01,    10.0),
-			\filtFreq,		chrom[5].linexp(0.0,  1.0,  40.0,  12000.0),
-			\rQ, 			chrom[6].linexp(0.0,  1.0,   0.0,      1.0)
+		~synthesize.(
+			chrom[0].linexp(0.0,  1.0,   0.1,     10.0), //pitch
+			chrom[1].linlin(0.0,  1.0,   0.0,      1.0), //pointer
+			chrom[2].linlin(0.0,  1.0, -30.0,      6.0), //gain
+			chrom[3].linlin(0.0,  1.0,  -1.0,      1.0), //pan
+			chrom[4].linexp(0.0,  1.0,   0.01,    10.0), //windowSize
+			chrom[5].linexp(0.0,  1.0,  40.0,  12000.0), //filtFreq
+			chrom[6].linexp(0.0,  1.0,   0.01,     1.0)  //rQ
 		);
 		~synth.run(true);
 	};
@@ -120,7 +115,7 @@ o=Proto({
 			windowSize=0.1,
 			filtFreq=64.0,
 			rQ=0.5|
-		["pitch", pitch].postln;
+		["pitch, pointer, gain, pan, windowSize, filtFreq, rQ", pitch, pointer, gain, pan, windowSize, filtFreq, rQ].postln;
 		~synth.set(
 			\pitch, pitch,
 			\pointer, pointer,
@@ -175,24 +170,42 @@ n=Proto({
 		~particles.add(particle);
 		particle.synthesize();
 	};
-	~removeParticle = {|i=0|
-		["remove", i, ~particles[i]];
-		(~particles[i]).tearDown();
-		~particles.removeAt(i);
+	~randomize = {|indices=nil|
+		if (indices.isNil()) {indices=(0..(~particles.size-1));};
+		indices.postln;
+		indices.do({|idx|
+			(~particles[idx]).postln;
+			(~particles[idx]).updateChromosome(nil);});
+	};
+	~removeParticle = {|idx=0|
+		["remove", idx, ~particles[idx]];
+		(~particles[idx]).tearDown();
+		~particles.removeAt(idx);
 	};
 });
 )
 
 (
+s.boot;
+s.options.numOutputBusChannels;
+s.options.numInputBusChannels;
+~outs = Bus.new(\audio, 0, 2);
 p.tearDown();
 //p=o.copy.setUp(s, ~fb, ~outs, ~buf);
 q=n.copy.setUp(s, ~outs);
+q.randomize();
+q.fb;
+q.particles[1].synth.set(\gain,0.0);
 q.tearDown();
+q.out;
 p.setUp(s, ~fb, ~outs, ~buf);
 p.synthesize();
 p.synthesize(4);
 p.discernibility;
 p.responder.remove();
+s.scope;
+Quarks.gui;
+j=5; (1..j);
 )
 
 x = Synth(\particle, [\fbBus, ~fb, \out, ~outs, \pitch, 1, \pointer, 0.0, \gain, -20, \windowSize, 1]);
