@@ -1,4 +1,5 @@
 (
+var wait = { 10000000.do { 5.rand;} };
 SynthDef(\particle, {
 	|fbBus,
 	 out = 0,
@@ -46,11 +47,16 @@ SynthDef(\particle, {
 	Out.ar(out, outMix);		//I output it panned
 	Out.ar(fbBus, outMix);		//I output it panned
 	weSaid = InFeedback(fbBus);
-	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime))+2.0e-07;
+	myPresence = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime))+2.0e-07;
+    //myPresence.poll;
 	overallPresence = A2K.kr(Lag.ar(weSaid*weSaid, discernmentTime))+2.0e-07;
-	crossPresence = A2K.kr(Lag.ar(Mix.new(iSaid*weSaid), discernmentTime))+2.0e-07; //autocorrelate.
-	discernibility = (myPresence.squared /(overallPresence*myPresence)).sqrt;
-	//A2K.kr(discernibility).poll;
+	overallPresence.poll;
+	crossPresence = Lag.ar(Mix.new(iSaid*weSaid), discernmentTime)+2.0e-07; //correlate.
+	A2K(crossPresence).poll;
+	crossPresence = A2K.kr(Lag.ar(Mix.new(iSaid*weSaid), discernmentTime))+2.0e-07; //correlate.
+	discernibility = (crossPresence/overallPresence);
+	discernibility.poll;
+//	A2K.kr(discernibility).poll;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
@@ -70,7 +76,7 @@ o=Proto({
 	/*if setUp is run lots,
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
-	~updateChromosome = { |chrom|
+	~updateChromosome = { |chrom=nil|
 		if (chrom.isNil()) {chrom = Array.fill(7, {1.0.rand});};
 		//["chrom", chrom, chrom[0], chrom[0].linexp(0.0,  1.0,   0.1,     10.0)].postln;
 		~chromosome = chrom;
@@ -83,7 +89,6 @@ o=Proto({
 			chrom[5].linexp(0.0,  1.0,  40.0,  12000.0), //filtFreq
 			chrom[6].linexp(0.0,  1.0,   0.01,     1.0)  //rQ
 		);
-		~synth.run(true);
 	};
 	~setUp = {|server,
 			fbBus,
@@ -98,7 +103,8 @@ o=Proto({
 		~globalPresence=globalPresence;
 		~fbBus=fbBus;
 		~particleGroup=particleGroup;
-		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
+//		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
+		~synth=Synth.new(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
 		NodeWatcher.register(~synth, true);
 		~discernibility=0.0;
 		/* how you set up callbacks with sane binding:
@@ -129,7 +135,7 @@ o=Proto({
 			\filtFreq, filtFreq,
 			\rQ, rQ
 		);
-		~synth.run(true);
+//		~synth.run(true);
 	};
 	~tearDown = {
 		~synth.release();
@@ -150,7 +156,7 @@ n=Proto({
 	~setUp = {|server,
 			out,
 			buffer=nil,
-			population=40|
+			population=10|
 		~myServer=server;
 		~myOut=out;
 		~particles=List();
@@ -173,13 +179,13 @@ n=Proto({
 	};
 	~addParticle = {|chromosome|
 		var particle;
-		particle = o.copy.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf);
+		particle = o.copy();
+		particle.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf);
 		~particles.add(particle);
-		particle.synthesize();
+		particle.updateChromosome(chromosome);
 	};
 	~randomize = {|indices=nil|
 		if (indices.isNil()) {indices=(0..(~particles.size-1));};
-		indices.postln;
 		indices.do({|idx|
 			(~particles[idx]).postln;
 			(~particles[idx]).updateChromosome(nil);});
@@ -197,13 +203,14 @@ s.boot;
 s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~outs = Bus.new(\audio, 0, 2);
-p.tearDown();
-//p=o.copy.setUp(s, ~fb, ~outs, ~buf);
+
+s.scope;
 q=n.copy.setUp(s, ~outs);
-q.particles[3].discernibility;
 q.randomize();
-q.fb;
 q.tearDown();
+q.particles[0].discernibility;
+q.particles[3].responder;
+q.fb;
 q.out;
 p.setUp(s, ~fb, ~outs, ~buf);
 p.synthesize();
@@ -221,6 +228,8 @@ TODO
 
 * do discernibility calcs at kr (after autocorrelation, at least)
 * need discernibility measured against general RMS volume
+* rename feedback to be "cacophony"
+* consider doing everything in fourier space?
 * go from stereo to ambisonic
 * use Delay instead of LocalIn. (maybe faster?)
 */
