@@ -1,5 +1,28 @@
 (
-var wait = { 10000000.do { 5.rand;} };
+SynthDef(\jack, {
+	|i_in,
+	 i_out|
+	Out.ar(i_out, In.ar(i_in, 1));
+}).send(s);
+
+SynthDef(\jack_2, {
+	|i_in,
+	 i_out|
+	Out.ar(i_out, In.ar(i_in, 2));
+}).send(s);
+
+SynthDef(\jack_3, {
+	|i_in,
+	 i_out|
+	Out.ar(i_out, In.ar(i_in, 3));
+}).send(s);
+
+SynthDef(\jack_4, {
+	|i_in,
+	 i_out|
+	Out.ar(i_out, In.ar(i_in, 4));
+}).send(s);
+
 SynthDef(\particle, {
 	|fbBus,
 	 out = 0,
@@ -16,6 +39,7 @@ SynthDef(\particle, {
 	var env, outMix, outMono;
 	//analysis vars
 	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, discernmentTime;
+	var eps = 2.0e-07;
 	discernmentTime = 1; //resp time in seconds
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
@@ -45,18 +69,15 @@ SynthDef(\particle, {
 	iSaid = LocalIn.ar(1);
 	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	Out.ar(fbBus, outMix);		//I output it panned
-	weSaid = InFeedback(fbBus);
-	myPresence = A2K.kr(Lag.ar(Mix.new(iSaid*iSaid), discernmentTime))+2.0e-07;
-    //myPresence.poll;
-	overallPresence = A2K.kr(Lag.ar(weSaid*weSaid, discernmentTime))+2.0e-07;
-	overallPresence.poll;
-	crossPresence = Lag.ar(Mix.new(iSaid*weSaid), discernmentTime)+2.0e-07; //correlate.
-	A2K(crossPresence).poll;
-	crossPresence = A2K.kr(Lag.ar(Mix.new(iSaid*weSaid), discernmentTime))+2.0e-07; //correlate.
+	weSaid = InFeedback.ar(fbBus);
+	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime, add: eps));
+	myPresence.poll(Impulse.kr(0.9), \me);
+	overallPresence = A2K.kr(Lag.ar(Mix.ar(weSaid*weSaid), discernmentTime, add: eps));
+	overallPresence.poll(Impulse.kr(0.5), \overall);
+	crossPresence = A2K.kr(Lag.ar(Mix.ar(iSaid*weSaid), discernmentTime, add: eps)); //correlate.
+	crossPresence.poll(Impulse.kr(1.1), \cross);
 	discernibility = (crossPresence/overallPresence);
-	discernibility.poll;
-//	A2K.kr(discernibility).poll;
+	discernibility.poll(Impulse.kr(1.2), \disc);
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
@@ -67,7 +88,7 @@ o=Proto({
 	~myBuf = nil;
 	~myOut = nil;
 	~fbBus = nil;
-	~discernibility = 0;
+	~discernibility = 0.0;
 	~responder = 0;
 	~globalPresence = nil;
 	~chromosome = nil;
@@ -106,7 +127,7 @@ o=Proto({
 //		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
 		~synth=Synth.new(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
 		NodeWatcher.register(~synth, true);
-		~discernibility=0.0;
+		~discernibility;
 		/* how you set up callbacks with sane binding:
 		http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Event-and-prototypes-tp6208222p6226707.html */
 		~responder = OSCpathResponder(
@@ -151,6 +172,7 @@ n=Proto({
 	~myBuf = nil;
 	~myOut = nil;
 	~myFb = nil;
+	~myJack = nil;
     ~particleGroup=nil;
 
 	~setUp = {|server,
@@ -162,6 +184,7 @@ n=Proto({
 		~particles=List();
 		~population=population;
 		~myFb = Bus.audio(s, 2); 
+		~myJack = Synth.new(\jack_2, [\i_in, ~myOut, \i_out, ~myFb]);
 		~particleGroup=Group.new(~myServer);
 		~globalPresence = Bus.audio(s,1);
 		if (buffer.isNil()) {
