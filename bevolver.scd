@@ -78,7 +78,7 @@ SynthDef(\particle, {
 	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
 	discernibility = crossPresence/((overallPresence*myPresence).sqrt);
 	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
-	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
+	SendTrig.kr(LFPulse.kr((discernmentTime.reciprocal)/2),0,discernibility); //FASTER than discernment time to reduce jitter worries.
 }, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
 
@@ -94,7 +94,8 @@ o=Proto({
 	~chromosome = nil;
 	~particleGroup=nil;
 	~discernmentTime=10;
-
+	~discernmentChecker = nil;
+	
 	/*if setUp is run lots on an existing object
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
@@ -140,6 +141,7 @@ o=Proto({
 		);
 		~responder.add();
 		~updateChromosome.(chromosome);
+		
 		currentEnvironment;
 	};
 	~synthesize = { |pitch = 1,
@@ -223,6 +225,10 @@ n=Proto({
 		(~particles[idx]).tearDown();
 		~particles.removeAt(idx);
 	};
+	~pollDiscernability = {
+		(all {:p.discernibility, p<- ~particles}).postln;
+		~discernmentTime;
+	}
 });
 )
 
@@ -236,6 +242,8 @@ s.scope;
 q=n.copy.setUp(s, ~outs, nil, 1);
 q=n.copy.setUp(s, ~outs);
 q.randomize();
+q.particles[3].discernibility;
+q.pollDiscernability();
 q.tearDown();
 q.particles[0].discernibility;
 q.particles[3].responder;
