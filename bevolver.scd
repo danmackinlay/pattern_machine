@@ -246,7 +246,6 @@ n=Proto({
 		var mean = discernibilities.mean();
 var weakestLink = discernibilities.minIndex();
 		~particleAges = List.newUsing(~particleAges +1); // lists cast to arrays otherwise
-		["discernibilities", discernibilities].postln;
 ["mean", mean].postln;
 		["weakest", weakestLink, "age", ~particleAges[weakestLink]].postln;
 		if (~particleAges[weakestLink]>5, { //takes a while for fitness to get up
@@ -264,7 +263,7 @@ s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~outs = Bus.new(\audio, 0, 2);
 q=n.copy.setUp(s, ~outs, nil, 1);
-q=n.copy.setUp(s, ~outs, nil, 100);
+q=n.copy.setUp(s, ~outs, nil, 100, 1);
 q=n.copy.setUp(s, ~outs, nil, 10, 1);
 q.randomize();
 q.getDiscernibility();
@@ -273,11 +272,8 @@ q.tearDown();
 )
 
 (
-[0,0,2].add(1);
 s.scope;
 Quarks.gui;
-l=List.newUsing([1,2,3]);
-l+1;
 )
 
 /*
@@ -291,6 +287,19 @@ TODO
 * volume control, sensitive to number of agents
 * clip discernability function as a way of killing agents
 * add in LFOs
-* weight two differnt channels oppositely, as predator, or prey signals
+* weight two different channels oppositely, as predator or prey signals
 * record sound samples
+* don't kill the weakest, trim everything with discernibility < 1/sqrt(n)
+* still kill something if the weakest are too young.
+* crossover parentage
+* how can we favour rhythmic evolution?
+* how can we not favour white noise?
+* give birth when sufficiently fit.
+* how can we favour bass?
+* have a global TempoClock to keep triggering discernibility tests, and pause if necessary
+* allow different discernibilityTimes?
+* record into global buffers?
+* consider evolvability, and how to have a more robust chromosome.
+* make populations archivable, serialisable etc
+* make age be local to particle
 */
