@@ -198,6 +198,13 @@ n=Proto({
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
 		~myBuf = buffer;
 		while ({~particles.size<~population}, {~addParticle.();});
+		~discernmentTime=discernmentTime;
+		SystemClock.sched(discernmentTime,
+			inEnvir {
+				~getDiscernibility.().postln;
+				~discernmentTime;
+			}
+		);
 		currentEnvironment;
 	};
 	~tearDown = {
@@ -225,7 +232,7 @@ n=Proto({
 		(~particles[idx]).tearDown();
 		~particles.removeAt(idx);
 	};
-	~getDiscernability = {
+	~getDiscernibility = {
 		all {:p.discernibility, p<- ~particles};
 	}
 });
@@ -236,26 +243,16 @@ s.boot;
 s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~outs = Bus.new(\audio, 0, 2);
-
-s.scope;
 q=n.copy.setUp(s, ~outs, nil, 1);
 q=n.copy.setUp(s, ~outs);
 q.randomize();
-q.particles[3].discernibility;
 q.getDiscernability();
 q.tearDown();
-q.particles[0].discernibility;
-q.particles[3].responder;
-q.fb;
-q.out;
-p.setUp(s, ~fb, ~outs, ~buf);
-p.synthesize();
-p.synthesize(4);
-p.discernibility;
-p.responder.remove();
+)
+
+(
 s.scope;
 Quarks.gui;
-j=5; (1..j);
 )
 
 /*
@@ -267,6 +264,6 @@ TODO
 * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
 * rename feedback to be "cacophony"
 * consider doing everything in fourier space?
-* go from stereo to ambisonic
+* go from stereo to ambisonic, or something
 * use Delay instead of LocalIn. (maybe faster?)
 */
