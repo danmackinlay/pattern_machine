@@ -24,8 +24,9 @@ SynthDef(\jack_4, {
 }).send(s);
 
 SynthDef(\particle, {
-	|fbBus,
+	|arFbBus,
 	 out = 0,
+	 discernmentTime=10,	//resp time in seconds
 	 buffer = 0,
 	 gate = 1,
 	 pitch = 1,
@@ -33,14 +34,14 @@ SynthDef(\particle, {
 	 gain = -12.0,
 	 pan = 0.0,
 	 windowSize = 0.1,
-	 filtFreq = 600.0,
+	 filtFreq = 600.0,		
 	 rQ = 0.5|
 	//synth vars
 	var env, outMix, outMono;
 	//analysis vars
-	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, discernmentTime;
+	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence;
 	var eps = 2.0e-07;
-	discernmentTime = 1; //resp time in seconds
+	discernmentTime = 1; 
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
 	  gate: gate,
@@ -68,17 +69,17 @@ SynthDef(\particle, {
 	);
 	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	weSaid = InFeedback.ar(fbBus);
+	weSaid = InFeedback.ar(arFbBus);
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime, add: eps));
-	myPresence.poll(Impulse.kr(1), \me);
+	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
 	overallPresence = A2K.kr(Lag.ar(Mix.ar(weSaid*weSaid), discernmentTime, add: eps));
-	overallPresence.poll(Impulse.kr(1), \overall);
+	overallPresence.poll(Impulse.kr(discernmentTime.reciprocal), \overall);
 	crossPresence = A2K.kr(Lag.ar(Mix.ar(iSaid*weSaid), discernmentTime)); //correlate.
-	crossPresence.poll(Impulse.kr(1), \cross);
+	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
 	discernibility = crossPresence/((overallPresence*myPresence).sqrt);
-	discernibility.poll(Impulse.kr(1), \disc).abs;
+	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
-}, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
+}, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
 
 o=Proto({
@@ -86,12 +87,13 @@ o=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~myOut = nil;
-	~fbBus = nil;
+	~arFbBus = nil;
 	~discernibility = 0.0;
 	~responder = 0;
 	~globalPresence = nil;
 	~chromosome = nil;
 	~particleGroup=nil;
+	~discernmentTime=10;
 
 	/*if setUp is run lots on an existing object
 	it leaks memory. So use this as a constructor, which is the mandated way. See
@@ -111,20 +113,22 @@ o=Proto({
 		);
 	};
 	~setUp = {|server,
-			fbBus,
+			arFbBus,
 			out,
 			particleGroup,
 			buffer,
 			globalPresence,
-			chromosome|
+			chromosome,
+			discernmentTime=10|
 		~myServer=server;
 		~myOut=out;
 		~myBuf=buffer;
 		~globalPresence=globalPresence;
-		~fbBus=fbBus;
+		~arFbBus=arFbBus;
 		~particleGroup=particleGroup;
-//		~synth=Synth.newPaused(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
-		~synth=Synth.new(\particle, [\fbBus, ~fbBus, \out, ~myOut], ~particleGroup);
+		~discernmentTime=discernmentTime;
+//		~synth=Synth.newPaused(\particle, [\arFbBus, ~arFbBus, \out, ~myOut], ~particleGroup);
+		~synth=Synth.new(\particle, [\arFbBus, ~arFbBus, \out, ~myOut, \discernmentTime, ~discernmentTime], ~particleGroup);
 		NodeWatcher.register(~synth, true);
 		~discernibility;
 		/* how you set up callbacks with sane binding:
@@ -173,11 +177,13 @@ n=Proto({
 	~myFb = nil;
 	~myJack = nil;
     ~particleGroup=nil;
+	~discernmentTime=10;
 
 	~setUp = {|server,
 			out,
 			buffer=nil,
-			population=10|
+			population=10,
+			discernmentTime=10|
 		~myServer=server;
 		~myOut=out;
 		~particles=List();
@@ -202,7 +208,7 @@ n=Proto({
 	~addParticle = {|chromosome|
 		var particle;
 		particle = o.copy();
-		particle.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf);
+		particle.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf, ~discernmentTime);
 		~particles.add(particle);
 		particle.updateChromosome(chromosome);
 	};
