@@ -66,18 +66,17 @@ SynthDef(\particle, {
 		pos: pan,		// field pos
 		level: env		// level
 	);
-	iSaid = LocalIn.ar(1);
-	LocalOut.ar(outMono);	//This is my voice. I will look for it in the output.
+	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
 	weSaid = InFeedback.ar(fbBus);
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime, add: eps));
-	myPresence.poll(Impulse.kr(0.9), \me);
+	myPresence.poll(Impulse.kr(1), \me);
 	overallPresence = A2K.kr(Lag.ar(Mix.ar(weSaid*weSaid), discernmentTime, add: eps));
-	overallPresence.poll(Impulse.kr(0.5), \overall);
-	crossPresence = A2K.kr(Lag.ar(Mix.ar(iSaid*weSaid), discernmentTime, add: eps)); //correlate.
-	crossPresence.poll(Impulse.kr(1.1), \cross);
+	overallPresence.poll(Impulse.kr(1), \overall);
+	crossPresence = A2K.kr(Lag.ar(Mix.ar(iSaid*weSaid), discernmentTime)); //correlate.
+	crossPresence.poll(Impulse.kr(1), \cross);
 	discernibility = crossPresence/((overallPresence*myPresence).sqrt);
-	discernibility.poll(Impulse.kr(1.2), \disc);
+	discernibility.poll(Impulse.kr(1), \disc).abs;
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
@@ -94,7 +93,7 @@ o=Proto({
 	~chromosome = nil;
 	~particleGroup=nil;
 
-	/*if setUp is run lots,
+	/*if setUp is run lots on an existing object
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~updateChromosome = { |chrom=nil|
@@ -252,6 +251,7 @@ TODO
 
 * do discernibility calcs at kr (after autocorrelation, at least)
 * need discernibility measured against general RMS volume
+* need to compensate for different weighting of spectral bands in the autocorrelation thingy.
 * rename feedback to be "cacophony"
 * consider doing everything in fourier space?
 * go from stereo to ambisonic
