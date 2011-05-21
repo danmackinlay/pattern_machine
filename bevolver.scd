@@ -70,14 +70,14 @@ SynthDef(\particle, {
 	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
 	weSaid = InFeedback.ar(arFbBus);
-	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime, add: eps));
-	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
-	overallPresence = A2K.kr(Lag.ar(Mix.ar(weSaid*weSaid), discernmentTime, add: eps));
-	overallPresence.poll(Impulse.kr(discernmentTime.reciprocal), \overall);
+	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
+//	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
+	overallPresence = A2K.kr(Lag.ar(Mix.ar(weSaid*weSaid), discernmentTime));
+//	overallPresence.poll(Impulse.kr(discernmentTime.reciprocal), \overall);
 	crossPresence = A2K.kr(Lag.ar(Mix.ar(iSaid*weSaid), discernmentTime)); //correlate.
-	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
-	discernibility = crossPresence/((overallPresence*myPresence).sqrt);
-	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
+//	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
+	discernibility = (crossPresence.abs + eps)/((overallPresence*myPresence+eps).sqrt);
+//	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
 	SendTrig.kr(LFPulse.kr((discernmentTime.reciprocal)/2),0,discernibility); //FASTER than discernment time to reduce jitter worries.
 }, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
@@ -225,9 +225,8 @@ n=Proto({
 		(~particles[idx]).tearDown();
 		~particles.removeAt(idx);
 	};
-	~pollDiscernability = {
-		(all {:p.discernibility, p<- ~particles}).postln;
-		~discernmentTime;
+	~getDiscernability = {
+		all {:p.discernibility, p<- ~particles};
 	}
 });
 )
@@ -243,7 +242,7 @@ q=n.copy.setUp(s, ~outs, nil, 1);
 q=n.copy.setUp(s, ~outs);
 q.randomize();
 q.particles[3].discernibility;
-q.pollDiscernability();
+q.getDiscernability();
 q.tearDown();
 q.particles[0].discernibility;
 q.particles[3].responder;
