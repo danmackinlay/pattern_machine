@@ -180,6 +180,7 @@ n=Proto({
 	~myJack = nil;
     ~particleGroup=nil;
 	~discernmentTime=10;
+	~particleAges = nil;
 
 	~setUp = {|server,
 			out,
@@ -189,6 +190,7 @@ n=Proto({
 		~myServer=server;
 		~myOut=out;
 		~particles=List();
+		~particleAges=List();
 		~population=population;
 		~myFb = Bus.audio(s, 2); 
 		~myJack = Synth.new(\jack_2, [\i_in, ~myOut, \i_out, ~myFb]);
@@ -220,6 +222,7 @@ n=Proto({
 		particle = o.copy();
 		particle.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf, ~discernmentTime);
 		~particles.add(particle);
+		~particleAges.add(0);
 		particle.updateChromosome(chromosome);
 	};
 	~randomize = {|indices=nil|
@@ -232,16 +235,25 @@ n=Proto({
 		["remove", idx, ~particles[idx]];
 		(~particles[idx]).tearDown();
 		~particles.removeAt(idx);
+		~particleAges.removeAt(idx);
 	};
 	~getDiscernibility = {
 		all {:p.discernibility, p<- ~particles};
 	};
 	~tend = {
-		var invDiscernibilities = (~getDiscernibility.()).reciprocal;
-		var weakestList = (0..(~particles.size-1)).wchoose(invDiscernibilities/(invDiscernibilities.sum));
-		["killing", weakestList].postln;
-		~addParticle.();
-		~removeParticle.(weakestList);
+		var discernibilities = (~getDiscernibility.());
+//		var weakestLink = (0..(~particles.size-1)).wchoose(discernibilities/(discernibilities.sum));
+		var mean = discernibilities.mean();
+var weakestLink = discernibilities.minIndex();
+		~particleAges = List.newUsing(~particleAges +1); // lists cast to arrays otherwise
+		["discernibilities", discernibilities].postln;
+["mean", mean].postln;
+		["weakest", weakestLink, "age", ~particleAges[weakestLink]].postln;
+		if (~particleAges[weakestLink]>5, { //takes a while for fitness to get up
+			["killing", weakestLink].postln;
+			~removeParticle.(weakestLink);
+			~addParticle.();
+		});
 	};
 });
 )
@@ -253,15 +265,19 @@ s.options.numInputBusChannels;
 ~outs = Bus.new(\audio, 0, 2);
 q=n.copy.setUp(s, ~outs, nil, 1);
 q=n.copy.setUp(s, ~outs, nil, 100);
-q=n.copy.setUp(s, ~outs);
+q=n.copy.setUp(s, ~outs, nil, 10, 1);
 q.randomize();
-q.getDiscernability();
+q.getDiscernibility();
+q.particleAges;
 q.tearDown();
 )
 
 (
+[0,0,2].add(1);
 s.scope;
 Quarks.gui;
+l=List.newUsing([1,2,3]);
+l+1;
 )
 
 /*
@@ -274,4 +290,7 @@ TODO
 * go from stereo to ambisonic, or something
 * volume control, sensitive to number of agents
 * clip discernability function as a way of killing agents
+* add in LFOs
+* weight two differnt channels oppositely, as predator, or prey signals
+* record sound samples
 */
