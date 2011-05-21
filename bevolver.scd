@@ -201,7 +201,8 @@ n=Proto({
 		~discernmentTime=discernmentTime;
 		SystemClock.sched(discernmentTime,
 			inEnvir {
-				~getDiscernibility.().postln;
+				~tend.();
+				"tending".postln;
 				~discernmentTime;
 			}
 		);
@@ -234,7 +235,14 @@ n=Proto({
 	};
 	~getDiscernibility = {
 		all {:p.discernibility, p<- ~particles};
-	}
+	};
+	~tend = {
+		var invDiscernibilities = (~getDiscernibility.()).reciprocal;
+		var weakestList = (0..(~particles.size-1)).wchoose(invDiscernibilities/(invDiscernibilities.sum));
+		["killing", weakestList].postln;
+		~addParticle.();
+		~removeParticle.(weakestList);
+	};
 });
 )
 
@@ -244,6 +252,7 @@ s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~outs = Bus.new(\audio, 0, 2);
 q=n.copy.setUp(s, ~outs, nil, 1);
+q=n.copy.setUp(s, ~outs, nil, 100);
 q=n.copy.setUp(s, ~outs);
 q.randomize();
 q.getDiscernability();
@@ -259,11 +268,10 @@ Quarks.gui;
 TODO
 ====
 
-* do discernibility calcs at kr (after autocorrelation, at least)
-* need discernibility measured against general RMS volume
 * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
 * rename feedback to be "cacophony"
 * consider doing everything in fourier space?
 * go from stereo to ambisonic, or something
-* use Delay instead of LocalIn. (maybe faster?)
+* volume control, sensitive to number of agents
+* clip discernability function as a way of killing agents
 */
