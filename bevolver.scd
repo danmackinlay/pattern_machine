@@ -76,7 +76,7 @@ SynthDef(\particle, {
 	overallPresence.poll(Impulse.kr(0.5), \overall);
 	crossPresence = A2K.kr(Lag.ar(Mix.ar(iSaid*weSaid), discernmentTime, add: eps)); //correlate.
 	crossPresence.poll(Impulse.kr(1.1), \cross);
-	discernibility = (crossPresence/overallPresence);
+	discernibility = crossPresence/((overallPresence*myPresence).sqrt);
 	discernibility.poll(Impulse.kr(1.2), \disc);
 	SendTrig.kr(LFPulse.kr(discernmentTime.reciprocal),0,discernibility);
 }, [\ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
@@ -228,6 +228,7 @@ s.options.numInputBusChannels;
 ~outs = Bus.new(\audio, 0, 2);
 
 s.scope;
+q=n.copy.setUp(s, ~outs, nil, 1);
 q=n.copy.setUp(s, ~outs);
 q.randomize();
 q.tearDown();
