@@ -41,22 +41,21 @@ SynthDef(\particle, {
 	//analysis vars
 	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence;
 	var eps = 2.0e-07;
-	discernmentTime = 1; 
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
 	  gate: gate,
 	  doneAction: 2);
 	outMono = Resonz.ar(
 		Warp1.ar(
-		    1,				// num channels (Class claims only mono works)
+		    1,			// num channels (Class claims only mono works)
 		    buffer,		// buffer
 		    pointer,		// start pos
-		    pitch,			// pitch shift
+		    pitch,		// pitch shift
 		    windowSize,	// window size (sec?)
 		    -1,			// envbufnum (-1=Hanning)
-		    4,				// overlap
+		    4,			// overlap
 		    0.1,			// rand ratio
-		    2,				// interp (2=linear)
+		    2,			// interp (2=linear)
 		    gain.dbamp	// mul
 		),
 		filtFreq,
@@ -107,7 +106,7 @@ o=Proto({
 		~synthesize.(
 			chrom[0].linexp(0.0,  1.0,   0.1,     10.0), //pitch
 			chrom[1].linlin(0.0,  1.0,   0.0,      1.0), //pointer
-			chrom[2].linlin(0.0,  1.0, -30.0,      6.0), //gain
+			chrom[2].linlin(0.0,  1.0, -36.0,      0.0), //gain
 			chrom[3].linlin(0.0,  1.0,  -1.0,      1.0), //pan
 			chrom[4].linexp(0.0,  1.0,   0.01,    10.0), //windowSize
 			chrom[5].linexp(0.0,  1.0,  40.0,  12000.0), //filtFreq
@@ -239,18 +238,21 @@ n=Proto({
 		~particles.removeAt(idx);
 	};
 	~tend = {
-		var discernibilities, particleAges, weakestLink, mean;
-		~particles.do({|part| part.tick();});
-		discernibilities = ~particles.collect({|p| p.discernibility;});
-		particleAges = ~particles.collect({|p| p.age;});
-//		var weakestLink = (0..(~particles.size-1)).wchoose(discernibilities/(discernibilities.sum));
-		mean = discernibilities.mean();
-		weakestLink = discernibilities.minIndex();
+		var weakestLinks, mean, survivableDiscernability;
+		~particles.do({|p| p.tick();});
+		survivableDiscernability = (~particles.size * 2).reciprocal;
+		["survivableDiscernability", survivableDiscernability].postln;
+		mean = ~particles.collect({|p| p.discernibility;}).mean();
+		//indices of killable, unfit particles
+		weakestLinks = ~particles.collect({|p, i|
+			["checking", p, i, p.discernibility, p.age].postln;
+			((p.age > 10).and(p.discernibility < survivableDiscernability)).if(i);
+		}).removeEvery([nil]).reverse;
+		["weakestLinks", weakestLinks].postln;
 		["mean", mean].postln;
-		["weakest", weakestLink, "age", particleAges[weakestLink]].postln;
-		if (particleAges[weakestLink]>5, { //takes a while for fitness to get up
-			["killing", weakestLink].postln;
-			~removeParticle.(weakestLink);
+		weakestLinks.do({|i|
+			["killing", i];
+			~removeParticle.(i);
 			~addParticle.();
 		});
 	};
@@ -265,9 +267,9 @@ s.options.numInputBusChannels;
 q=n.copy.setUp(s, ~outs, nil, 1);
 q=n.copy.setUp(s, ~outs, nil, 100, 1);
 q=n.copy.setUp(s, ~outs, nil, 10, 1);
+q=n.copy.setUp(s, ~outs, nil, 20, 0.1);
 q.randomize();
 q.getDiscernibility();
-q.particleAges;
 q.tearDown();
 )
 
@@ -281,6 +283,8 @@ TODO
 ====
 
 * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
+* switch to generating iterator Routines instead of generating temporary collections
+* find a better survivable discernability heuristic
 * consider doing everything in fourier space?
 * go from stereo to ambisonic, or something
 * volume control, sensitive to number of agents
@@ -288,8 +292,6 @@ TODO
 * add in LFOs
 * weight two different channels oppositely, as predator or prey signals
 * record sound samples
-* don't kill the weakest, trim everything with discernibility < 1/sqrt(n)
-* still kill something if the weakest are too young.
 * crossover parentage
 * change set lag time to 0 initially, then shift after one tick
 * how can we favour rhythmic evolution? (by favouring spectral variance over time?)
@@ -301,5 +303,8 @@ TODO
 * record into global buffers?
 * consider evolvability, and how to have a more robust chromosome.
 * make populations archivable, serialisable etc
-* evolve "evolvability" - mutation rates per gene
+* evolve "evolvability" 
+  * mutation rates per gene
+  * or increments for offspring
+* go to IdentityDictionaries for particle storage and hash/counter-named particles
 */
