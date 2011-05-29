@@ -325,6 +325,7 @@ TODO
   * allow different discernibilityTimes?
   * clip discernability function as a way of killing agents
   * consider doing everything in fourier space?
+  * visualise spectrograph, or signal scope or something to distinguish what discernment is doing
 * optimisation
   * share global cacophony calcs across all voices
 * style
@@ -350,5 +351,6 @@ TODO
     * mutation rates per gene
     * or increments for offspring
   * create a library of crossover, selector and mutator functions
+  * visualise chromosomes
 
 */
