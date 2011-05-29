@@ -41,21 +41,22 @@ SynthDef(\particle, {
 	//analysis vars
 	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence;
 	var eps = 2.0e-07;
+	discernmentTime = 1; 
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
 	  gate: gate,
 	  doneAction: 2);
 	outMono = Resonz.ar(
 		Warp1.ar(
-		    1,			// num channels (Class claims only mono works)
+		    1,				// num channels (Class claims only mono works)
 		    buffer,		// buffer
 		    pointer,		// start pos
-		    pitch,		// pitch shift
+		    pitch,			// pitch shift
 		    windowSize,	// window size (sec?)
 		    -1,			// envbufnum (-1=Hanning)
-		    4,			// overlap
+		    4,				// overlap
 		    0.1,			// rand ratio
-		    2,			// interp (2=linear)
+		    2,				// interp (2=linear)
 		    gain.dbamp	// mul
 		),
 		filtFreq,
@@ -238,14 +239,14 @@ n=Proto({
 		~particles.removeAt(idx);
 	};
 	~tend = {
-		var weakestLinks, mean, survivableDiscernability;
+		var particleAges, weakestLinks, mean, survivableDiscernability;
 		~particles.do({|p| p.tick();});
 		survivableDiscernability = (~particles.size * 2).reciprocal;
 		["survivableDiscernability", survivableDiscernability].postln;
+		particleAges = ~particles.collect({|p| p.age;});
 		mean = ~particles.collect({|p| p.discernibility;}).mean();
 		//indices of killable, unfit particles
 		weakestLinks = ~particles.collect({|p, i|
-			["checking", p, i, p.discernibility, p.age].postln;
 			((p.age > 10).and(p.discernibility < survivableDiscernability)).if(i);
 		}).removeEvery([nil]).reverse;
 		["weakestLinks", weakestLinks].postln;
@@ -270,6 +271,7 @@ q=n.copy.setUp(s, ~outs, nil, 10, 1);
 q=n.copy.setUp(s, ~outs, nil, 20, 0.1);
 q.randomize();
 q.getDiscernibility();
+q.particleAges;
 q.tearDown();
 )
 
@@ -282,29 +284,37 @@ Quarks.gui;
 TODO
 ====
 
-* need to compensate for different weighting of spectral bands in the autocorrelation thingy.
-* switch to generating iterator Routines instead of generating temporary collections
-* find a better survivable discernability heuristic
-* consider doing everything in fourier space?
-* go from stereo to ambisonic, or something
-* volume control, sensitive to number of agents
-* clip discernability function as a way of killing agents
-* add in LFOs
-* weight two different channels oppositely, as predator or prey signals
-* record sound samples
-* crossover parentage
-* change set lag time to 0 initially, then shift after one tick
-* how can we favour rhythmic evolution? (by favouring spectral variance over time?)
-* how can we not favour white noise? (see above)
-* give birth when sufficiently fit.
-* how can we favour bass?
-* have a global TempoClock to keep triggering discernibility tests, and pause if necessary
-* allow different discernibilityTimes?
-* record into global buffers?
-* consider evolvability, and how to have a more robust chromosome.
+* discernment
+  * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
+  * find a better survivable discernability heuristic
+  * weight two different channels oppositely, as predator or prey signals
+  * how can we favour bass?
+  * how can we favour rhythmic evolution? (by favouring spectral variance over time?)
+  * how can we not favour white noise? (see above)
+  * allow different discernibilityTimes?
+  * clip discernability function as a way of killing agents
+  * consider doing everything in fourier space?
+* optimisation
+  *share global cacophony calcs across all voices
+* style
+  * go to IdentityDictionaries for particle storage and hash/counter-named particles
+  * switch to generating iterator Routines instead of generating temporary collections
+* niceties
+  * change set lag time to 0 initially, then shift after one tick
+  * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
+* sound
+  * go from stereo to ambisonic, or something
+  * volume control, sensitive to number of agents
+  * add in LFOs
+  * record into global buffers?
+  * attach "species" to buffer
 * make populations archivable, serialisable etc
-* evolve "evolvability" 
-  * mutation rates per gene
-  * or increments for offspring
-* go to IdentityDictionaries for particle storage and hash/counter-named particles
+* evolution
+  * crossover parentage
+  * give birth when sufficiently fit.
+  * consider evolvability, and how to have a more robust chromosome.
+  * evolve "evolvability" 
+    * mutation rates per gene
+    * or increments for offspring
+
 */
