@@ -29,7 +29,7 @@ SynthDef(\particle, {
 	 discernmentTime=10,	//resp time in seconds
 	 buffer = 0,
 	 gate = 1,
-	 pitch = 1,
+	 pitch = 1,  //first of the synth parameters
 	 pointer = 0.0,
 	 gain = -12.0,
 	 pan = 0.0,
@@ -83,7 +83,6 @@ SynthDef(\particle, {
 	SendTrig.kr(LFPulse.kr((discernmentTime.reciprocal)/2),0,discernibility); //FASTER than discernment time to reduce jitter worries.
 }, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
-
 o=Proto({
 	~synth = nil;
 	~myServer = nil;
@@ -102,18 +101,20 @@ o=Proto({
 	/* This as a constructor. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~updateChromosome = { |chrom=nil|
-		if (chrom.isNil()) {chrom = Array.fill(7, {1.0.rand});};
+		if (chrom.isNil()) {chrom = Array.fill(7, {1.0.rand2});};
 		//["chrom", chrom, chrom[0], chrom[0].linexp(0.0,  1.0,   0.1,     10.0)].postln;
 		~chromosome = chrom;
 		~synthesize.(
-			chrom[0].linexp(0.0,  1.0,   0.1,     10.0), //pitch
-			chrom[1].linlin(0.0,  1.0,   0.0,      1.0), //pointer
-			chrom[2].linlin(0.0,  1.0, -36.0,      0.0), //gain
-			chrom[3].linlin(0.0,  1.0,  -1.0,      1.0), //pan
-			chrom[4].linexp(0.0,  1.0,   0.01,    10.0), //windowSize
-			chrom[5].linexp(0.0,  1.0,  40.0,  12000.0), //filtFreq
-			chrom[6].linexp(0.0,  1.0,   0.01,     1.0)  //rQ
+			chrom[0].linexp(-1.0,  1.0,   0.1,     10.0), //pitch
+			chrom[1].linlin(-1.0,  1.0,   0.0,      1.0), //pointer
+			chrom[2].linlin(-1.0,  1.0, -36.0,      0.0), //gain
+			chrom[3].linlin(-1.0,  1.0,  -1.0,      1.0), //pan
+			chrom[4].linexp(-1.0,  1.0,   0.01,    10.0), //windowSize
+			chrom[5].linexp(-1.0,  1.0,  40.0,  12000.0), //filtFreq
+			chrom[6].linexp(-1.0,  1.0,   0.01,     1.0)  //rQ
 		);
+		//return self, or we get the synthdef back
+		currentEnvironment;
 	};
 	~setUp = {|server,
 			myCacophonyBus,
@@ -170,6 +171,12 @@ o=Proto({
 	~tick = {
 		~age= ~age+1;
 	};
+	~mutated = { |chromosome|
+		//a mutation function. this feels like it should be set from a library of mutators. one day.
+		// it returns a perturbed chromosome, but does not modify this in place.
+		(chromosome.isNil()).if({chromosome = ~chromosome;});
+		~chromosome.collect({|v| (v + gauss(0.0, 0.1)).softclip(); });
+	}
 });
 
 n=Proto({
@@ -245,22 +252,37 @@ n=Proto({
 		~particles.removeAt(idx);
 	};
 	~tend = {
-		var particleAges, weakestLinks, mean, survivableDiscernability;
+		var weakestLinks, mean, survivableDiscernability, newChromosome, discernibilities;
 		~particles.do({|p| p.tick();});
 		survivableDiscernability = (~particles.size * 2).reciprocal;
 		["survivableDiscernability", survivableDiscernability].postln;
-		particleAges = ~particles.collect({|p| p.age;});
-		mean = ~particles.collect({|p| p.discernibility;}).mean();
+
 		//indices of killable, unfit particles
 		weakestLinks = ~particles.collect({|p, i|
 			((p.age > 5).and(p.discernibility < survivableDiscernability)).if(i);
 		}).removeEvery([nil]).reverse;
 		["weakestLinks", weakestLinks].postln;
-		["mean", mean].postln;
 		weakestLinks.do({|i|
 			["killing", i, ~particles[i].discernibility].postln;
 			~removeParticle.(i);
-			~addParticle.();
+		});
+		discernibilities = ~particles.collect({|p| p.discernibility;});
+		["mean", discernibilities.mean(), "stddev", discernibilities.stdDev()].postln;
+		//add an even chance of getting a random mutant
+		discernibilities = discernibilities.add(survivableDiscernability);		discernibilities = discernibilities/(discernibilities.sum);
+		weakestLinks.do({|i|
+			var parent, parentChromosome, newParticle;
+			var exNihilo = false;
+			//this will always choose an existing one, since the new particles go at the end
+			parent = ~particles.wchoose(discernibilities);
+			if (parent.isNil(), {
+				parentChromosome=nil; exNihilo=true;
+				}, {
+				parentChromosome = parent.mutated();
+			});
+			["birthing", i, discernibilities, exNihilo].postln;
+			newParticle = ~addParticle.(parentChromosome);
+			//["new", newParticle.chromosome, "old", parentChromosome].postln;
 		});
 	};
 });
@@ -278,9 +300,8 @@ q=n.copy.setUp(s, ~globalOuts, nil, 10, 1);
 q=n.copy.setUp(s, ~globalOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[0].discernmentTime;
+q.particles.size;
 q.discernmentTime;
-q.getDiscernibility();
-q.particleAges;
 q.tearDown();
 )
 
@@ -294,6 +315,7 @@ TODO
 ====
 
 * discernment
+  * find better autocorrelation that does not favour all converging to one thing.
   * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
   * find a better survivable discernability heuristic
   * weight two different channels oppositely, as predator or prey signals
@@ -310,17 +332,16 @@ TODO
   * switch to generating iterator Routines instead of generating temporary collections
   * get rid of this "my" business with member names
 * niceties
-  * change set lag time to 0 initially, then shift after one tick
   * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
+  * make populations archivable, serialisable etc
 * sound
   * go from stereo to ambisonic, or something
   * volume control, sensitive to number of agents
   * add in LFOs
-    * which menas pushing param mapping inside synthdef
+    * which means pushing param mapping inside synthdef
   * record into global buffers?
   * attach "species" to buffer
   * envelope birth and death
-* make populations archivable, serialisable etc
 * evolution
   * crossover parentage
   * give birth when sufficiently fit.
@@ -328,5 +349,6 @@ TODO
   * evolve "evolvability" 
     * mutation rates per gene
     * or increments for offspring
+  * create a library of crossover, selector and mutator functions
 
 */
