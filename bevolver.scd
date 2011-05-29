@@ -95,7 +95,8 @@ o=Proto({
 	~particleGroup=nil;
 	~discernmentTime=10;
 	~discernmentChecker = nil;
-	
+	~age=0;
+
 	/*if setUp is run lots on an existing object
 	it leaks memory. So use this as a constructor, which is the mandated way. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
@@ -128,6 +129,7 @@ o=Proto({
 		~myCacophonyBus=myCacophonyBus;
 		~particleGroup=particleGroup;
 		~discernmentTime=discernmentTime;
+		~age=0;
 //		~synth=Synth.newPaused(\particle, [\myCacophonyBus, ~myCacophonyBus, \out, ~myOut], ~particleGroup);
 		~synth=Synth.new(\particle, [\myCacophonyBus, ~myCacophonyBus, \out, ~myOut, \discernmentTime, ~discernmentTime], ~particleGroup);
 		NodeWatcher.register(~synth, true);
@@ -167,6 +169,9 @@ o=Proto({
 		~synth.release();
 		~responder.remove();
 	};
+	~tick = {
+		~age= ~age+1;
+	};
 });
 
 n=Proto({
@@ -180,7 +185,6 @@ n=Proto({
 	~myJack = nil;
      ~particleGroup=nil;
 	~discernmentTime=10;
-	~particleAges = nil;
 
 	~setUp = {|server,
 			out,
@@ -190,7 +194,6 @@ n=Proto({
 		~myServer=server;
 		~myOut=out;
 		~particles=List();
-		~particleAges=List();
 		~population=population;
 		~myCacophonyBus = Bus.audio(s, 2); 
 		~myJack = Synth.new(\jack_2, [\i_in, ~myOut, \i_out, ~myCacophonyBus]);
@@ -222,7 +225,6 @@ n=Proto({
 		particle = o.copy();
 		particle.setUp(~myServer, ~myCacophonyBus, ~outs, ~particleGroup, ~myBuf, ~discernmentTime);
 		~particles.add(particle);
-		~particleAges.add(0);
 		particle.updateChromosome(chromosome);
 	};
 	~randomize = {|indices=nil|
@@ -235,20 +237,18 @@ n=Proto({
 		["remove", idx, ~particles[idx]];
 		(~particles[idx]).tearDown();
 		~particles.removeAt(idx);
-		~particleAges.removeAt(idx);
-	};
-	~getDiscernibility = {
-		all {:p.discernibility, p<- ~particles};
 	};
 	~tend = {
-		var discernibilities = (~getDiscernibility.());
+		var discernibilities, particleAges, weakestLink, mean;
+		~particles.do({|part| part.tick();});
+		discernibilities = ~particles.collect({|p| p.discernibility;});
+		particleAges = ~particles.collect({|p| p.age;});
 //		var weakestLink = (0..(~particles.size-1)).wchoose(discernibilities/(discernibilities.sum));
-		var mean = discernibilities.mean();
-var weakestLink = discernibilities.minIndex();
-		~particleAges = List.newUsing(~particleAges +1); // lists cast to arrays otherwise
-["mean", mean].postln;
-		["weakest", weakestLink, "age", ~particleAges[weakestLink]].postln;
-		if (~particleAges[weakestLink]>5, { //takes a while for fitness to get up
+		mean = discernibilities.mean();
+		weakestLink = discernibilities.minIndex();
+		["mean", mean].postln;
+		["weakest", weakestLink, "age", particleAges[weakestLink]].postln;
+		if (particleAges[weakestLink]>5, { //takes a while for fitness to get up
 			["killing", weakestLink].postln;
 			~removeParticle.(weakestLink);
 			~addParticle.();
@@ -281,7 +281,6 @@ TODO
 ====
 
 * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
-* rename feedback to be "cacophony"
 * consider doing everything in fourier space?
 * go from stereo to ambisonic, or something
 * volume control, sensitive to number of agents
@@ -292,8 +291,9 @@ TODO
 * don't kill the weakest, trim everything with discernibility < 1/sqrt(n)
 * still kill something if the weakest are too young.
 * crossover parentage
-* how can we favour rhythmic evolution?
-* how can we not favour white noise?
+* change set lag time to 0 initially, then shift after one tick
+* how can we favour rhythmic evolution? (by favouring spectral variance over time?)
+* how can we not favour white noise? (see above)
 * give birth when sufficiently fit.
 * how can we favour bass?
 * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
@@ -301,6 +301,5 @@ TODO
 * record into global buffers?
 * consider evolvability, and how to have a more robust chromosome.
 * make populations archivable, serialisable etc
-* make age be local to particle
 * evolve "evolvability" - mutation rates per gene
 */
