@@ -24,7 +24,7 @@ SynthDef(\jack_4, {
 }).send(s);
 
 SynthDef(\particle, {
-	|arFbBus,
+	|myCacophonyBus,
 	 out = 0,
 	 discernmentTime=10,	//resp time in seconds
 	 buffer = 0,
@@ -69,7 +69,7 @@ SynthDef(\particle, {
 	);
 	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	weSaid = InFeedback.ar(arFbBus);
+	weSaid = InFeedback.ar(myCacophonyBus);
 	myPresence = A2K.kr(Lag.ar(iSaid*iSaid, discernmentTime));
 //	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
 	overallPresence = A2K.kr(Lag.ar(Mix.ar(weSaid*weSaid), discernmentTime));
@@ -87,7 +87,7 @@ o=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~myOut = nil;
-	~arFbBus = nil;
+	~myCacophonyBus = nil;
 	~discernibility = 0.0;
 	~responder = 0;
 	~globalPresence = nil;
@@ -114,7 +114,7 @@ o=Proto({
 		);
 	};
 	~setUp = {|server,
-			arFbBus,
+			myCacophonyBus,
 			out,
 			particleGroup,
 			buffer,
@@ -125,11 +125,11 @@ o=Proto({
 		~myOut=out;
 		~myBuf=buffer;
 		~globalPresence=globalPresence;
-		~arFbBus=arFbBus;
+		~myCacophonyBus=myCacophonyBus;
 		~particleGroup=particleGroup;
 		~discernmentTime=discernmentTime;
-//		~synth=Synth.newPaused(\particle, [\arFbBus, ~arFbBus, \out, ~myOut], ~particleGroup);
-		~synth=Synth.new(\particle, [\arFbBus, ~arFbBus, \out, ~myOut, \discernmentTime, ~discernmentTime], ~particleGroup);
+//		~synth=Synth.newPaused(\particle, [\myCacophonyBus, ~myCacophonyBus, \out, ~myOut], ~particleGroup);
+		~synth=Synth.new(\particle, [\myCacophonyBus, ~myCacophonyBus, \out, ~myOut, \discernmentTime, ~discernmentTime], ~particleGroup);
 		NodeWatcher.register(~synth, true);
 		~discernibility;
 		/* how you set up callbacks with sane binding:
@@ -176,9 +176,9 @@ n=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~myOut = nil;
-	~myFb = nil;
+	~myCacophonyBus = nil;
 	~myJack = nil;
-    ~particleGroup=nil;
+     ~particleGroup=nil;
 	~discernmentTime=10;
 	~particleAges = nil;
 
@@ -192,8 +192,8 @@ n=Proto({
 		~particles=List();
 		~particleAges=List();
 		~population=population;
-		~myFb = Bus.audio(s, 2); 
-		~myJack = Synth.new(\jack_2, [\i_in, ~myOut, \i_out, ~myFb]);
+		~myCacophonyBus = Bus.audio(s, 2); 
+		~myJack = Synth.new(\jack_2, [\i_in, ~myOut, \i_out, ~myCacophonyBus]);
 		~particleGroup=Group.new(~myServer);
 		~globalPresence = Bus.audio(s,1);
 		if (buffer.isNil()) {
@@ -213,14 +213,14 @@ n=Proto({
 	~tearDown = {
 		while ({~particles.size>0}, {~removeParticle.();});
 		~particleGroup.free();
-		~myFb.free();
+		~myCacophonyBus.free();
 		~globalPresence.free();
 		~myBuf.free();
 	};
 	~addParticle = {|chromosome|
 		var particle;
 		particle = o.copy();
-		particle.setUp(~myServer, ~myFb, ~outs, ~particleGroup, ~myBuf, ~discernmentTime);
+		particle.setUp(~myServer, ~myCacophonyBus, ~outs, ~particleGroup, ~myBuf, ~discernmentTime);
 		~particles.add(particle);
 		~particleAges.add(0);
 		particle.updateChromosome(chromosome);
@@ -302,4 +302,5 @@ TODO
 * consider evolvability, and how to have a more robust chromosome.
 * make populations archivable, serialisable etc
 * make age be local to particle
+* evolve "evolvability" - mutation rates per gene
 */
