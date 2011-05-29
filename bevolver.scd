@@ -41,7 +41,7 @@ SynthDef(\particle, {
 	//analysis vars
 	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence;
 	var eps = 2.0e-07;
-	discernmentTime = 1; 
+	discernmentTime = discernmentTime; 
 	env = EnvGen.kr(
 	  Env.cutoff(1, 1, 'linear'),
 	  gate: gate,
@@ -223,7 +223,15 @@ n=Proto({
 	~addParticle = {|chromosome|
 		var particle;
 		particle = o.copy();
-		particle.setUp(~myServer, ~myCacophonyBus, ~outs, ~particleGroup, ~myBuf, ~discernmentTime);
+		particle.setUp(
+		  ~myServer,
+		  ~myCacophonyBus,
+		  ~outs,
+		  ~particleGroup,
+		  ~myBuf,
+		  nil, //globalPresence
+		  nil, //chromosome
+		  ~discernmentTime);
 		~particles.add(particle);
 		particle.updateChromosome(chromosome);
 	};
@@ -270,6 +278,8 @@ q=n.copy.setUp(s, ~outs, nil, 100, 1);
 q=n.copy.setUp(s, ~outs, nil, 10, 1);
 q=n.copy.setUp(s, ~outs, nil, 20, 0.1);
 q.randomize();
+q.particles[0].discernmentTime;
+q.discernmentTime;
 q.getDiscernibility();
 q.particleAges;
 q.tearDown();
@@ -295,10 +305,11 @@ TODO
   * clip discernability function as a way of killing agents
   * consider doing everything in fourier space?
 * optimisation
-  *share global cacophony calcs across all voices
+  * share global cacophony calcs across all voices
 * style
   * go to IdentityDictionaries for particle storage and hash/counter-named particles
   * switch to generating iterator Routines instead of generating temporary collections
+  * get rid of this "my" business
 * niceties
   * change set lag time to 0 initially, then shift after one tick
   * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
@@ -308,6 +319,7 @@ TODO
   * add in LFOs
   * record into global buffers?
   * attach "species" to buffer
+  * envelope birth and death
 * make populations archivable, serialisable etc
 * evolution
   * crossover parentage
