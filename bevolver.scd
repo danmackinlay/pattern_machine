@@ -74,12 +74,12 @@ SynthDef(\particle, {
 	fallTime = discernmentTime;
 	myPresence = A2K.kr(LagUD.ar(iSaid*iSaid, riseTime, fallTime));
 //	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
-	overallPresence = A2K.kr(LagUD.ar(Mix.ar(weSaid*weSaid), riseTime, fallTime));
+//	overallPresence = A2K.kr(LagUD.ar(Mix.ar(weSaid*weSaid), riseTime, fallTime));
 //	overallPresence.poll(Impulse.kr(discernmentTime.reciprocal), \overall);
 	crossPresence = A2K.kr(LagUD.ar(Mix.ar(iSaid*weSaid), riseTime, fallTime)); //correlate.
 //	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
-	discernibility = (crossPresence.abs + eps)/((overallPresence*myPresence+eps).sqrt);
-	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
+	discernibility = 0.0.max(1.0 - (((crossPresence - myPresence)/(crossPresence)).squared));//scale by overallPresence?
+//	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
 	SendTrig.kr(LFPulse.kr((discernmentTime.reciprocal)/2),0,discernibility); //FASTER than discernment time to reduce jitter worries.
 }, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
@@ -255,7 +255,8 @@ n=Proto({
 	~tend = {
 		var weakestLinks, mean, survivableDiscernability, newChromosome, discernibilities;
 		~particles.do({|p| p.tick();});
-		survivableDiscernability = (~particles.size * 2).reciprocal;
+		//survivableDiscernability = (~particles.size * 2).reciprocal;
+		survivableDiscernability = 0.25;
 		["survivableDiscernability", survivableDiscernability].postln;
 
 		//indices of killable, unfit particles
