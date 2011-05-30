@@ -43,7 +43,7 @@ SynthDef(\particle, {
 	var eps = 2.0e-07;
 	discernmentTime = discernmentTime; 
 	env = EnvGen.kr(
-	  Env.cutoff(1, 1, 'linear'),
+	  Env.asr(discernmentTime/2, 1, discernmentTime/2, 'linear'),
 	  gate: gate,
 	  doneAction: 2);
 	outMono = Resonz.ar(
@@ -350,6 +350,8 @@ TODO
   * envelope birth and death
 * evolution
   * crossover parentage
+  * reproduce via mitosis
+  * interpolate smoothly to new value
   * give birth when sufficiently fit.
   * consider evolvability, and how to have a more robust chromosome.
   * evolve "evolvability" 
