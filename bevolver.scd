@@ -139,7 +139,7 @@ o=Proto({
 		~responder = OSCpathResponder(
 			~myServer.addr,
 			['/tr', ~synth.nodeID, 0],
-			inEnvir { |t,r,msg| ~discernibility=msg[3];}
+			inEnvir { |t,r,msg| msg[3].isNaN.not.if({~discernibility=msg[3];});}
 		);
 		~responder.add();
 		~updateChromosome.(chromosome);
@@ -256,7 +256,7 @@ n=Proto({
 		var weakestLinks, mean, survivableDiscernability, newChromosome, discernibilities;
 		~particles.do({|p| p.tick();});
 		//survivableDiscernability = (~particles.size * 2).reciprocal;
-		survivableDiscernability = 0.25;
+		survivableDiscernability = (~particles.size).reciprocal;
 		["survivableDiscernability", survivableDiscernability].postln;
 
 		//indices of killable, unfit particles
@@ -311,6 +311,7 @@ q.tearDown();
 (
 s.scope;
 Quarks.gui;
+f.isNaN.not.if({'notNAN';}, {'NAN';});
 )
 
 /*
