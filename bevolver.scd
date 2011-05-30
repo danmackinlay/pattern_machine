@@ -79,7 +79,7 @@ SynthDef(\particle, {
 	crossPresence = A2K.kr(LagUD.ar(Mix.ar(iSaid*weSaid), riseTime, fallTime)); //correlate.
 //	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
 	discernibility = (crossPresence.abs + eps)/((overallPresence*myPresence+eps).sqrt);
-//	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
+	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
 	SendTrig.kr(LFPulse.kr((discernmentTime.reciprocal)/2),0,discernibility); //FASTER than discernment time to reduce jitter worries.
 }, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
 
@@ -98,8 +98,6 @@ o=Proto({
 	~discernmentChecker = nil;
 	~age=0;
 
-	/* This as a constructor. See
-	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~updateChromosome = { |chrom=nil|
 		if (chrom.isNil()) {chrom = Array.fill(7, {1.0.rand2});};
 		//["chrom", chrom, chrom[0], chrom[0].linexp(0.0,  1.0,   0.1,     10.0)].postln;
@@ -116,6 +114,8 @@ o=Proto({
 		//return self, or we get the synthdef back
 		currentEnvironment;
 	};
+	/* This as a constructor. See
+	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~setUp = {|server,
 			myCacophonyBus,
 			out,
@@ -207,8 +207,8 @@ n=Proto({
 		if (buffer.isNil()) {
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
 		~myBuf = buffer;
-		while ({~particles.size<~population}, {~addParticle.();});
 		~discernmentTime=discernmentTime;
+		while ({~particles.size<~population}, {~addParticle.();});
 		SystemClock.sched(discernmentTime,
 			inEnvir {
 				~tend.();
@@ -227,8 +227,8 @@ n=Proto({
 	};
 	~addParticle = {|chromosome|
 		var particle;
-		particle = o.copy();
-		particle.setUp(
+		["creating new particle with discernmentTime", ~discernmentTime];
+		particle = o.copy.setUp(
 		  ~myServer,
 		  ~myCacophonyBus,
 		  ~outs,
@@ -236,7 +236,8 @@ n=Proto({
 		  ~myBuf,
 		  nil, //globalPresence
 		  nil, //chromosome
-		  ~discernmentTime);
+		  ~discernmentTime
+		);
 		~particles.add(particle);
 		particle.updateChromosome(chromosome);
 	};
@@ -296,10 +297,11 @@ s.options.numInputBusChannels;
 //~swarmOuts = Bus.new(\audio, 0, 2); //compress swarm separately?
 q=n.copy.setUp(s, ~globalOuts, nil, 1);
 q=n.copy.setUp(s, ~globalOuts, nil, 100, 1);
-q=n.copy.setUp(s, ~globalOuts, nil, 10, 1);
+q=n.copy.setUp(s, ~globalOuts, nil, 20, 1);
 q=n.copy.setUp(s, ~globalOuts, nil, 20, 0.1);
 q.randomizeAll();
-q.particles[0].discernmentTime;
+q.particles[8].discernmentTime;
+q.discernmentTime;
 q.particles.size;
 q.discernmentTime;
 q.tearDown();
@@ -326,6 +328,7 @@ TODO
   * clip discernability function as a way of killing agents
   * consider doing everything in fourier space?
   * visualise spectrograph, or signal scope or something to distinguish what discernment is doing
+  * think in terms of linear regression
 * optimisation
   * share global cacophony calcs across all voices
 * style
