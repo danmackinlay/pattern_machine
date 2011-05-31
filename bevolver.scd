@@ -329,6 +329,7 @@ TODO
   * allow different discernibilityTimes?
   * clip discernability function as a way of killing agents
   * consider doing everything in fourier space?
+    * Or the cepstral domain?
   * visualise spectrograph, or signal scope or something to distinguish what discernment is doing
   * think in terms of linear regression
 * optimisation
@@ -352,6 +353,7 @@ TODO
   * crossover parentage
   * reproduce via mitosis
   * interpolate smoothly to new value
+  * don't wait for death to reproduce, let the young drive out the old
   * give birth when sufficiently fit.
   * consider evolvability, and how to have a more robust chromosome.
   * evolve "evolvability" 
