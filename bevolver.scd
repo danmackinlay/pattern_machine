@@ -295,11 +295,13 @@ s.boot;
 s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~globalOuts = Bus.new(\audio, 0, 2);
-//~swarmOuts = Bus.new(\audio, 0, 2); //compress swarm separately?
-q=n.copy.setUp(s, ~globalOuts, nil, 1);
-q=n.copy.setUp(s, ~globalOuts, nil, 100, 1);
-q=n.copy.setUp(s, ~globalOuts, nil, 20, 1);
-q=n.copy.setUp(s, ~globalOuts, nil, 20, 0.1);
+~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
+~jack = Synth.new(\jack_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
+
+q=n.copy.setUp(s, ~swarmOuts, nil, 1);
+q=n.copy.setUp(s, ~swarmOuts, nil, 100, 1);
+q=n.copy.setUp(s, ~swarmOuts, nil, 20, 1);
+q=n.copy.setUp(s, ~swarmOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[8].discernmentTime;
 q.discernmentTime;
@@ -346,6 +348,7 @@ TODO
   * volume control, sensitive to number of agents
   * add in LFOs
     * which means pushing param mapping inside synthdef
+    * normal sine or FBSineL-style semichaotic gens?
   * record into global buffers?
   * attach "species" to buffer
   * envelope birth and death
