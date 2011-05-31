@@ -11,6 +11,13 @@ SynthDef(\jack_2, {
 	Out.ar(i_out, In.ar(i_in, 2));
 }).send(s);
 
+SynthDef(\agc_2, {
+	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
+	Limiter.ar(
+		Compander.ar( i_in, Mix(i_in).max(0.0001), threshold, 1.0, slope, clampTime, relaxTime ),
+	0.999)
+}).send(s);
+
 SynthDef(\jack_3, {
 	|i_in,
 	 i_out|
@@ -296,11 +303,11 @@ s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
-~jack = Synth.new(\jack_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
-
+q=n.copy.setUp(s, ~swarmOuts, nil, 20, 1);
+~comp = Synth.after(q.particleGroup, \agc_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
+~jack.free;
 q=n.copy.setUp(s, ~swarmOuts, nil, 1);
 q=n.copy.setUp(s, ~swarmOuts, nil, 100, 1);
-q=n.copy.setUp(s, ~swarmOuts, nil, 20, 1);
 q=n.copy.setUp(s, ~swarmOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[8].discernmentTime;
