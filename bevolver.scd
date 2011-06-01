@@ -1,5 +1,5 @@
 (
-SynthDef(\jack, {
+SynthDef(\jack_1, {
 	|i_in,
 	 i_out|
 	Out.ar(i_out, In.ar(i_in, 1));
@@ -14,7 +14,7 @@ SynthDef(\jack_2, {
 SynthDef(\agc_2, {
 	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
 	Limiter.ar(
-		Compander.ar( i_in, Mix(i_in).max(0.0001), threshold, 1.0, slope, clampTime, relaxTime ),
+		Compander.ar( i_in*50, Mix(i_in).max(0.0001), threshold, 1.0, slope, clampTime, relaxTime ),
 	0.999)
 }).send(s);
 
@@ -197,19 +197,23 @@ n=Proto({
 	~cacophonyOut = nil;
      ~particleGroup=nil;
 	~discernmentTime=10;
+	~myIn = nil;
 
 	~setUp = {|server,
+			in,
 			out,
 			buffer=nil,
 			population=10,
 			discernmentTime=10|
 		~myServer=server;
+		~myIn = in;
 		~mainOut=out;
 		~particles=List();
 		~population=population;
 		~myCacophonyBus = Bus.audio(s, 2); 
-		~cacophonyOut = Synth.new(\jack_2, [\i_in, ~mainOut, \i_out, ~myCacophonyBus]);
 		~particleGroup=Group.new(~myServer);
+		~cacophonyOut = Synth.after(~particleGroup, \jack_2, [\i_in, ~mainOut, \i_out, ~myCacophonyBus]);
+		~audioIn = Synth.before(~particleGroup, \jack_1, [\i_in, ~myIn, \i_out, ~myCacophonyBus]);
 		~globalPresence = Bus.audio(s,1);
 		if (buffer.isNil()) {
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
@@ -302,13 +306,14 @@ s.boot;
 s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~globalOuts = Bus.new(\audio, 0, 2);
+~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 2);//better way to get first audio in?
 ~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
-q=n.copy.setUp(s, ~swarmOuts, nil, 20, 1);
+q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 20, 1);
 ~comp = Synth.after(q.particleGroup, \agc_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
 ~jack.free;
-q=n.copy.setUp(s, ~swarmOuts, nil, 1);
-q=n.copy.setUp(s, ~swarmOuts, nil, 100, 1);
-q=n.copy.setUp(s, ~swarmOuts, nil, 20, 0.1);
+q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 1);
+q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 100, 1);
+q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[8].discernmentTime;
 q.discernmentTime;
@@ -371,5 +376,5 @@ TODO
     * or increments for offspring
   * create a library of crossover, selector and mutator functions
   * visualise chromosomes
-
+  * have some chromosomes hide for a while, but return later.
 */
