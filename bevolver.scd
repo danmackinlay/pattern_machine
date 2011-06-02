@@ -1,4 +1,12 @@
 (
+
+SynthDef(\agc_2, {
+	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
+	Limiter.ar(
+		Compander.ar( i_in*50, Mix(i_in).max(0.0001), threshold, 1.0, slope, clampTime, relaxTime ),
+	0.999)
+}).send(s);
+
 SynthDef(\jack_1, {
 	|i_in,
 	 i_out|
@@ -9,13 +17,6 @@ SynthDef(\jack_2, {
 	|i_in,
 	 i_out|
 	Out.ar(i_out, In.ar(i_in, 2));
-}).send(s);
-
-SynthDef(\agc_2, {
-	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
-	Limiter.ar(
-		Compander.ar( i_in*50, Mix(i_in).max(0.0001), threshold, 1.0, slope, clampTime, relaxTime ),
-	0.999)
 }).send(s);
 
 SynthDef(\jack_3, {
@@ -355,6 +356,7 @@ TODO
 * niceties
   * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
   * make populations archivable, serialisable etc
+  * create a ParticleMixer synth, handling all the feedback routing etc.
 * sound
   * go from stereo to ambisonic, or something
   * volume control, sensitive to number of agents
@@ -363,10 +365,8 @@ TODO
     * normal sine or FBSineL-style semichaotic gens?
   * record into global buffers?
   * attach "species" to buffer
-  * envelope birth and death
 * evolution
   * crossover parentage
-  * reproduce via mitosis
   * interpolate smoothly to new value
   * don't wait for death to reproduce, let the young drive out the old
   * give birth when sufficiently fit.
