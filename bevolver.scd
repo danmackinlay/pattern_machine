@@ -311,6 +311,9 @@ n=Proto({
 			//["new", newParticle.chromosome, "old", parentChromosome].postln;
 		});
 	};
+	~setExtGain = {|gain=1.0|
+		~myCage.set(\extGain, gain);
+	};
 });
 )
 
@@ -320,15 +323,16 @@ s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 2);//better way to get first audio in?
-~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
+//~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
 q=n.copy.setUp(s, ~globalIns, ~globalOuts, nil, 20, 1);
-~comp = Synth.after(q.particleGroup, \agc_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
-~jack.free;
+//~comp = Synth.after(q.particleGroup, \agc_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
+//~jack.free;
 q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 1);
 q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 100, 1);
 q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[8].discernmentTime;
+q.setExtGain(0.0);
 q.discernmentTime;
 q.particles.size;
 q.discernmentTime;
