@@ -240,7 +240,17 @@ n=Proto({
 		currentEnvironment;
 	};
 	~tearDown = {
+		//first, free particles
 		while ({~particles.size>0}, {~removeParticle.();});
+		//now, free everything else
+		SystemClock.sched(~discernmentTime*2,
+			inEnvir {
+				//envelopes finished-ish by now
+				~freeResources.();
+			}
+		);
+	};
+	~freeResources = {
 		~particleGroup.free();
 		~myCacophonyInBus.free();
 		~myBuf.free();
@@ -382,7 +392,7 @@ TODO
   * peg global health to global volume
   * automagically record loops and stick to those for the sound input.
   * crossover parentage
-  * interpolate smoothly to new value
+  * interpolate smoothly to new value (but do values update even?)
   * don't wait for death to reproduce, let the young drive out the old
   * give birth when sufficiently fit.
   * consider evolvability, and how to have a more robust chromosome.
