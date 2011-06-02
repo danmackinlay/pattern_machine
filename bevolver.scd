@@ -31,6 +31,16 @@ SynthDef(\jack_4, {
 	Out.ar(i_out, In.ar(i_in, 4));
 }).send(s);
 
+SynthDef(\cage, { //a container for agents
+	|in,  //ext in
+	 out, //their little voices
+	 middlein,
+	 middleout,
+	 extGain=1.0| //The group that contains them
+	 //Should this be LocalFeedback?
+	 Out.ar(middlein, In.ar(middleout) + extGain*InFeedback.ar(middleout));
+//	 Out.ar(out, In.ar(middleout));
+});
 SynthDef(\particle, {
 	|cacophonyInToMe,
 	 out = 0,
@@ -96,7 +106,7 @@ o=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~mainOut = nil;
-	~myCacophonyBus = nil;
+	~myCacophonyInBus = nil;
 	~discernibility = 0.0;
 	~responder = 0;
 	~globalPresence = nil;
@@ -125,7 +135,7 @@ o=Proto({
 	/* This as a constructor. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~setUp = {|server,
-			myCacophonyBus,
+			myCacophonyInBus,
 			out,
 			particleGroup,
 			buffer,
@@ -136,11 +146,11 @@ o=Proto({
 		~mainOut=out;
 		~myBuf=buffer;
 		~globalPresence=globalPresence;
-		~myCacophonyBus=myCacophonyBus;
+		~myCacophonyInBus=myCacophonyInBus;
 		~particleGroup=particleGroup;
 		~discernmentTime=discernmentTime;
 		~age=0;
-		~synth=Synth.new(\particle, [\myCacophonyBus, ~myCacophonyBus, \out, ~mainOut, \discernmentTime, ~discernmentTime], ~particleGroup);
+		~synth=Synth.new(\particle, [\myCacophonyInBus, ~myCacophonyInBus, \out, ~mainOut, \discernmentTime, ~discernmentTime], ~particleGroup);
 		NodeWatcher.register(~synth, true);
 		/* how you set up callbacks with sane binding:
 		http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Event-and-prototypes-tp6208222p6226707.html */
@@ -194,12 +204,12 @@ n=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~mainOut = nil;
-	~myCacophonyBus = nil;
+	~myCacophonyInBus = nil;
 	~cacophonyOut = nil;
      ~particleGroup=nil;
 	~discernmentTime=10;
 	~myIn = nil;
-
+	~myCage = nil;
 	~setUp = {|server,
 			in,
 			out,
@@ -211,11 +221,13 @@ n=Proto({
 		~mainOut=out;
 		~particles=List();
 		~population=population;
-		~myCacophonyBus = Bus.audio(s, 2); 
+		~myCacophonyInBus = Bus.audio(s, 2);
 		~particleGroup=Group.new(~myServer);
-		~cacophonyOut = Synth.after(~particleGroup, \jack_2, [\i_in, ~mainOut, \i_out, ~myCacophonyBus]);
-		~audioIn = Synth.before(~particleGroup, \jack_1, [\i_in, ~myIn, \i_out, ~myCacophonyBus]);
-		~globalPresence = Bus.audio(s,1);
+		~myCage = Synth.after(~particleGroup, \cage, [
+			\in, ~myIn,
+			\out, ~mainOut,
+			\middlein, ~myCacophonyInBus
+		]);
 		if (buffer.isNil()) {
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
 		~myBuf = buffer;
@@ -233,8 +245,8 @@ n=Proto({
 	~tearDown = {
 		while ({~particles.size>0}, {~removeParticle.();});
 		~particleGroup.free();
-		~myCacophonyBus.free();
-		~globalPresence.free();
+		~myCacophonyInBus.free();
+		//~globalPresence.free();
 		~myBuf.free();
 	};
 	~addParticle = {|chromosome|
@@ -242,7 +254,7 @@ n=Proto({
 		["creating new particle with discernmentTime", ~discernmentTime];
 		particle = o.copy.setUp(
 		  ~myServer,
-		  ~myCacophonyBus,
+		  ~myCacophonyInBus,
 		  ~outs,
 		  ~particleGroup,
 		  ~myBuf,
@@ -291,7 +303,7 @@ n=Proto({
 			parent = ~particles.wchoose(discernibilities);
 			if (parent.isNil(), {
 				parentChromosome=nil; exNihilo=true;
-				}, {
+			}, {
 				parentChromosome = parent.mutated();
 			});
 			["birthing", i, discernibilities, exNihilo].postln;
@@ -309,7 +321,7 @@ s.options.numInputBusChannels;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 2);//better way to get first audio in?
 ~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
-q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 20, 1);
+q=n.copy.setUp(s, ~globalIns, ~globalOuts, nil, 20, 1);
 ~comp = Synth.after(q.particleGroup, \agc_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
 ~jack.free;
 q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 1);
