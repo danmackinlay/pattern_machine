@@ -1,5 +1,4 @@
 (
-
 SynthDef(\agc_2, {
 	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
 	Limiter.ar(
@@ -85,7 +84,7 @@ SynthDef(\particle, {
 		pos: pan,		// field pos
 		level: env		// level
 	);
-	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
+	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal*2, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
 	weSaid = InFeedback.ar(cacophonyInToMe);
 	riseTime = discernmentTime/8;
@@ -109,7 +108,6 @@ o=Proto({
 	~myCacophonyInBus = nil;
 	~discernibility = 0.0;
 	~responder = 0;
-	~globalPresence = nil;
 	~chromosome = nil;
 	~particleGroup=nil;
 	~discernmentTime=10;
@@ -139,13 +137,11 @@ o=Proto({
 			out,
 			particleGroup,
 			buffer,
-			globalPresence,
 			chromosome,
 			discernmentTime=10|
 		~myServer=server;
 		~mainOut=out;
 		~myBuf=buffer;
-		~globalPresence=globalPresence;
 		~myCacophonyInBus=myCacophonyInBus;
 		~particleGroup=particleGroup;
 		~discernmentTime=discernmentTime;
@@ -246,7 +242,6 @@ n=Proto({
 		while ({~particles.size>0}, {~removeParticle.();});
 		~particleGroup.free();
 		~myCacophonyInBus.free();
-		//~globalPresence.free();
 		~myBuf.free();
 	};
 	~addParticle = {|chromosome|
@@ -258,7 +253,6 @@ n=Proto({
 		  ~outs,
 		  ~particleGroup,
 		  ~myBuf,
-		  nil, //globalPresence
 		  nil, //chromosome
 		  ~discernmentTime
 		);
