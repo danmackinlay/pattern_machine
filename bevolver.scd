@@ -372,7 +372,7 @@ TODO
 * niceties
   * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
   * make populations archivable, serialisable etc
-  * create a ParticleMixer synth, handling all the feedback routing etc.
+  * have controls for survivability, max population etc
 * sound
   * go from stereo to ambisonic, or something
   * volume control, sensitive to number of agents
