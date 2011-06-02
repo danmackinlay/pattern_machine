@@ -34,12 +34,13 @@ SynthDef(\cage, { //a container for agents
 	|in,  //ext in
 	 out, //their little voices
 	 middlein,
-	 middleout,
+	 //middleout,
 	 extGain=1.0| //The group that contains them
 	 //Should this be LocalFeedback?
-	 Out.ar(middlein, In.ar(middleout) + extGain*InFeedback.ar(middleout));
+	 Out.ar(middlein, In.ar(out) + extGain*InFeedback.ar(out));
 //	 Out.ar(out, In.ar(middleout));
-});
+}).send(s);
+
 SynthDef(\particle, {
 	|cacophonyInToMe,
 	 out = 0,
@@ -84,7 +85,7 @@ SynthDef(\particle, {
 		pos: pan,		// field pos
 		level: env		// level
 	);
-	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal*2, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
+	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal*2, ControlRate.ir.reciprocal*2); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
 	weSaid = InFeedback.ar(cacophonyInToMe);
 	riseTime = discernmentTime/8;
@@ -243,6 +244,7 @@ n=Proto({
 		~particleGroup.free();
 		~myCacophonyInBus.free();
 		~myBuf.free();
+		~myCage.free()
 	};
 	~addParticle = {|chromosome|
 		var particle;
@@ -327,6 +329,7 @@ q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[8].discernmentTime;
 q.setExtGain(0.0);
+q.myCage;
 q.discernmentTime;
 q.particles.size;
 q.discernmentTime;
@@ -376,6 +379,8 @@ TODO
   * record into global buffers?
   * attach "species" to buffer
 * evolution
+  * peg global health to global volume
+  * automagically record loops and stick to those for the sound input.
   * crossover parentage
   * interpolate smoothly to new value
   * don't wait for death to reproduce, let the young drive out the old
