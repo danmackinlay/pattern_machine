@@ -1,4 +1,6 @@
 (
+var cepstrumBands = 13; 
+
 SynthDef(\agc_2, {
 	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
 	Limiter.ar(
@@ -57,7 +59,7 @@ SynthDef(\particleMFCC, {
 	//synth vars
 	var env, outMix, outMono;
 	//analysis vars
-	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, riseTime, fallTime, fftBuffer, fftBufferCacophony, myCepstrum, globalCepstrum;
+	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, riseTime, fallTime, fftBuffer, fftBufferCacophony, myCepstrum, ourCepstrum, globalCepstrum;
 	var eps = 2.0e-07;
 	discernmentTime = discernmentTime;
 	fftBuffer = LocalBuf(1024, 1);
@@ -92,9 +94,10 @@ SynthDef(\particleMFCC, {
 	weSaid = InFeedback.ar(cacophonyInToMe);
 	riseTime = discernmentTime/8;
 	fallTime = discernmentTime;
-	myCepstrum = MFCC.kr(iSaid);
-	ourCepstrum = MFCC.kr(weSaid);
-	discernbility = Mix((ourCepstrum/(myCepstrum+0.00001)).squared);
+	myCepstrum = MFCC.kr(iSaid, cepstrumBands);
+	ourCepstrum = MFCC.kr(weSaid, cepstrumBands);
+	discernibility = 1.0 - (((ourCepstrum/(myCepstrum+0.00001)).log.abs));
+	discernibility = LagUD.kr(Mix.new(discernibility, riseTime, fallTime));
 //	myPresence = A2K.kr(LagUD.ar(iSaid*iSaid, riseTime, fallTime));
 //	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
 //	overallPresence = A2K.kr(LagUD.ar(Mix.ar(weSaid*weSaid), riseTime, fallTime));
@@ -330,7 +333,6 @@ n=Proto({
 	};
 });
 
-
 ~swarmController = Proto({
 	~guiWindow = nil;
 	~sliderbank = nil;
@@ -378,7 +380,7 @@ q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 100, 1);
 q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 20, 0.1);
 q.randomizeAll();
 q.particles[8].discernmentTime;
-q.setExtGain(0.0);
+q.setExtGain(1.0);
 q.myCage;
 q.population;
 q.particles.size;
@@ -386,6 +388,7 @@ q.discernmentTime;
 q.particles.size;
 q.discernmentTime;
 q.tearDown();
+q.particles.collect({|p| p.discernibility;});
 )
 
 (
