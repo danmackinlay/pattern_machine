@@ -410,7 +410,6 @@ TODO
   * clip discernability function as a way of killing agents
   * consider doing everything in fourier space?
     * Or the cepstral domain?
-  * visualise spectrograph, or signal scope or something to distinguish what discernment is doing
 * optimisation
   * share global cacophony calcs across all voices
 * style
@@ -423,6 +422,8 @@ TODO
 * interface
   * have controls for survivability, max population etc
   * have feedback on mean discernability etc
+  * visualise chromosomes
+  * visualise spectrograph, or signal scope or something to distinguish what discernment is doing, using SCFreqScopeWindow
 * sound
   * go from stereo to ambisonic, or something
   * volume control, sensitive to number of agents
@@ -439,10 +440,8 @@ TODO
   * don't wait for death to reproduce, let the young drive out the old
   * give birth when sufficiently fit.
   * consider evolvability, and how to have a more robust chromosome.
-  * evolve "evolvability" 
     * mutation rates per gene
     * or increments for offspring
   * create a library of crossover, selector and mutator functions
-  * visualise chromosomes
   * have some chromosomes hide for a while, but return later.
 */
