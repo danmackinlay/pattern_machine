@@ -44,7 +44,7 @@ SynthDef(\cage, { //a container for agents
 }).send(s);
 
 SynthDef(\particle, {
-	|cacophonyInToMe,
+	|targetBus,
 	 out = 0,
 	 discernmentTime=10,	//resp time in seconds
 	 buffer = 0,
@@ -91,12 +91,11 @@ SynthDef(\particle, {
 	);
 	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	weSaid = In.ar(cacophonyInToMe);
+	weSaid = In.ar(targetBus);
 	riseTime = discernmentTime/8;
 	fallTime = discernmentTime;
 	myCepstrum = MFCC.kr(FFT(fftBufferMe,Mix.new(iSaid)), cepstrumBands);
 	myCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \my);
-	myCepstrum.size.poll();
 	ourCepstrum = MFCC.kr(FFT(fftBufferCacophony,Mix.new(weSaid)), cepstrumBands);
 	ourCepstrum = Select.kr(CheckBadValues.kr(ourCepstrum), [ourCepstrum,0.0]);
 	ourCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \our);
@@ -119,7 +118,7 @@ o=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~mainOut = nil;
-	~myCacophonyInBus = nil;
+	~targetBus = nil;
 	~discernibility = 0.0;
 	~responder = 0;
 	~chromosome = nil;
@@ -147,7 +146,7 @@ o=Proto({
 	/* This as a constructor. See
 	http://article.gmane.org/gmane.comp.audio.supercollider.user/71449 */
 	~setUp = {|server,
-			myCacophonyInBus,
+			targetBus,
 			out,
 			particleGroup,
 			buffer,
@@ -156,11 +155,11 @@ o=Proto({
 		~myServer=server;
 		~mainOut=out;
 		~myBuf=buffer;
-		~myCacophonyInBus=myCacophonyInBus;
+		~targetBus=targetBus;
 		~particleGroup=particleGroup;
 		~discernmentTime=discernmentTime;
 		~age=0;
-		~synth=Synth.new(\particle, [\myCacophonyInBus, ~myCacophonyInBus, \out, ~mainOut, \discernmentTime, ~discernmentTime], ~particleGroup);
+		~synth=Synth.new(\particle, [\targetBus, ~targetBus, \out, ~mainOut, \discernmentTime, ~discernmentTime], ~particleGroup);
 		NodeWatcher.register(~synth, true);
 		/* how you set up callbacks with sane binding:
 		http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Event-and-prototypes-tp6208222p6226707.html */
@@ -214,7 +213,7 @@ n=Proto({
 	~myServer = nil;
 	~myBuf = nil;
 	~mainOut = nil;
-	~myCacophonyInBus = nil;
+	~targetBus = nil;
 	~cacophonyOut = nil;
      ~particleGroup=nil;
 	~discernmentTime=10;
@@ -232,12 +231,12 @@ n=Proto({
 		~mainOut=out;
 		~particles=List();
 		~population=population;
-		~myCacophonyInBus = Bus.audio(s, 2);
+		~targetBus = Bus.audio(s, 2);
 		~particleGroup=Group.new(~myServer);
 		~myCage = Synth.after(~particleGroup, \cage, [
 			\in, ~myIn,
 			\out, ~mainOut,
-			\middlein, ~myCacophonyInBus
+			\middlein, ~targetBus
 		]);
 		if (buffer.isNil()) {
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
@@ -266,7 +265,7 @@ n=Proto({
 	};
 	~freeResources = {
 		~particleGroup.free();
-		~myCacophonyInBus.free();
+		~targetBus.free();
 		~myBuf.free();
 		~myCage.free()
 	};
@@ -275,7 +274,7 @@ n=Proto({
 		["creating new particle with discernmentTime", ~discernmentTime];
 		particle = o.copy.setUp(
 		  ~myServer,
-		  ~myCacophonyInBus,
+		  ~targetBus,
 		  ~outs,
 		  ~particleGroup,
 		  ~myBuf,
