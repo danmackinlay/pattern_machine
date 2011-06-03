@@ -394,8 +394,13 @@ TODO
 ====
 
 * discernment
-  * find better autocorrelation that does not favour all converging to one thing.
-  * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
+  * spectral avoidance
+    * find better autocorrelation that does not favour all converging to one thing.
+    * think in terms of linear regression
+  *spectral seeking
+    * weight by my correlation to the team
+    *calculate global fitness based on global similarity
+    * need to compensate for different weighting of spectral bands in the autocorrelation thingy.
   * find a better survivable discernability heuristic
   * weight two different channels oppositely, as predator or prey signals
   * how can we favour bass?
@@ -406,7 +411,6 @@ TODO
   * consider doing everything in fourier space?
     * Or the cepstral domain?
   * visualise spectrograph, or signal scope or something to distinguish what discernment is doing
-  * think in terms of linear regression
 * optimisation
   * share global cacophony calcs across all voices
 * style
