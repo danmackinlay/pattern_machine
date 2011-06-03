@@ -89,9 +89,9 @@ SynthDef(\particleMFCC, {
 		pos: pan,		// field pos
 		level: env		// level
 	);
-	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal*2, ControlRate.ir.reciprocal*2); //This is my voice (delayed by a vector). I will look for it in the output.
+	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	weSaid = InFeedback.ar(cacophonyInToMe);
+	weSaid = In.ar(cacophonyInToMe);
 	riseTime = discernmentTime/8;
 	fallTime = discernmentTime;
 	myCepstrum = MFCC.kr(iSaid, cepstrumBands);
