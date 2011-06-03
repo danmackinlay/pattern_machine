@@ -96,12 +96,12 @@ SynthDef(\particle, {
 	riseTime = discernmentTime/8;
 	fallTime = discernmentTime;
 	myCepstrum = MFCC.kr(FFT(fftBufferMe,Mix.new(iSaid)), cepstrumBands);
-	myCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \my);
+//	myCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \my);
 	targetCepstrum = MFCC.kr(FFT(fftBufferCacophony,Mix.new(targetSaid)), cepstrumBands);
 	targetCepstrum = Select.kr(CheckBadValues.kr(targetCepstrum), [targetCepstrum,0.0]);
-	targetCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \target);
+//	targetCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \target);
 	discernibility = 1.0 - (((targetCepstrum-myCepstrum).abs)/(myCepstrum.abs+0.00001));
-	discernibility.poll(Impulse.kr(discernmentTime.reciprocal/4), \disc);
+//	discernibility.poll(Impulse.kr(discernmentTime.reciprocal/4), \disc);
 	discernibility = LagUD.kr(Mix.new(0.0.max(discernibility)), riseTime, fallTime)*cepstrumBands.reciprocal;
 //	myPresence = A2K.kr(LagUD.ar(iSaid*iSaid, riseTime, fallTime));
 //	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
