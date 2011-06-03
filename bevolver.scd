@@ -1,5 +1,5 @@
 (
-var cepstrumBands = 13; 
+var cepstrumBands = 42; 
 
 SynthDef(\agc_2, {
 	|i_in, i_out, threshold=0.05, slope=0.5, clampTime=0.1, relaxTime=0.3|
