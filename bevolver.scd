@@ -223,6 +223,7 @@ n=Proto({
 	~extGain = 1.0;
 	~intGain = 0.0;
 	~survivableDiscernability = 0.5;
+	~clock = nil;
 	~setUp = {|server,
 			in,
 			out,
@@ -236,6 +237,7 @@ n=Proto({
 		~population=population;
 		~targetBus = Bus.audio(s, 2);
 		~particleGroup=Group.new(~myServer);
+		~clock = TempoClock.new(discernmentTime.reciprocal);
 		~myCage = Synth.before(~particleGroup, \cage, [
 			\in, ~myIn,
 			\out, ~mainOut,
@@ -246,11 +248,11 @@ n=Proto({
 		~myBuf = buffer;
 		~discernmentTime=discernmentTime;
 		while ({~particles.size<~population}, {~addParticle.();});
-		SystemClock.sched(discernmentTime,
+		~clock.sched(discernmentTime,
 			inEnvir {
 				~tend.();
 				"tending".postln;
-				~discernmentTime;
+				1;
 			}
 		);
 		currentEnvironment;
@@ -258,6 +260,7 @@ n=Proto({
 	~tearDown = {
 		//first, free particles
 		while ({~particles.size>0}, {~removeParticle.();});
+		~clock.stop();
 		//now, free everything else
 		SystemClock.sched(~discernmentTime*2,
 			inEnvir {
