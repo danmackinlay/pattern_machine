@@ -236,7 +236,7 @@ n=Proto({
 		~population=population;
 		~targetBus = Bus.audio(s, 2);
 		~particleGroup=Group.new(~myServer);
-		~myCage = Synth.after(~particleGroup, \cage, [
+		~myCage = Synth.before(~particleGroup, \cage, [
 			\in, ~myIn,
 			\out, ~mainOut,
 			\targetbus, ~targetBus
