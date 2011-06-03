@@ -303,7 +303,7 @@ n=Proto({
 		["mean", discernibilities.mean(), "stddev", discernibilities.stdDev()].postln;
 		//add an even chance of getting a random mutant
 		discernibilities = discernibilities.add(survivableDiscernability);		discernibilities = discernibilities/(discernibilities.sum);
-		weakestLinks.do({|i|
+		{~particles.size<~population}.while({
 			var parent, parentChromosome, newParticle;
 			var exNihilo = false;
 			//this will always choose an existing one, since the new particles go at the end
@@ -313,7 +313,7 @@ n=Proto({
 			}, {
 				parentChromosome = parent.mutated();
 			});
-			["birthing", i, discernibilities, exNihilo].postln;
+			["birthing", discernibilities, exNihilo].postln;
 			newParticle = ~addParticle.(parentChromosome);
 			//["new", newParticle.chromosome, "old", parentChromosome].postln;
 		});
@@ -345,9 +345,9 @@ n=Proto({
 		EZSlider(
 			~sliderbank,
 			sliderSize,
-			controlSpec: ControlSpec(2, 80, step: 1, default:swarm.population),
+			controlSpec: ControlSpec(2, 80, step: 1, default: swarm.population),
 			label: "population",
-			initVal: 0.5,
+			initVal: swarm.population,
 			layout: \vert,
 			action: {|slider| swarm.population = slider.value;}
 		);
@@ -375,6 +375,8 @@ q.randomizeAll();
 q.particles[8].discernmentTime;
 q.setExtGain(0.0);
 q.myCage;
+q.population;
+q.particles.size;
 q.discernmentTime;
 q.particles.size;
 q.discernmentTime;
