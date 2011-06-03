@@ -207,6 +207,7 @@ n=Proto({
 	~discernmentTime=10;
 	~myIn = nil;
 	~myCage = nil;
+	~extGain = 1.0;
 	~setUp = {|server,
 			in,
 			out,
@@ -317,8 +318,41 @@ n=Proto({
 			//["new", newParticle.chromosome, "old", parentChromosome].postln;
 		});
 	};
-	~setExtGain = {|gain=1.0|
+	//setter for gain has to delegate to cage synth.
+	~extGain_ = {|gain|
 		~myCage.set(\extGain, gain);
+		~gain = gain;
+	};
+});
+
+
+~swarmController = Proto({
+	~guiWindow = nil;
+	~sliderbank = nil;
+	~setUp = {|swarm|
+		var sliderSize = Rect(0,0,35,75);
+		~guiWindow = Window.new;
+		~sliderbank = HLayoutView(~guiWindow, Rect(0,0,300,300));
+		//~guiWindow.onClose_{};
+		EZSlider(
+			~sliderbank,
+			sliderSize,
+			label: "minDiscern",
+			initVal: 0.5,
+			layout: \vert,
+			action: {|slider| swarm.extGain = slider.value;}
+		);
+		EZSlider(
+			~sliderbank,
+			sliderSize,
+			controlSpec: ControlSpec(2, 80, step: 1, default:swarm.population),
+			label: "population",
+			initVal: 0.5,
+			layout: \vert,
+			action: {|slider| swarm.population = slider.value;}
+		);
+		~guiWindow.front;
+		currentEnvironment;
 	};
 });
 )
@@ -331,6 +365,7 @@ s.options.numInputBusChannels;
 ~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 2);//better way to get first audio in?
 //~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
 q=n.copy.setUp(s, ~globalIns, ~globalOuts, nil, 20, 1);
+~qController = ~swarmController.copy.setUp(q);
 //~comp = Synth.after(q.particleGroup, \agc_2, [\i_in, ~globalOuts, \i_out, ~swarmOuts]);
 //~jack.free;
 q=n.copy.setUp(s, ~globalIns, ~swarmOuts, nil, 1);
@@ -379,7 +414,9 @@ TODO
 * niceties
   * have a global TempoClock to keep triggering discernibility tests, and pause if necessary
   * make populations archivable, serialisable etc
+* interface
   * have controls for survivability, max population etc
+  * have feedback on mean discernability etc
 * sound
   * go from stereo to ambisonic, or something
   * volume control, sensitive to number of agents
@@ -389,7 +426,7 @@ TODO
   * record into global buffers?
   * attach "species" to buffer
 * evolution
-  * peg global health to global volume
+  * peg global health to global volume and global curve following
   * automagically record loops and stick to those for the sound input.
   * crossover parentage
   * interpolate smoothly to new value (but do values update even?)
