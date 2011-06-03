@@ -35,11 +35,12 @@ SynthDef(\jack_4, {
 SynthDef(\cage, { //a container for agents
 	|in,  //ext in
 	 out, //their little voices
-	 middlein,
+	 targetbus,
 	 //middleout,
-	 extGain=1.0| //The group that contains them
+	 extGain=1.0,
+	 intGain=0.0| //The group that contains them
 	 //Should this be LocalFeedback?
-	 Out.ar(middlein, In.ar(out) + extGain*InFeedback.ar(out));
+	 Out.ar(targetbus, (intGain*In.ar(out)) + (extGain*InFeedback.ar(out)));
 //	 Out.ar(out, In.ar(middleout));
 }).send(s);
 
@@ -59,7 +60,7 @@ SynthDef(\particle, {
 	//synth vars
 	var env, outMix, outMono;
 	//analysis vars
-	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, riseTime, fallTime, fftBufferMe, fftBufferCacophony, myCepstrum, ourCepstrum, globalCepstrum;
+	var iSaid, targetSaid, discernibility, crossPresence, myPresence, overallPresence, riseTime, fallTime, fftBufferMe, fftBufferCacophony, myCepstrum, targetCepstrum, globalCepstrum;
 	var eps = 2.0e-07;
 	discernmentTime = discernmentTime;
 	fftBufferMe = LocalBuf(1024, 1);
@@ -91,22 +92,22 @@ SynthDef(\particle, {
 	);
 	iSaid = DelayN.ar(outMono, ControlRate.ir.reciprocal, ControlRate.ir.reciprocal); //This is my voice (delayed by a vector). I will look for it in the output.
 	Out.ar(out, outMix);		//I output it panned
-	weSaid = In.ar(targetBus);
+	targetSaid = Mix.new(In.ar(targetBus));
 	riseTime = discernmentTime/8;
 	fallTime = discernmentTime;
 	myCepstrum = MFCC.kr(FFT(fftBufferMe,Mix.new(iSaid)), cepstrumBands);
 	myCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \my);
-	ourCepstrum = MFCC.kr(FFT(fftBufferCacophony,Mix.new(weSaid)), cepstrumBands);
-	ourCepstrum = Select.kr(CheckBadValues.kr(ourCepstrum), [ourCepstrum,0.0]);
-	ourCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \our);
-	discernibility = 1.0 - (((ourCepstrum-myCepstrum).abs)/(myCepstrum.abs+0.00001));
+	targetCepstrum = MFCC.kr(FFT(fftBufferCacophony,Mix.new(targetSaid)), cepstrumBands);
+	targetCepstrum = Select.kr(CheckBadValues.kr(targetCepstrum), [targetCepstrum,0.0]);
+	targetCepstrum.poll(Impulse.kr(discernmentTime.reciprocal/4), \target);
+	discernibility = 1.0 - (((targetCepstrum-myCepstrum).abs)/(myCepstrum.abs+0.00001));
 	discernibility.poll(Impulse.kr(discernmentTime.reciprocal/4), \disc);
 	discernibility = LagUD.kr(Mix.new(0.0.max(discernibility)), riseTime, fallTime)*cepstrumBands.reciprocal;
 //	myPresence = A2K.kr(LagUD.ar(iSaid*iSaid, riseTime, fallTime));
 //	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
-//	overallPresence = A2K.kr(LagUD.ar(Mix.ar(weSaid*weSaid), riseTime, fallTime));
+//	overallPresence = A2K.kr(LagUD.ar(Mix.ar(targetSaid*targetSaid), riseTime, fallTime));
 //	overallPresence.poll(Impulse.kr(discernmentTime.reciprocal), \overall);
-//	crossPresence = A2K.kr(LagUD.ar(Mix.ar(iSaid*weSaid), riseTime, fallTime)); //correlate.
+//	crossPresence = A2K.kr(LagUD.ar(Mix.ar(iSaid*targetSaid), riseTime, fallTime)); //correlate.
 //	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
 //	discernibility = 0.0.max(1.0 - (((crossPresence - myPresence)/(crossPresence)).squared));//scale by overallPresence?
 //	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
@@ -220,6 +221,8 @@ n=Proto({
 	~myIn = nil;
 	~myCage = nil;
 	~extGain = 1.0;
+	~intGain = 0.0;
+	~survivableDiscernability = 0.5;
 	~setUp = {|server,
 			in,
 			out,
@@ -236,7 +239,7 @@ n=Proto({
 		~myCage = Synth.after(~particleGroup, \cage, [
 			\in, ~myIn,
 			\out, ~mainOut,
-			\middlein, ~targetBus
+			\targetbus, ~targetBus
 		]);
 		if (buffer.isNil()) {
 			buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
@@ -298,8 +301,8 @@ n=Proto({
 	~tend = {
 		var weakestLinks, mean, survivableDiscernability, newChromosome, discernibilities;
 		~particles.do({|p| p.tick();});
-		//survivableDiscernability = (~particles.size * 2).reciprocal;
-		survivableDiscernability = (~particles.size).reciprocal;
+		//survivableDiscernability = ~particles.size.reciprocal;
+		survivableDiscernability = ~survivableDiscernability;
 		["survivableDiscernability", survivableDiscernability].postln;
 
 		//indices of killable, unfit particles
@@ -330,9 +333,13 @@ n=Proto({
 			//["new", newParticle.chromosome, "old", parentChromosome].postln;
 		});
 	};
-	//setter for gain has to delegate to cage synth.
+	//setters for gain have to delegate to cage synth.
 	~extGain_ = {|gain|
 		~myCage.set(\extGain, gain);
+		~gain = gain;
+	};
+	~intGain_ = {|gain|
+		~myCage.set(\intGain, gain);
 		~gain = gain;
 	};
 });
@@ -341,17 +348,33 @@ n=Proto({
 	~guiWindow = nil;
 	~sliderbank = nil;
 	~setUp = {|swarm|
-		var sliderSize = Rect(0,0,35,75);
+		var sliderSize = Rect(0,0,45,75);
 		~guiWindow = Window.new;
 		~sliderbank = HLayoutView(~guiWindow, Rect(0,0,300,300));
 		//~guiWindow.onClose_{};
 		EZSlider(
 			~sliderbank,
 			sliderSize,
-			label: "minDiscern",
+			label: "thresh",
 			initVal: 0.5,
 			layout: \vert,
+			action: {|slider| swarm.survivableDiscernability = slider.value;}
+		);
+		EZSlider(
+			~sliderbank,
+			sliderSize,
+			label: "ext",
+			initVal: 1.0,
+			layout: \vert,
 			action: {|slider| swarm.extGain = slider.value;}
+		);
+		EZSlider(
+			~sliderbank,
+			sliderSize,
+			label: "int",
+			initVal: 0.0,
+			layout: \vert,
+			action: {|slider| swarm.intGain = slider.value;}
 		);
 		EZSlider(
 			~sliderbank,
@@ -373,7 +396,7 @@ s.boot;
 s.options.numOutputBusChannels;
 s.options.numInputBusChannels;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 2);//better way to get first audio in?
+~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);//better way to get first audio in?
 //~swarmOuts = Bus.audio(s, 2); //compress swarm separately?
 q=n.copy.setUp(s, ~globalIns, ~globalOuts, nil, 2, 1);
 ~qController = ~swarmController.copy.setUp(q);
@@ -394,6 +417,8 @@ q.particles[0].synth.trace();
 q.discernmentTime;
 q.tearDown();
 q.particles.collect({|p| p.discernibility;});
+{In.ar(q.targetbus)}.scope;
+q.targetBus;
 )
 
 (
