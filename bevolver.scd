@@ -41,7 +41,7 @@ SynthDef(\cage, { //a container for agents
 //	 Out.ar(out, In.ar(middleout));
 }).send(s);
 
-SynthDef(\particle, {
+SynthDef(\particleMFCC, {
 	|cacophonyInToMe,
 	 out = 0,
 	 discernmentTime=10,	//resp time in seconds
@@ -57,9 +57,11 @@ SynthDef(\particle, {
 	//synth vars
 	var env, outMix, outMono;
 	//analysis vars
-	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, riseTime, fallTime;
+	var iSaid, weSaid, discernibility, crossPresence, myPresence, overallPresence, riseTime, fallTime, fftBuffer, fftBufferCacophony, myCepstrum, globalCepstrum;
 	var eps = 2.0e-07;
-	discernmentTime = discernmentTime; 
+	discernmentTime = discernmentTime;
+	fftBuffer = LocalBuf(1024, 1);
+	fftBufferCacophony = LocalBuf(1024, 1);
 	env = EnvGen.kr(
 	  Env.asr(discernmentTime/2, 1, discernmentTime/2, 'linear'),
 	  gate: gate,
@@ -90,13 +92,16 @@ SynthDef(\particle, {
 	weSaid = InFeedback.ar(cacophonyInToMe);
 	riseTime = discernmentTime/8;
 	fallTime = discernmentTime;
-	myPresence = A2K.kr(LagUD.ar(iSaid*iSaid, riseTime, fallTime));
+	myCepstrum = MFCC.kr(iSaid);
+	ourCepstrum = MFCC.kr(weSaid);
+	discernbility = Mix((ourCepstrum/(myCepstrum+0.00001)).squared);
+//	myPresence = A2K.kr(LagUD.ar(iSaid*iSaid, riseTime, fallTime));
 //	myPresence.poll(Impulse.kr(discernmentTime.reciprocal), \me);
 //	overallPresence = A2K.kr(LagUD.ar(Mix.ar(weSaid*weSaid), riseTime, fallTime));
 //	overallPresence.poll(Impulse.kr(discernmentTime.reciprocal), \overall);
-	crossPresence = A2K.kr(LagUD.ar(Mix.ar(iSaid*weSaid), riseTime, fallTime)); //correlate.
+//	crossPresence = A2K.kr(LagUD.ar(Mix.ar(iSaid*weSaid), riseTime, fallTime)); //correlate.
 //	crossPresence.poll(Impulse.kr(discernmentTime.reciprocal), \cross);
-	discernibility = 0.0.max(1.0 - (((crossPresence - myPresence)/(crossPresence)).squared));//scale by overallPresence?
+//	discernibility = 0.0.max(1.0 - (((crossPresence - myPresence)/(crossPresence)).squared));//scale by overallPresence?
 //	discernibility.poll(Impulse.kr(discernmentTime.reciprocal), \disc).abs;
 	SendTrig.kr(LFPulse.kr((discernmentTime.reciprocal)/2),0,discernibility); //FASTER than discernment time to reduce jitter worries.
 }, [\ir, \ir, \ir, nil, nil, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]).send(s);
