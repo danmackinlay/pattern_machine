@@ -353,7 +353,7 @@ n=Proto({
 	~setUp = {|swarm|
 		var sliderSize = Rect(0,0,45,75);
 		~guiWindow = Window.new;
-		~sliderbank = HLayoutView(~guiWindow, Rect(0,0,300,300));
+		~sliderbank = VLayoutView(~guiWindow, Rect(0,0,300,300));
 		//~guiWindow.onClose_{};
 		EZSlider(
 			~sliderbank,
@@ -486,3 +486,5 @@ TODO
   * create a library of crossover, selector and mutator functions
   * have some chromosomes hide for a while, but return later.
 */
+
+
