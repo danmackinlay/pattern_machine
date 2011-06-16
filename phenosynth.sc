@@ -1,23 +1,29 @@
+/*
+I will want to ignore some Instr params. The way to do this is to look for
+instances of subclasses of NonControlSpec. I need to modify getChromosomeSize
+to make this go.
+*/
+
 Phenosynth {
   /* wraps an Instr with a nice Spec-based chromosome interface */
-  var synthdef, <chromosome;
+  var synthdef, <chromosome, chromosomeMask, chromosomeSize;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Phenosynth.loadDefaultInstr })
   }
   *loadDefaultInstr {
-    defaultInstr = Instr(
+    defaultInstr = Instr.new(
       "phenosynth.defaultinstr",
       {|sample = 0,
         gate = 1,
-        time = 1, //envelope scale factor - fit fitness functions to this.
+        time = 1, //envelope scale factor - fit fitness functions to this?
         pitch = 1,
         pointer = 0.0,
-        gain = -12.0,
+        gain = 0,
         pan = 0.0,
         windowSize = 0.1,
-        filtFreq = 600.0,    
-        rQ = 0.5|
+        ffreq = 600.0,    
+        rq = 0.5|
         var env, outMono, outMix;
         env = EnvGen.kr(
           Env.asr(time/2, 1, time/2, 'linear'),
@@ -26,35 +32,45 @@ Phenosynth {
         );
         outMono = Resonz.ar(
           Warp1.ar(
-            1,      // num channels (Class docs claim only mono works)
-            sample,    // buffer
+            1,          // num channels (Class docs claim only mono works)
+            sample,     // buffer
             pointer,    // start pos
             pitch,      // pitch shift
-            windowSize,  // window size (sec?)
-            -1,      // envbufnum (-1=Hanning)
-            4,        // overlap
-            0.1,      // rand ratio
-            2,        // interp (2=linear)
-            gain.dbamp  // mul
+            windowSize, // window size (sec?)
+            -1,         // envbufnum (-1=Hanning)
+            4,          // overlap
+            0.1,        // rand ratio
+            2,          // interp (2=linear)
+            gain        // mul
           ),
-          filtFreq,
-          rQ
+          ffreq,   //cutoff
+          rq       //inverse bandwidth
         );
         outMix = Pan2.ar(
           in: outMono,  // in
-          pos: pan,    // field pos
-          level: env    // level
+          pos: pan,     // field pos
+          level: env    // level, enveloped
         );
-      }, #[], \audio
+      }, #[
+        nil,
+        \gate,
+        [0.01, 100, \exponential],
+        \freqScale,
+        [0.0, 1.0],
+        [0.01, 2, \exponential],
+        \pan,
+        [0.001, 1, \exponential],
+        \ffreq,
+        [0.001, 2, \exponential]
+      ], \audio
     );
   }
   *new { |instr, chromosome| 
-    ^super.newCopyArgs(instr, chromosome) ;
-  }
-  chromosome_ { |newChromosome|
-    chromosome = newChromosome;
+    super.newCopyArgs(instr, chromosome) ;
+    chromosomeSize = this.getChromosomeSize(instr);
   }
   *getChromosomeSize {|instr|
+    //use this to work out how long an array to pass in.
     ^instr.specs.size;
   }
 }
