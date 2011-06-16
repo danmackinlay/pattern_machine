@@ -1,10 +1,13 @@
 Phenosynth {
-  /* wraps an Inst with a nice Spec-based chromosome interface */
+  /* wraps an Instr with a nice Spec-based chromosome interface */
   var synthdef, <chromosome;
-  *new { |synthdef, chromosome| 
-    ^super.newCopyArgs(synthdef, chromosome) 
+  *new { |instr, chromosome| 
+    ^super.newCopyArgs(instr, chromosome) ;
   }
-  *getChromosome {|instr|
+  chromosome_ { |newChromosome|
+    chromosome = newChromosome;
+  }
+  *getChromosomeSize {|instr|
     ^instr.specs.size;
   }
 }
