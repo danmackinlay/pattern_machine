@@ -2,6 +2,8 @@
 I will want to ignore some Instr params. The way to do this is to look for
 instances of subclasses of NonControlSpec. I need to modify getChromosomeSize
 to make this go.
+TODO: user EnvelopedPlayer to make this release nicely
+Use PlayerMixer to mke this fly
 */
 
 Phenosynth {
@@ -25,15 +27,17 @@ Phenosynth {
         ffreq = 600.0,    
         rq = 0.5|
         var env, outMono, outMix;
+        var bufnum = sample.bufnumIr;
         env = EnvGen.kr(
           Env.asr(time/2, 1, time/2, 'linear'),
           gate: gate,
           doneAction: 2
         );
+        sample.load();
         outMono = Resonz.ar(
           Warp1.ar(
             1,          // num channels (Class docs claim only mono works)
-            sample,     // buffer
+            bufnum,     // buffer
             pointer,    // start pos
             pitch,      // pitch shift
             windowSize, // window size (sec?)
@@ -46,7 +50,7 @@ Phenosynth {
           ffreq,   //cutoff
           rq       //inverse bandwidth
         );
-        outMix = Pan2.ar(
+        Pan2.ar(
           in: outMono,  // in
           pos: pan,     // field pos
           level: env    // level, enveloped
@@ -67,7 +71,7 @@ Phenosynth {
   }
   *new { |instr, chromosome| 
     super.newCopyArgs(instr, chromosome) ;
-    chromosomeSize = this.getChromosomeSize(instr);
+    chromosome = 0.dup(this.getChromosomeSize());
   }
   *getChromosomeSize {|instr|
     //use this to work out how long an array to pass in.

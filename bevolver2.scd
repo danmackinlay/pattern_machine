@@ -1,3 +1,3 @@
-~buffer = Buffer.read(s, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");};
-~inst = Instr.at("phenosynth.defaultinstr");
-~patch = Patch("phenosynth.defaultinstr", ~buffer);
+Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
+~sample = Sample.new("tests/cariboutesque.aif");
+~patch = Patch("phenosynth.defaultinstr", [~sample, { Trig1.kr(Dust.kr(1),0.2); };]).play.gui;
