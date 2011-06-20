@@ -3,12 +3,14 @@ I will want to ignore some Instr params. The way to do this is to look for
 instances of subclasses of NonControlSpec. I need to modify getChromosomeSize
 to make this go.
 TODO: user EnvelopedPlayer to make this release nicely
-Use PlayerMixer to mke this fly
+Use PlayerMixer to make this fly
+Make a LiveGenoSynth to manage a running population.
 */
 
 Genosynth {
-  /* wraps an Instr with a nice Spec-based chromosome interface */
-  var synthdef, <chromosome, chromosomeMask, chromosomeSize;
+  /* A factory for Phenosynths wrapping a given Instr */
+  var <instr;
+  var chromosomeMask, chromosomeSize;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
@@ -69,12 +71,28 @@ Genosynth {
       ], \audio
     );
   }
-  *new { |instr, chromosome| 
-    super.newCopyArgs(instr, chromosome) ;
-    chromosome = 0.5.dup(this.getChromosomeSize());
+  *new { |instr| 
+    super.new.init(instr);
+  }
+  init {|instr|
+    instr = instr;
+    chromosomeSize = this.getChromosomeSize(instr);
+  }
+  spawn { |chromosome| 
+    ^Phenosynth.new(this,
+      instr //,
+//      chromosomeMask,
+//      chromosomeSize,
+//      chromosome
+    );
   }
   *getChromosomeSize {|instr|
     //use this to work out how long an array to pass in.
     ^instr.specs.size;
   }
+  *getChromosomeMask {|instr|
+    //use this to work out how to map the chromosome array to synth values.
+/*    ^(0..this.getChromosomeSize(instr);*/
+  }
+  
 }
