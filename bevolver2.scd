@@ -1,3 +1,15 @@
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
-~patch = Patch("phenosynth.defaultinstr", [~sample, 1, 10, 1, 1, 0.5, 0]).play.gui;
+~patch = Patch("genosynth.defaultinstr", [~sample, 1, 10]).play.gui;
+~instr = Instr("genosynth.defaultinstr");
+~instr.specs;
+~instr.class;
+~genosynth = Genosynth(~instr);
+~genosynth = Genosynth.new("genosynth.defaultinstr");
+~genosynth.instr;
+~genosynth.specs;
+~genosynth.insp;
+Genosynth.findMethod('specs');
+Genosynth.dumpInterface;
+Genosynth.dumpFullInterface;
+Genosynth.defaultInstr;

@@ -2,22 +2,26 @@
 I will want to ignore some Instr params. The way to do this is to look for
 instances of subclasses of NonControlSpec. I need to modify getChromosomeSize
 to make this go.
-TODO: user EnvelopedPlayer to make this release nicely
-Use PlayerMixer to make this fly
-Make a LiveGenoSynth to manage a running population.
+TODO:
+
+* user EnvelopedPlayer to make this release nicely
+* Use PlayerMixer to make this fly
+* Make a LiveGenoSynth to manage a running population.
+* allow custom evolvability mappings and starting chromosome.
+
 */
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr */
   var <instr;
-  var chromosomeMask, chromosomeSize;
+  var <chromosomeMask, <chromosomeSize;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
   }
   *loadDefaultInstr {
     defaultInstr = Instr.new(
-      "phenosynth.defaultinstr",
+      "genosynth.defaultinstr",
       {|sample = 0,
         gate = 1,
         time = 1, //envelope scale factor - fit fitness functions to this?
@@ -71,28 +75,32 @@ Genosynth {
       ], \audio
     );
   }
-  *new { |instr| 
-    super.new.init(instr);
+  *new { |name| 
+    ^super.new.init(name.asInstr);
   }
-  init {|instr|
-    instr = instr;
-    chromosomeSize = this.getChromosomeSize(instr);
+  init {|newInstr|
+    instr = newInstr;
+    chromosomeSize = this.class.getChromosomeSize(newInstr);
+    chromosomeMask = this.class.getChromosomeMask(newInstr);
   }
   spawn { |chromosome| 
     ^Phenosynth.new(this,
-      instr //,
-//      chromosomeMask,
-//      chromosomeSize,
-//      chromosome
+      instr,
+      chromosomeMask,
+      chromosomeSize,
+      chromosome
     );
   }
-  *getChromosomeSize {|instr|
+  *getChromosomeSize {|newInstr|
     //use this to work out how long an array to pass in.
-    ^instr.specs.size;
+    ^newInstr.specs.size;
   }
-  *getChromosomeMask {|instr|
+  *getChromosomeMask {|newInstr|
     //use this to work out how to map the chromosome array to synth values.
-/*    ^(0..this.getChromosomeSize(instr);*/
+/*    ^(0..this.getChromosomeSize(newInstr);*/
+    ^[];
   }
-  
+  specs {
+    ^instr.specs;
+  }
 }
