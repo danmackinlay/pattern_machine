@@ -7,7 +7,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~genosynth = Genosynth(~instr);
 ~genosynth = Genosynth.new("genosynth.defaultinstr");
 ~genosynth.instr;
-~genosynth.specs;
+all {: i, i <- (0..~genosynth.specs.size), ~genosynth.specs[i].isKindOf(NonControlSpec).not};
 ~genosynth.insp;
 Genosynth.findMethod('specs');
 Genosynth.dumpInterface;

@@ -4,6 +4,10 @@ instances of subclasses of NonControlSpec. I need to modify getChromosomeSize
 to make this go.
 TODO:
 
+* handle non-chromosome'd arguments. Or can I just wrap them away by defining instruments with the default inputs fixed?
+
+  * see "Fixed Arguments" in the Patch help
+
 * user EnvelopedPlayer to make this release nicely
 * Use PlayerMixer to make this fly
 * Make a LiveGenoSynth to manage a running population.
@@ -13,8 +17,7 @@ TODO:
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr */
-  var <instr;
-  var <chromosomeMask, <chromosomeSize;
+  var <instr, <chromosomeMap;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
@@ -80,14 +83,12 @@ Genosynth {
   }
   init {|newInstr|
     instr = newInstr;
-    chromosomeSize = this.class.getChromosomeSize(newInstr);
-    chromosomeMask = this.class.getChromosomeMask(newInstr);
+    chromosomeMap = this.class.getChromosomeMask(newInstr);
   }
   spawn { |chromosome| 
     ^Phenosynth.new(this,
       instr,
-      chromosomeMask,
-      chromosomeSize,
+      chromosomeMap,
       chromosome
     );
   }
