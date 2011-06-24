@@ -17,7 +17,7 @@ TODO:
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr */
-  var <instr, <chromosomeMap, <triggers;
+  var <instr, defaults, <chromosomeMap, <triggers;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
@@ -77,16 +77,15 @@ Genosynth {
       ], \audio
     );
   }
-  *new { |name| 
-    ^super.new.init(name.asInstr);
+  *new { |name, defaults| 
+    ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {|newInstr|
-    instr = newInstr;
     chromosomeMap = this.class.getChromosomeMap(instr);
-    triggers = this.class.getTrigger(instr);
+    triggers = this.class.getTriggers(instr);
   }
   spawn { |chromosome| 
-    ^Phenosynth.new(this, instr, chromosomeMap, triggers);
+    ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers);
   }
   *getChromosomeMap {|newInstr|
     //use this to work out how to map the chromosome array to synth values.

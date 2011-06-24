@@ -4,7 +4,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~instr = Instr("genosynth.defaultinstr");
 ~instr.specs;
 ~instr.class;
-~genosynth = Genosynth(~instr);
+~genosynth = Genosynth(~instr, [~sample]);
 //~genosynth = Genosynth.new("genosynth.defaultinstr");
 ~phenosynth=~genosynth.spawn;
 ~phenosynth.patch.play;
