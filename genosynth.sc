@@ -30,7 +30,7 @@ Genosynth {
         time = 1, //envelope scale factor - fit fitness functions to this?
         pitch = 1,
         pointer = 0.0,
-        gain = 0,
+        gain = 0.5,
         pan = 0.0,
         windowSize = 0.1,
         ffreq = 600.0,    
@@ -88,12 +88,16 @@ Genosynth {
     ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers);
   }
   *getChromosomeMap {|newInstr|
-    //use this to work out how to map the chromosome array to synth values.
+    /*use this to work out how to map the chromosome array to synth values,
+    ignoring any fixed values, sampleSpecs, or any other kind of
+    NonControlSpec TODO: Work out how to do this with duck typing.*/
     ^all {: i, i<-(0..newInstr.specs.size),
       newInstr.specs[i].isKindOf(NonControlSpec).not};
   }
   *getTriggers {|newInstr|
-    //the other input type we might care about is a trigger. I don't know why you'd want more than one, but it's more symmetrical if we assume a list, so ...
+    /*The other input type we might care about is a trigger. I don't know why
+    you'd want more than one, but it's more symmetrical if we assume a list,
+    so ...*/
     ^all {: i, i<-(0..newInstr.specs.size),
       newInstr.specs[i].isKindOf(TrigSpec)};
   }
