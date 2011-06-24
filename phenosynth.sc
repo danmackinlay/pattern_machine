@@ -1,9 +1,9 @@
 Phenosynth {
   /* wraps an Instr with a nice Spec-based chromosome interface. This should be an inner class.*/
-  var <genosynth, instr, <chromosome, chromosomeMap, <trigger, <patch;
-  *new {|genosynth, instr, chromosomeMap, trigger, chromosome|
+  var <genosynth, instr, <chromosome, chromosomeMap, <triggers, <patch;
+  *new {|genosynth, instr, chromosomeMap, triggers, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, instr, chromosomeMap, trigger).init(chromosome);
+    ^super.newCopyArgs(genosynth, instr, chromosomeMap, triggers).init(chromosome);
   }
   init {|chromosome|
     patch = Patch.new(instr);
@@ -23,7 +23,7 @@ Phenosynth {
   }
   play {
     patch.play;
-    trigger.isNil.not.if({patch.specAt(trigger.dump).map(1);});
+    triggers.do({|item, i| patch.specAt(item).map(1);});
     ^patch;
   }
 }

@@ -17,7 +17,7 @@ TODO:
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr */
-  var <instr, <chromosomeMap, <trigger;
+  var <instr, <chromosomeMap, <triggers;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
@@ -42,7 +42,6 @@ Genosynth {
           gate: gate,
           doneAction: 2
         );
-        sample.load();
         outMono = Resonz.ar(
           Warp1.ar(
             1,          // num channels (Class docs claim only mono works)
@@ -84,20 +83,20 @@ Genosynth {
   init {|newInstr|
     instr = newInstr;
     chromosomeMap = this.class.getChromosomeMap(instr);
-    trigger = this.class.getTrigger(instr);
+    triggers = this.class.getTrigger(instr);
   }
   spawn { |chromosome| 
-    ^Phenosynth.new(this, instr, chromosomeMap, trigger);
+    ^Phenosynth.new(this, instr, chromosomeMap, triggers);
   }
   *getChromosomeMap {|newInstr|
     //use this to work out how to map the chromosome array to synth values.
     ^all {: i, i<-(0..newInstr.specs.size),
       newInstr.specs[i].isKindOf(NonControlSpec).not};
   }
-  *getTrigger {|newInstr|
-    //we assume there is up to one trigger input, and record its index here
-    ^(all {: i, i<-(0..newInstr.specs.size),
-      newInstr.specs[i].isKindOf(TrigSpec)}).next;
+  *getTriggers {|newInstr|
+    //the other input type we might care about is a trigger. I don't know why you'd want more than one, but it's more symmetrical if we assume a list, so ...
+    ^all {: i, i<-(0..newInstr.specs.size),
+      newInstr.specs[i].isKindOf(TrigSpec)};
   }
   specs {
     ^instr.specs;
