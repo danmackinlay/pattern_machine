@@ -10,12 +10,15 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~phenosynth.patch.play;
 ~patch = ~phenosynth.play.dump;
 ~phenosynth.patch.gui;
-~patch.gui;
 )
-~genosynth.insp;
+~phenosynth.patch.set(\gate, 1);
+~patch.gui;
+~genosynth.defaults;
+~genosynth.dumpFullInterface;
 Genosynth.findMethod('specs');
 Genosynth.dumpInterface;
 Genosynth.dumpFullInterface;
 Genosynth.defaultInstr;
 Genosynth.spawn;
 ~patch = Patch("genosynth.defaultinstr", [~sample, 1, 10]).play.gui;
+BeatClockPlayer

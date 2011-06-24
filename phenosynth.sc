@@ -1,6 +1,6 @@
 Phenosynth {
   /* wraps an Instr with a nice Spec-based chromosome interface. This should be an inner class.*/
-  var <genosynth, instr, defaults, <chromosome, chromosomeMap, <triggers, <patch;
+  var <genosynth, <instr, <defaults, <chromosome, <chromosomeMap, <triggers, <patch;
   *new {|genosynth, instr, defaults, chromosomeMap, triggers, chromosome|
     //This should only be called through the parent Genosynth's spawn method
     ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome);

@@ -17,7 +17,7 @@ TODO:
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr */
-  var <instr, defaults, <chromosomeMap, <triggers;
+  var <instr, <defaults, <chromosomeMap, <triggers;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
@@ -37,6 +37,7 @@ Genosynth {
         rq = 0.5|
         var env, outMono, outMix;
         var bufnum = sample.bufnumIr;
+        sample.load();
         env = EnvGen.kr(
           Env.asr(time/2, 1, time/2, 'linear'),
           gate: gate,
@@ -80,9 +81,16 @@ Genosynth {
   *new { |name, defaults| 
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
-  init {|newInstr|
+  init {
     chromosomeMap = this.class.getChromosomeMap(instr);
+    // pad defaults out to equal number of args
+    defaults = defaults.extend(instr.specs.size, nil);
     triggers = this.class.getTriggers(instr);
+    //We give any triggers without a default value of zero, or they get
+    //saddled with an inconvenient BeatClockPlayer
+    triggers.do({|trigIndex, i| (defaults[trigIndex].isNil).if(
+      {defaults[trigIndex] = 1.0;})
+    });
   }
   spawn { |chromosome| 
     ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers);
