@@ -1,22 +1,29 @@
 Phenosynth {
   /* wraps an Instr with a nice Spec-based chromosome interface. This should be an inner class.*/
-  var <genosynth, <instr, <chromosome, chromosomeMap;
-  *new {|genosynth, instr, chromosomeMap, chromosomeSize, newChromosome|
+  var <genosynth, instr, <chromosome, chromosomeMap, <trigger, <patch;
+  *new {|genosynth, instr, chromosomeMap, trigger, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.new.init(
-      genosynth, instr, chromosomeMap, chromosomeSize, newChromosome
-    );
+    ^super.newCopyArgs(genosynth, instr, chromosomeMap, trigger).init(chromosome);
   }
-  init {|genosynth, instr, newChromosomeMap, newChromosome|
-    genosynth = genosynth;
-    instr = instr;
-    chromosomeMap = chromosomeMap;
-    this.chromosome_(newChromosome);
+  init {|chromosome|
+    patch = Patch.new(instr);
+    this.chromosome_(chromosome);
   }
   chromosome_ {|newChromosome|
+    /* do this in a setter to allow param update */
+    newChromosome.isNil.if({
+      newChromosome = {1.0.rand}.dup(chromosomeMap.size);
+    });
     chromosome = newChromosome;
+    chromosomeMap.do(
+      {|specIdx, chromIdx| [specIdx, chromIdx].dump;
+         patch.specAt(specIdx).map(chromosome[chromIdx]);
+      }
+    );
   }
-  asPatch {
-    
+  play {
+    patch.play;
+    trigger.isNil.not.if({patch.specAt(trigger.dump).map(1);});
+    ^patch;
   }
 }

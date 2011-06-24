@@ -1,7 +1,7 @@
 /*
 I will want to ignore some Instr params. The way to do this is to look for
-instances of subclasses of NonControlSpec. I need to modify getChromosomeSize
-to make this go.
+instances of subclasses of NonControlSpec. I'd rather do it by generating new instruments by closure.
+
 TODO:
 
 * handle non-chromosome'd arguments. Or can I just wrap them away by defining instruments with the default inputs fixed?
@@ -17,7 +17,7 @@ TODO:
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr */
-  var <instr, <chromosomeMap;
+  var <instr, <chromosomeMap, <trigger;
   classvar <defaultInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr })
@@ -83,23 +83,21 @@ Genosynth {
   }
   init {|newInstr|
     instr = newInstr;
-    chromosomeMap = this.class.getChromosomeMask(newInstr);
+    chromosomeMap = this.class.getChromosomeMap(instr);
+    trigger = this.class.getTrigger(instr);
   }
   spawn { |chromosome| 
-    ^Phenosynth.new(this,
-      instr,
-      chromosomeMap,
-      chromosome
-    );
+    ^Phenosynth.new(this, instr, chromosomeMap, trigger);
   }
-  *getChromosomeSize {|newInstr|
-    //use this to work out how long an array to pass in.
-    ^newInstr.specs.size;
-  }
-  *getChromosomeMask {|newInstr|
+  *getChromosomeMap {|newInstr|
     //use this to work out how to map the chromosome array to synth values.
-/*    ^(0..this.getChromosomeSize(newInstr);*/
-    ^[];
+    ^all {: i, i<-(0..newInstr.specs.size),
+      newInstr.specs[i].isKindOf(NonControlSpec).not};
+  }
+  *getTrigger {|newInstr|
+    //we assume there is up to one trigger input, and record its index here
+    ^(all {: i, i<-(0..newInstr.specs.size),
+      newInstr.specs[i].isKindOf(TrigSpec)}).next;
   }
   specs {
     ^instr.specs;
