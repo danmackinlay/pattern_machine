@@ -13,17 +13,21 @@ TODO:
   should be left to GA infrastructure)
 * allow custom evolvability mappings and starting chromosome.
 * I've just noticed that MCLD has been facing the same problem and made
-  classes imilar in spirit to mine:
+  classes similar in spirit to mine, as regards selecting the phenotypes
+  rather than genotypes, as the NLTK does:
   http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
 
 */
 
 Genosynth {
-  /* A factory for Phenosynths wrapping a given Instr */
-  var <instr, <defaults, <chromosomeMap, <triggers;
-  classvar <defaultInstr;
+  /* A factory for Phenosynths wrapping a given Instr. You would have one of
+  these for each population, as a rule.*/
+  var <instr, <defaults, <chromosomeMap, <triggers, <>phenoClass;
+  classvar <defaultInstr, <defaultphenoClass;
   *initClass {
-    StartUp.add({ Genosynth.loadDefaultInstr })
+    Class.initClassTree(Phenosynth);
+    defaultphenoClass = Phenosynth;
+    StartUp.add({ Genosynth.loadDefaultInstr });
   }
   *loadDefaultInstr {
     defaultInstr = Instr.new(
@@ -85,6 +89,7 @@ Genosynth {
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {
+    phenoClass = phenoClass ? this.class.defaultPhenoclass;
     chromosomeMap = this.class.getChromosomeMap(instr);
     // pad defaults out to equal number of args
     defaults = defaults.extend(instr.specs.size, nil);
@@ -96,7 +101,7 @@ Genosynth {
     });
   }
   spawn { |chromosome| 
-    ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers);
+    ^phenoClass.new(this, instr, defaults, chromosomeMap, triggers);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
