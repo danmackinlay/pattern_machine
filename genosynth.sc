@@ -118,9 +118,6 @@ Genosynth {
     ^all {: i, i<-(0..newInstr.specs.size),
       newInstr.specs[i].isKindOf(TrigSpec)};
   }
-  specs {
-    ^instr.specs;
-  }
 }
 
 Phenosynth {
@@ -155,8 +152,44 @@ Phenosynth {
   }
 }
 
-ListeningAgent {
+GenoSynthListenerFactory {
+  /* makes wrapped PhenoSynths attached to listener instrs. This could maybe
+  be a subclass of Phenosynth. But probably not. It might even be replaceable
+  by a simple factory function.*/
+  var <listeningInstrFactory;
+  classvar <defaultListeningInstr;
+  *initClass {
+    StartUp.add({ GenoSynthListenerFactory.loadDefaultListener });
+  }
+  *loadDefaultListener {
+    defaultListeningInstr = Instr.new(
+      "genosynth.defaultlistener",
+      {|in = 0,
+        evalPeriod = 0|
+        Out.ar(0);
+      }
+    );
+  }
+  *new { |listeningInstrFactory| //where listeningInstr could be a factory?
+    ^super.newCopyArgs(listeningInstrFactory).init;
+  }
+  init {
+    listeningInstrFactory = listeningInstrFactory ? {|phenosynth|
+      ^Instr("genosynth.defaultlistener");
+    }
+  }
+  spawn { |phenosynth| 
+    ^PhenosynthListener.new(phenosynth, listeningInstrFactory);
+  }
+}
+
+PhenosynthListener  {
   /* wraps a phenosynth and a fitness function to apply to the synth's output*/
-  
-  
+  var <phenosynth, <listener;
+  *new {|phenosynth, listener|
+    ^super.newCopyArgs(phenosynth, listener).init;
+  }
+  init {
+    phenosynth
+  }
 }

@@ -21,4 +21,3 @@ Genosynth.dumpFullInterface;
 Genosynth.defaultInstr;
 Genosynth.spawn;
 ~patch = Patch("genosynth.defaultinstr", [~sample, 1, 10]).play.gui;
-BeatClockPlayer
