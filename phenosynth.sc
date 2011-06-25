@@ -1,5 +1,7 @@
 Phenosynth {
-  /* wraps an Instr with a nice Spec-based chromosome interface. This should be an inner class.*/
+  /* wraps an Instr with a nice Spec-based chromosome interface. This should
+  be an inner class of GenoSynth, really, but SC doesn't namespace in that
+  way.*/
   var <genosynth, <instr, <defaults, <chromosome, <chromosomeMap, <triggers, <patch;
   *new {|genosynth, instr, defaults, chromosomeMap, triggers, chromosome|
     //This should only be called through the parent Genosynth's spawn method

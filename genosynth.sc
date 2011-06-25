@@ -1,17 +1,20 @@
 /*
-I will want to ignore some Instr params. The way to do this is to look for
-instances of subclasses of NonControlSpec. I'd rather do it by generating new instruments by closure.
-
 TODO:
 
-* handle non-chromosome'd arguments. Or can I just wrap them away by defining instruments with the default inputs fixed?
-
-  * see "Fixed Arguments" in the Patch help
-
+* Analyse outputs.
+* work out a better way to handle non-chromosome'd arguments. right now I
+  handle, e.g. SampleSpecs by passing in a defaults array, and triggers by
+  introspecting a trigger array. But this is feels ugly comapred to wrapping
+  an Instr in a function and specifying the missing arguments by lexical
+  closure.
 * user EnvelopedPlayer to make this release nicely
-* Use PlayerMixer to make this fly
-* Make a LiveGenoSynth to manage a running population.
+* Use PlayerMixer to make this fly - or .patchOut?
+* Make a LiveGenoSynth to manage a running population. (probably not, that
+  should be left to GA infrastructure)
 * allow custom evolvability mappings and starting chromosome.
+* I've just noticed that MCLD has been facing the same problem and made
+  classes imilar in spirit to mine:
+  http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
 
 */
 
@@ -98,7 +101,8 @@ Genosynth {
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
     ignoring any fixed values, sampleSpecs, or any other kind of
-    NonControlSpec TODO: Work out how to do this with duck typing.*/
+    NonControlSpec
+    TODO: Work out how to do this with duck typing.*/
     ^all {: i, i<-(0..newInstr.specs.size),
       newInstr.specs[i].isKindOf(NonControlSpec).not};
   }
