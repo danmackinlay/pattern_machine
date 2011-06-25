@@ -32,6 +32,33 @@ Genosynth {
   *loadDefaultInstr {
     defaultInstr = Instr.new(
       "genosynth.defaultinstr",
+      {|gate = 1,
+        time = 1, //envelope scale factor - fit fitness functions to this?
+        pitch = 440.0,
+        ffreq = 600.0,    
+        rq = 0.5|
+        var env, outMono, outMix;
+        env = EnvGen.kr(
+          Env.asr(time/2, 1, time/2, 'linear'),
+          gate: gate,
+          doneAction: 2
+        );
+        Out.ar(Resonz.ar(
+          Saw.ar(pitch),
+          ffreq,   //cutoff
+          rq,       //inverse bandwidth
+          mul: env
+        ));
+      }, #[
+        \gate,
+        [0.01, 100, \exponential],
+        \ffreq,
+        \ffreq,
+        [0.001, 2, \exponential]
+      ], \audio
+    );
+    Instr.new(
+      "genosynth.graindrone",
       {|sample = 0,
         gate = 1,
         time = 1, //envelope scale factor - fit fitness functions to this?
@@ -84,6 +111,7 @@ Genosynth {
         [0.001, 2, \exponential]
       ], \audio
     );
+    
   }
   *new { |name, defaults| 
     ^super.newCopyArgs(name.asInstr, defaults).init;
@@ -162,11 +190,19 @@ GenoSynthListenerFactory {
     StartUp.add({ GenoSynthListenerFactory.loadDefaultListener });
   }
   *loadDefaultListener {
+    //the default listener is a toy function to do a convolution with a 500Hz sine, and evaluate similarity, with no optimisation.
     defaultListeningInstr = Instr.new(
       "genosynth.defaultlistener",
-      {|in = 0,
-        evalPeriod = 0|
-        Out.ar(0);
+      {|in, evalPeriod = 0|
+        var fitness, riseTime, fallTime;
+        riseTime = evalPeriod/8;
+        fallTime = evalPeriod;
+        fitness = LagUD.kr(
+          Convolution.ar(in, SinOsc.ar(500), 1024, 0.5),
+          riseTime,
+          fallTime
+        );
+        SendTrig.kr(LFPulse.kr((evalPeriod.reciprocal)/2),0,fitness); //FASTER than evalPeriod time to reduce jitter worries.
       }
     );
   }
@@ -175,7 +211,7 @@ GenoSynthListenerFactory {
   }
   init {
     listeningInstrFactory = listeningInstrFactory ? {|phenosynth|
-      ^Instr("genosynth.defaultlistener");
+      ^Instr("genosynth.defaultlistener", );
     }
   }
   spawn { |phenosynth| 
