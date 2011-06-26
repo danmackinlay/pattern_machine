@@ -9,7 +9,7 @@ TODO:
   an Instr in a function and specifying the missing arguments by lexical
   closure. At the least I could provide lists of specs for each of the
   evolved, free, fixed and trigger parameters, and provide th usual accessors
-  to each.
+  to each. (Compare static, fixed and control specs)
 * user EnvelopedPlayer to make this release nicely instead of Triggers.
 * Use PlayerMixer to make this fly - or .patchOut?
 * Make a LiveGenoSynth to manage a running population. (probably not, that
@@ -19,6 +19,8 @@ TODO:
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
   http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
+* where does the sound from the listener go? How do we make sure it goes
+  nowhere?
 
 */
 
@@ -182,65 +184,77 @@ Phenosynth {
   }
 }
 
-GenoSynthListenerFactory {
-  /* makes wrapped PhenoSynths attached to listener instrs. This could maybe
+PhenosynthListenerFactory {
+  /* makes wrapped Phenosynths attached to listener instrs. This could maybe
   be a subclass of Phenosynth. But probably not. It might even be replaceable
   by a simple factory function.*/
-  var <listeningInstrFactory, <outBus, <voxGroup, <listenerGroup;
+  var <listeningInstrFactory, <evalPeriod, <outBus, <voxGroup, <listenerGroup;
   classvar <defaultListeningInstr;
   *initClass {
-    StartUp.add({ GenoSynthListenerFactory.loadDefaultListener });
+    StartUp.add({ PhenosynthListenerFactory.loadDefaultListener });
   }
   *loadDefaultListener {
     /* the default listener is a toy function to do a convolution with a 500Hz
        and evaluate similarity, with no optimisation.*/
     defaultListeningInstr = Instr.new(
       "genosynth.defaultlistener",
-      {|in, evalPeriod = 0|
-        var fitness, riseTime, fallTime;
+      {|in, evalPeriod = 1|
+        var riseTime, fallTime;
         riseTime = evalPeriod/8;
         fallTime = evalPeriod;
-        fitness = LagUD.kr(
+        LagUD.kr(
           Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
           riseTime,
           fallTime
         );
-        SendTrig.kr(LFPulse.kr((evalPeriod.reciprocal)/2),0,fitness); /*FASTER
-                                    than evalPeriod to reduce timing jitter
-                                    noise between server and client*/
-      }, #[
+      }, [
         \audio,
-        [0.01, 100, \exponential]
+        StaticSpec.new(0.01, 100, \exponential, nil, 1)
       ], \audioEffect
     );
   }
-  *new { |listeningInstrFactory, outBus| //where listeningInstr could be a factory?
-    ^super.newCopyArgs(listeningInstrFactory, outBus).init;
+  *new { |listeningInstrFactory, evalPeriod=1, outBus| //where listeningInstr could be a factory?
+    ^super.newCopyArgs(listeningInstrFactory, evalPeriod, outBus).init;
   }
   init {
-    listeningInstrFactory = listeningInstrFactory ? {|phenosynth|
-      ^Instr("genosynth.defaultlistener");
+    listeningInstrFactory = listeningInstrFactory ? {|phenosynth, evalPeriod|
+      Instr("genosynth.defaultlistener");
     };
     voxGroup = Group.new;
     listenerGroup = Group.after(voxGroup);
   }
   spawn { |phenosynth| 
-    ^PhenosynthListener.new(phenosynth, listeningInstrFactory,
+    ^PhenosynthListener.new(phenosynth, evalPeriod, listeningInstrFactory,
       outBus, voxGroup, listenerGroup);
   }
 }
 
 PhenosynthListener  {
   /* wraps a phenosynth and a fitness function to apply to the synth's output*/
-  var <phenosynth, <outBus, voxGroup, listenerGroup;
-  var <listener;
-  *new {|phenosynth, listenerFactory, outBus, voxGroup, listenerGroup|
-    ^super.newCopyArgs(phenosynth, outBus,
-      voxGroup, listenerGroup).init(listenerFactory);
+  var <phenosynth, <evalPeriod, <outBus, voxGroup, listenerGroup;
+  var <listener, <pimpedOutListener, <fitness=0, <age=0;
+  *new {|phenosynth, evalPeriod, listeningInstrFactory, outBus, voxGroup, listenerGroup|
+    var newThing;
+    newThing = super.newCopyArgs(phenosynth, evalPeriod, outBus,
+      voxGroup, listenerGroup);
+    newThing.init(listeningInstrFactory);
+    ^newThing;
   }
-  init {|listenerFactory|
+  init {|listeningInstrFactory|
+    ["PhenosynthListener init", listeningInstrFactory, phenosynth, evalPeriod].postln;
+    listeningInstrFactory.dump;
+    listeningInstrFactory.asCompileString.postln;
     phenosynth.patch.play(group: voxGroup, bus: outBus);
-    listener = listenerFactory(phenosynth).play(group: listenerGroup);
-    phenosynth.patch.patchOut.connectTo(listener.patchIn);
+    listener = listeningInstrFactory.value(phenosynth, evalPeriod);
+    pimpedOutListener = LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
+            {|time, value|
+              fitness = value;
+              age = age + 1;
+              ["updating fitness", time, value, age, this].postln;
+            },
+            listener);
+    pimpedOutListener.play(group: listenerGroup);
+    listener.class.dumpFullInterface;
+    phenosynth.patch.patchOut.connectTo(listener);
   }
 }
