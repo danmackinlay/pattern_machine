@@ -1,13 +1,16 @@
 /*
 TODO:
 
-* Analyse outputs.
+* Analyse outputs using UGen:onTrig
+* Handle "free controls", values that are passed in live by the user.
 * work out a better way to handle non-chromosome'd arguments. right now I
   handle, e.g. SampleSpecs by passing in a defaults array, and triggers by
-  introspecting a trigger array. But this is feels ugly comapred to wrapping
+  introspecting a trigger array. But this is feels ugly compared to wrapping
   an Instr in a function and specifying the missing arguments by lexical
-  closure.
-* user EnvelopedPlayer to make this release nicely
+  closure. At the least I could provide lists of specs for each of the
+  evolved, free, fixed and trigger parameters, and provide th usual accessors
+  to each.
+* user EnvelopedPlayer to make this release nicely instead of Triggers.
 * Use PlayerMixer to make this fly - or .patchOut?
 * Make a LiveGenoSynth to manage a running population. (probably not, that
   should be left to GA infrastructure)
@@ -183,7 +186,7 @@ GenoSynthListenerFactory {
   /* makes wrapped PhenoSynths attached to listener instrs. This could maybe
   be a subclass of Phenosynth. But probably not. It might even be replaceable
   by a simple factory function.*/
-  var <listeningInstrFactory;
+  var <listeningInstrFactory, <outBus, <voxGroup, <listenerGroup;
   classvar <defaultListeningInstr;
   *initClass {
     StartUp.add({ GenoSynthListenerFactory.loadDefaultListener });
@@ -198,34 +201,46 @@ GenoSynthListenerFactory {
         riseTime = evalPeriod/8;
         fallTime = evalPeriod;
         fitness = LagUD.kr(
-          Convolution.ar(in, SinOsc.ar(500), 1024, 0.5),
+          Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
           riseTime,
           fallTime
         );
-        SendTrig.kr(LFPulse.kr((evalPeriod.reciprocal)/2),0,fitness); //FASTER than evalPeriod time to reduce timing jitter noise.
-      }
+        SendTrig.kr(LFPulse.kr((evalPeriod.reciprocal)/2),0,fitness); /*FASTER
+                                    than evalPeriod to reduce timing jitter
+                                    noise between server and client*/
+      }, #[
+        \audio,
+        [0.01, 100, \exponential]
+      ], \audioEffect
     );
   }
-  *new { |listeningInstrFactory| //where listeningInstr could be a factory?
-    ^super.newCopyArgs(listeningInstrFactory).init;
+  *new { |listeningInstrFactory, outBus| //where listeningInstr could be a factory?
+    ^super.newCopyArgs(listeningInstrFactory, outBus).init;
   }
   init {
     listeningInstrFactory = listeningInstrFactory ? {|phenosynth|
       ^Instr("genosynth.defaultlistener");
-    }
+    };
+    voxGroup = Group.new;
+    listenerGroup = Group.after(voxGroup);
   }
   spawn { |phenosynth| 
-    ^PhenosynthListener.new(phenosynth, listeningInstrFactory);
+    ^PhenosynthListener.new(phenosynth, listeningInstrFactory,
+      outBus, voxGroup, listenerGroup);
   }
 }
 
 PhenosynthListener  {
   /* wraps a phenosynth and a fitness function to apply to the synth's output*/
-  var <phenosynth, <listener;
-  *new {|phenosynth, listener|
-    ^super.newCopyArgs(phenosynth, listener).init;
+  var <phenosynth, <outBus, voxGroup, listenerGroup;
+  var <listener;
+  *new {|phenosynth, listenerFactory, outBus, voxGroup, listenerGroup|
+    ^super.newCopyArgs(phenosynth, outBus,
+      voxGroup, listenerGroup).init(listenerFactory);
   }
-  init {
-    phenosynth
+  init {|listenerFactory|
+    phenosynth.patch.play(group: voxGroup, bus: outBus);
+    listener = listenerFactory(phenosynth).play(group: listenerGroup);
+    phenosynth.patch.patchOut.connectTo(listener.patchIn);
   }
 }
