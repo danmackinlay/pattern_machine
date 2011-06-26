@@ -23,10 +23,10 @@ Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
   var <instr, <defaults, <chromosomeMap, <triggers, <>phenoClass;
-  classvar <defaultInstr, <defaultphenoClass;
+  classvar <defaultInstr, <defaultPhenoClass;
   *initClass {
     Class.initClassTree(Phenosynth);
-    defaultphenoClass = Phenosynth;
+    defaultPhenoClass = Phenosynth;
     StartUp.add({ Genosynth.loadDefaultInstr });
   }
   *loadDefaultInstr {
@@ -37,25 +37,24 @@ Genosynth {
         pitch = 440.0,
         ffreq = 600.0,    
         rq = 0.5|
-        var env, outMono, outMix;
+        var env;
         env = EnvGen.kr(
           Env.asr(time/2, 1, time/2, 'linear'),
-          gate: gate,
-          doneAction: 2
+          gate: gate//,
+          //doneAction: 2
         );
-        Out.ar(Resonz.ar(
+        Resonz.ar(
           Saw.ar(pitch),
           ffreq,   //cutoff
-          rq,       //inverse bandwidth
-          mul: env
-        ));
+          rq       //inverse bandwidth
+        )*env;
       }, #[
         \gate,
         [0.01, 100, \exponential],
         \ffreq,
         \ffreq,
         [0.001, 2, \exponential]
-      ], \audio
+      ] //, \audio
     );
     Instr.new(
       "genosynth.graindrone",
@@ -117,7 +116,7 @@ Genosynth {
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {
-    phenoClass = phenoClass ? this.class.defaultPhenoclass;
+    phenoClass = phenoClass ? this.class.defaultPhenoClass;
     chromosomeMap = this.class.getChromosomeMap(instr);
     // pad defaults out to equal number of args
     defaults = defaults.extend(instr.specs.size, nil);
@@ -190,7 +189,8 @@ GenoSynthListenerFactory {
     StartUp.add({ GenoSynthListenerFactory.loadDefaultListener });
   }
   *loadDefaultListener {
-    //the default listener is a toy function to do a convolution with a 500Hz sine, and evaluate similarity, with no optimisation.
+    /* the default listener is a toy function to do a convolution with a 500Hz
+       and evaluate similarity, with no optimisation.*/
     defaultListeningInstr = Instr.new(
       "genosynth.defaultlistener",
       {|in, evalPeriod = 0|
@@ -202,7 +202,7 @@ GenoSynthListenerFactory {
           riseTime,
           fallTime
         );
-        SendTrig.kr(LFPulse.kr((evalPeriod.reciprocal)/2),0,fitness); //FASTER than evalPeriod time to reduce jitter worries.
+        SendTrig.kr(LFPulse.kr((evalPeriod.reciprocal)/2),0,fitness); //FASTER than evalPeriod time to reduce timing jitter noise.
       }
     );
   }
@@ -211,7 +211,7 @@ GenoSynthListenerFactory {
   }
   init {
     listeningInstrFactory = listeningInstrFactory ? {|phenosynth|
-      ^Instr("genosynth.defaultlistener", );
+      ^Instr("genosynth.defaultlistener");
     }
   }
   spawn { |phenosynth| 
