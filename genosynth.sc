@@ -21,6 +21,8 @@ TODO:
   http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
 * where does the sound from the listener go? How do we make sure it goes
   nowhere?
+* put these guys in the correct groups
+* do free/cleanup logic
 
 */
 
@@ -191,9 +193,9 @@ PhenosynthListenerFactory {
   var <listeningInstrFactory, <evalPeriod, <outBus, <voxGroup, <listenerGroup;
   classvar <defaultListeningInstr;
   *initClass {
-    StartUp.add({ PhenosynthListenerFactory.loadDefaultListener });
+    StartUp.add({ PhenosynthListenerFactory.loadDefaultInstr });
   }
-  *loadDefaultListener {
+  *loadDefaultInstr {
     /* the default listener is a toy function to do a convolution with a 500Hz
        and evaluate similarity, with no optimisation.*/
     defaultListeningInstr = Instr.new(
@@ -202,7 +204,7 @@ PhenosynthListenerFactory {
         var riseTime, fallTime;
         riseTime = evalPeriod/8;
         fallTime = evalPeriod;
-        LagUD.kr(
+        LagUD.ar(
           Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
           riseTime,
           fallTime
@@ -229,10 +231,11 @@ PhenosynthListenerFactory {
   }
 }
 
-PhenosynthListener  {
+PhenosynthListener {
   /* wraps a phenosynth and a fitness function to apply to the synth's output*/
   var <phenosynth, <evalPeriod, <outBus, voxGroup, listenerGroup;
   var <listener, <pimpedOutListener, <fitness=0, <age=0;
+  classvar <defaultReportingInstr;
   *new {|phenosynth, evalPeriod, listeningInstrFactory, outBus, voxGroup, listenerGroup|
     var newThing;
     newThing = super.newCopyArgs(phenosynth, evalPeriod, outBus,
@@ -242,19 +245,28 @@ PhenosynthListener  {
   }
   init {|listeningInstrFactory|
     ["PhenosynthListener init", listeningInstrFactory, phenosynth, evalPeriod].postln;
-    listeningInstrFactory.dump;
     listeningInstrFactory.asCompileString.postln;
     phenosynth.patch.play(group: voxGroup, bus: outBus);
-    listener = listeningInstrFactory.value(phenosynth, evalPeriod);
-    pimpedOutListener = LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
-            {|time, value|
-              fitness = value;
-              age = age + 1;
-              ["updating fitness", time, value, age, this].postln;
-            },
-            listener);
+    listener = Patch(listeningInstrFactory.value(
+      phenosynth, evalPeriod), [
+        phenosynth.patch,
+        evalPeriod
+      ]
+    );
+    pimpedOutListener = Patch({|in, evalPeriod=1|
+      LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
+        {
+          |time, value|
+          fitness = value;
+          age = age + 1;
+          ["updating fitness", time, value, age, this].postln;
+        }, in
+      );
+    }, [listener, evalPeriod]); //Now, where does the output of this guy go?
+/*    phenosynth.patch.patchOut.connectTo(
+      listener).play(group: listenerGroup);
     pimpedOutListener.play(group: listenerGroup);
     listener.class.dumpFullInterface;
-    phenosynth.patch.patchOut.connectTo(listener);
-  }
+*/  }
 }
+
