@@ -23,6 +23,7 @@ TODO:
   nowhere?
 * put these guys in the correct groups
 * do free/cleanup logic
+* give fitness more accumulatey flavour using Integrator
 
 */
 
@@ -201,13 +202,10 @@ PhenosynthListenerFactory {
     defaultListeningInstr = Instr.new(
       "genosynth.defaultlistener",
       {|in, evalPeriod = 1|
-        var riseTime, fallTime;
-        riseTime = evalPeriod/8;
-        fallTime = evalPeriod;
         LagUD.ar(
           Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
-          riseTime,
-          fallTime
+          evalPeriod/8,
+          evalPeriod
         );
       }, [
         \audio,
@@ -246,7 +244,6 @@ PhenosynthListener {
   init {|listeningInstrFactory|
     ["PhenosynthListener init", listeningInstrFactory, phenosynth, evalPeriod].postln;
     listeningInstrFactory.asCompileString.postln;
-    phenosynth.patch.play(group: voxGroup, bus: outBus);
     listener = Patch(listeningInstrFactory.value(
       phenosynth, evalPeriod), [
         phenosynth.patch,
@@ -263,10 +260,12 @@ PhenosynthListener {
         }, in
       );
     }, [listener, evalPeriod]); //Now, where does the output of this guy go?
-/*    phenosynth.patch.patchOut.connectTo(
-      listener).play(group: listenerGroup);
     pimpedOutListener.play(group: listenerGroup);
+    listener.play(group: listenerGroup);
+    phenosynth.patch.connectTo(
+      listener).play(group: voxGroup);
     listener.class.dumpFullInterface;
-*/  }
+    ^this;
+  }
 }
 
