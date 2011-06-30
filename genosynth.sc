@@ -65,11 +65,9 @@ HOWTO proceed:
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <instr, <defaults, <chromosomeMap, <triggers, <>phenoClass;
-  classvar <defaultInstr, <defaultPhenoClass;
+  var <instr, <defaults, <chromosomeMap, <triggers, <listeningInstrFn, <evalPeriod;
+  classvar <defaultInstr,<defaultListeningInstr;
   *initClass {
-    Class.initClassTree(Phenosynth);
-    defaultPhenoClass = Phenosynth;
     StartUp.add({ Genosynth.loadDefaultInstr });
   }
   *loadDefaultInstr {
@@ -99,6 +97,20 @@ Genosynth {
         [0.001, 2, \exponential]
       ] //, \audio
     );
+    defaultListeningInstr = Instr.new(
+      "genosynth.defaultlistener",
+      {|in, evalPeriod = 1|
+        LagUD.ar(
+          Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
+          evalPeriod/8,
+          evalPeriod
+        );
+      }, [
+        \audio,
+        StaticSpec.new(0.01, 100, \exponential, nil, 1)
+      ], \audioEffect
+    );
+    
     Instr.new(
       "genosynth.graindrone",
       {|sample = 0,
@@ -159,7 +171,6 @@ Genosynth {
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {
-    phenoClass = phenoClass ? this.class.defaultPhenoClass;
     chromosomeMap = this.class.getChromosomeMap(instr);
     // pad defaults out to equal number of args
     defaults = defaults.extend(instr.specs.size, nil);
@@ -170,15 +181,18 @@ Genosynth {
       {defaults[trigIndex] = 1.0;})
     });
   }
+  spawnNaked { |chromosome| 
+    ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers, chromosome);
+  }
   spawn { |chromosome| 
-    ^phenoClass.new(this, instr, defaults, chromosomeMap, triggers);
+    ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstrFn, evalPeriod, chromosome);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
     ignoring any fixed values, sampleSpecs, or any other kind of
     NonControlSpec
     TODO: Work out how to do this with duck typing.*/
-    ^all {: i, i<-(0..newInstr.specs.size),
+    ^all {: i, i<-(0..(newInstr.specs.size-1)),
       newInstr.specs[i].isKindOf(NonControlSpec).not};
   }
   *getTriggers {|newInstr|
@@ -194,14 +208,18 @@ Phenosynth {
   /* wraps an Instr with a nice Spec-based chromosome interface. This should
   be an inner class of GenoSynth, really, but SC doesn't namespace in that
   way.*/
-  var <genosynth, <instr, <defaults, <chromosome, <chromosomeMap, <triggers, <patch;
+  var <genosynth, <instr, <defaults, <chromosomeMap, <triggers, <voxPatch;
+  var <chromosome = nil;
   *new {|genosynth, instr, defaults, chromosomeMap, triggers, chromosome|
     //This should only be called through the parent Genosynth's spawn method
     ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome);
   }
   init {|chromosome|
-    patch = Patch.new(instr, defaults);
+    this.createPatch;
     this.chromosome_(chromosome);
+  }
+  createPatch {
+    voxPatch = Patch.new(instr, defaults);
   }
   chromosome_ {|newChromosome|
     /* do this in a setter to allow param update */
@@ -210,107 +228,41 @@ Phenosynth {
     });
     chromosome = newChromosome;
     chromosomeMap.do(
-      {|specIdx, chromIdx| [specIdx, chromIdx].dump;
-         patch.specAt(specIdx).map(chromosome[chromIdx]);
+      {|specIdx, chromIdx|
+        voxPatch.specAt(specIdx).map(chromosome[chromIdx]);
       }
     );
   }
   play {
-    patch.play;
-    triggers.do({|item, i| patch.specAt(item).map(1);});
-    ^patch;
+    voxPatch.play;
+    triggers.do({|item, i| voxPatch.set(item).map(1);});
+    ^voxPatch;
   }
 }
 
-PhenosynthListenerFactory {
-  /* makes wrapped Phenosynths attached to listener instrs. This could maybe
-  be a subclass of Phenosynth. But probably not. It might even be replaceable
-  by a simple factory function.*/
-  var <listeningInstrFactory, <evalPeriod, <outBus, <voxGroup, <listenerGroup;
-  classvar <defaultListeningInstr;
-  *initClass {
-    StartUp.add({ PhenosynthListenerFactory.loadDefaultInstr });
+ListeningPhenosynth : Phenosynth {
+  var <listeningInstrFn, <evalPeriod;
+  *new {|genosynth, instr, defaults, chromosomeMap, triggers, listeningInstrFn, evalPeriod, chromosome|
+    //This should only be called through the parent Genosynth's spawn method
+    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstrFn, evalPeriod);
   }
-  *loadDefaultInstr {
-    /* the default listener is a toy function to do a convolution with a 500Hz
-       and evaluate similarity, with no optimisation.*/
-    defaultListeningInstr = Instr.new(
-      "genosynth.defaultlistener",
-      {|in, evalPeriod = 1|
-        LagUD.ar(
-          Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
-          evalPeriod/8,
-          evalPeriod
-        );
-      }, [
-        \audio,
-        StaticSpec.new(0.01, 100, \exponential, nil, 1)
-      ], \audioEffect
-    );
-  }
-  *new { |listeningInstrFactory, evalPeriod=1, outBus| //where listeningInstr could be a factory?
-    ^super.newCopyArgs(listeningInstrFactory, evalPeriod, outBus).init;
-  }
-  init {
-    listeningInstrFactory = listeningInstrFactory ? {|phenosynth, evalPeriod|
-      Instr("genosynth.defaultlistener");
-    };
-    voxGroup = Group.new;
-    listenerGroup = Group.after(voxGroup);
-  }
-  spawn { |phenosynth| 
-    ^PhenosynthListener.new(phenosynth, evalPeriod, listeningInstrFactory,
-      outBus, voxGroup, listenerGroup);
+  init {|chromosome, listeningInstrFn_, evalPeriod_|
+    super.init(chromosome);
+    listeningInstrFn = listeningInstrFn_;
+    evalPeriod = evalPeriod_;
   }
 }
 
-PhenosynthListener {
-  /* wraps a phenosynth and a fitness function to apply to the synth's output*/
-  var <phenosynth, <evalPeriod, <outBus, voxGroup, listenerGroup;
-  var <listener, <pimpedOutListener, <fitness=0, <age=0;
-  classvar <defaultReportingInstr;
-  *new {|phenosynth, evalPeriod, listeningInstrFactory, outBus, voxGroup, listenerGroup|
-    var newThing;
-    newThing = super.newCopyArgs(phenosynth, evalPeriod, outBus,
-      voxGroup, listenerGroup);
-    newThing.init(listeningInstrFactory);
-    ^newThing;
-  }
-  init {|listeningInstrFactory|
-    ["PhenosynthListener init", listeningInstrFactory, phenosynth, evalPeriod].postln;
-    listeningInstrFactory.asCompileString.postln;
-    listener = Patch(listeningInstrFactory.value(
-      phenosynth, evalPeriod), [
-        phenosynth.patch,
-        evalPeriod
-      ]
-    );
-    pimpedOutListener = Patch({|in, evalPeriod=1|
-      LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
-        {
-          |time, value|
-          fitness = value;
-          age = age + 1;
-          ["updating fitness", time, value, age, this].postln;
-        }, in
-      );
-    }, [listener, evalPeriod]); //Now, where does the output of this guy go?
-    pimpedOutListener.play(group: listenerGroup);
-    listener.play(group: listenerGroup);
-    phenosynth.patch.connectTo(
-      listener).play(group: voxGroup);
-    listener.class.dumpFullInterface;
-    ^this;
-  }
-}
-
-RecordingListenerFactory {
+ReportingListenerFactory {
+  /*Instrs like having names, so we make some on demand to keep things clean.
+  TODO: I'm not totally sure if this is neccessary, and should check that
+  after the current deadline crunch.*/
   classvar counter = 0;
   *make {|onTrigFn, evalPeriod=1|
     /*takes a function of the form {|time, value| foo} */
     var newInstr;
     newInstr = Instr(
-      "reportingListener.volatile." ++ counter.asString,
+      "genosynth.reportingListener.volatile." ++ counter.asString,
       {|in, evalPeriod=1|
         LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn, in);
         // actually just be quiet please
@@ -322,4 +274,3 @@ RecordingListenerFactory {
     ^newInstr;
   }
 }
-
