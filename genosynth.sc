@@ -43,7 +43,7 @@ HOWTO proceed:
         which analyses it (call it "listener") outputting a signal to
         indicate, e.g. how well its inputs correlate with a specified signal.
         I'd like to get that signal back to the client so I can tweak my synth
-        parameters based upon it's value. I don't want to hear the output of
+        parameters based upon its value. I don't want to hear the output of
         "listener", which might be mostly DC - but I do want to poll its value
         on the client side, and i do want to hear the output of voxPatch, on
         some bus or other.
@@ -301,6 +301,25 @@ PhenosynthListener {
       listener).play(group: voxGroup);
     listener.class.dumpFullInterface;
     ^this;
+  }
+}
+
+RecordingListenerFactory {
+  classvar counter = 0;
+  *make {|onTrigFn, evalPeriod=1|
+    /*takes a function of the form {|time, value| foo} */
+    var newInstr;
+    newInstr = Instr(
+      "reportingListener.volatile." ++ counter.asString,
+      {|in, evalPeriod=1|
+        LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn, in);
+        // actually just be quiet please
+        Silent.ar
+      },
+      [\audio], \audio
+    );
+    counter = counter+1;
+    ^newInstr;
   }
 }
 
