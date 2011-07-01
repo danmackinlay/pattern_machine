@@ -24,7 +24,7 @@ TODO:
 * put these guys in the correct groups
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
-
+* move patch creation into a "play" or "go" method.
 
 HOWTO proceed:
 --  http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Instr-Patch-and-some-machine-listening-tp6519284p6522975.html --
@@ -65,7 +65,7 @@ HOWTO proceed:
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <instr, <defaults, <chromosomeMap, <triggers, <listeningInstrFn, <evalPeriod;
+  var <instr, <defaults, <chromosomeMap, <triggers, <listeningInstr, <evalPeriod;
   classvar <defaultInstr,<defaultListeningInstr;
   *initClass {
     StartUp.add({ Genosynth.loadDefaultInstr });
@@ -185,7 +185,7 @@ Genosynth {
     ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers, chromosome);
   }
   spawn { |chromosome| 
-    ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstrFn, evalPeriod, chromosome);
+    ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod, chromosome);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
@@ -241,15 +241,34 @@ Phenosynth {
 }
 
 ListeningPhenosynth : Phenosynth {
-  var <listeningInstrFn, <evalPeriod;
-  *new {|genosynth, instr, defaults, chromosomeMap, triggers, listeningInstrFn, evalPeriod, chromosome|
+  var <listeningInstr;
+  var <evalPeriod = 1;
+  var <fitness = 0;
+  var <age = 0;
+  var <reportingListenerPatch, <reportingListenerInstr, <listener;
+  *new {|genosynth, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod=1, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstrFn, evalPeriod);
+    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstr, evalPeriod);
   }
-  init {|chromosome, listeningInstrFn_, evalPeriod_|
-    super.init(chromosome);
-    listeningInstrFn = listeningInstrFn_;
+  init {|chromosome, listeningInstr_, evalPeriod_=1|
+    listeningInstr = listeningInstr_ ? Genosynth.defaultListeningInstr;
     evalPeriod = evalPeriod_;
+    super.init(chromosome);
+  }
+  createPatch {
+    super.createPatch;
+    listener = Patch(listeningInstr, [
+        voxPatch,
+        evalPeriod
+      ]
+    );
+    reportingListenerInstr = ReportingListenerFactory.make({
+      |time, value|
+      fitness = value;
+      age = age + 1;
+      ["updating correlation", this, this.hash, time, value, age].postln;
+    });
+    reportingListenerPatch = Patch(reportingListenerInstr, [listener, evalPeriod]);
   }
 }
 

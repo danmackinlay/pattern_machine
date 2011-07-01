@@ -6,6 +6,8 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~instr.specs;
 ~genosynth = Genosynth(~instr, []);
 ~phenosynth=~genosynth.spawn;
+~phenosynth=~genosynth.spawnNaked;
+
 ~phenosynth.chromosome;
 ~phenosynth.listeningInstrFn;
 
