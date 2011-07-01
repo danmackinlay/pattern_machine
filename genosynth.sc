@@ -26,6 +26,11 @@ TODO:
 * give fitness more accumulatey flavour using Integrator
 * move patch creation into a "play" or "go" method.
 
+
+CREDITS:
+Thanks to Martin Marier and Crucial Felix for tips that make this go, and
+James Nichols for the peer pressure to do it.
+
 HOWTO proceed:
 --  http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Instr-Patch-and-some-machine-listening-tp6519284p6522975.html --
 
@@ -175,16 +180,18 @@ Genosynth {
     // pad defaults out to equal number of args
     defaults = defaults.extend(instr.specs.size, nil);
     triggers = this.class.getTriggers(instr);
-    //We give any triggers without a default value of zero, or they get
-    //saddled with an inconvenient BeatClockPlayer
+    /*We give default values to any triggers without a one, or they
+    get saddled with an inconvenient BeatClockPlayer*/
     triggers.do({|trigIndex, i| (defaults[trigIndex].isNil).if(
       {defaults[trigIndex] = 1.0;})
     });
   }
-  spawnNaked { |chromosome| 
+  spawnNaked { |chromosome|
+    //just return the phenosynth itsdlef, without listeners
     ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers, chromosome);
   }
-  spawn { |chromosome| 
+  spawn { |chromosome|
+    //return a listened phenosynth
     ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod, chromosome);
   }
   *getChromosomeMap {|newInstr|
@@ -236,7 +243,6 @@ Phenosynth {
   play {
     voxPatch.play;
     triggers.do({|item, i| voxPatch.set(item).map(1);});
-    ^voxPatch;
   }
 }
 
@@ -250,9 +256,9 @@ ListeningPhenosynth : Phenosynth {
     //This should only be called through the parent Genosynth's spawn method
     ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstr, evalPeriod);
   }
-  init {|chromosome, listeningInstr_, evalPeriod_=1|
+  init {|chromosome, listeningInstr_, evalPeriod_|
     listeningInstr = listeningInstr_ ? Genosynth.defaultListeningInstr;
-    evalPeriod = evalPeriod_;
+    evalPeriod = evalPeriod_ ? 1.0;
     super.init(chromosome);
   }
   createPatch {
@@ -268,7 +274,17 @@ ListeningPhenosynth : Phenosynth {
       age = age + 1;
       ["updating correlation", this, this.hash, time, value, age].postln;
     });
-    reportingListenerPatch = Patch(reportingListenerInstr, [listener, evalPeriod]);
+    reportingListenerPatch = Patch(
+      reportingListenerInstr, [
+        listener, evalPeriod
+      ]
+    );
+  }
+  play {
+    /*play reportingListener - I'd like to make it on a private bus, or no bus
+    at all, but don't yet understand how to make that server-agnostic.*/
+    reportingListenerPatch.play;
+    super.play;
   }
 }
 
