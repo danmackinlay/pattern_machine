@@ -1,7 +1,6 @@
 /*
 TODO:
 
-* make ListeningPhenoSynth.play work.
 * move patch creation into a "play" or "go" method.
 * Handle "free controls", values that are passed in live by the user. (esp for
   triggers)
@@ -244,8 +243,8 @@ Phenosynth {
   }
   play {
     voxPatch.play;
-    ["triggers", triggers].postln;
-    triggers.do({|item, i| voxPatch.set(item).map(1);});
+    triggers.do({|item, i| 
+      voxPatch.set(item,1);});
   }
 }
 
