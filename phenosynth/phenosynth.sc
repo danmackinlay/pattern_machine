@@ -79,7 +79,7 @@ Genosynth {
   }
   *loadDefaultInstr {
     defaultInstr = Instr.new(
-      "genosynth.defaultinstr",
+      "phenosynth.defaultinstr",
       {|gate = 1,
         time = 1, //envelope scale factor - fit fitness functions to this?
         pitch = 440.0,
@@ -105,7 +105,7 @@ Genosynth {
       ] //, \audio
     );
     defaultListeningInstr = Instr.new(
-      "genosynth.defaultlistener",
+      "phenosynth.defaultlistener",
       {|in, evalPeriod = 1|
         LagUD.ar(
           Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
@@ -119,7 +119,7 @@ Genosynth {
     );
     
     Instr.new(
-      "genosynth.graindrone",
+      "phenosynth.graindrone",
       {|sample = 0,
         gate = 1,
         time = 1, //envelope scale factor - fit fitness functions to this?
@@ -174,7 +174,7 @@ Genosynth {
     );
     
   }
-  *new { |name="genosynth.defaultinstr", defaults=#[]|
+  *new { |name="phenosynth.defaultinstr", defaults=#[]|
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {
@@ -301,7 +301,7 @@ ReportingListenerFactory {
     /*takes a function of the form {|time, value| foo} */
     var newInstr;
     newInstr = Instr(
-      "genosynth.reportingListener.volatile." ++ counter.asString,
+      "phenosynth.reportingListener.volatile." ++ counter.asString,
       {|in, evalPeriod=1|
         LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn, in);
         // actually just be quiet please
