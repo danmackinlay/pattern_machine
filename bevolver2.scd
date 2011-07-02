@@ -3,10 +3,14 @@
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
 ~instr = Instr("genosynth.defaultinstr");
-~genosynth = Genosynth(~instr, []);
+~genosynth = Genosynth.new(~instr, []);
+~genosynth = Genosynth.new;
 ~phenosynth=~genosynth.spawn;
-~phenosynth.voxPatch.bus.play;
+~phenosynth.voxPatch.play;
 ~phenosynth.reportingListenerPatch.play;
+~phenosynth2=~genosynth.spawn;
+~phenosynth2.voxPatch.play;
+~phenosynth2.reportingListenerPatch.play;
 ~phenosynth.chromosome;
 ~phenosynth=~genosynth.spawnNaked;
 )

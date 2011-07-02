@@ -172,7 +172,7 @@ Genosynth {
     );
     
   }
-  *new { |name, defaults| 
+  *new { |name="genosynth.defaultinstr", defaults=#[]|
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {
@@ -272,6 +272,7 @@ ListeningPhenosynth : Phenosynth {
       |time, value|
       fitness = value;
       age = age + 1;
+      this.dump;
       ["updating correlation", this, this.hash, time, value, age].postln;
     });
     reportingListenerPatch = Patch(
