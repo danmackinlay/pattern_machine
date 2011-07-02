@@ -1,14 +1,20 @@
 /*
 TODO:
 
-* Analyse outputs using UGen:onTrig
-* Handle "free controls", values that are passed in live by the user.
+* make ListeningPhenoSynth.play work.
+* move patch creation into a "play" or "go" method.
+* Handle "free controls", values that are passed in live by the user. (esp for
+  triggers)
+  
+  * alter chromosome if Specs are changed through UI or any other means, using
+    all that Dependent business
+    
 * work out a better way to handle non-chromosome'd arguments. right now I
   handle, e.g. SampleSpecs by passing in a defaults array, and triggers by
   introspecting a trigger array. But this is feels ugly compared to wrapping
   an Instr in a function and specifying the missing arguments by lexical
   closure. At the least I could provide lists of specs for each of the
-  evolved, free, fixed and trigger parameters, and provide th usual accessors
+  evolved, free, fixed and trigger parameters, and provide the usual accessors
   to each. (Compare static, fixed and control specs)
 * user EnvelopedPlayer to make this release nicely instead of Triggers.
 * Use PlayerMixer to make this fly - or .patchOut?
@@ -19,14 +25,9 @@ TODO:
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
   http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
-* where does the sound from the listener go? How do we make sure it goes
-  nowhere?
 * put these guys in the correct groups
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
-* move patch creation into a "play" or "go" method.
-* alter chromosome if Specs are changed through UI or any other means, using
-  all that Dependent business
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -200,15 +201,15 @@ Genosynth {
     ignoring any fixed values, sampleSpecs, or any other kind of
     NonControlSpec
     TODO: Work out how to do this with duck typing.*/
-    ^all {: i, i<-(0..(newInstr.specs.size-1)),
-      newInstr.specs[i].isKindOf(NonControlSpec).not};
+    ^newInstr.specs.indicesSuchThat({|item, i|
+      (item.isKindOf(NonControlSpec).not);});
   }
   *getTriggers {|newInstr|
     /*The other input type we might care about is a trigger. I don't know why
     you'd want more than one, but it's more symmetrical if we assume a list,
     so ...*/
-    ^all {: i, i<-(0..newInstr.specs.size),
-      newInstr.specs[i].isKindOf(TrigSpec)};
+    ^newInstr.specs.indicesSuchThat({|item, i|
+      item.isKindOf(TrigSpec)});
   }
 }
 
@@ -243,6 +244,7 @@ Phenosynth {
   }
   play {
     voxPatch.play;
+    ["triggers", triggers].postln;
     triggers.do({|item, i| voxPatch.set(item).map(1);});
   }
 }
@@ -285,8 +287,8 @@ ListeningPhenosynth : Phenosynth {
   play {
     /*play reportingListener - I'd like to make it on a private bus, or no bus
     at all, but don't yet understand how to make that server-agnostic.*/
-    reportingListenerPatch.play;
     super.play;
+    reportingListenerPatch.play;
   }
 }
 

@@ -1,3 +1,4 @@
+
 (
 ~globalOuts = Bus.new(\audio, 0, 2);
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
@@ -5,10 +6,13 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~instr = Instr("genosynth.defaultinstr");
 ~genosynth = Genosynth.new(~instr, []);
 ~genosynth = Genosynth.new;
+~genosynth.instr.specs;
+~genosynth.triggers;
 ~phenosynth=~genosynth.spawn;
 ~phenosynth.age;
 ~phenosynth.fitness;
-~phenosynth.voxPatch.play;
+//~phenosynth.voxPatch.play;
+~phenosynth.play;
 ~phenosynth.reportingListenerPatch.play;
 ~phenosynth2=~genosynth.spawn;
 ~phenosynth2.voxPatch.play;
