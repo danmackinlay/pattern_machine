@@ -7,7 +7,8 @@ TODO:
   
   * alter chromosome if Specs are changed through UI or any other means, using
     all that Dependent business
-    
+
+* Give the faintest of indications that I do care about tests
 * work out a better way to handle non-chromosome'd arguments. right now I
   handle, e.g. SampleSpecs by passing in a defaults array, and triggers by
   introspecting a trigger array. But this is feels ugly compared to wrapping

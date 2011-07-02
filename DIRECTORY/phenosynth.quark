@@ -1,0 +1,8 @@
+(
+	\name: "phenosynth",
+	\path: "phenosynth",
+	\summary: "phenotypic, machine-listening genetic algorithms",
+	\author: "parking sun",
+	\helpdoc: "Help/Phenosynth.htm",
+	\url: "https://bitbucket.org/howthebodyworks/sc_learning_diary"
+)
