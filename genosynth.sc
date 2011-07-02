@@ -25,7 +25,8 @@ TODO:
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
 * move patch creation into a "play" or "go" method.
-
+* alter chromosome if Specs are changed through UI or any other means, using
+  all that Dependent business
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -272,8 +273,8 @@ ListeningPhenosynth : Phenosynth {
       |time, value|
       fitness = value;
       age = age + 1;
-      this.dump;
-      ["updating correlation", this, this.hash, time, value, age].postln;
+      //this.dump;
+      //["updating correlation", this.hash, time, value, age].postln;
     });
     reportingListenerPatch = Patch(
       reportingListenerInstr, [
