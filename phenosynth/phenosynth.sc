@@ -1,6 +1,10 @@
 /*
 TODO:
 
+* Note that Instr loading is buggy - see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Instr-calling-Crashes-SC-td4165267.html
+
+  * you might want to use HJH's Instr.loadAll; workaround.
+  
 * move patch creation into a "play" or "go" method.
 * Handle "free controls", values that are passed in live by the user. (esp for
   triggers)
@@ -67,113 +71,16 @@ HOWTO proceed:
     but if you passed just its bus then it just reads from the bus and you
     need to start the patch separately.
 
+
 */
 
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
   var <instr, <defaults, <chromosomeMap, <triggers, <listeningInstr, <evalPeriod;
-  classvar <defaultInstr,<defaultListeningInstr;
-  *initClass {
-    StartUp.add({ Genosynth.loadDefaultInstr });
-  }
-  *loadDefaultInstr {
-    defaultInstr = Instr.new(
-      "phenosynth.vox.default",
-      {|gate = 1,
-        time = 1, //envelope scale factor - fit fitness functions to this?
-        pitch = 440.0,
-        ffreq = 600.0,    
-        rq = 0.5|
-        var env;
-        env = EnvGen.kr(
-          Env.asr(time/2, 1, time/2, 'linear'),
-          gate: gate//,
-          //doneAction: 2
-        );
-        Resonz.ar(
-          Saw.ar(pitch),
-          ffreq,   //cutoff
-          rq       //inverse bandwidth
-        )*env;
-      }, #[
-        \gate,
-        [0.01, 100, \exponential],
-        \ffreq,
-        \ffreq,
-        [0.001, 2, \exponential]
-      ] //, \audio
-    );
-    defaultListeningInstr = Instr.new(
-      "phenosynth.defaultlistener",
-      {|in, evalPeriod = 1|
-        LagUD.ar(
-          Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
-          evalPeriod/8,
-          evalPeriod
-        );
-      }, [
-        \audio,
-        StaticSpec.new(0.01, 100, \exponential, nil, 1)
-      ], \audioEffect
-    );
-    
-    Instr.new(
-      "phenosynth.graindrone",
-      {|sample = 0,
-        gate = 1,
-        time = 1, //envelope scale factor - fit fitness functions to this?
-        pitch = 1,
-        pointer = 0.0,
-        gain = 0.5,
-        pan = 0.0,
-        windowSize = 0.1,
-        ffreq = 600.0,    
-        rq = 0.5|
-        var env, outMono, outMix;
-        var bufnum = sample.bufnumIr;
-        sample.load();
-        env = EnvGen.kr(
-          Env.asr(time/2, 1, time/2, 'linear'),
-          gate: gate,
-          doneAction: 2
-        );
-        outMono = Resonz.ar(
-          Warp1.ar(
-            1,          // num channels (Class docs claim only mono works)
-            bufnum,     // buffer
-            pointer,    // start pos
-            pitch,      // pitch shift
-            windowSize, // window size (sec?)
-            -1,         // envbufnum (-1=Hanning)
-            4,          // overlap
-            0.1,        // rand ratio
-            2,          // interp (2=linear)
-            gain        // mul
-          ),
-          ffreq,   //cutoff
-          rq       //inverse bandwidth
-        );
-        Pan2.ar(
-          in: outMono,  // in
-          pos: pan,     // field pos
-          level: env    // level, enveloped
-        );
-      }, #[
-        nil,
-        \gate,
-        [0.01, 100, \exponential],
-        \freqScale,
-        [0.0, 1.0],
-        [0.01, 2, \exponential],
-        \pan,
-        [0.001, 1, \exponential],
-        \ffreq,
-        [0.001, 2, \exponential]
-      ], \audio
-    );
-    
-  }
+  classvar <defaultInstr="phenosynth.vox.default";
+  classvar <defaultListeningInstr="phenosynth.listeners.default";
+
   *new { |name="phenosynth.vox.default", defaults=#[]|
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
@@ -260,7 +167,7 @@ ListeningPhenosynth : Phenosynth {
     ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstr, evalPeriod);
   }
   init {|chromosome, listeningInstr_, evalPeriod_|
-    listeningInstr = listeningInstr_ ? Genosynth.defaultListeningInstr;
+    listeningInstr = (listeningInstr_ ? Genosynth.defaultListeningInstr).asInstr;
     evalPeriod = evalPeriod_ ? 1.0;
     super.init(chromosome);
   }
