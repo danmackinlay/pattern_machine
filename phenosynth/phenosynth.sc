@@ -79,7 +79,7 @@ Genosynth {
   }
   *loadDefaultInstr {
     defaultInstr = Instr.new(
-      "phenosynth.defaultinstr",
+      "phenosynth.vox.default",
       {|gate = 1,
         time = 1, //envelope scale factor - fit fitness functions to this?
         pitch = 440.0,
@@ -174,7 +174,7 @@ Genosynth {
     );
     
   }
-  *new { |name="phenosynth.defaultinstr", defaults=#[]|
+  *new { |name="phenosynth.vox.default", defaults=#[]|
     ^super.newCopyArgs(name.asInstr, defaults).init;
   }
   init {
