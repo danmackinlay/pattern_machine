@@ -7,7 +7,7 @@ Some quarks for use in Supercollider_ by `Parking Sun`_ [#]_.
 At there moment, there is
 
 * a JSON_ decoder. It might need some love w/regard to malformed markup
-    handling.
+  handling.
 * some miscellaneous utilities for my coding style. ("sun_convenience")
 
 Credits
