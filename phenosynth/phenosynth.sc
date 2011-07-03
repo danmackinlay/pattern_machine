@@ -61,6 +61,7 @@ Genosynth {
     triggers.do({|trigIndex, i| (defaults[trigIndex].isNil).if(
       {defaults[trigIndex] = 1.0;})
     });
+    
   }
   spawnNaked { |chromosome|
     //just return the phenosynth itsdlef, without listeners
