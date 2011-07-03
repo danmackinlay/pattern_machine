@@ -159,7 +159,7 @@ ListeningPhenosynth : Phenosynth {
     reportingListenerPatch = Patch(
       reportingListenerInstr, [
         listener, evalPeriod
-      ] ++ listenerExtraArgs//where we inject other busses etc
+      ]
     );
   }
   play {

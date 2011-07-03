@@ -1,4 +1,4 @@
-Instr.new(
+Instr.new( //toy listener comparing signal with a 500Hz sine
   "phenosynth.listeners.default",
   {|in, evalPeriod = 1|
     LagUD.ar(
