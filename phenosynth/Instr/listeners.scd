@@ -8,12 +8,12 @@ Instr.new( //toy listener comparing signal with a 500Hz sine
     );
   }, [
     \audio,
-    StaticSpec.new(0.01, 100, \exponential, nil, 1)
-  ], \audioEffect
+    \evalperiod
+  ], \fitness
 );
 Instr.new(
   "phenosynth.listeners.conv_comparator",
-  { |in, reference, evalPeriod = 1|
+  { |in, evalPeriod = 1, reference|
     A2K.kr(LagUD.ar(
       Convolution.ar(in, reference, 1024, 0.5).abs,
       evalPeriod/8,
@@ -21,14 +21,14 @@ Instr.new(
     ));
     }, [
       \audio,
-      \audio,
-      StaticSpec.new(0.01, 100, \exponential, nil, 1)
+      \evalperiod,
+      \audio
     ], \fitness
 );
 
 Instr.new(
   "phenosynth.listeners.fft_comparator",
-  {|in, reference, active=0, t_reset=0|
+  {|in, evalPeriod = 1, reference, active=0, t_reset=0|
   var othersig, testsig, comparison, integral, sigamp, oamp, 
     sigfft, offt, sigbufplay, obufplay, fftdiff,
     resynth;

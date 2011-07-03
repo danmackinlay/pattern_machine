@@ -14,7 +14,7 @@ TODO:
 
 * Give the faintest of indications that I do care about tests
 * work out a better way to handle non-chromosome'd arguments. right now I
-  handle, e.g. SampleSpecs by passing in a defaults array, and triggers by
+  handle, e.g. SampleSpecs by passing in a voxDefaults array, and triggers by
   introspecting a trigger array. But this is feels ugly compared to wrapping
   an Instr in a function and specifying the missing arguments by lexical
   closure. At the least I could provide lists of specs for each of the
@@ -44,32 +44,48 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <instr, <defaults, <listenerExtraArgs, <chromosomeMap, <triggers, <listeningInstr, <evalPeriod;
-  classvar <defaultInstr="phenosynth.vox.default";
-  classvar <defaultListeningInstr="phenosynth.listeners.default";
+  var <voxInstr, <voxDefaults, <listenInstr, <listenExtraArgs, <sourceGroup, <outBus, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, voxGroup;
+  classvar <defaultVoxInstr="phenosynth.vox.default";
+  classvar <defaultListenInstr="phenosynth.listeners.default";
 
-  *new { |name="phenosynth.vox.default", defaults=#[], listenerExtraArgs=#[]|
-    ^super.newCopyArgs(name.asInstr, defaults, listenerExtraArgs).init;
+  *new { |voxName, voxDefaults, listenName, listenExtraArgs, sourceGroup, outBus|
+    //voxName - name, or Instr, that will be source
+    //voxDefault - array of default args to voxName
+    //listenName, listenExtraArgs - like voxName, but for listening Instr
+    //sourceGroup - a group that we must come after (Should we jsut supply the gourp to be in?)
+    ^super.newCopyArgs(
+      (voxName ? Genosynth.defaultVoxInstr).asInstr,
+      (voxDefaults ? []),
+      (listenName ? Genosynth.defaultListenInstr).asInstr,
+      (listenExtraArgs ? []),
+      sourceGroup,
+      (outBus ? 0)).init;
   }
   init {
-    chromosomeMap = this.class.getChromosomeMap(instr);
-    // pad defaults out to equal number of args
-    defaults = defaults.extend(instr.specs.size, nil);
-    triggers = this.class.getTriggers(instr);
+    this.debug;
+    this.dump;
+    [voxInstr, voxDefaults, listenInstr, listenExtraArgs].postln;
+    chromosomeMap = this.class.getChromosomeMap(voxInstr);
+    // pad voxDefaults out to equal number of args
+    voxDefaults = voxDefaults.extend(voxInstr.specs.size, nil);
+    triggers = this.class.getTriggers(voxInstr);
     /*We give default values to any triggers without a one, or they
     get saddled with an inconvenient BeatClockPlayer*/
-    triggers.do({|trigIndex, i| (defaults[trigIndex].isNil).if(
-      {defaults[trigIndex] = 1.0;})
+    triggers.do({|trigIndex, i| (voxDefaults[trigIndex].isNil).if(
+      {voxDefaults[trigIndex] = 1.0;})
     });
-    
+  }
+  voxGroup {
+    voxGroup = voxGroup ?? {Group.new(sourceGroup, addAction: \addAfter)};
+    ^voxGroup;
   }
   spawnNaked { |chromosome|
     //just return the phenosynth itsdlef, without listeners
-    ^Phenosynth.new(this, instr, defaults, chromosomeMap, triggers, chromosome);
+    ^Phenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, chromosome);
   }
   spawn { |chromosome|
     //return a listened phenosynth
-    ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod, listenerExtraArgs, chromosome);
+    ^ListeningPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstr, evalPeriod, listenExtraArgs, chromosome);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
@@ -92,18 +108,18 @@ Phenosynth {
   /* wraps an Instr with a nice Spec-based chromosome interface. This should
   be an inner class of GenoSynth, really, but SC doesn't namespace in that
   way.*/
-  var <genosynth, <instr, <defaults, <chromosomeMap, <triggers, <voxPatch;
+  var <genosynth, <voxInstr, <voxDefaults, <chromosomeMap, <triggers, <voxPatch;
   var <chromosome = nil;
-  *new {|genosynth, instr, defaults, chromosomeMap, triggers, chromosome|
+  *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome);
+    ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome);
   }
   init {|chromosome|
     this.createPatch;
     this.chromosome_(chromosome);
   }
   createPatch {
-    voxPatch = Patch.new(instr, defaults);
+    voxPatch = Patch.new(voxInstr, voxDefaults);
   }
   chromosome_ {|newChromosome|
     /* do this in a setter to allow param update */
@@ -117,38 +133,41 @@ Phenosynth {
       }
     );
   }
-  play {
-    voxPatch.play;
+  trigger {
     triggers.do({|item, i| 
-      voxPatch.set(item,1);});
+      voxPatch.set(item, 1);});
+  }
+  play {
+    voxPatch.play(group: genosynth.voxGroup);
+    this.trigger();
   }
 }
 
 ListeningPhenosynth : Phenosynth {
-  var <listeningInstr;
-  var <listenerExtraArgs;
+  var <listenInstr;
+  var <listenExtraArgs;
   var <evalPeriod = 1;
   var <fitness = 0;
   var <>age = 0;
   var <reportingListenerPatch, <reportingListenerInstr, <listener;
-  *new {|genosynth, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod=1, listenerExtraArgs, chromosome|
+  *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstr, evalPeriod=1, listenExtraArgs, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstr, evalPeriod, listenerExtraArgs);
+    ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome, listenInstr, evalPeriod, listenExtraArgs);
   }
-  init {|chromosome, listeningInstr_, evalPeriod_, listenerExtraArgs_|
-    listeningInstr = (listeningInstr_ ? Genosynth.defaultListeningInstr).asInstr;
-    listeningInstr.isNil.if({Error("no listeningInstr" + listeningInstr_ + Genosynth.defaultListeningInstr ++ ". Arse." ).throw;});
+  init {|chromosome, listenInstr_, evalPeriod_, listenExtraArgs_|
+    listenInstr = (listenInstr_ ? Genosynth.defaultListenInstr).asInstr;
+    listenInstr.isNil.if({Error("no listenInstr" + listenInstr_ + Genosynth.defaultListenInstr ++ ". Arse." ).throw;});
     evalPeriod = evalPeriod_ ? 1.0;
-    listenerExtraArgs = listenerExtraArgs_ ? [];
+    listenExtraArgs = listenExtraArgs_ ? [];
     super.init(chromosome);
   }
   createPatch {
     super.createPatch;
-    (["ListeningPhenosynth.createPatch", evalPeriod] ++ listenerExtraArgs).postln;
-    listener = Patch(listeningInstr, [
+    (["ListeningPhenosynth.createPatch", evalPeriod] ++ listenExtraArgs).postln;
+    listener = Patch(listenInstr, [
         voxPatch,
         evalPeriod
-      ] ++ listenerExtraArgs//where we inject other busses etc
+      ] ++ listenExtraArgs//where we inject other busses etc
     );
     reportingListenerInstr = ReportingListenerFactory.make({
       |time, value|
@@ -167,7 +186,7 @@ ListeningPhenosynth : Phenosynth {
     /*play reportingListener - I'd like to make it on a private bus, or no bus
     at all, but don't yet understand how to make that server-agnostic.*/
     super.play;
-    reportingListenerPatch.play;
+    reportingListenerPatch.play(group: genosynth.voxGroup);
   }
 }
 
