@@ -29,6 +29,9 @@ TODO:
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
   http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
+  
+  * In fact he has made a far more diabolically clever one: http://www.mcld.co.uk/supercollider/
+  
 * put these guys in the correct groups
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
@@ -41,12 +44,12 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <instr, <defaults, <chromosomeMap, <triggers, <listeningInstr, <evalPeriod;
+  var <instr, <defaults, <listenerExtraArgs, <chromosomeMap, <triggers, <listeningInstr, <evalPeriod;
   classvar <defaultInstr="phenosynth.vox.default";
   classvar <defaultListeningInstr="phenosynth.listeners.default";
 
-  *new { |name="phenosynth.vox.default", defaults=#[]|
-    ^super.newCopyArgs(name.asInstr, defaults).init;
+  *new { |name="phenosynth.vox.default", defaults=#[], listenerExtraArgs=#[]|
+    ^super.newCopyArgs(name.asInstr, defaults, listenerExtraArgs).init;
   }
   init {
     chromosomeMap = this.class.getChromosomeMap(instr);
@@ -65,7 +68,7 @@ Genosynth {
   }
   spawn { |chromosome|
     //return a listened phenosynth
-    ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod, chromosome);
+    ^ListeningPhenosynth.new(this, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod, listenerExtraArgs, chromosome);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
@@ -122,25 +125,29 @@ Phenosynth {
 
 ListeningPhenosynth : Phenosynth {
   var <listeningInstr;
+  var <listenerExtraArgs;
   var <evalPeriod = 1;
   var <fitness = 0;
-  var <age = 0;
+  var <>age = 0;
   var <reportingListenerPatch, <reportingListenerInstr, <listener;
-  *new {|genosynth, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod=1, chromosome|
+  *new {|genosynth, instr, defaults, chromosomeMap, triggers, listeningInstr, evalPeriod=1, listenerExtraArgs, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstr, evalPeriod);
+    ^super.newCopyArgs(genosynth, instr, defaults, chromosomeMap, triggers).init(chromosome, listeningInstr, evalPeriod, listenerExtraArgs);
   }
-  init {|chromosome, listeningInstr_, evalPeriod_|
+  init {|chromosome, listeningInstr_, evalPeriod_, listenerExtraArgs_|
     listeningInstr = (listeningInstr_ ? Genosynth.defaultListeningInstr).asInstr;
+    listeningInstr.isNil.if({Error("no listeningInstr" + listeningInstr_ + Genosynth.defaultListeningInstr ++ ". Arse." ).throw;});
     evalPeriod = evalPeriod_ ? 1.0;
+    listenerExtraArgs = listenerExtraArgs_ ? [];
     super.init(chromosome);
   }
   createPatch {
     super.createPatch;
+    (["ListeningPhenosynth.createPatch", evalPeriod] ++ listenerExtraArgs).postln;
     listener = Patch(listeningInstr, [
         voxPatch,
         evalPeriod
-      ]
+      ] ++ listenerExtraArgs//where we inject other busses etc
     );
     reportingListenerInstr = ReportingListenerFactory.make({
       |time, value|
@@ -152,7 +159,7 @@ ListeningPhenosynth : Phenosynth {
     reportingListenerPatch = Patch(
       reportingListenerInstr, [
         listener, evalPeriod
-      ]
+      ] ++ listenerExtraArgs//where we inject other busses etc
     );
   }
   play {
