@@ -1,7 +1,9 @@
 (
 ~genosynth = Genosynth.new;
 ~phenosynth=~genosynth.spawn;
+//~phenosynth=~genosynth.spawnNaked;
 ~phenosynth.play;
+Patch.dumpFullInterface;
 )
 (
 //~silence = Patch({Silence.ar(4)});

@@ -44,7 +44,7 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstr, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, voxOut, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, voxGroup, listenGroup, outGroup;
+  var <voxInstr, <voxDefaults, <listenInstr, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <voxOut, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup, <listenGroup, <outGroup;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultListenInstr="phenosynth.listeners.default";
 
@@ -76,30 +76,17 @@ Genosynth {
       {voxDefaults[trigIndex] = 1.0;})
     });
   }
-  voxGroup {
-    voxGroup = voxGroup ?? {Group.new(sourceGroup, addAction: \addAfter)};
-    ^voxGroup;
-  }
-  listenGroup {
-    listenGroup = listenGroup ?? {Group.new(this.voxGroup, addAction: \addAfter)};
-    ^listenGroup;
-  }
-  outGroup {
-    outGroup = outGroup ?? {Group.new(this.listenGroup, addAction: \addAfter)};
-    ^outGroup;
-  }
-  voxOut {
-    voxOut = voxOut ?? Patch(
-      { |audio| audio;},
-      //[\audio], 
-      [PlayerInputProxy.new(AudioSpec.new(numChannels: numChannels))],
-      //\audio
-      AudioSpec.new(numChannels: numChannels)
-    ).play(bus: outBus, group: this.outGroup);//straight-thru bus patch
-    ^voxOut;
+  play {
+    voxGroup = Group.new(sourceGroup, addAction: \addAfter);
+    listenGroup = Group.new(this.voxGroup, addAction: \addAfter);
+    outGroup  = Group.new(this.listenGroup, addAction: \addAfter);
+    voxOut = Patch(
+      "phenosynth.util.master",
+      [PlayerInputProxy.new, 1]
+    ).play(/*bus: outBus, */group: this.outGroup);//straight-thru bus patch
   }
   spawnNaked { |chromosome|
-    //just return the phenosynth itsdlef, without listeners
+    //just return the phenosynth itself, without listeners
     ^Phenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, chromosome);
   }
   spawn { |chromosome|
@@ -157,7 +144,14 @@ Phenosynth {
       voxPatch.set(item, 1);});
   }
   play {
-    voxPatch.play(group: genosynth.voxGroup, bus: genosynth.outBus);
+    genosynth.play;
+    /*********************/
+    voxPatch.play(group: genosynth.voxGroup);
+    "hoo".postln;
+    genosynth.voxOut.patchIns.dump;
+    genosynth.voxOut.patchIns[0].dump;
+    genosynth.voxOut.patchOut.dump;
+    voxPatch.patchOut.connectTo(genosynth.voxOut.patchIns[0]);
     this.trigger();
   }
 }
@@ -184,7 +178,7 @@ ListeningPhenosynth : Phenosynth {
     super.createPatch;
     (["ListeningPhenosynth.createPatch", evalPeriod] ++ listenExtraArgs).postln;
     listener = Patch(listenInstr, [
-        voxPatch,
+        PlayerInputProxy.new,
         evalPeriod
       ] ++ listenExtraArgs//where we inject other busses etc
     );
@@ -203,15 +197,23 @@ ListeningPhenosynth : Phenosynth {
     );
   }
   play {
-    /*play reportingListener - I'd like to make it on a private bus, or no bus
-    at all, but don't yet understand how to make that server-agnostic.*/
-    //super.play;
+    /*play reportingListener and voxPatch.*/
+    ["LP.play",0].postln;
+    super.play;
+    ["LP.play",1].postln;
     reportingListenerPatch.play(
       group: genosynth.voxGroup);
+    ["LP.play",2].postln;
     voxPatch.dump;
+    ["LP.play",3].postln;
     voxPatch.patchOut.dump;
-    voxPatch.patchOut.connectTo(genosynth.voxOut.patchIn);
-    this.trigger;
+    ["LP.play",4].postln;
+    listener.patchIns.dump;
+    listener.patchIns[0].nodeControl.dump;
+    ["LP.play",5].postln;
+    //voxPatch.patchOut.connectTo(listener.patchIns[0]);
+    //this.trigger;
+    ["LP.play",6].postln;
   }
 }
 
