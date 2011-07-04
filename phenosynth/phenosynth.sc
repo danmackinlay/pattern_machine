@@ -44,11 +44,11 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstr, <listenExtraArgs, <sourceGroup, <outBus, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, voxGroup;
+  var <voxInstr, <voxDefaults, <listenInstr, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, voxOut, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, voxGroup, listenGroup, outGroup;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultListenInstr="phenosynth.listeners.default";
 
-  *new { |voxName, voxDefaults, listenName, listenExtraArgs, sourceGroup, outBus|
+  *new { |voxName, voxDefaults, listenName, listenExtraArgs, sourceGroup, outBus, numChannels|
     //voxName - name, or Instr, that will be source
     //voxDefault - array of default args to voxName
     //listenName, listenExtraArgs - like voxName, but for listening Instr
@@ -59,7 +59,8 @@ Genosynth {
       (listenName ? Genosynth.defaultListenInstr).asInstr,
       (listenExtraArgs ? []),
       sourceGroup,
-      (outBus ? 0)).init;
+      (outBus ? 0),
+      (numChannels ? 1)).init;
   }
   init {
     this.debug;
@@ -78,6 +79,24 @@ Genosynth {
   voxGroup {
     voxGroup = voxGroup ?? {Group.new(sourceGroup, addAction: \addAfter)};
     ^voxGroup;
+  }
+  listenGroup {
+    listenGroup = listenGroup ?? {Group.new(this.voxGroup, addAction: \addAfter)};
+    ^listenGroup;
+  }
+  outGroup {
+    outGroup = outGroup ?? {Group.new(this.listenGroup, addAction: \addAfter)};
+    ^outGroup;
+  }
+  voxOut {
+    voxOut = voxOut ?? Patch(
+      { |audio| audio;},
+      //[\audio], 
+      [PlayerInputProxy.new(AudioSpec.new(numChannels: numChannels))],
+      //\audio
+      AudioSpec.new(numChannels: numChannels)
+    ).play(bus: outBus, group: this.outGroup);//straight-thru bus patch
+    ^voxOut;
   }
   spawnNaked { |chromosome|
     //just return the phenosynth itsdlef, without listeners
@@ -138,7 +157,7 @@ Phenosynth {
       voxPatch.set(item, 1);});
   }
   play {
-    voxPatch.play(group: genosynth.voxGroup);
+    voxPatch.play(group: genosynth.voxGroup, bus: genosynth.outBus);
     this.trigger();
   }
 }
@@ -178,15 +197,21 @@ ListeningPhenosynth : Phenosynth {
     });
     reportingListenerPatch = Patch(
       reportingListenerInstr, [
-        listener, evalPeriod
+        listener,
+        evalPeriod
       ]
     );
   }
   play {
     /*play reportingListener - I'd like to make it on a private bus, or no bus
     at all, but don't yet understand how to make that server-agnostic.*/
-    super.play;
-    reportingListenerPatch.play(group: genosynth.voxGroup);
+    //super.play;
+    reportingListenerPatch.play(
+      group: genosynth.voxGroup);
+    voxPatch.dump;
+    voxPatch.patchOut.dump;
+    voxPatch.patchOut.connectTo(genosynth.voxOut.patchIn);
+    this.trigger;
   }
 }
 

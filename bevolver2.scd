@@ -1,11 +1,29 @@
 (
+~genosynth = Genosynth.new;
+~phenosynth=~genosynth.spawn;
+~phenosynth.play;
+)
+(
+//~silence = Patch({Silence.ar(4)});
+~silence = Patch({PlayerInputProxy.ar(4)});
+~voxOut = Patch(
+      { |in| in;},
+      //[\audio], 
+      //[PlayerInputProxy.new]//,
+      //[PlayerInputProxy.new(\audio)]//,
+      [~silence]
+      //\audio
+      //[AudioSpec.new(1)]
+    ).play(bus: Bus.new(\audio, 0, 1));
+)
+(
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
 ~instr = Instr("genosynth.defaultinstr");
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~internalBus = Bus.audio(numChannels: 1);
 ~fivehundred = Patch({SinOsc.ar(800)}).play(bus: ~internalBus);
-//~genosynth = Genosynth.new;
+~genosynth = Genosynth.new;
 //~genosynth.voxGroup;
 ~genosynth = Genosynth.new(nil, [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
 ~phenosynth=~genosynth.spawn;
