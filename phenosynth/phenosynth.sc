@@ -91,7 +91,7 @@ Genosynth {
   }
   spawn { |chromosome|
     //return a listened phenosynth
-    ^ListeningPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstr, evalPeriod, listenExtraArgs, chromosome);
+    ^ListenPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstr, evalPeriod, listenExtraArgs, chromosome);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
@@ -156,7 +156,7 @@ Phenosynth {
   }
 }
 
-ListeningPhenosynth : Phenosynth {
+ListenPhenosynth : Phenosynth {
   var <listenInstr;
   var <listenExtraArgs;
   var <evalPeriod = 1;
@@ -176,7 +176,7 @@ ListeningPhenosynth : Phenosynth {
   }
   createPatch {
     super.createPatch;
-    (["ListeningPhenosynth.createPatch", evalPeriod] ++ listenExtraArgs).postln;
+    (["ListenPhenosynth.createPatch", evalPeriod] ++ listenExtraArgs).postln;
     listener = Patch(listenInstr, [
         PlayerInputProxy.new,
         evalPeriod
