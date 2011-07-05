@@ -1,3 +1,5 @@
+//Mono version
+(
 //create a Bus for Instrs to play on
 ~privateOut = Bus.audio(s,1);
 //create a bus for the master outs
@@ -18,3 +20,19 @@
 ["fx1", ~fx1.bus].postln;
 ["fx2", ~fx2.bus].postln;
 ["privateout", ~privateOut].postln;
+)
+
+//Now, let's try that multichannel.
+(
+~privateOut = Bus.audio(s,4);
+~publicOut = Bus.new(\audio, 0, 4);
+~src = Patch({Pan4.ar(Saw.ar(300), SinOsc.ar(1), SinOsc.ar(1, pi/2),1);}).play(bus:~privateOut);
+~fxGroup = Group.new(addAction: \addAfter);
+~fx1 = Patch({|in| Resonz.ar(in, 900, 0.01);}, [~src]).play(group:~fxGroup);
+~fx2 = Patch({|in| Resonz.ar(in, 700, 0.005);}, [~src]).play(group:~fxGroup);
+~privateOut.play();
+["src", ~src.bus].postln;
+["fx1", ~fx1.bus].postln;
+["fx2", ~fx2.bus].postln;
+["privateout", ~privateOut].postln;
+)
