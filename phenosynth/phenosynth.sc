@@ -214,3 +214,24 @@ ReportingListenerFactory {
     ^newInstr;
   }
 }
+
+PhenosynthBiome {
+  //system setup
+  var <outBus, <referenceBus, <maxFlockSize, <tickRate;
+  //state
+  var <particles, <numChannels, <phenosynth, <clock;
+  *new {|outBus, referenceBus, <maxFlockSize|
+    ^super.newCopyArgs(outBus, referenceBus).init;
+  }
+  init {
+    particles = List()
+  }
+  /*~globalOuts = Bus.new(\audio, 0, 2);
+  ~internalBus = Bus.audio(numChannels: 1);
+  ~fivehundred = Patch({SinOsc.ar(800)}).play(bus: ~internalBus);
+  //~genosynth = Genosynth.new;
+  //~genosynth.voxGroup;
+  ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
+  ~phenosynth=~genosynth.spawn;
+  ~phenosynth.play;*/
+}
