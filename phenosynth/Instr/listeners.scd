@@ -9,7 +9,7 @@ Instr.new( //toy listener comparing signal with a 500Hz sine
   }, [
     \audio,
     \evalperiod
-  ], \fitness
+  ]
 );
 Instr.new(
   "phenosynth.listeners.conv_comparator",
@@ -23,7 +23,7 @@ Instr.new(
       \audio,
       \evalperiod,
       \audio
-    ], \fitness
+    ]
 );
 
 Instr.new(

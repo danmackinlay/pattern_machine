@@ -198,13 +198,14 @@ ReportingListenerFactory {
     newInstr = Instr(
       "phenosynth.reportingListener.volatile." ++ counter.asString,
       {|in, evalPeriod=1|
-        Instr.ar(listenInstrName,
-          [
-            in,
-            evalPeriod
-          ] ++ listenExtraArgs//where we inject other busses etc
+        LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn,
+          Instr.ar(listenInstrName,
+            [
+              in,
+              evalPeriod
+            ] ++ listenExtraArgs//where we inject other busses etc
+          )
         );
-        LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn, in);
         //return inputs. We are analysis only.
         in;
       },

@@ -3,10 +3,10 @@
 ~phenosynth=~genosynth.spawn;
 //~phenosynth=~genosynth.spawnNaked;
 ~phenosynth.play;
-~phenosynth.reportingListenerPatch.bus;
+~phenosynth.fitness;
+~phenosynth.reportingListenerPatch.gui;
 )
-(
-
+SinOSc.ar.poll
 (
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
