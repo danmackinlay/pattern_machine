@@ -10,13 +10,12 @@ SinOSc.ar.poll
 (
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
-~instr = Instr("genosynth.defaultinstr");
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~internalBus = Bus.audio(numChannels: 1);
 ~fivehundred = Patch({SinOsc.ar(800)}).play(bus: ~internalBus);
-~genosynth = Genosynth.new;
+//~genosynth = Genosynth.new;
 //~genosynth.voxGroup;
-~genosynth = Genosynth.new(nil, [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
+~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
 ~phenosynth=~genosynth.spawn;
 ~phenosynth.reportingListenerPatch.gui;
 //~phenosynth=~genosynth.spawnNaked;
