@@ -44,14 +44,14 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <voxOut, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup, <listenGroup, <outGroup;
+  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultListenInstr="phenosynth.listeners.default";
 
   *new { |voxName, voxDefaults, listenInstrName, listenExtraArgs, sourceGroup, outBus, numChannels|
     //voxName - name, or Instr, that will be source
     //voxDefault - array of default args to voxName
-    //listenName, listenExtraArgs - like voxName, but for listening Instr
+    //listenInstrName, listenExtraArgs - like voxName, but for listening Instr
     //sourceGroup - a group that we must come after (Should we jsut supply the group to be in?)
     ^super.newCopyArgs(
       (voxName ? Genosynth.defaultVoxInstr).asInstr,
@@ -75,12 +75,6 @@ Genosynth {
   }
   play {
     voxGroup = Group.new(sourceGroup, addAction: \addAfter);
-    listenGroup = Group.new(this.voxGroup, addAction: \addAfter);
-    outGroup  = Group.new(this.listenGroup, addAction: \addAfter);
-    voxOut = Patch(
-      "phenosynth.util.master",
-      [PlayerInputProxy.new, 1]
-    ).play(/*bus: outBus, */group: this.outGroup);//straight-thru bus patch
   }
   spawnNaked { |chromosome|
     //just return the phenosynth itself, without listeners
