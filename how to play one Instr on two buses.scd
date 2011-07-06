@@ -1,3 +1,5 @@
+///Note- this doesn't work! ~src will get spawned once for each.grou
+
 //Mono version
 (
 //create a Bus for Instrs to play on
@@ -5,7 +7,7 @@
 //create a bus for the master outs
 ~publicOut = Bus.new(\audio, 0,1);
 //create a instr to play
-~src = Patch({Saw.ar(300);}).play(bus:~privateOut);
+~src = Patch({Saw.ar(300).poll;}).play(bus:~privateOut);
 //Now, some FX so we can hear the difference.
 //put fx in group after the default one.
 ~fxGroup = Group.new(addAction: \addAfter);

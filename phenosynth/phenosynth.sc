@@ -44,28 +44,25 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstr, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <voxOut, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup, <listenGroup, <outGroup;
+  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <voxOut, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup, <listenGroup, <outGroup;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultListenInstr="phenosynth.listeners.default";
 
-  *new { |voxName, voxDefaults, listenName, listenExtraArgs, sourceGroup, outBus, numChannels|
+  *new { |voxName, voxDefaults, listenInstrName, listenExtraArgs, sourceGroup, outBus, numChannels|
     //voxName - name, or Instr, that will be source
     //voxDefault - array of default args to voxName
     //listenName, listenExtraArgs - like voxName, but for listening Instr
-    //sourceGroup - a group that we must come after (Should we jsut supply the gourp to be in?)
+    //sourceGroup - a group that we must come after (Should we jsut supply the group to be in?)
     ^super.newCopyArgs(
       (voxName ? Genosynth.defaultVoxInstr).asInstr,
       (voxDefaults ? []),
-      (listenName ? Genosynth.defaultListenInstr).asInstr,
+      (listenInstrName ? Genosynth.defaultListenInstr),
       (listenExtraArgs ? []),
       sourceGroup,
       (outBus ? 0),
       (numChannels ? 1)).init;
   }
   init {
-    this.debug;
-    this.dump;
-    [voxInstr, voxDefaults, listenInstr, listenExtraArgs].postln;
     chromosomeMap = this.class.getChromosomeMap(voxInstr);
     // pad voxDefaults out to equal number of args
     voxDefaults = voxDefaults.extend(voxInstr.specs.size, nil);
@@ -91,7 +88,7 @@ Genosynth {
   }
   spawn { |chromosome|
     //return a listened phenosynth
-    ^ListenPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstr, evalPeriod, listenExtraArgs, chromosome);
+    ^ListenPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
   }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
@@ -147,73 +144,53 @@ Phenosynth {
     genosynth.play;
     /*********************/
     voxPatch.play(group: genosynth.voxGroup);
-    "hoo".postln;
-    genosynth.voxOut.patchIns.dump;
-    genosynth.voxOut.patchIns[0].dump;
-    genosynth.voxOut.patchOut.dump;
-    voxPatch.patchOut.connectTo(genosynth.voxOut.patchIns[0]);
     this.trigger();
   }
 }
 
 ListenPhenosynth : Phenosynth {
-  var <listenInstr;
+  var <listenInstrName;
   var <listenExtraArgs;
   var <evalPeriod = 1;
   var <fitness = 0;
   var <>age = 0;
   var <reportingListenerPatch, <reportingListenerInstr, <listener;
-  *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstr, evalPeriod=1, listenExtraArgs, chromosome|
+  *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod=1, listenExtraArgs, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome, listenInstr, evalPeriod, listenExtraArgs);
+    ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome, listenInstrName, evalPeriod, listenExtraArgs);
   }
-  init {|chromosome, listenInstr_, evalPeriod_, listenExtraArgs_|
-    listenInstr = (listenInstr_ ? Genosynth.defaultListenInstr).asInstr;
-    listenInstr.isNil.if({Error("no listenInstr" + listenInstr_ + Genosynth.defaultListenInstr ++ ". Arse." ).throw;});
+  init {|chromosome, listenInstrName_, evalPeriod_, listenExtraArgs_|
+    listenInstrName = (listenInstrName_ ? Genosynth.defaultListenInstr);
+    listenInstrName.asInstr.isNil.if({Error("no listenInstr" + listenInstrName_ + Genosynth.defaultListenInstr ++ ". Arse." ).throw;});
     evalPeriod = evalPeriod_ ? 1.0;
     listenExtraArgs = listenExtraArgs_ ? [];
     super.init(chromosome);
   }
   createPatch {
     super.createPatch;
-    (["ListenPhenosynth.createPatch", evalPeriod] ++ listenExtraArgs).postln;
-    listener = Patch(listenInstr, [
-        PlayerInputProxy.new,
-        evalPeriod
-      ] ++ listenExtraArgs//where we inject other busses etc
+    reportingListenerInstr = ReportingListenerFactory.make(
+      listenInstrName, listenExtraArgs,
+      {
+        |time, value|
+        fitness = value;
+        age = age + 1;
+        //this.dump;
+        //["updating correlation", this.hash, time, value, age].postln;
+      }
     );
-    reportingListenerInstr = ReportingListenerFactory.make({
-      |time, value|
-      fitness = value;
-      age = age + 1;
-      //this.dump;
-      //["updating correlation", this.hash, time, value, age].postln;
-    });
     reportingListenerPatch = Patch(
       reportingListenerInstr, [
-        listener,
+        voxPatch,
         evalPeriod
       ]
     );
   }
   play {
     /*play reportingListener and voxPatch.*/
-    ["LP.play",0].postln;
-    super.play;
-    ["LP.play",1].postln;
+    //super.play;
     reportingListenerPatch.play(
       group: genosynth.voxGroup);
-    ["LP.play",2].postln;
-    voxPatch.dump;
-    ["LP.play",3].postln;
-    voxPatch.patchOut.dump;
-    ["LP.play",4].postln;
-    listener.patchIns.dump;
-    listener.patchIns[0].nodeControl.dump;
-    ["LP.play",5].postln;
-    //voxPatch.patchOut.connectTo(listener.patchIns[0]);
-    //this.trigger;
-    ["LP.play",6].postln;
+    this.trigger;
   }
 }
 
@@ -222,15 +199,21 @@ ReportingListenerFactory {
   TODO: I'm not totally sure if this is neccessary, and should check that
   after the current deadline crunch.*/
   classvar counter = 0;
-  *make {|onTrigFn, evalPeriod=1|
+  *make {|listenInstrName, listenExtraArgs, onTrigFn, evalPeriod=1|
     /*takes a function of the form {|time, value| foo} */
     var newInstr;
     newInstr = Instr(
       "phenosynth.reportingListener.volatile." ++ counter.asString,
       {|in, evalPeriod=1|
+        Instr.ar(listenInstrName,
+          [
+            in,
+            evalPeriod
+          ] ++ listenExtraArgs//where we inject other busses etc
+        );
         LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn, in);
-        // actually just be quiet please
-        Silent.ar
+        //return inputs. We are analysis only.
+        in;
       },
       [\audio], \audio
     );

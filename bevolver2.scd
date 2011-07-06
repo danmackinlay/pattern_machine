@@ -3,7 +3,7 @@
 ~phenosynth=~genosynth.spawn;
 //~phenosynth=~genosynth.spawnNaked;
 ~phenosynth.play;
-Patch.dumpFullInterface;
+~phenosynth.reportingListenerPatch.bus;
 )
 (
 //~silence = Patch({Silence.ar(4)});
