@@ -5,8 +5,9 @@
 ~phenosynth.play;
 ~phenosynth.fitness;
 ~phenosynth.reportingListenerPatch.gui;
+ControlSpec
 )
-SinOSc.ar.poll
+
 (
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
@@ -17,18 +18,19 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 //~genosynth.voxGroup;
 ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
 ~phenosynth=~genosynth.spawn;
+~phenosynth.play;
 ~phenosynth.reportingListenerPatch.gui;
 //~phenosynth=~genosynth.spawnNaked;
-~phenosynth.play;
 ~phenosynth.age;
 ~phenosynth.fitness;
 ~phenosynth.triggers;
+~phenosynth.chromosome_;
 ~phenosynth.reportingListenerPatch;
 ~phenosynth.listeningInstr;
 //~phenosynth.voxPatch.play;
-~phenosynth.reportingListenerPatch.gui;
+~phenosynth2.reportingListenerPatch.gui;
 ~phenosynth2=~genosynth.spawn;
-~phenosynth2.voxPatch.play;
+~phenosynth2.play;
 ~phenosynth2.reportingListenerPatch.play;
 ~phenosynth2.fitness;
 ~phenosynth2.chromosome;

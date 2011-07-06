@@ -28,11 +28,7 @@ TODO:
 * I've just noticed that MCLD has been facing the same problem and made
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
-  http://swiki.hfbk-hamburg.de:8888/MusicTechnology/778
-  
-  * In fact he has made a far more diabolically clever one: http://www.mcld.co.uk/supercollider/
-  
-* put these guys in the correct groups
+  http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
 
@@ -126,7 +122,10 @@ Phenosynth {
     chromosome = newChromosome;
     chromosomeMap.do(
       {|specIdx, chromIdx|
-        voxPatch.specAt(specIdx).map(chromosome[chromIdx]);
+        voxPatch.set(
+          specIdx,
+          voxPatch.specAt(specIdx).map(chromosome[chromIdx])
+        );
       }
     );
   }
