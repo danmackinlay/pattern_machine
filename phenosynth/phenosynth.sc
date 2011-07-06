@@ -136,7 +136,6 @@ Phenosynth {
   }
   play {
     genosynth.play;
-    /*********************/
     voxPatch.play(group: genosynth.voxGroup);
     this.trigger();
   }

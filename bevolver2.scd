@@ -6,18 +6,7 @@
 ~phenosynth.reportingListenerPatch.bus;
 )
 (
-//~silence = Patch({Silence.ar(4)});
-~silence = Patch({PlayerInputProxy.ar(4)});
-~voxOut = Patch(
-      { |in| in;},
-      //[\audio], 
-      //[PlayerInputProxy.new]//,
-      //[PlayerInputProxy.new(\audio)]//,
-      [~silence]
-      //\audio
-      //[AudioSpec.new(1)]
-    ).play(bus: Bus.new(\audio, 0, 1));
-)
+
 (
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
