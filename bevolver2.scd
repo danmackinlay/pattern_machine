@@ -1,14 +1,4 @@
 (
-~genosynth = Genosynth.new;
-~phenosynth=~genosynth.spawn;
-//~phenosynth=~genosynth.spawnNaked;
-~phenosynth.play;
-~phenosynth.fitness;
-~phenosynth.reportingListenerPatch.gui;
-ControlSpec
-)
-
-(
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
 ~globalOuts = Bus.new(\audio, 0, 2);

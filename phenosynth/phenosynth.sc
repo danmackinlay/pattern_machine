@@ -217,15 +217,32 @@ ReportingListenerFactory {
 
 PhenosynthBiome {
   //system setup
-  var <outBus, <referenceBus, <maxFlockSize, <tickRate;
+  var <genosynth, <maxPopulation, <tickTime;
   //state
-  var <particles, <numChannels, <phenosynth, <clock;
-  *new {|outBus, referenceBus, <maxFlockSize|
-    ^super.newCopyArgs(outBus, referenceBus).init;
+  var <individuals, <numChannels, <clock;
+  *new {|genosynth, maxPopulation, initPopulation|
+    ^super.newCopyArgs(genosynth, maxPopulation).init(initPopulation);
   }
-  init {
-    particles = List()
+  init {|initPopulation|
+    individuals = List();
+    clock = TempoClock.new(tickTime.reciprocal);
+    initPopulation.do({this.addIndividual;});
+    clock.sched(tickTime, this.tick);
   }
+  addIndividual {|chromosome|
+    var particle = genosynth.spawn(chromosome);
+    particle.play;
+    ^particle;
+  }
+  removeIndividual {|index|
+    individuals;
+  }
+  tick {|a, b, c|
+    ["tick",a,b,c].postln;
+    this.cull;
+    this.breed;
+  }
+  
   /*~globalOuts = Bus.new(\audio, 0, 2);
   ~internalBus = Bus.audio(numChannels: 1);
   ~fivehundred = Patch({SinOsc.ar(800)}).play(bus: ~internalBus);
