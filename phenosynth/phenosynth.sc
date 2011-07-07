@@ -138,6 +138,9 @@ Phenosynth {
     voxPatch.play(group: genosynth.voxGroup);
     this.trigger();
   }
+  free {
+    voxPatch.free;
+  }
 }
 
 ListenPhenosynth : Phenosynth {
@@ -184,13 +187,17 @@ ListenPhenosynth : Phenosynth {
       group: genosynth.voxGroup);
     this.trigger;
   }
+  free {
+    super.free;
+    reportingListenerPatch.free;
+  }
 }
 
 ReportingListenerFactory {
   /*Instrs like having names, so we make some on demand to keep things clean.
   TODO: I'm not totally sure if this is neccessary, and should check that
   after the current deadline crunch.*/
-  classvar counter = 0;
+  classvar <counter = 0;
   *make {|listenInstrName, listenExtraArgs, onTrigFn, evalPeriod=1|
     /*takes a function of the form {|time, value| foo} */
     var newInstr;
@@ -230,30 +237,36 @@ PhenosynthBiome {
   }
   init {|initPopulation|
     individuals = List();
+    initPopulation.do({this.spawn;});
     clock = TempoClock.new(tickTime.reciprocal);
-    initPopulation.do({this.addIndividual;});
     clock.sched(tickTime, this.tick);
   }
-  addIndividual {|chromosome|
-    var particle = genosynth.spawn(chromosome);
-    particle.play;
-    ^particle;
+  spawn {|chromosome|
+    var ind = genosynth.spawn(chromosome);
+    ind.play;
+    ^this.pushIndividual(ind);
   }
-  removeIndividual {|index|
-    individuals;
+  pushIndividual {|ind|
+    individuals.add(ind);
+    ^ind;
+  }
+  popIndividual {|ind|
+    ind.isKindOf(SimpleNumber).if(
+      {
+        ind = individuals.removeAt(ind);
+      }, {
+        individuals.remove(ind);
+      }
+      ind.free;
+    );
   }
   tick {|a, b, c|
     ["tick",a,b,c].postln;
-    this.cull;
-    this.breed;
+    this.cullPopulation;
+    this.breedPopulation;
   }
-  
-  /*~globalOuts = Bus.new(\audio, 0, 2);
-  ~internalBus = Bus.audio(numChannels: 1);
-  ~fivehundred = Patch({SinOsc.ar(800)}).play(bus: ~internalBus);
-  //~genosynth = Genosynth.new;
-  //~genosynth.voxGroup;
-  ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
-  ~phenosynth=~genosynth.spawn;
-  ~phenosynth.play;*/
+  cullPopulation {
+  }
+  breedPopulation {
+  }
 }
