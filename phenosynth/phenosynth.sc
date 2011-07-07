@@ -197,13 +197,18 @@ ReportingListenerFactory {
     newInstr = Instr(
       "phenosynth.reportingListener.volatile." ++ counter.asString,
       {|in, evalPeriod=1|
-        LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn,
-          Mix(Instr.ar(listenInstrName,
-            [
-              in,
-              evalPeriod
-            ] ++ listenExtraArgs//where we inject other busses etc
-          ))
+        var totalFitness;
+        totalFitness = A2K.kr(Mix.ar(Instr.ar(listenInstrName,
+          [
+            in,
+            evalPeriod
+          ] ++ listenExtraArgs//where we inject other busses etc
+        )));
+        LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(onTrigFn, 
+          totalFitness
+          //both the follwing lines cause the output to increase by a factor of 10E+22
+          //Select.kr(CheckBadValues.kr(totalFitness), [totalFitness,0.0])
+          //BinaryOpUGen('==', CheckBadValues.kr(totalFitness, 0, 0), 0)*totalFitness;
         );
         //return inputs. We are analysis only.
         in;
