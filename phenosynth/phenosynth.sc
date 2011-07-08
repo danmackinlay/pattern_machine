@@ -272,12 +272,20 @@ PhenosynthBiome {
     );
     ind.free;
   }
+  popIndividuals {|indList=#[]|
+    indList.asArray.sort.reverse.do({|ind|
+      this.popIndividual(ind);
+    });
+  }
   time {
     ^clock.elapsedBeats.floor;
   }
   tick {
     this.cullPopulation;
     this.breedPopulation;
+  }
+  fitness {
+    ^population.collect({|i| i.fitness;});
   }
   cullPopulation {
   }

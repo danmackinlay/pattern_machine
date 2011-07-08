@@ -18,10 +18,10 @@ Instr.new(
     )*env;
   }, #[
     \gate,
-    [0.01, 100, \exponential],
-    \ffreq,
-    \ffreq,
-    [0.001, 2, \exponential]
+    [0.1, 10.0, \exponential],
+    [40.0, 10000.0, \exponential],
+    [40.0, 10000.0, \exponential],
+    [0.01, 1.0, \exponential]
   ] //, \audio
 );
 Instr.new(
