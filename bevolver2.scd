@@ -9,12 +9,14 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~fivehundred.bus], ~fivehundred.group, ~globalOuts);
 ~biome = PhenosynthBiome.new(~genosynth);
 ~biome.play;
-~biome.popIndividuals([0,3,4]);
-~biome.population[0].voxPatch.bus.scope;
-~biome.population[0].voxPatch.gui;
-~biome.population[0].reportingListenerPatch.bus.scope;
-~biome.population[0].reportingListenerPatch.gui;
 ~biome.fitness;
+~suspect=~biome.population[10]; 
+//~biome.popIndividuals([0,3,4]);
+~suspect.voxPatch.bus.scope;
+~suspect.fitness;
+~suspect.voxPatch.gui;
+~suspect.reportingListenerPatch.bus.scope;
+~suspect.reportingListenerPatch.gui;
 ~biome.popIndividual;
 ~biome.free;
 ~phenosynth=~genosynth.spawn;
@@ -23,3 +25,4 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~phenosynth.reportingListenerPatch.gui;
 )
 Instr.loadAll;
+poll
