@@ -229,17 +229,29 @@ ReportingListenerFactory {
 
 PhenosynthBiome {
   //system setup
-  var <genosynth, <maxPopulation, <tickTime;
+  var <genosynth, <tickPeriod, <maxPopulation;
   //state
-  var <individuals, <numChannels, <clock;
-  *new {|genosynth, maxPopulation, initPopulation|
-    ^super.newCopyArgs(genosynth, maxPopulation).init(initPopulation);
+  var <individuals, <numChannels, <clock, <ticker;
+  *new {|genosynth, tickPeriod=1, maxPopulation=24, initPopulation|
+    ^super.newCopyArgs(
+      genosynth, tickPeriod, maxPopulation
+    ).init(
+      initPopulation ? (maxPopulation/2)
+    );
   }
   init {|initPopulation|
     individuals = List();
     initPopulation.do({this.spawn;});
-    clock = TempoClock.new(tickTime.reciprocal);
-    clock.sched(tickTime, this.tick);
+  }
+  play {
+    clock = TempoClock.new(tickPeriod.reciprocal, 1);
+    ticker = Task.new({loop {this.tick; 1.wait;}}, clock);
+    ticker.start;
+  }
+  free {
+    ticker ?? {ticker.stop;};
+    clock ?? {clock.stop;};
+    {individuals.size>0}.while({this.popIndividual});
   }
   spawn {|chromosome|
     var ind = genosynth.spawn(chromosome);
@@ -250,18 +262,20 @@ PhenosynthBiome {
     individuals.add(ind);
     ^ind;
   }
-  popIndividual {|ind|
+  popIndividual {|ind=0|
     ind.isKindOf(SimpleNumber).if(
       {
         ind = individuals.removeAt(ind);
       }, {
         individuals.remove(ind);
       }
-      ind.free;
     );
+    ind.free;
   }
-  tick {|a, b, c|
-    ["tick",a,b,c].postln;
+  time {
+    ^clock.elapsedBeats.floor;
+  }
+  tick {
     this.cullPopulation;
     this.breedPopulation;
   }
