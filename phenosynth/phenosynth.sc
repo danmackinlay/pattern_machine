@@ -231,7 +231,7 @@ PhenosynthBiome {
   //system setup
   var <genosynth, <tickPeriod, <maxPopulation;
   //state
-  var <individuals, <numChannels, <clock, <ticker;
+  var <population, <numChannels, <clock, <ticker;
   *new {|genosynth, tickPeriod=1, maxPopulation=24, initPopulation|
     ^super.newCopyArgs(
       genosynth, tickPeriod, maxPopulation
@@ -240,7 +240,7 @@ PhenosynthBiome {
     );
   }
   init {|initPopulation|
-    individuals = List();
+    population = List();
     initPopulation.do({this.spawn;});
   }
   play {
@@ -251,7 +251,7 @@ PhenosynthBiome {
   free {
     ticker ?? {ticker.stop;};
     clock ?? {clock.stop;};
-    {individuals.size>0}.while({this.popIndividual});
+    {population.size>0}.while({this.popIndividual});
   }
   spawn {|chromosome|
     var ind = genosynth.spawn(chromosome);
@@ -259,15 +259,15 @@ PhenosynthBiome {
     ^this.pushIndividual(ind);
   }
   pushIndividual {|ind|
-    individuals.add(ind);
+    population.add(ind);
     ^ind;
   }
   popIndividual {|ind=0|
     ind.isKindOf(SimpleNumber).if(
       {
-        ind = individuals.removeAt(ind);
+        ind = population.removeAt(ind);
       }, {
-        individuals.remove(ind);
+        population.remove(ind);
       }
     );
     ind.free;
