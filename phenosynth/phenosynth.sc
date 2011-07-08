@@ -210,7 +210,7 @@ ReportingListenerFactory {
             in,
             evalPeriod
           ] ++ listenExtraArgs//where we inject other busses etc
-        )));
+        ).poll(0.25, \a2k)).poll(0.25, \mix)).poll(0.25, \inner);
         LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
           onTrigFn, 
           //totalFitness
@@ -225,7 +225,7 @@ ReportingListenerFactory {
               0
             ),
             [totalFitness, 0.0]
-          )
+          ).poll(0.25, \sanitised)
         );
         //return inputs. We are analysis only.
         in;
@@ -246,7 +246,7 @@ PhenosynthBiome {
     ^super.newCopyArgs(
       genosynth, tickPeriod, maxPopulation
     ).init(
-      initPopulation ? (maxPopulation/2)
+      initPopulation ? ((maxPopulation/2).ceil)
     );
   }
   init {|initPopulation|
