@@ -36,7 +36,7 @@ Instr.new(
   testsig  = LeakDC.ar(in);
   othersig = LeakDC.ar(reference);
   
-  // Take a wideband FFT of the signals since we're interested in time-domain features rather than freq precision
+  // Take a narrow-band FFT of the signals since we're interested in time-domain features rather than freq precision
   // (use buffers of ~64 or 128 size - NB 32 is too small - kills the server)
   sigfft = FFT(LocalBuf(2048), testsig);
   offt =   FFT(LocalBuf(2048), othersig);
