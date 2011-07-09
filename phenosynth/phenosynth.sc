@@ -396,7 +396,7 @@ PhenosynthBiome {
     //not strictly *negative* fitnesses, but inverted
     negFitnesses = posFitnesses.maxItem-posFitnesses;
     hitList = this.class.weightedSelectIndices(negFitnesses, rate
-      ).collect({|i| population[i];});
+      ).collect({|i| population[i];}).select({|i| i.age>0;});
     ["hitList", hitList.collect({|i| i.fitness;})].postln;
     ^hitList;
   }
