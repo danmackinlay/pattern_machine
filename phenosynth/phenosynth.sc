@@ -378,7 +378,9 @@ PhenosynthBiome {
   }
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues
-    ^population.collect({|i| i.fitness/(2.pow(i.age/4));}).max(0);
+    ^population.collect({|i| i.fitness;}).max(0);
+    //alternative version, including aging, disabled while i sort this shizzle
+    //^population.collect({|i| i.fitness/(2.pow(i.age/4));}).max(0);
   }
   ages {
     //make sure this returns non-negative numbers, or badness ensues
@@ -393,16 +395,20 @@ PhenosynthBiome {
     posFitnesses = this.fitnesses;
     //not strictly *negative* fitnesses, but inverted
     negFitnesses = posFitnesses.maxItem-posFitnesses;
-    hitList = this.class.weightedSelectIndices(negFitnesses, rate);
-    //["hitList", hitList.collect({|i| [i, population[i].fitness];})].postln;
-    ^hitList.collect({|i| population[i];});
+    hitList = this.class.weightedSelectIndices(negFitnesses, rate
+      ).collect({|i| population[i];});
+    ["hitList", hitList.collect({|i| i.fitness;})].postln;
+    ^hitList;
   }
   findSowable {|rate|
     //find parents based on fitness. returns indices thereof.
     var posFitnesses;
+    var hitList;
     rate.isNil.if({rate=birthRate});
     posFitnesses = this.fitnesses;
-    ^this.class.weightedSelectIndices(posFitnesses, rate);
+    hitList = this.class.weightedSelectIndices(posFitnesses, rate
+      ).collect({|i| population[i];});
+    ^hitList;
   }
 /*  chooseBirthNumber{|rate|
     //find number of births to have
@@ -416,7 +422,7 @@ PhenosynthBiome {
     // ["mean fitness", this.fitnesses.mean].postln;
     doomed.isEmpty.not.if({(["killing"] ++ doomed ++ ["with fitnesses"] ++ doomed.collect({|ind| ind.fitness;})).postln;});
     this.popIndividuals(doomed);
-    //["mean fitness", this.fitnesses.mean].postln;
+    ["mean fitness", this.fitnesses.mean].postln;
   }
   breedPopulation {
     var allParents, numChildren;
@@ -431,7 +437,7 @@ PhenosynthBiome {
     numChildren.do({
       var parentChromosomes, childChromosome;
       parentChromosomes = numParents.collect({
-        population[allParents.choose].chromosome;
+        allParents.choose.chromosome;
       });
       childChromosome = this.crossover(parentChromosomes);
       childChromosome = this.mutate(childChromosome);
