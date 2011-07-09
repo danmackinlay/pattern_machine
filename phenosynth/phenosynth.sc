@@ -323,7 +323,7 @@ PhenosynthBiome {
   *weightedSelectIndices {|weights, rate|
     // randomly choose indices from `weights`, weighted by their value, with a
     // mean probability of `rate`. Handy for selection processes.
-    // note that for high rates, this gets silly
+    // Note that for high rates, this gets silly
     var meanWeight = weights.mean;
     ^weights.indicesSuchThat({|weight, i|
       (rate * weight / meanWeight).coin
@@ -379,6 +379,10 @@ PhenosynthBiome {
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues
     ^population.collect({|i| i.fitness/(2.pow(i.age/4));}).max(0);
+  }
+  ages {
+    //make sure this returns non-negative numbers, or badness ensues
+    ^population.collect({|i| i.age;});
   }
   findReapable {|rate|
     //find the doomed based on fitness. returns them.
@@ -453,10 +457,9 @@ PhenosynthBiomeFitnessPlot {
     tickTime = [(biome.tickPeriod/2), 1.0].maxItem;
     AppClock.play(Routine({{
       //["updating", biome.fitnesses, plotter.data ].postln;
-      plotter.value_(biome.fitnesses);
+      plotter.value_([biome.fitnesses, biome.ages]);
       plotter.refresh;
       tickTime.yield;
     }.loop}));
   }
-  
 }

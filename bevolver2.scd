@@ -29,6 +29,3 @@ instr.specs[4].args;
 ~phenosynth.reportingListenerPatch.gui;
 )
 Instr.loadAll;
-ControlSpec
-
-Routine
