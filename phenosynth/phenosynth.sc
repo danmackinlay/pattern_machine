@@ -1,13 +1,14 @@
 /*
 Phenosynth: Classes for phenotypic selection of Instrs
 
-TODO:
+NOTES:
 
 * Note that Instr loading is buggy - see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Instr-calling-Crashes-SC-td4165267.html
 
   * you might want to use HJH's Instr.loadAll; workaround.
   
-* move patch creation into a "play" or "go" method.
+TODO:
+
 * Handle "free controls", values that are passed in live by the user. (esp for
   triggers)
   
@@ -32,11 +33,14 @@ TODO:
   rather than genotypes, as the NLTK does:
   http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
 * do free/cleanup logic
-* give fitness more accumulatey flavour using Integrator
-* give lifespans using the exponential distribution \lambda \e ^-\lambda \e
-* TODO: scale birthRate and deathRate so that they fit eventual fitness
-* reseed population when they all die
-* better aging calculations
+
+* Urgent
+
+  * give fitness more accumulatey flavour using Integrator
+  * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
+  * TODO: scale birthRate and deathRate so that they fit eventual fitness
+  * reseed population when they all die
+  * better aging calculations
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
