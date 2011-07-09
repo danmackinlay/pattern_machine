@@ -28,10 +28,8 @@ Instr.new(
 
 Instr.new(
   "phenosynth.listeners.fft_comparator",
-  {|in, evalPeriod = 1, reference, active=0, t_reset=0|
-  var othersig, testsig, comparison, integral, sigamp, oamp, 
-    sigfft, offt, sigbufplay, obufplay, fftdiff,
-    resynth;
+  {|in, evalPeriod = 1, reference, t_reset=0|
+  var othersig, testsig, comparison, sigfft, offt;
   
   testsig  = LeakDC.ar(in);
   othersig = LeakDC.ar(reference);
@@ -51,6 +49,6 @@ Instr.new(
   comparison = comparison / ControlRate.ir;
   
   // Default coefficient of 1.0 = no leak. When t_reset briefly hits nonzero, the integrator drains.
-  Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
+  Integrator.kr(comparison, if(t_reset>0, 0, 1));
 });
 
