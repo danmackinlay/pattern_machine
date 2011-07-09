@@ -217,14 +217,15 @@ ReportingListenerFactory {
             in,
             evalPeriod
           ] ++ listenExtraArgs//where we inject other busses etc
-        ).poll(0.25, \a2k)).poll(0.25, \mix)).poll(0.25, \inner);
+        ).poll(0.01, \a2k)).poll(0.01, \mix)).poll(0.01, \inner);
+        //what's with those poll things? they make some explosions in the
+        // fitness output code go away. if you can produce a reduced test
+        // case for me, I am in your debt.
         LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
           onTrigFn, 
+          //this sometimes explodes
           //totalFitness
-          //both the following lines cause the output to increase by a factor of 10E+22
-          //Select.kr(CheckBadValues.kr(totalFitness), [totalFitness,0.0])
-          //BinaryOpUGen('==', CheckBadValues.kr(totalFitness, 0, 0), 0)*totalFitness;
-          //In fact, we want a '>', but it doesn't help even where it doesn't explode.
+          //the checkbadvalue doesn't stop all explosions, but won't hurt
           Select.kr(
             BinaryOpUGen(
               '>',
@@ -232,7 +233,7 @@ ReportingListenerFactory {
               0
             ),
             [totalFitness, 0.0]
-          ).poll(0.25, \sanitised)
+          ).poll(0.01, \sanitised)
         );
         //return inputs. We are analysis only.
         in;
@@ -386,7 +387,7 @@ PhenosynthBiome {
   cullPopulation {
     var doomed = this.findReapable(deathRate);
     //["mean fitness", this.fitnesses.mean].postln;
-    (["killing"] ++ doomed ++ ["with fitnesses"] ++ doomed.collect({|item| population[item].fitness;})).postln;
+    doomed.isEmpty.not.if({(["killing"] ++ doomed ++ ["with fitnesses"] ++ doomed.collect({|item| population[item].fitness;})).postln;});
     this.popIndividuals(doomed);
     //["mean fitness", this.fitnesses.mean].postln;
   }
