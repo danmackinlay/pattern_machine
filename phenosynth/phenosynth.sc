@@ -297,8 +297,8 @@ PhenosynthBiome {
   //
   // Can a library have one book?
   *floatMutation{|chromosome, rate, amp=1.0|
-    //in the absence of a rate, default to the highest stable rate
-    rate.isNil.if(rate=chromosome.size.reciprocal);
+    //in the absence of a rate, default to half the highest stable rate
+    rate.isNil.if(rate=chromosome.size.reciprocal/2);
     chromosome.do({|val, index|
       (rate.coin).if ({
         chromosome[index] = (val + amp.sum3rand).wrap(0, 1);
@@ -431,4 +431,23 @@ PhenosynthBiome {
   mutate {|chromosome|
     ^this.class.floatMutation(chromosome.asArray);
   }
+}
+
+PhenosynthBiomeFitnessPlot {
+  var <biome, <plotter, <clock, <tickTime;
+  *new {|biome, name="biome_fitness", bounds, parent|
+    ^super.newCopyArgs(biome).init(name, bounds, parent);
+  }
+  init {|name, bounds, parent|
+    plotter = Plotter.new(name, bounds, parent);
+    plotter.plotMode = \steps;
+    tickTime = [(biome.tickPeriod/2), 1.0].maxItem;
+    AppClock.play(Routine({{
+      //["updating", biome.fitnesses, plotter.data ].postln;
+      plotter.value_(biome.fitnesses);
+      plotter.refresh;
+      tickTime.yield;
+    }.loop}));
+  }
+  
 }

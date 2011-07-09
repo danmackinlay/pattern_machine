@@ -9,8 +9,9 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~eightHundred.bus], ~eightHundred.group, ~globalOuts);
 ~biome = PhenosynthBiome.new(~genosynth, tickPeriod:10);
 ~biome.play;
-~biome.fitnesses.mean;
-~biome.population[0].asVals;
+~plot= PhenosynthBiomeFitnessPlot(~biome);
+~biome.fitnesses.plot;
+~biome.population[3].asVals;
 instr.specs[4].args;
 ~biome.fitness.percentile(0.75);
 ~suspect=~biome.population[10]; 
@@ -29,3 +30,5 @@ instr.specs[4].args;
 )
 Instr.loadAll;
 ControlSpec
+
+Routine
