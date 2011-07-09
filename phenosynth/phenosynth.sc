@@ -348,7 +348,7 @@ PhenosynthBiome {
     ind.free;
   }
   popIndividuals {|indList=#[]|
-    indList.asArray.sort.reverse.dump.do({|ind|
+    indList.asArray.sort.reverse.do({|ind|
       this.popIndividual(ind);
     });
   }
