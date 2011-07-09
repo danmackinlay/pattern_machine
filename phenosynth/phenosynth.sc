@@ -136,6 +136,9 @@ Phenosynth {
       }
     );
   }
+  asVals {
+    ^voxPatch.args.collect({|a| a.value;});
+  }
   trigger {
     triggers.do({|item, i| 
       voxPatch.set(item, 1);});
