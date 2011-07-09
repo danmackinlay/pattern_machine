@@ -1,4 +1,6 @@
 /*
+Phenosynth: Classes for phenotypic selection of Instrs
+
 TODO:
 
 * Note that Instr loading is buggy - see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Instr-calling-Crashes-SC-td4165267.html
@@ -389,16 +391,16 @@ PhenosynthBiome {
     //["mean fitness", this.fitnesses.mean].postln;
   }
   breedPopulation {
-    var allParents;
+    var allParents, numChildren;
     allParents = this.findSowable(birthRate);
-    
     //this number is also how many kids they'll have, for the lack of a better
-    // idea.
+    // idea. But we respect maxPopulation.
+    numChildren = [(maxPopulation-population.size), allParents.size].minItem;
     //for simplicity, we do not prevent birth by onanism here, nor by
     // threesomes etc.
     //let the shagging commence.
     
-    (allParents.size).do({
+    numChildren.do({
       var parentChromosomes, childChromosome;
       parentChromosomes = numParents.collect({
         population[allParents.choose].chromosome;
