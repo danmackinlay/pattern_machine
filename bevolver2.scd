@@ -7,9 +7,11 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 //~genosynth = Genosynth.new;
 //~genosynth.voxGroup;
 ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~eightHundred.bus], ~eightHundred.group, ~globalOuts);
-~biome = PhenosynthBiome.new(~genosynth);
+~biome = PhenosynthBiome.new(~genosynth, tickPeriod:10);
 ~biome.play;
 ~biome.fitnesses.mean;
+~biome.population[0].asVals;
+instr.specs[4].args;
 ~biome.fitness.percentile(0.75);
 ~suspect=~biome.population[10]; 
 //~biome.popIndividuals([0,3,4]);
@@ -26,3 +28,4 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~phenosynth.reportingListenerPatch.gui;
 )
 Instr.loadAll;
+ControlSpec

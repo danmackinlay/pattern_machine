@@ -34,7 +34,9 @@ TODO:
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
 * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
-* TODO: scale birthRate and deathRate so that the fit eventual fitness
+* TODO: scale birthRate and deathRate so that they fit eventual fitness
+* reseed population when they all die
+* better aging calculations
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -44,11 +46,11 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup;
+  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultListenInstr="phenosynth.listeners.default";
 
-  *new { |voxName, voxDefaults, listenInstrName, listenExtraArgs, sourceGroup, outBus, numChannels|
+  *new { |voxName, voxDefaults, listenInstrName, listenExtraArgs, sourceGroup, outBus, numChannels, phenoClass|
     //voxName - name, or Instr, that will be source
     //voxDefault - array of default args to voxName
     //listenInstrName, listenExtraArgs - like voxName, but for listening Instr
@@ -60,7 +62,8 @@ Genosynth {
       (listenExtraArgs ? []),
       sourceGroup,
       (outBus ? 0),
-      (numChannels ? 1)).init;
+      (numChannels ? 1),
+      (phenoClass ? ListenPhenosynth)).init;
   }
   init {
     chromosomeMap = this.class.getChromosomeMap(voxInstr);
@@ -82,7 +85,7 @@ Genosynth {
   }
   spawn { |chromosome|
     //return a listened phenosynth
-    ^ListenPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
+    ^phenoClass.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
   }
   newChromosome {
     ^{1.0.rand}.dup(chromosomeMap.size);
@@ -158,7 +161,7 @@ ListenPhenosynth : Phenosynth {
   var <listenExtraArgs;
   var <evalPeriod = 1;
   var <fitness = 0.0000001; //start out positive to avoid divide-by-0
-  var <>age = 0;
+  var <age = 0;
   var <reportingListenerPatch, <reportingListenerInstr, <listener;
   *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod=1, listenExtraArgs, chromosome|
     //This should only be called through the parent Genosynth's spawn method
@@ -171,14 +174,21 @@ ListenPhenosynth : Phenosynth {
     listenExtraArgs = listenExtraArgs_ ? [];
     super.init(chromosome);
   }
+  fitness_ {|newFitness|
+    fitness = newFitness;
+  }
+  age_ {|newAge|
+    age = newAge;
+  }
   createPatch {
     super.createPatch;
     reportingListenerInstr = ReportingListenerFactory.make(
       listenInstrName, listenExtraArgs,
       {
         |time, value|
-        fitness = value;
-        age = age + 1;
+        //write this using accessor notation to invite overrides.
+        this.fitness_(value);
+        this.age_(this.age + 1);
         //this.dump;
         //["updating correlation", this.hash, time, value, age].postln;
       }
@@ -202,6 +212,7 @@ ListenPhenosynth : Phenosynth {
     reportingListenerPatch.free;
   }
 }
+
 
 ReportingListenerFactory {
   /*Instrs like having names, so we make some on demand to keep things clean.
