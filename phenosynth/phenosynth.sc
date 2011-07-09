@@ -348,18 +348,20 @@ PhenosynthBiome {
     population.add(ind);
     ^ind;
   }
-  popIndividual {|ind=0|
-    ind.isKindOf(SimpleNumber).if(
-      {
-        ind = population.removeAt(ind);
-      }, {
-        population.remove(ind);
-      }
-    );
+  popIndividualAt {|ind=0|
+    this.popIndividual(population[ind]);
+  }
+  popIndividual {|ind|
+    population.remove(ind);
     ind.free;
   }
-  popIndividuals {|indList=#[]|
+  popIndividualsAt {|indList=#[]|
     indList.asArray.sort.reverse.do({|ind|
+      this.popIndividual(ind);
+    });
+  }
+  popIndividuals {|indList=#[]|
+    indList.do({|ind|
       this.popIndividual(ind);
     });
   }
@@ -375,14 +377,17 @@ PhenosynthBiome {
     ^population.collect({|i| i.fitness/(2.pow(i.age/4));}).max(0);
   }
   findReapable {|rate|
-    //find the doomed based on fitness. returns indices thereof.
+    //find the doomed based on fitness. returns them.
     var negFitnesses;
     var posFitnesses;
+    var hitList;
     rate.isNil.if({rate=deathRate});
     posFitnesses = this.fitnesses;
     //not strictly *negative* fitnesses, but inverted
     negFitnesses = posFitnesses.maxItem-posFitnesses;
-    ^this.class.weightedSelectIndices(negFitnesses, rate);
+    hitList = this.class.weightedSelectIndices(negFitnesses, rate);
+    //["hitList", hitList.collect({|i| [i, population[i].fitness];})].postln;
+    ^hitList.collect({|i| population[i];});
   }
   findSowable {|rate|
     //find parents based on fitness. returns indices thereof.
@@ -400,8 +405,8 @@ PhenosynthBiome {
   }*/
   cullPopulation {
     var doomed = this.findReapable(deathRate);
-    //["mean fitness", this.fitnesses.mean].postln;
-    doomed.isEmpty.not.if({(["killing"] ++ doomed ++ ["with fitnesses"] ++ doomed.collect({|item| population[item].fitness;})).postln;});
+    // ["mean fitness", this.fitnesses.mean].postln;
+    doomed.isEmpty.not.if({(["killing"] ++ doomed ++ ["with fitnesses"] ++ doomed.collect({|ind| ind.fitness;})).postln;});
     this.popIndividuals(doomed);
     //["mean fitness", this.fitnesses.mean].postln;
   }

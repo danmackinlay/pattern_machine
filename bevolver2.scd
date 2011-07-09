@@ -7,7 +7,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 //~genosynth = Genosynth.new;
 //~genosynth.voxGroup;
 ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.conv_comparator", [~eightHundred.bus], ~eightHundred.group, ~globalOuts);
-~biome = PhenosynthBiome.new(~genosynth, tickPeriod:10);
+~biome = PhenosynthBiome.new(~genosynth, tickPeriod:1);
 ~biome.play;
 ~plot= PhenosynthBiomeFitnessPlot(~biome);
 ~biome.fitnesses.plot;
