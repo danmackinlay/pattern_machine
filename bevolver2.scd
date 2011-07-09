@@ -10,6 +10,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~biome = PhenosynthBiome.new(~genosynth);
 ~biome.play;
 ~biome.fitness;
+~biome.fitness.percentile(0.75);
 ~suspect=~biome.population[10]; 
 //~biome.popIndividuals([0,3,4]);
 ~suspect.voxPatch.bus.scope;
@@ -25,4 +26,3 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~phenosynth.reportingListenerPatch.gui;
 )
 Instr.loadAll;
-poll

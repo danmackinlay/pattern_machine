@@ -31,6 +31,8 @@ TODO:
   http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
 * do free/cleanup logic
 * give fitness more accumulatey flavour using Integrator
+* give lifespans using the exponential distribution \lambda \e ^-\lambda \e
+* TODO: scale birthRate and deathRate so that the fit eventual fitness
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -80,6 +82,9 @@ Genosynth {
     //return a listened phenosynth
     ^ListenPhenosynth.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
   }
+  newChromosome {
+    ^{1.0.rand}.dup(chromosomeMap.size);
+  }
   *getChromosomeMap {|newInstr|
     /*use this to work out how to map the chromosome array to synth values,
     ignoring any fixed values, sampleSpecs, or any other kind of
@@ -117,7 +122,7 @@ Phenosynth {
   chromosome_ {|newChromosome|
     /* do this in a setter to allow param update */
     newChromosome.isNil.if({
-      newChromosome = {1.0.rand}.dup(chromosomeMap.size);
+      newChromosome = genosynth.newChromosome;
     });
     chromosome = newChromosome;
     chromosomeMap.do(
@@ -147,7 +152,7 @@ ListenPhenosynth : Phenosynth {
   var <listenInstrName;
   var <listenExtraArgs;
   var <evalPeriod = 1;
-  var <fitness = 0;
+  var <fitness = 0.0000001; //start out positive to avoid divide-by-0
   var <>age = 0;
   var <reportingListenerPatch, <reportingListenerInstr, <listener;
   *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod=1, listenExtraArgs, chromosome|
@@ -239,15 +244,69 @@ ReportingListenerFactory {
 
 PhenosynthBiome {
   //system setup
-  var <genosynth, <tickPeriod, <maxPopulation;
+  var <genosynth; //Factory for new offspring
+  var <tickPeriod; //how often we check
+  var <>maxPopulation; //any more than this might explode something
+  var <>deathRate; //average death rate in population
+  var <>birthRate; //average birth rate
+  var <>numParents; //number of parents involved in birth
   //state
   var <population, <numChannels, <clock, <ticker;
-  *new {|genosynth, tickPeriod=1, maxPopulation=24, initPopulation|
+  *new {|genosynth, tickPeriod=1, maxPopulation=24, deathRate=0.05, birthRate=0.05, numParents=2, initPopulation|
     ^super.newCopyArgs(
-      genosynth, tickPeriod, maxPopulation
+      genosynth, tickPeriod, maxPopulation, deathRate, birthRate, numParents
     ).init(
       initPopulation ? ((maxPopulation/2).ceil)
     );
+  }
+  ///
+  //library of crossover operators for use in subclasses.
+  //
+  *uniformCrossover {|chromosomes|
+    ^(chromosomes[0].size).collect({|i| chromosomes.slice(nil, i).choose;});
+  }
+  /*
+  *pointCrossover {|chromosomes, points=2|
+    //if you weren't fixated on *exactly* N points, this could be approximated
+    //by a markov model with transition weights set to give the correct number
+    //of crossings. So could, for that matter, uniformCrossover
+  }
+  *geneMachine {|states=2, stayProb=0.5|
+    //placeholder for a simple zeroth order markov machine to manage crossovers
+  }
+  */
+  //
+  //library of mutation operators.
+  //
+  // Can a library have one book?
+  *floatMutation{|chromosome, rate, amp=1.0|
+    //in the absence of a rate, default to the highest stable rate
+    rate.isNil.if(rate=chromosome.size.reciprocal);
+    chromosome.do({|val, index|
+      (rate.coin).if ({
+        chromosome[index] = (val + amp.sum3rand).wrap(0, 1);
+      });
+    });
+    ^chromosome;
+  }
+  /*
+  *bitwiseMutation{|chromosome, rate|
+    //in the absence of a rate, default to the highest
+    rate.isNil.if(rate=chromosome.size.reciprocal);
+  }
+  *bitwiseGrayCodeMutation{|chromosome, rate|
+    //in the absence of a rate, default to the highest
+    rate.isNil.if(rate=chromosome.size.reciprocal);
+  }
+  */
+  *weightedSelectIndices {|weights, rate|
+    // randomly choose indices from `weights`, weighted by their value, with a
+    // mean probability of `rate`. Handy for selection processes.
+    // note that for high rates, this gets silly
+    var meanWeight = weights.mean;
+    ^weights.indicesSuchThat({|weight, i|
+      (rate * weight / meanWeight).coin
+    })
   }
   init {|initPopulation|
     population = List();
@@ -283,7 +342,7 @@ PhenosynthBiome {
     ind.free;
   }
   popIndividuals {|indList=#[]|
-    indList.asArray.sort.reverse.do({|ind|
+    indList.asArray.sort.reverse.dump.do({|ind|
       this.popIndividual(ind);
     });
   }
@@ -294,11 +353,65 @@ PhenosynthBiome {
     this.cullPopulation;
     this.breedPopulation;
   }
-  fitness {
-    ^population.collect({|i| i.fitness;});
+  fitnesses {
+    //make sure this returns non-negative numbers, or badness ensues
+    ^population.collect({|i| i.fitness/(2.pow(i.age/4));}).max(0);
   }
+  findReapable {|rate|
+    //find the doomed based on fitness. returns indices thereof.
+    var negFitnesses;
+    var posFitnesses;
+    rate.isNil.if({rate=deathRate});
+    posFitnesses = this.fitnesses;
+    //not strictly *negative* fitnesses, but inverted
+    negFitnesses = posFitnesses.maxItem-posFitnesses;
+    ^this.class.weightedSelectIndices(negFitnesses, rate);
+  }
+  findSowable {|rate|
+    //find parents based on fitness. returns indices thereof.
+    var posFitnesses;
+    rate.isNil.if({rate=birthRate});
+    posFitnesses = this.fitnesses;
+    ^this.class.weightedSelectIndices(posFitnesses, rate);
+  }
+/*  chooseBirthNumber{|rate|
+    //find number of births to have
+    rate.isNil.if({rate=birthRate});
+    //Modeled using Binomial distributin.
+    //could be Poisson.
+    ^population.size.collect(rate.coin.binaryValue).sum;
+  }*/
   cullPopulation {
+    var doomed = this.findReapable(deathRate);
+    //["mean fitness", this.fitnesses.mean].postln;
+    (["killing"] ++ doomed ++ ["with fitnesses"] ++ doomed.collect({|item| population[item].fitness;})).postln;
+    this.popIndividuals(doomed);
+    //["mean fitness", this.fitnesses.mean].postln;
   }
   breedPopulation {
+    var allParents;
+    allParents = this.findSowable(birthRate);
+    
+    //this number is also how many kids they'll have, for the lack of a better
+    // idea.
+    //for simplicity, we do not prevent birth by onanism here, nor by
+    // threesomes etc.
+    //let the shagging commence.
+    
+    (allParents.size).do({
+      var parentChromosomes, childChromosome;
+      parentChromosomes = numParents.collect({
+        population[allParents.choose].chromosome;
+      });
+      childChromosome = this.crossover(parentChromosomes);
+      childChromosome = this.mutate(childChromosome);
+      this.spawn(childChromosome);
+    });
+  }
+  crossover {|chromosomes|
+    ^this.class.uniformCrossover(chromosomes.asArray);
+  }
+  mutate {|chromosome|
+    ^this.class.floatMutation(chromosome.asArray);
   }
 }
