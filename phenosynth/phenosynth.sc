@@ -43,6 +43,7 @@ TODO:
   * better aging calculations
   * sort out he interactions of all these differet tick rates and periods.
   * work out why negFitness it can explode when population gets to 2 or less.
+  * space out births, since that seems to stop exploding fitnesses.
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -399,7 +400,7 @@ PhenosynthBiome {
     ^this.findReapableByRoulette(rate);
   }
   findSowable {|rate|
-    ^this.findSowableByBirthRate(rate);
+    ^this.findSowableByRoulette(rate);
   }
   findSowableByBirthRate {|rate|
     //find parents based on fitness. returns them.
@@ -439,10 +440,26 @@ PhenosynthBiome {
     negFitnesses = localFitnesses.reciprocal;
     meanFitness = negFitnesses.mean;
     //["inverting", meanFitness].postln;
-    localFitnesses.postln;
-    negFitnesses.postln;
+    //localFitnesses.postln;
+    //negFitnesses.postln;
     hitList = population.select(
       {|i| (i.age>0) && ((((i.fitness.reciprocal)/meanFitness)*rate).coin)});
+    //["hitList", hitList.collect({|i| i.fitness;})].postln;
+    ^hitList;
+  }
+  findSowableByRoulette {|rate|
+    //choose enough proud parents to meet the birth rate on average, by
+    // fitness-weighted roulette
+    var hitList, localFitnesses, meanFitness;
+    rate.isNil.if({rate=birthRate});
+    localFitnesses = population.select({|i| i.age>0}).collect({|i| i.fitness;});
+    //this array operation business fails for empty lists...
+    localFitnesses.isEmpty.if({^[]});
+    meanFitness = localFitnesses.mean;
+    //["inverting", meanFitness].postln;
+    //localFitnesses.postln;
+    hitList = population.select(
+      {|i| (i.age>0) && ((((i.fitness)/meanFitness)*rate).coin)});
     //["hitList", hitList.collect({|i| i.fitness;})].postln;
     ^hitList;
   }
