@@ -387,7 +387,25 @@ PhenosynthBiome {
     ^population.collect({|i| i.age;});
   }
   findReapable {|rate|
+    ^this.findReapableByDeathRate(rate);
+  }
+  findSowable {|rate|
+    ^this.findSowableByBirthRate(rate);
+  }
+  findSowableByBirthRate {|rate|
+    //find parents based on fitness. returns them.
+    //possibly buggy.
+    var posFitnesses;
+    var hitList;
+    rate.isNil.if({rate=birthRate});
+    posFitnesses = this.fitnesses;
+    hitList = this.class.weightedSelectIndices(posFitnesses, rate
+      ).collect({|i| population[i];});
+    ^hitList;
+  }
+  findReapableByDeathRate {|rate|
     //find the doomed based on fitness. returns them.
+    //possibly buggy. seems to miss fitness laggards
     var negFitnesses;
     var posFitnesses;
     var hitList;
@@ -398,16 +416,6 @@ PhenosynthBiome {
     hitList = this.class.weightedSelectIndices(negFitnesses, rate
       ).collect({|i| population[i];}).select({|i| i.age>0;});
     ["hitList", hitList.collect({|i| i.fitness;})].postln;
-    ^hitList;
-  }
-  findSowable {|rate|
-    //find parents based on fitness. returns indices thereof.
-    var posFitnesses;
-    var hitList;
-    rate.isNil.if({rate=birthRate});
-    posFitnesses = this.fitnesses;
-    hitList = this.class.weightedSelectIndices(posFitnesses, rate
-      ).collect({|i| population[i];});
     ^hitList;
   }
 /*  chooseBirthNumber{|rate|
@@ -433,7 +441,6 @@ PhenosynthBiome {
     //for simplicity, we do not prevent birth by onanism here, nor by
     // threesomes etc.
     //let the shagging commence.
-    
     numChildren.do({
       var parentChromosomes, childChromosome;
       parentChromosomes = numParents.collect({
