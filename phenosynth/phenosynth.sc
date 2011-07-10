@@ -41,6 +41,7 @@ TODO:
   * TODO: scale birthRate and deathRate so that they fit eventual fitness
   * reseed population when they all die
   * better aging calculations
+  * sort out he interactions of all these differet tick rates and periods.
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -268,14 +269,17 @@ PhenosynthBiome {
   var <genosynth; //Factory for new offspring
   var <tickPeriod; //how often we check
   var <>maxPopulation; //any more than this might explode something
+  var <>numParents; //number of parents involved in birth
   var <>deathRate; //average death rate in population
   var <>birthRate; //average birth rate
-  var <>numParents; //number of parents involved in birth
+  var <>deathFitness;
+  var <>birthFitness;
+  
   //state
   var <population, <numChannels, <clock, <ticker;
-  *new {|genosynth, tickPeriod=1, maxPopulation=24, deathRate=0.05, birthRate=0.05, numParents=2, initPopulation|
+  *new {|genosynth, tickPeriod=1, maxPopulation=24, numParents=2, deathRate=0.05, birthRate=0.05, deathFitness=1, birthFitness=100,  initPopulation|
     ^super.newCopyArgs(
-      genosynth, tickPeriod, maxPopulation, deathRate, birthRate, numParents
+      genosynth, tickPeriod, maxPopulation, numParents, deathRate, birthRate, deathFitness, birthFitness
     ).init(
       initPopulation ? ((maxPopulation/2).ceil)
     );
@@ -387,7 +391,8 @@ PhenosynthBiome {
     ^population.collect({|i| i.age;});
   }
   findReapable {|rate|
-    ^this.findReapableByDeathRate(rate);
+    //^this.findReapableByDeathRate(rate);
+    ^this.findReapableByRoulette(rate);
   }
   findSowable {|rate|
     ^this.findSowableByBirthRate(rate);
@@ -404,7 +409,8 @@ PhenosynthBiome {
     ^hitList;
   }
   findReapableByDeathRate {|rate|
-    //find the doomed based on fitness. returns them.
+    //choose enough doomed to meet the death rate on average, weighted by
+    // fitness
     //possibly buggy. seems to miss fitness laggards
     var negFitnesses;
     var posFitnesses;
@@ -416,6 +422,21 @@ PhenosynthBiome {
     hitList = this.class.weightedSelectIndices(negFitnesses, rate
       ).collect({|i| population[i];}).select({|i| i.age>0;});
     ["hitList", hitList.collect({|i| i.fitness;})].postln;
+    ^hitList;
+  }
+  findReapableByRoulette {|rate|
+    //choose enough doomed to meet the death rate on average, by fitness-
+    // weighted roulette
+    var hitList, localFitnesses, negFitnesses, fitnessWeight;
+    localFitnesses = population.select({|i| i.age>0}).collect({|i| i.fitness;});
+    //this array operation business fails for empty lists...
+    localFitnesses.isEmpty.if({^[]});
+    negFitnesses = localFitnesses.maxItem - localFitnesses;
+    //["inverting", localFitnesses, negFitnesses].postln;
+    fitnessWeight = localFitnesses.sum.reciprocal;
+    hitList = population.select(
+      {|i| (i.age>0) && ((i.fitness*rate*fitnessWeight).coin)});
+    //["hitList", hitList.collect({|i| localFitnesses.maxItem-i.fitness;})].postln;
     ^hitList;
   }
 /*  chooseBirthNumber{|rate|
