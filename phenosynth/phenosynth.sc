@@ -36,6 +36,7 @@ TODO:
 
 * Urgent
 
+  * set up server options maxSynthDefs for easier synth management, or clear synthdefs. (see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/too-many-Synthdefs-td5116364.html) 
   * LFOs
   * give fitness more accumulatey flavour using Integrator
   * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
@@ -310,9 +311,10 @@ PhenosynthBiome {
   //library of mutation operators.
   //
   // Can a library have one book?
-  *floatMutation{|chromosome, rate, amp=1.0|
+  *floatMutation{|chromosome, rate, amp|
     //in the absence of a rate, default to half the highest stable rate
-    rate.isNil.if(rate=chromosome.size.reciprocal/2);
+    rate.isNil.if({rate=chromosome.size.reciprocal/2});
+    amp.isNil.if({amp=0.5});
     chromosome.do({|val, index|
       (rate.coin).if ({
         chromosome[index] = (val + amp.sum3rand).wrap(0, 1);
@@ -386,6 +388,10 @@ PhenosynthBiome {
     this.cullPopulation;
     this.breedPopulation;
     this.immigrate;
+    this.houseKeep;
+  }
+  houseKeep {
+    InstrSynthDef.clearCache;
   }
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues
