@@ -24,18 +24,19 @@ TODO:
   evolved, free, fixed and trigger parameters, and provide the usual accessors
   to each. (Compare static, fixed and control specs)
 * user EnvelopedPlayer to make this release nicely instead of Triggers.
-* Use PlayerMixer to make this fly - or .patchOut?
-* Make a LiveGenoSynth to manage a running population. (probably not, that
-  should be left to GA infrastructure)
 * allow custom evolvability mappings and starting chromosome.
 * I've just noticed that MCLD has been facing the same problem and made
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
   http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
 * do free/cleanup logic
+* normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
+* less arbitrary immigration
+
 
 * Urgent
 
+  * LFOs
   * give fitness more accumulatey flavour using Integrator
   * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
   * TODO: scale birthRate and deathRate so that they fit eventual fitness
@@ -384,6 +385,7 @@ PhenosynthBiome {
   tick {
     this.cullPopulation;
     this.breedPopulation;
+    this.immigrate;
   }
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues
@@ -394,6 +396,10 @@ PhenosynthBiome {
   ages {
     //make sure this returns non-negative numbers, or badness ensues
     ^population.collect({|i| i.age;});
+  }
+  immigrate {
+    //hack version
+    (this.population.size<3).if({this.spawn;});
   }
   findReapable {|rate|
     //^this.findReapableByDeathRate(rate);
