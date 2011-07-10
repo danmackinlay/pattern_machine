@@ -42,6 +42,7 @@ TODO:
   * reseed population when they all die
   * better aging calculations
   * sort out he interactions of all these differet tick rates and periods.
+  * work out why negFitness it can explode when population gets to 2 or less.
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -165,7 +166,7 @@ ListenPhenosynth : Phenosynth {
   var <listenInstrName;
   var <listenExtraArgs;
   var <evalPeriod = 1;
-  var <fitness = 0.0000001; //start out positive to avoid divide-by-0
+  var fitness = 0.0000001; //start out positive to avoid divide-by-0
   var <age = 0;
   var <reportingListenerPatch, <reportingListenerInstr, <listener;
   *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod=1, listenExtraArgs, chromosome|
@@ -178,6 +179,9 @@ ListenPhenosynth : Phenosynth {
     evalPeriod = evalPeriod_ ? 1.0;
     listenExtraArgs = listenExtraArgs_ ? [];
     super.init(chromosome);
+  }
+  fitness {
+    ^fitness.max(0.0000001);
   }
   fitness_ {|newFitness|
     fitness = newFitness;
@@ -427,16 +431,19 @@ PhenosynthBiome {
   findReapableByRoulette {|rate|
     //choose enough doomed to meet the death rate on average, by fitness-
     // weighted roulette
-    var hitList, localFitnesses, negFitnesses, fitnessWeight;
+    var hitList, localFitnesses, negFitnesses, meanFitness;
+    rate.isNil.if({rate=deathRate});
     localFitnesses = population.select({|i| i.age>0}).collect({|i| i.fitness;});
     //this array operation business fails for empty lists...
     localFitnesses.isEmpty.if({^[]});
-    negFitnesses = localFitnesses.maxItem - localFitnesses;
-    //["inverting", localFitnesses, negFitnesses].postln;
-    fitnessWeight = localFitnesses.sum.reciprocal;
+    negFitnesses = localFitnesses.reciprocal;
+    meanFitness = negFitnesses.mean;
+    //["inverting", meanFitness].postln;
+    localFitnesses.postln;
+    negFitnesses.postln;
     hitList = population.select(
-      {|i| (i.age>0) && ((i.fitness*rate*fitnessWeight).coin)});
-    //["hitList", hitList.collect({|i| localFitnesses.maxItem-i.fitness;})].postln;
+      {|i| (i.age>0) && ((((i.fitness.reciprocal)/meanFitness)*rate).coin)});
+    //["hitList", hitList.collect({|i| i.fitness;})].postln;
     ^hitList;
   }
 /*  chooseBirthNumber{|rate|
