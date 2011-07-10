@@ -270,8 +270,6 @@ PhenosynthBiome {
   var <>maxPopulation; //any more than this might explode something
   var <>deathRate; //average death rate in population
   var <>birthRate; //average birth rate
-  var <>birthFitness;
-  var <>deathFitness;
   var <>numParents; //number of parents involved in birth
   //state
   var <population, <numChannels, <clock, <ticker;
@@ -443,7 +441,6 @@ PhenosynthBiome {
     //for simplicity, we do not prevent birth by onanism here, nor by
     // threesomes etc.
     //let the shagging commence.
-    
     numChildren.do({
       var parentChromosomes, childChromosome;
       parentChromosomes = numParents.collect({

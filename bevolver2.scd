@@ -11,7 +11,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~biome.play;
 ~plot= PhenosynthBiomeFitnessPlot(~biome);
 ~biome.fitnesses.plot;
-~biome.population[3].asVals;
+~biome.population[20].asVals;
 instr.specs[4].args;
 ~biome.fitness.percentile(0.75);
 ~suspect=~biome.population[10]; 
