@@ -164,7 +164,16 @@ Phenosynth {
     this.trigger();
   }
   free {
+    this.freeSynthDef(voxPatch);
     voxPatch.free;
+  }
+  freeSynthDef {|patch|
+    ["freeSynthDef", patch.defName.isNil.not, patch.server.serverRunning].postln;
+    (patch.defName.isNil.not && patch.server.serverRunning).if({
+      ["freeSynthDefinternal", patch.server, patch.defName].postln;
+      Library.put(SynthDef,patch.server,patch.defName,nil);
+      patch.server.sendMsg(\d_free, patch.defName);
+    });
   }
 }
 
@@ -223,7 +232,9 @@ ListenPhenosynth : Phenosynth {
     this.trigger;
   }
   free {
+    ["freeing listener"].postln;
     super.free;
+    this.freeSynthDef(reportingListenerPatch);
     reportingListenerPatch.free;
   }
 }
@@ -393,7 +404,7 @@ PhenosynthBiome {
     this.houseKeep;
   }
   houseKeep {
-    InstrSynthDef.clearCache(Server.default);
+    //InstrSynthDef.clearCache(Server.default);
   }
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues
