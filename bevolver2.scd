@@ -9,6 +9,10 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~genosynth = Genosynth.new("phenosynth.vox.default", [], "phenosynth.listeners.fft_soft_comparator", [~eightHundred], ~eightHundred.group, ~globalOuts);
 ~biome = PhenosynthBiome.new(~genosynth, tickPeriod:1, deathRate:0.1, birthRate: 0.2, birthFitness: 100, deathFitness: 10);
 ~biome.play;
+~biome.population[0].voxPatch.defName
+~biome.population[0].voxPatch.server;
+Library.at[SynthDef, s][s].size.dup(500);
+
 ~plot= PhenosynthBiomeFitnessPlot(~biome);
 ~biome.fitnesses.plot;
 ~biome.population[0].asVals;
@@ -30,6 +34,8 @@ Instr.loadAll;
 
 //debugging synthdef overflows;
 Library.postTree;
+Library.at[SynthDef, s][s].size.dup(500);
+
 (
 Library.at[SynthDef, s][s].keysDo({ |key|
 				key.postln;
