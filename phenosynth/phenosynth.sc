@@ -32,7 +32,8 @@ TODO:
 * do free/cleanup logic
 * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
 * less arbitrary immigration
-
+* consistently use either class or instance methods for selection/mutation
+  operators
 
 * Urgent
 
@@ -43,8 +44,9 @@ TODO:
   * TODO: scale birthRate and deathRate so that they fit eventual fitness
   * reseed population when they all die
   * better aging calculations
-  * sort out he interactions of all these differet tick rates and periods.
+  * sort out the interactions of all these different tick rates and periods.
   * work out why negFitness it can explode when population gets to 2 or less.
+    (synthdef explosion?)
   * space out births, since that seems to stop exploding fitnesses.
 
 CREDITS:
@@ -281,14 +283,15 @@ PhenosynthBiome {
   var <>birthRate; //average birth rate
   var <>deathFitness;
   var <>birthFitness;
-  
+  var <>mutationRate;
+  var <>mutationAmp;
   //state
   var <population, <numChannels, <clock, <ticker;
-  *new {|genosynth, tickPeriod=1, maxPopulation=24, numParents=2, deathRate=0.05, birthRate=0.05, deathFitness=1, birthFitness=100,  initPopulation|
+  *new {|genosynth, tickPeriod=1, maxPopulation=24, numParents=2, deathRate=0.05, birthRate=0.05, deathFitness=1, birthFitness=100, mutationRate, mutationAmp=0.3, initPopulation|
     ^super.newCopyArgs(
-      genosynth, tickPeriod, maxPopulation, numParents, deathRate, birthRate, deathFitness, birthFitness
+      genosynth, tickPeriod, maxPopulation, numParents, deathRate, birthRate, deathFitness, birthFitness, (mutationRate ?? {genosynth.chromosomeMap.size.reciprocal/2;}), mutationAmp
     ).init(
-      initPopulation ? ((maxPopulation/2).ceil)
+      initPopulation ? (maxPopulation)
     );
   }
   ///
@@ -311,10 +314,10 @@ PhenosynthBiome {
   //library of mutation operators.
   //
   // Can a library have one book?
-  *floatMutation{|chromosome, rate, amp|
+  floatMutation{|chromosome, rate, amp|
     //in the absence of a rate, default to half the highest stable rate
-    rate.isNil.if({rate=chromosome.size.reciprocal/2});
-    amp.isNil.if({amp=0.5});
+    rate.isNil.if({rate=mutationRate});
+    amp.isNil.if({amp=mutationAmp});
     chromosome.do({|val, index|
       (rate.coin).if ({
         chromosome[index] = (val + amp.sum3rand).wrap(0, 1);
@@ -391,7 +394,7 @@ PhenosynthBiome {
     this.houseKeep;
   }
   houseKeep {
-    InstrSynthDef.clearCache;
+    InstrSynthDef.clearCache(Server.default);
   }
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues
@@ -512,7 +515,7 @@ PhenosynthBiome {
     ^this.class.uniformCrossover(chromosomes.asArray);
   }
   mutate {|chromosome|
-    ^this.class.floatMutation(chromosome.asArray);
+    ^this.floatMutation(chromosome.asArray);
   }
 }
 
