@@ -335,15 +335,6 @@ PhenosynthBiome {
     rate.isNil.if(rate=chromosome.size.reciprocal);
   }
   */
-  *weightedSelectIndices {|weights, rate|
-    // randomly choose indices from `weights`, weighted by their value, with a
-    // mean probability of `rate`. Handy for selection processes.
-    // Note that for high rates, this gets silly
-    var meanWeight = weights.mean;
-    ^weights.indicesSuchThat({|weight, i|
-      (rate * weight / meanWeight).coin
-    })
-  }
   init {|initPopulation|
     population = List();
     initPopulation.do({this.spawn;});
@@ -411,38 +402,10 @@ PhenosynthBiome {
     (this.population.size<3).if({this.spawn;});
   }
   findReapable {|rate|
-    //^this.findReapableByDeathRate(rate);
     ^this.findReapableByRoulette(rate);
   }
   findSowable {|rate|
     ^this.findSowableByRoulette(rate);
-  }
-  findSowableByBirthRate {|rate|
-    //find parents based on fitness. returns them.
-    //possibly buggy.
-    var posFitnesses;
-    var hitList;
-    rate.isNil.if({rate=birthRate});
-    posFitnesses = this.fitnesses;
-    hitList = this.class.weightedSelectIndices(posFitnesses, rate
-      ).collect({|i| population[i];});
-    ^hitList;
-  }
-  findReapableByDeathRate {|rate|
-    //choose enough doomed to meet the death rate on average, weighted by
-    // fitness
-    //possibly buggy. seems to miss fitness laggards
-    var negFitnesses;
-    var posFitnesses;
-    var hitList;
-    rate.isNil.if({rate=deathRate});
-    posFitnesses = this.fitnesses;
-    //not strictly *negative* fitnesses, but inverted
-    negFitnesses = posFitnesses.maxItem-posFitnesses;
-    hitList = this.class.weightedSelectIndices(negFitnesses, rate
-      ).collect({|i| population[i];}).select({|i| i.age>0;});
-    ["hitList", hitList.collect({|i| i.fitness;})].postln;
-    ^hitList;
   }
   findReapableByRoulette {|rate|
     //choose enough doomed to meet the death rate on average, by fitness-
