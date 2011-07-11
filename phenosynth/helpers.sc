@@ -15,9 +15,10 @@
 + InstrSynthDef { 
      *clearCache { arg server; 
          "Clearing AbstractPlayer SynthDef cache".inform; 
-         if(Library.at(SynthDef, server).notNil and: { 
-server.serverRunning }) { 
-             Library.at(SynthDef, server).keysDo({ |key| 
+         if(Library.at[SynthDef, server][server].notNil and: { 
+server.serverRunning }) {
+             Library.at[SynthDef, server][server].keysDo({ |key| 
+                 ["destroying synthdef",server, key].postln;
                  server.sendMsg(\d_free, key); 
              }); 
          }; 

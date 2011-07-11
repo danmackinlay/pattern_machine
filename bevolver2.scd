@@ -14,7 +14,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~biome.population[0].asVals;
 ~suspect=~biome.population[10]; 
 //~biome.popIndividuals([0,3,4]);
-~suspect.voxPatch.bus.scope;
+//~suspect.voxPatch.bus.scope;
 ~suspect.fitness;
 ~suspect.voxPatch.gui;
 ~suspect.reportingListenerPatch.bus.scope;
@@ -27,6 +27,13 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~phenosynth.reportingListenerPatch.gui;
 )
 Instr.loadAll;
+
+//debugging synthdef overflows;
 Library.postTree;
-~na=Library.at(AbstractPlayer, \nodeAnnotations);
-Library.at[SynthDef].
+(
+Library.at[SynthDef, s][s].keysDo({ |key|
+				key.postln;
+                 s.sendMsg(\d_free, key); 
+             }); 
+)
+
