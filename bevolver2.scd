@@ -27,10 +27,15 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~phenosynth.reportingListenerPatch.gui;
 )
 Instr.loadAll;
-fork {
+(
+{var clos=55;
+  fork {
 	1.postln;
 	1.1.wait;
 	2.postln;
 	1.1.wait;
      3.postln
-};
+     clos.postln;
+ 83;}
+ }.value;
+)

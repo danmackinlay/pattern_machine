@@ -246,7 +246,7 @@ ReportingListenerFactory {
             in,
             evalPeriod
           ] ++ listenExtraArgs//where we inject other busses etc
-        ).poll(0.01, \a2k)).poll(0.01, \mix)).poll(0.01, \inner);
+        )));
         //what's with those poll things? they make some explosions in the
         // fitness output code go away. if you can produce a reduced test
         // case for me, I am in your debt.
@@ -262,7 +262,7 @@ ReportingListenerFactory {
               0
             ),
             [totalFitness, 0.0]
-          ).poll(0.01, \sanitised)
+          )
         );
         //return inputs. We are analysis only.
         in;
@@ -340,7 +340,7 @@ PhenosynthBiome {
     population = List();
     { 
       initPopulation.do({ |i| 
-        ["Threadin...", i, this.spawn].postln; 0.1.wait;})
+        ["Threadin...", i, this.spawn].postln; 1.0.wait;})
     }.fork;
     //initPopulation.do({this.spawn;});
   }
