@@ -34,6 +34,7 @@ TODO:
 * less arbitrary immigration
 * consistently use either class or instance methods for selection/mutation
   operators
+* make synthedef cache clearning less frequent (this every-tick
 
 * Urgent
 
@@ -337,7 +338,11 @@ PhenosynthBiome {
   */
   init {|initPopulation|
     population = List();
-    initPopulation.do({this.spawn;});
+    { 
+      initPopulation.do({ |i| 
+        ["Threadin...", i, this.spawn].postln; 0.1.wait;})
+    }.fork;
+    //initPopulation.do({this.spawn;});
   }
   play {
     clock = TempoClock.new(tickPeriod.reciprocal, 1);
