@@ -340,7 +340,10 @@ PhenosynthBiome {
     population = List();
     { 
       initPopulation.do({ |i| 
-        ["Threadin...", i, this.spawn].postln; 1.0.wait;})
+        {
+          ((1.0.rand)+0.5)}.value.wait;
+        ["Threadin...", i, this.spawn].postln;
+      })
     }.fork;
     //initPopulation.do({this.spawn;});
   }
@@ -484,6 +487,10 @@ PhenosynthBiome {
   }
   mutate {|chromosome|
     ^this.floatMutation(chromosome.asArray);
+  }
+  police {|chromosome|
+    //I get two types of occasional horrible errors. This is a nasty, nasty hack to kill them
+    
   }
 }
 
