@@ -20,6 +20,9 @@ VicsekParticle {
 		);
 		vel = vel/(vel.norm.max(0.00000001));
 	}
+	play {
+		
+	}
 	free {
 		
 	}
@@ -76,6 +79,12 @@ VicsekGrid {
 			);
 		});
 		// 
+	}
+	play {|server|
+		Task({
+			particles.do({|particle| particle.play; });
+			server.sync;
+		}).play;
 	}
 	free {
 		particles.do({|particle| particle.free;});
