@@ -1,7 +1,20 @@
+/* the simplest flocking model.
+
+TODO:
+
+* make sonification be handled by a separate class using dependecy perhaps?
+* vary noise/order parameters
+* use self-freeing envelope
+* handle param lag time
+* 100% wet delay for cheapo doppler
+* per-speaker delay for phase info
+* doneAction synth freeing
+
+*/
 VicsekParticle {
 	/*hold particle location and heading, and enforce boundary contraints.
 	updating etc is handled by the wrapping VicsekGrid class*/
-	var dim, <pos, <vel;
+	var dim, <pos, <vel, <>synth;
 	*new {|pos, vel, dim=2|
 		^super.newCopyArgs(dim).pos_(pos).vel_(vel);
 	}
@@ -20,15 +33,15 @@ VicsekParticle {
 		);
 		vel = vel/(vel.norm.max(0.00000001));
 	}
-	play {
-		
-	}
+	/*play {|server, target, bus, addAction=\addToTail|
+	/*		synth = */
+		}*/
 	free {
 		
 	}
 }
 VicsekGrid {
-	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles;
+	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffer, <isPlaying=false;
 	classvar normRng;
 	
 	*new {|population, noise, delta, radius, dim=2, tickTime=1|
@@ -78,12 +91,61 @@ VicsekGrid {
 				(noise*(this.class.randomVector(dim)))
 			);
 		});
-		// 
+		isPlaying.not.if({^this});
+		//but if we ARE playing...
+		particles.do({|particle| 
+			particle.synth.set(
+				\xpos, particle.pos[0],
+				\ypos, particle.pos[1],
+				\zpos, particle.pos[2],
+				\xvel, particle.vel[0],
+				\yvel, particle.vel[1],
+				\zvel, particle.vel[2]
+			);
+		});
 	}
-	play {|server|
+	server {^myServer;}
+	group {^myGroup;}
+	bus {^myOutBus;}
+	play {|server, target, bus, addAction=\addToTail|
+		//this really should be wrapped in a generic other class
 		Task({
-			particles.do({|particle| particle.play; });
+			myServer = server ?? Server.default;
+			VicsekSynths.loadSynthDefs(myServer);
+			myGroup = Group.new((target ? myServer), addAction);
+			myOutBus = bus ?? {Bus.audio(myServer, 4)};
+			myBuffer = Buffer.read(myServer, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
+			["did that load?"].postln;
+			myBuffer.debug;
 			server.sync;
+			["...now?"].postln;
+			myBuffer.debug;
+			//final FX bus
+			{ |amp = 1.0|
+				var son;
+				son = In.ar(myOutBus, 4) * amp * 0.7;
+				ReplaceOut.ar(myOutBus, son);
+			}.play(server, myOutBus, group: myOutBus, addAction:\addToTail);
+			server.sync;
+			particles.do({|particle| 
+				particle.synth = Synth.new(\vicsek_gull4,
+					[
+						\i_out, myOutBus,
+						\buffer, myBuffer,
+						\xpos, particle.pos[0],
+						\ypos, particle.pos[1],
+						\zpos, particle.pos[2],
+						\xvel, particle.vel[0],
+						\yvel, particle.vel[1],
+						\zvel, particle.vel[2]
+					],
+					myGroup
+				);
+				particle.synth.debug;
+				server.sync;
+			});
+			server.sync;
+			isPlaying = true;
 		}).play;
 	}
 	free {
@@ -92,9 +154,45 @@ VicsekGrid {
 	*randomVector {|nDim=2|
 		//un-normalised vector with angle equidistribution, mean length 1
 		normRng.isNil.if({normRng = Pgauss(0.0, 1, inf).asStream});
-		^RealVector.newFrom((normRng.nextN(nDim))/((4*nDim).sqrt));
+		^RealVector.newFrom((normRng.nextN(nDim))/((2*nDim).sqrt));
 	}
 	*nullVector {|nDim=2|
 		^RealVector.newFrom(0.dup(nDim));
+	}
+}
+VicsekSynths {
+	*loadSynthDefs {|server|
+		SynthDef(\vicsek_gull4, {
+			|i_out,
+			 t_trig,
+			 buffer,
+			 xpos,ypos,zpos,
+			 xvel,yvel,zvel|
+			//synth vars
+			var amp, outMono, posX, posY, posZ, pointer, randRatio, windowSize;
+			posX = xpos.linlin(0,1,-1,1);
+			posY = ypos.linlin(0,1,-1,1);
+			posZ = zpos.linlin(0,1,-1,1);
+			pointer = xvel.linlin(-1,1,0,1);
+			windowSize = yvel.linlin(-1,1,0,1);
+			randRatio = zvel.linlin(-1,1,0,1);
+			amp = (1 - posX.squared) * (1 - posY.squared);
+			outMono = Warp1.ar(
+				1,						// num channels (Class docs claim only mono works)
+				buffer,				// buffer
+				pointer,			// start pos
+				1,						// pitch shift
+				windowSize,		// window size (sec?)
+				-1,						// envbufnum (-1=Hanning)
+				4,						// overlap
+				randRatio,		// rand ratio
+				2							// interp (2=linear)
+			);
+/*			env = EnvGen.kr(
+				  Env.asr(discernmentTime/2, 1, discernmentTime/2, 'linear'),
+				  gate: gate,
+				  doneAction: 2);*/
+			Out.ar(i_out, Pan4.ar(outMono, level: amp));
+		}).send(server);
 	}
 }
