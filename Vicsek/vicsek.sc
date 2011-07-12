@@ -18,7 +18,7 @@ VicsekParticle {
 			{vel=VicsekGrid.randomVector(dim);},
 			{vel=RealVector.newFrom(velArray);}
 		);
-		vel = vel/vel.norm;
+		vel = vel/(vel.norm.max(0.00000001));
 	}
 	free {
 		
@@ -69,15 +69,21 @@ VicsekGrid {
 			//["vel now", particle.vel].postln;
 		});
 		//randomise?
-		// this.class.randomVector(dim)
+		particles.do({|particle|
+			particle.vel_(
+				(particle.vel*(1-noise)) + 
+				(noise*(this.class.randomVector(dim)))
+			);
+		});
+		// 
 	}
 	free {
 		particles.do({|particle| particle.free;});
 	}
 	*randomVector {|nDim=2|
-		//un-normalised vector with angle equidistribution.
+		//un-normalised vector with angle equidistribution, mean length 1
 		normRng.isNil.if({normRng = Pgauss(0.0, 1, inf).asStream});
-		^RealVector.newFrom(normRng.nextN(nDim));
+		^RealVector.newFrom((normRng.nextN(nDim))/((4*nDim).sqrt));
 	}
 	*nullVector {|nDim=2|
 		^RealVector.newFrom(0.dup(nDim));
