@@ -7,3 +7,4 @@ v.particles.collect({|i| i.vel});
 v.bus;
 v.free;
 v.particles[0].synth
+{Out.ar([0,1,2,3,4,5], SinOsc.ar([100,200,300,400,500,600]));}.play;

@@ -184,10 +184,10 @@ VicsekSynths {
 			posY = ypos.linlin(0, 1, rescale.neg, rescale);
 			posZ = zpos.linlin(0, 1, -1.05, 1.05);
 			alive = (
-				((posX.abs)) * 
+				((posX.abs)<1) * 
 				((posY.abs)<1) * 
 				((posZ.abs)<1)
-			).poll(1, \alive);
+			);
 			posX = Lag.kr(posX, tickTime*2).clip2(1);
 			posY = Lag.kr(posY, tickTime*2).clip2(1);
 			posZ = Lag.kr(posZ, tickTime*2).clip2(1);
@@ -213,7 +213,7 @@ VicsekSynths {
 				  Env.asr(tickTime, 1, tickTime, 'linear'),
 				  gate: gate,
 				  doneAction: 2);
-			Out.ar(i_out, Pan4.ar(outMono, level: amp*env));
+			Out.ar(i_out, Pan4.ar(outMono, posX, posY, level: amp*env));
 		}, [
 			\ir,
 			nil,
