@@ -196,8 +196,8 @@ VicsekSynths {
 			zvel = Lag.kr(zvel, tickTime*2);
 			amp = (1 - posX.squared) * (1 - posY.squared) * alive;
 			pointer = xvel.linlin(-1,1,0,1);
-			windowSize = yvel.linlin(-1,1,0,1);
-			randRatio = zvel.linlin(-1,1,0,1);
+			windowSize = yvel.linexp(-1, 1, 0.005, 0.1);
+			randRatio = zvel.linlin(-1, 1, 0.0, 0.2);
 			outMono = Warp1.ar(
 				1,						// num channels (Class docs claim only mono works)
 				buffer,				// buffer
