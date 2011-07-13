@@ -5,5 +5,3 @@ v.play(s, bus: ~out);
 v.particles.collect({|i| i.vel});
 v.bus;
 v.particles[0].synth
-[2,1,3].maxItem
-1:3

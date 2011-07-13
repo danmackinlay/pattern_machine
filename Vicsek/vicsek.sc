@@ -131,6 +131,7 @@ VicsekGrid {
 				particle.synth = Synth.new(\vicsek_gull4,
 					[
 						\i_out, myOutBus,
+						\gate, 1,
 						\buffer, myBuffer,
 						\xpos, particle.pos[0],
 						\ypos, particle.pos[1],
@@ -149,7 +150,14 @@ VicsekGrid {
 		}).play;
 	}
 	free {
-		particles.do({|particle| particle.free;});
+		particles.do({|particle| 
+			particle.synth.isNil.if( {
+				particle.synth.set(\gate, 0);
+				particle.synth = nil;
+			});
+			particle.free;
+		});
+		isPlaying = false;
 	}
 	*randomVector {|nDim=2|
 		//un-normalised vector with angle equidistribution, mean length 1
@@ -164,19 +172,32 @@ VicsekSynths {
 	*loadSynthDefs {|server|
 		SynthDef(\vicsek_gull4, {
 			|i_out,
-			 t_trig,
+			 gate,
 			 buffer,
 			 xpos,ypos,zpos,
-			 xvel,yvel,zvel|
+			 xvel,yvel,zvel,
+			 tickTime=1,
+			 rescale=1.407| //only look at part of the surface
 			//synth vars
-			var amp, outMono, posX, posY, posZ, pointer, randRatio, windowSize;
-			posX = xpos.linlin(0,1,-1,1);
-			posY = ypos.linlin(0,1,-1,1);
-			posZ = zpos.linlin(0,1,-1,1);
+			var amp, alive, outMono, posX, posY, posZ, pointer, randRatio, windowSize, env;
+			posX = xpos.linlin(0, 1, rescale.neg, rescale);
+			posY = ypos.linlin(0, 1, rescale.neg, rescale);
+			posZ = zpos.linlin(0, 1, -1.05, 1.05);
+			alive = (
+				((posX.abs)) * 
+				((posY.abs)<1) * 
+				((posZ.abs)<1)
+			).poll(1, \alive);
+			posX = Lag.kr(posX, tickTime*2).clip2(1);
+			posY = Lag.kr(posY, tickTime*2).clip2(1);
+			posZ = Lag.kr(posZ, tickTime*2).clip2(1);
+			xvel = Lag.kr(xvel, tickTime*2);
+			yvel = Lag.kr(yvel, tickTime*2);
+			zvel = Lag.kr(zvel, tickTime*2);
+			amp = (1 - posX.squared) * (1 - posY.squared) * alive;
 			pointer = xvel.linlin(-1,1,0,1);
 			windowSize = yvel.linlin(-1,1,0,1);
 			randRatio = zvel.linlin(-1,1,0,1);
-			amp = (1 - posX.squared) * (1 - posY.squared);
 			outMono = Warp1.ar(
 				1,						// num channels (Class docs claim only mono works)
 				buffer,				// buffer
@@ -188,11 +209,20 @@ VicsekSynths {
 				randRatio,		// rand ratio
 				2							// interp (2=linear)
 			);
-/*			env = EnvGen.kr(
-				  Env.asr(discernmentTime/2, 1, discernmentTime/2, 'linear'),
+			env = EnvGen.kr(
+				  Env.asr(tickTime, 1, tickTime, 'linear'),
 				  gate: gate,
-				  doneAction: 2);*/
-			Out.ar(i_out, Pan4.ar(outMono, level: amp));
-		}).send(server);
+				  doneAction: 2);
+			Out.ar(i_out, Pan4.ar(outMono, level: amp*env));
+		}, [
+			\ir,
+			nil,
+			nil,
+			nil,
+			nil, nil, nil,
+			nil, nil, nil,
+			nil,
+			\ir
+		]).send(server);
 	}
 }
