@@ -199,12 +199,15 @@ VicsekSynths {
 			xvel = Lag.kr(xvel, tickTime*2);
 			yvel = Lag.kr(yvel, tickTime*2);
 			zvel = Lag.kr(zvel, tickTime*2);
-			amp = (2 - LFCub.kr(0, iphase: posX.abs.linlin(0,1, 0.75, 0.25))) *
-			      (2 - LFCub.kr(0, iphase: posY.abs.linlin(0,1, 0.75, 0.25))) *
-			      alive;
+			amp = (1-posX.squared) *
+			      (1-posY.squared) *
+			      alive *
+			      total.sqrt.reciprocal *
+			      2;
+			amp = amp.squared;
 			pointer = idx/total; //xvel.linlin(-1,1,0,1);
 			windowSize = yvel.linexp(-1, 1, 0.05, 0.1);
-			randRatio = zvel.linlin(-1, 1, 0.1, 0.2);
+			randRatio = zvel.linlin(-1, 1, 0.1, 0.3);
 			outMono = DelayL.ar(Warp1.ar(
 					1,						// num channels (Class docs claim only mono works)
 					buffer,				// buffer
