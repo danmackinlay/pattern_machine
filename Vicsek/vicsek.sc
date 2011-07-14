@@ -125,7 +125,7 @@ VicsekGrid {
 				var son;
 				son = In.ar(myOutBus, 4) * amp * 0.7;
 				ReplaceOut.ar(myOutBus, son);
-			}.play(server, myOutBus, group: myOutBus, addAction:\addToTail);
+				}.play(myGroup, myOutBus, addAction:\addToTail);
 			server.sync;
 			particles.do({|particle, i| 
 				particle.synth = Synth.new(\vicsek_gull4,
