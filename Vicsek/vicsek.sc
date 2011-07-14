@@ -182,7 +182,7 @@ VicsekSynths {
 			 xvel,yvel,zvel,
 			 tickTime=1,
 			 rescale=1.407, //only look at part of the surface
-			 farSideDelay=0.2| 
+			 farSideDelay=0.05| 
 			//synth vars
 			var amp, alive, outMono, posX, posY, posZ, pointer, randRatio, windowSize, env;
 			posX = xpos.linlin(0, 1, rescale.neg, rescale);
@@ -203,8 +203,8 @@ VicsekSynths {
 			      (2 - LFCub.kr(0, iphase: posY.abs.linlin(0,1, 0.75, 0.25))) *
 			      alive;
 			pointer = idx/total; //xvel.linlin(-1,1,0,1);
-			windowSize = yvel.linexp(-1, 1, 0.005, 0.1);
-			randRatio = zvel.linlin(-1, 1, 0.0, 0.01);
+			windowSize = yvel.linexp(-1, 1, 0.05, 0.1);
+			randRatio = zvel.linlin(-1, 1, 0.1, 0.2);
 			outMono = DelayL.ar(Warp1.ar(
 					1,						// num channels (Class docs claim only mono works)
 					buffer,				// buffer
