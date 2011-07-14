@@ -194,7 +194,9 @@ VicsekSynths {
 			xvel = Lag.kr(xvel, tickTime*2);
 			yvel = Lag.kr(yvel, tickTime*2);
 			zvel = Lag.kr(zvel, tickTime*2);
-			amp = (1 - posX.squared) * (1 - posY.squared) * alive;
+			amp = (2 - LFCub.kr(0, iphase: posX.abs.linlin(0,1, 0.75, 0.25))) *
+			      (2 - LFCub.kr(0, iphase: posY.abs.linlin(0,1, 0.75, 0.25))) *
+			      alive;
 			pointer = xvel.linlin(-1,1,0,1);
 			windowSize = yvel.linexp(-1, 1, 0.005, 0.1);
 			randRatio = zvel.linlin(-1, 1, 0.0, 0.2);
