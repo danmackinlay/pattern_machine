@@ -1,4 +1,4 @@
-v=VicsekGrid.new(population:5, noise: 0.05, delta: 0.001, radius: 0.1, dim:3, tickTime:0.1);
+v=VicsekGrid.new(population:5, noise: 0.05, delta: 0.005, radius: 0.1, dim:3, tickTime:0.1);
 ~out = Bus.new(\audio, 2, 4);
 v.radius=0.1;
 v.start;
