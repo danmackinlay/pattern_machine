@@ -177,7 +177,8 @@ VicsekSynths {
 			 xpos,ypos,zpos,
 			 xvel,yvel,zvel,
 			 tickTime=1,
-			 rescale=1.407| //only look at part of the surface
+			 rescale=1.407, //only look at part of the surface
+			 farSideDelay=0.2| 
 			//synth vars
 			var amp, alive, outMono, posX, posY, posZ, pointer, randRatio, windowSize, env;
 			posX = xpos.linlin(0, 1, rescale.neg, rescale);
@@ -200,16 +201,19 @@ VicsekSynths {
 			pointer = xvel.linlin(-1,1,0,1);
 			windowSize = yvel.linexp(-1, 1, 0.005, 0.1);
 			randRatio = zvel.linlin(-1, 1, 0.0, 0.2);
-			outMono = Warp1.ar(
-				1,						// num channels (Class docs claim only mono works)
-				buffer,				// buffer
-				pointer,			// start pos
-				1,						// pitch shift
-				windowSize,		// window size (sec?)
-				-1,						// envbufnum (-1=Hanning)
-				4,						// overlap
-				randRatio,		// rand ratio
-				2							// interp (2=linear)
+			outMono = DelayL.ar(Warp1.ar(
+					1,						// num channels (Class docs claim only mono works)
+					buffer,				// buffer
+					pointer,			// start pos
+					1,						// pitch shift
+					windowSize,		// window size (sec?)
+					-1,						// envbufnum (-1=Hanning)
+					4,						// overlap
+					randRatio,		// rand ratio
+					2							// interp (2=linear)
+				),
+				farSideDelay,
+				farSideDelay*(posX+posY+posZ)
 			);
 			env = EnvGen.kr(
 				  Env.asr(tickTime, 1, tickTime, 'linear'),
@@ -224,6 +228,7 @@ VicsekSynths {
 			nil, nil, nil,
 			nil, nil, nil,
 			nil,
+			\ir,
 			\ir
 		]).send(server);
 	}
