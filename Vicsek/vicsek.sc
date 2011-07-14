@@ -127,12 +127,14 @@ VicsekGrid {
 				ReplaceOut.ar(myOutBus, son);
 			}.play(server, myOutBus, group: myOutBus, addAction:\addToTail);
 			server.sync;
-			particles.do({|particle| 
+			particles.do({|particle, i| 
 				particle.synth = Synth.new(\vicsek_gull4,
 					[
 						\i_out, myOutBus,
 						\gate, 1,
 						\buffer, myBuffer,
+						\idx, i,
+						\total, particles.size,
 						\xpos, particle.pos[0],
 						\ypos, particle.pos[1],
 						\zpos, particle.pos[2],
@@ -174,6 +176,8 @@ VicsekSynths {
 			|i_out,
 			 gate,
 			 buffer,
+			 idx=0,
+			 total=20,
 			 xpos,ypos,zpos,
 			 xvel,yvel,zvel,
 			 tickTime=1,
@@ -198,9 +202,9 @@ VicsekSynths {
 			amp = (2 - LFCub.kr(0, iphase: posX.abs.linlin(0,1, 0.75, 0.25))) *
 			      (2 - LFCub.kr(0, iphase: posY.abs.linlin(0,1, 0.75, 0.25))) *
 			      alive;
-			pointer = xvel.linlin(-1,1,0,1);
+			pointer = idx/total; //xvel.linlin(-1,1,0,1);
 			windowSize = yvel.linexp(-1, 1, 0.005, 0.1);
-			randRatio = zvel.linlin(-1, 1, 0.0, 0.2);
+			randRatio = zvel.linlin(-1, 1, 0.0, 0.01);
 			outMono = DelayL.ar(Warp1.ar(
 					1,						// num channels (Class docs claim only mono works)
 					buffer,				// buffer
@@ -208,7 +212,7 @@ VicsekSynths {
 					1,						// pitch shift
 					windowSize,		// window size (sec?)
 					-1,						// envbufnum (-1=Hanning)
-					4,						// overlap
+					2,						// overlap
 					randRatio,		// rand ratio
 					2							// interp (2=linear)
 				),
@@ -224,10 +228,12 @@ VicsekSynths {
 			\ir,
 			nil,
 			nil,
-			nil,
+			\ir,
+			\ir,
 			nil, nil, nil,
 			nil, nil, nil,
 			nil,
+			\ir,
 			\ir,
 			\ir
 		]).send(server);
