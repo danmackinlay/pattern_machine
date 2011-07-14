@@ -217,7 +217,7 @@ VicsekSynths {
 					2							// interp (2=linear)
 				),
 				farSideDelay,
-				farSideDelay*(posX+posY+posZ)
+				farSideDelay*(posX.squared+posY.squared+posZ.squared) // poor Doppler's distance estimation
 			);
 			env = EnvGen.kr(
 				  Env.asr(tickTime, 1, tickTime, 'linear'),
