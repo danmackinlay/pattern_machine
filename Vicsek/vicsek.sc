@@ -114,7 +114,7 @@ VicsekGrid {
 			VicsekSynths.loadSynthDefs(myServer);
 			myGroup = Group.new((target ? myServer), addAction);
 			myOutBus = bus ?? {Bus.audio(myServer, 4)};
-			myBuffer = Buffer.read(myServer, "/Users/dan/Library/Application Support/Ableton/Library/Samples/tests/cariboutesque.aif");
+			myBuffer = Buffer.read(myServer, ~zamples ++ "tests/cariboutesque.aif");
 			["did that load?"].postln;
 			myBuffer.debug;
 			server.sync;
