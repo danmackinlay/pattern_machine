@@ -139,6 +139,7 @@ VicsekGrid {
 			{ |amp = 1.0|
 				var son;
 				son = In.ar(myOutBus, 4) * amp * 0.7;
+				son = Limiter.ar(son, 0.6, 0.02);
 				ReplaceOut.ar(myOutBus, son);
 				}.play(myGroup, myOutBus, addAction:\addToTail);
 			server.sync;
