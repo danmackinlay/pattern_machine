@@ -201,12 +201,12 @@ VicsekSynths {
 			zvel = Lag.kr(zvel, tickTime*2);
 			amp = (1-posX.squared) *
 			      (1-posY.squared) *
-			      alive *
-			      total.sqrt.reciprocal *
-			      2;
-			amp = amp.squared;
-			pointer = idx/total; //xvel.linlin(-1,1,0,1);
-			windowSize = yvel.linexp(-1, 1, 0.05, 0.1);
+			      alivel
+			amp = amp.squared; //inflexion tail-off
+			// rescale for mean number of voices;
+			amp = amp * total.sqrt.reciprocal * rescale.squared * 2;
+			pointer = xvel.linlin(-1, 1, idx, idx+1)*(total.reciprocal); //.linlin(-1,1,0,1);
+			windowSize = yvel.linexp(-1, 1, 0.05, 0.2);
 			randRatio = zvel.linlin(-1, 1, 0.1, 0.3);
 			outMono = DelayL.ar(Warp1.ar(
 					1,						// num channels (Class docs claim only mono works)
