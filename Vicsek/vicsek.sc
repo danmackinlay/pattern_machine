@@ -6,7 +6,6 @@ TODO:
 * vary noise/order parameters
 * use self-freeing envelope
 * handle param lag time
-* 100% wet delay for cheapo doppler
 * per-speaker delay for phase info
 * doneAction synth freeing
 
@@ -41,9 +40,15 @@ VicsekParticle {
 	}
 }
 VicsekGrid {
-	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffer, <isPlaying=false;
-	classvar normRng;
-	
+	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false;
+	classvar <normRng;
+	classvar <samples;
+	*initClass { samples = [
+		"bold-steelsurface-scraping.wav.aif",
+		"resonant-polue-microscrape-on-engine-body-denoise.wav.aif",
+		"seagull-walk-this-time-its-personal.wav.aif",
+		"whistling-wind.wav.aif"];
+	}
 	*new {|population, noise, delta, radius, dim=2, tickTime=1|
 		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime).init; 
 	}
@@ -107,19 +112,29 @@ VicsekGrid {
 	server {^myServer;}
 	group {^myGroup;}
 	bus {^myOutBus;}
-	play {|server, target, bus, addAction=\addToTail|
+	play {|server, target, bus, addAction=\addToTail, samplePath|
 		//this really should be wrapped in a generic other class
+		myBuffers = List.new;
+		samplePath.isNil.if({samplePath=~zamples++"cockatoo island/textures/"});
+		
 		Task({
 			myServer = server ?? Server.default;
 			VicsekSynths.loadSynthDefs(myServer);
 			myGroup = Group.new((target ? myServer), addAction);
 			myOutBus = bus ?? {Bus.audio(myServer, 4)};
-			myBuffer = Buffer.read(myServer, ~zamples ++ "cockatoo island/incoming/ringings-scrape-on-pump.wav");
-			["did that load?"].postln;
-			myBuffer.debug;
-			server.sync;
-			["...now?"].postln;
-			myBuffer.debug;
+			this.class.samples.do({|item, i|
+				myBuffers.add(
+					Buffer.read(
+						myServer,
+						samplePath++item
+					)
+				);
+				["did that load?"].postln;
+				myBuffers[i].debug;
+				server.sync;
+				["...now?"].postln;
+				myBuffers[i].debug;
+			});
 			//final FX bus
 			{ |amp = 1.0|
 				var son;
@@ -132,7 +147,7 @@ VicsekGrid {
 					[
 						\i_out, myOutBus,
 						\gate, 1,
-						\buffer, myBuffer,
+						\buffer, myBuffers[(i % (myBuffers.size))],
 						\idx, i,
 						\total, particles.size,
 						\xpos, particle.pos[0],
@@ -201,7 +216,7 @@ VicsekSynths {
 			zvel = Lag.kr(zvel, tickTime*2);
 			amp = (1-posX.squared) *
 			      (1-posY.squared) *
-			      alivel
+			      alive;
 			amp = amp.squared; //inflexion tail-off
 			// rescale for mean number of voices;
 			amp = amp * total.sqrt.reciprocal * rescale.squared * 2;
