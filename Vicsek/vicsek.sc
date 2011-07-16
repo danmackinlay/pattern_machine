@@ -40,7 +40,7 @@ VicsekParticle {
 	}
 }
 VicsekGrid {
-	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false;
+	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false, <outSynth;
 	classvar <normRng;
 	classvar <samples;
 	*initClass { samples = [
@@ -112,7 +112,7 @@ VicsekGrid {
 	server {^myServer;}
 	group {^myGroup;}
 	bus {^myOutBus;}
-	play {|server, target, bus, addAction=\addToTail, samplePath|
+	play {|server, target, bus, addAction=\addToTail, samplePath, gain=1.0|
 		//this really should be wrapped in a generic other class
 		myBuffers = List.new;
 		samplePath.isNil.if({samplePath=~zamples++"cockatoo island/textures/"});
@@ -136,13 +136,14 @@ VicsekGrid {
 				myBuffers[i].debug;
 			});
 			//final FX bus
-			{ |amp = 1.0|
+			outSynth = { |amp = 1.0|
 				var son;
 				son = In.ar(myOutBus, 4) * amp * 0.7;
 				son = Limiter.ar(son, 0.6, 0.02);
 				ReplaceOut.ar(myOutBus, son);
 				}.play(myGroup, myOutBus, addAction:\addToTail);
 			server.sync;
+			outSynth.set(\amp, gain);
 			particles.do({|particle, i| 
 				particle.synth = Synth.new(\vicsek_gull4,
 					[
