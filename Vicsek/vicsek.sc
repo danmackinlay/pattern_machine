@@ -40,7 +40,7 @@ VicsekParticle {
 	}
 }
 VicsekGrid {
-	var <>population, <>baseNoise, <>baseDelta, <>baseRadius, <dim, <tickTime, <>lfo1p, <>lfo2p, <>lfoa, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false, <outSynth, <noise, <radius, <delta;
+	var <>population, <>baseNoise, <>baseDelta, <>baseRadius, <dim, <tickTime, <>lfo1p, <>lfo2p, <>lfoa, <rescale, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false, <outSynth, <noise, <radius, <delta;
 	classvar <normRng;
 	classvar <samples;
 	*initClass { samples = [
@@ -49,8 +49,8 @@ VicsekGrid {
 		"seagull-walk-this-time-its-personal.wav.aif",
 		"whistling-wind.wav.aif"];
 	}
-	*new {|population, noise, delta, radius, dim=2, tickTime=1, lfo1p=0.07, lfo2p=0.031, lfoa=2|
-		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime, lfo1p, lfo2p, lfoa).init; 
+	*new {|population, noise, delta, radius, dim=2, tickTime=1, lfo1p=0.07, lfo2p=0.031, lfoa=2, rescale|
+		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime, lfo1p, lfo2p, lfoa, rescale).init; 
 	}
 	init {
 		particles = population.collect({VicsekParticle.new;});
@@ -161,7 +161,8 @@ VicsekGrid {
 						\zpos, particle.pos[2],
 						\xvel, particle.vel[0],
 						\yvel, particle.vel[1],
-						\zvel, particle.vel[2]
+						\zvel, particle.vel[2],
+						\rescale, rescale
 					],
 					myGroup
 				);
