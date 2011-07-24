@@ -9,6 +9,23 @@ NOTES:
   
 TODO:
 
+
+* Urgent
+
+  * have a singleton handling server sync to avoid ordering problems
+  * eliminate the ReportingListenerFactory
+  * set up server options maxSynthDefs for easier synth management, or clear synthdefs. (see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/too-many-Synthdefs-td5116364.html) 
+  * LFOs
+  * give fitness more accumulatey flavour using Integrator
+  * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
+  * TODO: scale birthRate and deathRate so that they fit eventual fitness
+  * reseed population when they all die
+  * better aging calculations
+  * sort out the interactions of all these different tick rates and periods.
+  * work out why negFitness it can explode when population gets to 2 or less.
+    (synthdef explosion?)
+  * space out births, since that seems to stop exploding fitnesses.
+
 * Handle "free controls", values that are passed in live by the user. (esp for
   triggers)
   
@@ -16,7 +33,7 @@ TODO:
     all that Dependent business
 
 * Give the faintest of indications that I do care about tests
-* work out a better way to handle non-chromosome'd arguments. right now I
+* work out a better way to handle non-chromosome'd arguments. Right now I
   handle, e.g. SampleSpecs by passing in a voxDefaults array, and triggers by
   introspecting a trigger array. But this is feels ugly compared to wrapping
   an Instr in a function and specifying the missing arguments by lexical
@@ -35,20 +52,6 @@ TODO:
 * consistently use either class or instance methods for selection/mutation
   operators
 * make synthedef cache clearning less frequent (this every-tick
-
-* Urgent
-
-  * set up server options maxSynthDefs for easier synth management, or clear synthdefs. (see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/too-many-Synthdefs-td5116364.html) 
-  * LFOs
-  * give fitness more accumulatey flavour using Integrator
-  * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
-  * TODO: scale birthRate and deathRate so that they fit eventual fitness
-  * reseed population when they all die
-  * better aging calculations
-  * sort out the interactions of all these different tick rates and periods.
-  * work out why negFitness it can explode when population gets to 2 or less.
-    (synthdef explosion?)
-  * space out births, since that seems to stop exploding fitnesses.
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
