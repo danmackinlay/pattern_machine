@@ -61,7 +61,7 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup;
+  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup, <all;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultListenInstr="phenosynth.listeners.default";
 
@@ -81,6 +81,7 @@ Genosynth {
       (phenoClass ? ListenPhenosynth)).init;
   }
   init {
+    all = IdentityDictionary.new;
     chromosomeMap = this.class.getChromosomeMap(voxInstr);
     // pad voxDefaults out to equal number of args
     voxDefaults = voxDefaults.extend(voxInstr.specs.size, nil);
@@ -100,7 +101,15 @@ Genosynth {
   }
   spawn { |chromosome|
     //return a listened phenosynth
-    ^phenoClass.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
+    var newPhenosynth;
+    newPhenosynth = phenoClass.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
+    //Should this registering-with-all business be the job of the Phenosynth
+    //for consistency?
+    all.put(newPhenosynth.identityHash, newPhenosynth);
+    ^newPhenosynth;
+  }
+  reap { |phenosynth|
+    all.removeAt(phenosynth.identityHash);
   }
   newChromosome {
     ^{1.0.rand}.dup(chromosomeMap.size);
@@ -167,6 +176,7 @@ Phenosynth {
     this.trigger();
   }
   free {
+    genosynth.reap(this);
     this.freeSynthDef(voxPatch);
     voxPatch.free;
   }
