@@ -13,7 +13,8 @@ TODO:
 * Urgent
 
   * have a singleton handling server sync to avoid ordering problems
-  * eliminate the ReportingListenerFactory
+  * rewrite the fitness stuff using bus .get business instead of OSCResponderNode.
+  * convert judges to control rate, mono.
   * set up server options maxSynthDefs for easier synth management, or clear synthdefs. (see http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/too-many-Synthdefs-td5116364.html) 
   * LFOs
   * give fitness more accumulatey flavour using Integrator
@@ -51,7 +52,6 @@ TODO:
 * less arbitrary immigration
 * consistently use either class or instance methods for selection/mutation
   operators
-* make synthedef cache clearning less frequent (this every-tick
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
@@ -61,20 +61,20 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <listenInstrName, <listenExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <listenInstr, <evalPeriod, <voxGroup, <all;
+  var <voxInstr, <voxDefaults, <judgeInstrName, <judgeExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <judgeInstr, <evalPeriod, <voxGroup, <all, <responder;
   classvar <defaultVoxInstr="phenosynth.vox.default";
-  classvar <defaultListenInstr="phenosynth.listeners.default";
+  classvar <defaultJudgeInstr="phenosynth.judges.default";
 
-  *new { |voxName, voxDefaults, listenInstrName, listenExtraArgs, sourceGroup, outBus, numChannels, phenoClass|
+  *new { |voxName, voxDefaults, judgeInstrName, judgeExtraArgs, sourceGroup, outBus, numChannels, phenoClass|
     //voxName - name, or Instr, that will be source
     //voxDefault - array of default args to voxName
-    //listenInstrName, listenExtraArgs - like voxName, but for listening Instr
+    //judgeInstrName, judgeExtraArgs - like voxName, but for judgeing Instr
     //sourceGroup - a group that we must come after (Should we jsut supply the group to be in?)
     ^super.newCopyArgs(
       (voxName ? Genosynth.defaultVoxInstr).asInstr,
       (voxDefaults ? []),
-      (listenInstrName ? Genosynth.defaultListenInstr),
-      (listenExtraArgs ? []),
+      (judgeInstrName ? Genosynth.defaultJudgeInstr),
+      (judgeExtraArgs ? []),
       sourceGroup,
       (outBus ? 0),
       (numChannels ? 1),
@@ -94,6 +94,19 @@ Genosynth {
   }
   play {
     voxGroup = Group.new(sourceGroup, addAction: \addAfter);
+    responder = OSCresponderNode(
+      voxGroup.server.addr,
+      { |t, r, msg| ['t,r,msg',t,r,msg].postln; }
+    ).add;
+  }
+  free {
+    //I think I shouldn't free the phenosynths here, just the OSC stuff.
+    //playing is handled by the Biome.
+    //all.do({|item,i| item.free; });
+    voxGroup.free;
+    //maybe the whole responder infrastructure shoudl be moved into the biome    
+    //in fact, so there is not this dual responsibility for their resources?
+    responder.remove;
   }
   spawnNaked { |chromosome|
     //just return the phenosynth itself, without listeners
@@ -102,7 +115,7 @@ Genosynth {
   spawn { |chromosome|
     //return a listened phenosynth
     var newPhenosynth;
-    newPhenosynth = phenoClass.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod, listenExtraArgs, chromosome);
+    newPhenosynth = phenoClass.new(this, voxInstr, voxDefaults, chromosomeMap, triggers, judgeInstrName, evalPeriod, judgeExtraArgs, chromosome);
     //Should this registering-with-all business be the job of the Phenosynth
     //for consistency?
     all.put(newPhenosynth.identityHash, newPhenosynth);
@@ -177,35 +190,26 @@ Phenosynth {
   }
   free {
     genosynth.reap(this);
-    this.freeSynthDef(voxPatch);
     voxPatch.free;
-  }
-  freeSynthDef {|patch|
-    ["freeSynthDef", patch.defName.isNil.not, patch.server.serverRunning].postln;
-    (patch.defName.isNil.not && patch.server.serverRunning).if({
-      ["freeSynthDefinternal", patch.server, patch.defName].postln;
-      Library.put(SynthDef,patch.server,patch.defName,nil);
-      patch.server.sendMsg(\d_free, patch.defName);
-    });
   }
 }
 
 ListenPhenosynth : Phenosynth {
-  var <listenInstrName;
-  var <listenExtraArgs;
+  var <judgeInstrName;
+  var <judgeExtraArgs;
   var <evalPeriod = 1;
   var fitness = 0.0000001; //start out positive to avoid divide-by-0
   var <age = 0;
-  var <reportingListenerPatch, <reportingListenerInstr, <listener;
-  *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, listenInstrName, evalPeriod=1, listenExtraArgs, chromosome|
+  var <reportPatch, <judgePatch, <listenPatch;
+  *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, judgeInstrName, evalPeriod=1, judgeExtraArgs, chromosome|
     //This should only be called through the parent Genosynth's spawn method
-    ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome, listenInstrName, evalPeriod, listenExtraArgs);
+    ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome, judgeInstrName, evalPeriod, judgeExtraArgs);
   }
-  init {|chromosome, listenInstrName_, evalPeriod_, listenExtraArgs_|
-    listenInstrName = (listenInstrName_ ? Genosynth.defaultListenInstr);
-    listenInstrName.asInstr.isNil.if({Error("no listenInstr" + listenInstrName_ + Genosynth.defaultListenInstr ++ ". Arse." ).throw;});
+  init {|chromosome, judgeInstrName_, evalPeriod_, judgeExtraArgs_|
+    judgeInstrName = (judgeInstrName_ ? Genosynth.defaultJudgeInstr);
+    judgeInstrName.asInstr.isNil.if({Error("no judgeInstr" + judgeInstrName_ + Genosynth.defaultJudgeInstr ++ ". Arse." ).throw;});
     evalPeriod = evalPeriod_ ? 1.0;
-    listenExtraArgs = listenExtraArgs_ ? [];
+    judgeExtraArgs = judgeExtraArgs_ ? [];
     super.init(chromosome);
   }
   fitness {
@@ -218,83 +222,49 @@ ListenPhenosynth : Phenosynth {
     age = newAge;
   }
   createPatch {
+    var judgeInstr;
+    var reportInstr;
+    var listenInstr;
     super.createPatch;
-    reportingListenerInstr = ReportingListenerFactory.make(
-      listenInstrName, listenExtraArgs,
-      {
-        |time, value|
-        //write this using accessor notation to invite overrides.
-        this.fitness_(value);
-        this.age_(this.age + 1);
-        //this.dump;
-        //["updating correlation", this.hash, time, value, age].postln;
-      }
-    );
-    reportingListenerPatch = Patch(
-      reportingListenerInstr, [
+    //do i really need these Instrs as instance vars? don't think so
+    judgeInstr = Instr(judgeInstrName);
+    reportInstr = Instr("phenosynth.reporter");
+    listenInstr = Instr("phenosynth.thru");
+    ["judge, report, listen", judgeInstr, reportInstr, listenInstr].postln;
+    judgePatch = Patch(
+      judgeInstr, [
         voxPatch,
         evalPeriod
+      ] ++ judgeExtraArgs
+    );
+    reportPatch = Patch(
+      reportInstr, [
+        judgePatch,
+        evalPeriod,
+        this.identityHash
       ]
     );
-  }
+/*    listenPatch = Patch(
+      listenInstr, [
+        voxPatch
+      ]
+    );
+*/  }
   play {
     /*play reportingListener and voxPatch.*/
     //super.play;
-    reportingListenerPatch.play(
+    //listenPatch.play(
+    //  group: genosynth.voxGroup);
+    reportPatch.play(
       group: genosynth.voxGroup);
     this.trigger;
   }
   free {
     ["freeing listener"].postln;
     super.free;
-    this.freeSynthDef(reportingListenerPatch);
-    reportingListenerPatch.free;
-  }
-}
-
-
-ReportingListenerFactory {
-  /*Instrs like having names, so we make some on demand to keep things clean.
-  TODO: I'm not totally sure if this is neccessary, and should check that
-  after the current deadline crunch.*/
-  classvar <counter = 0;
-  *make {|listenInstrName, listenExtraArgs, onTrigFn, evalPeriod=1|
-    /*takes a function of the form {|time, value| foo} */
-    var newInstr;
-    newInstr = Instr(
-      "phenosynth.reportingListener.volatile." ++ counter.asString,
-      {|in, evalPeriod=1|
-        var totalFitness;
-        totalFitness = A2K.kr(Mix.ar(Instr.ar(listenInstrName,
-          [
-            in,
-            evalPeriod
-          ] ++ listenExtraArgs//where we inject other busses etc
-        )));
-        //what's with those poll things? they make some explosions in the
-        // fitness output code go away. if you can produce a reduced test
-        // case for me, I am in your debt.
-        LFPulse.kr((evalPeriod.reciprocal)/2).onTrig(
-          onTrigFn, 
-          //this sometimes explodes
-          //totalFitness
-          //the checkbadvalue doesn't stop all explosions, but won't hurt
-          Select.kr(
-            BinaryOpUGen(
-              '>',
-              CheckBadValues.kr(totalFitness),
-              0
-            ),
-            [totalFitness, 0.0]
-          )
-        );
-        //return inputs. We are analysis only.
-        in;
-      },
-      [\audio], \audio
-    );
-    counter = counter+1;
-    ^newInstr;
+    judgePatch.free;
+    reportPatch.free;
+    //listenPatch.free;
   }
 }
 
@@ -414,10 +384,6 @@ PhenosynthBiome {
     this.cullPopulation;
     this.breedPopulation;
     this.immigrate;
-    this.houseKeep;
-  }
-  houseKeep {
-    //InstrSynthDef.clearCache(Server.default);
   }
   fitnesses {
     //make sure this returns non-negative numbers, or badness ensues

@@ -1,5 +1,5 @@
 Instr.new( //toy listener comparing signal with a 500Hz sine
-  "phenosynth.listeners.default",
+  "phenosynth.judges.default",
   {|in, evalPeriod = 1|
     LagUD.ar(
       Convolution.ar(in, SinOsc.ar(500), 1024, 0.5).abs,
@@ -12,7 +12,7 @@ Instr.new( //toy listener comparing signal with a 500Hz sine
   ]
 );
 Instr.new(
-  "phenosynth.listeners.conv_comparator",
+  "phenosynth.judges.conv_comparator",
   { |in, evalPeriod = 1, reference|
     A2K.kr(LagUD.ar(
       Convolution.ar(in, reference, 1024, 0.5).abs,
@@ -27,7 +27,7 @@ Instr.new(
 );
 
 Instr.new(
-  "phenosynth.listeners.fft_comparator",
+  "phenosynth.judges.fft_comparator",
   {|in, evalPeriod = 1, reference, t_reset=0|
   var othersig, testsig, comparison, sigfft, offt;
   
@@ -49,7 +49,7 @@ Instr.new(
 });
 
 Instr.new(
-  "phenosynth.listeners.fft_soft_comparator",
+  "phenosynth.judges.fft_soft_comparator",
   {|in, evalPeriod = 1, reference, t_reset=0|
   var othersig, testsig, comparison, sigfft, offt;
   
