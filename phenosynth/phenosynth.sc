@@ -61,7 +61,7 @@ James Nichols for the peer pressure to do it.
 Genosynth {
   /* A factory for Phenosynths wrapping a given Instr. You would have one of
   these for each population, as a rule.*/
-  var <voxInstr, <voxDefaults, <judgeInstrName, <judgeExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <judgeInstr, <evalPeriod, <voxGroup, <all, <responder;
+  var <voxInstr, <voxDefaults, <judgeInstrName, <judgeExtraArgs, <sourceGroup, <outBus, <numChannels, <>phenoClass, <chromosomeMap, <triggers, <judgeInstr, <evalPeriod, <voxGroup, <listenGroup, <all, <responder;
   classvar <defaultVoxInstr="phenosynth.vox.default";
   classvar <defaultJudgeInstr="phenosynth.judges.default";
 
@@ -70,6 +70,7 @@ Genosynth {
     //voxDefault - array of default args to voxName
     //judgeInstrName, judgeExtraArgs - like voxName, but for judgeing Instr
     //sourceGroup - a group that we must come after (Should we jsut supply the group to be in?)
+    var instr = (voxName ? Genosynth.defaultVoxInstr).asInstr;
     ^super.newCopyArgs(
       (voxName ? Genosynth.defaultVoxInstr).asInstr,
       (voxDefaults ? []),
@@ -77,7 +78,7 @@ Genosynth {
       (judgeExtraArgs ? []),
       sourceGroup,
       (outBus ? 0),
-      (numChannels ? 1),
+      (numChannels ? instr.numChannels),
       (phenoClass ? ListenPhenosynth)).init;
   }
   init {
@@ -94,6 +95,7 @@ Genosynth {
   }
   play {
     voxGroup = Group.new(sourceGroup, addAction: \addAfter);
+    listenGroup = Group.new(voxGroup, addAction: \addAfter);
     responder = OSCresponderNode(
       voxGroup.server.addr,
       { |t, r, msg| ['t,r,msg',t,r,msg].postln; }
@@ -104,7 +106,8 @@ Genosynth {
     //playing is handled by the Biome.
     //all.do({|item,i| item.free; });
     voxGroup.free;
-    //maybe the whole responder infrastructure shoudl be moved into the biome    
+    listenGroup.free;
+    //maybe the whole responder infrastructure should be moved into the biome    
     //in fact, so there is not this dual responsibility for their resources?
     responder.remove;
   }
@@ -155,7 +158,6 @@ Phenosynth {
     ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome);
   }
   init {|chromosome|
-    this.createPatch;
     this.chromosome_(chromosome);
   }
   createPatch {
@@ -167,6 +169,10 @@ Phenosynth {
       newChromosome = genosynth.newChromosome;
     });
     chromosome = newChromosome;
+    //now, if we are live, update the Patch inputs too.
+    voxPatch.isNil.not.if({ this.updateParams; });
+  }
+  updateParams {
     chromosomeMap.do(
       {|specIdx, chromIdx|
         voxPatch.set(
@@ -183,10 +189,13 @@ Phenosynth {
 /*    triggers.do({|item, i| 
       voxPatch.set(item, 1);});
 */  }
-  play {
+  play {|outBus|
+    //["Phenosynth.play", 0].postln;
     genosynth.play;
-    voxPatch.play(group: genosynth.voxGroup);
-    this.trigger();
+    this.createPatch;
+    voxPatch.play(group: genosynth.voxGroup, bus: outBus);
+    this.updateParams;
+    this.trigger;
   }
   free {
     genosynth.reap(this);
@@ -201,6 +210,7 @@ ListenPhenosynth : Phenosynth {
   var fitness = 0.0000001; //start out positive to avoid divide-by-0
   var <age = 0;
   var <reportPatch, <judgePatch, <listenPatch;
+  var <voxBus;
   *new {|genosynth, voxInstr, voxDefaults, chromosomeMap, triggers, judgeInstrName, evalPeriod=1, judgeExtraArgs, chromosome|
     //This should only be called through the parent Genosynth's spawn method
     ^super.newCopyArgs(genosynth, voxInstr, voxDefaults, chromosomeMap, triggers).init(chromosome, judgeInstrName, evalPeriod, judgeExtraArgs);
@@ -221,19 +231,30 @@ ListenPhenosynth : Phenosynth {
   age_ {|newAge|
     age = newAge;
   }
-  createPatch {
+  play {
     var judgeInstr;
     var reportInstr;
     var listenInstr;
-    super.createPatch;
-    //do i really need these Instrs as instance vars? don't think so
+    var server;
+    genosynth.voxGroup.isNil.if(
+      {server = Server.default;},
+      {server = genosynth.voxGroup.server;}
+    );
+    voxBus = Bus.audio(server, genosynth.numChannels);
+    //play voxPatch on a known bus so we can listen to it.
+    ["ListenPhenosynth.play", 0].postln;
+    ["ListenPhenosynth.play", 1].postln;
+    genosynth.play;
+    this.createPatch;
+    voxPatch.play(group: genosynth.voxGroup, bus: voxBus);
+    this.updateParams;
     judgeInstr = Instr(judgeInstrName);
     reportInstr = Instr("phenosynth.reporter");
     listenInstr = Instr("phenosynth.thru");
     ["judge, report, listen", judgeInstr, reportInstr, listenInstr].postln;
     judgePatch = Patch(
       judgeInstr, [
-        voxPatch,
+        voxBus,
         evalPeriod
       ] ++ judgeExtraArgs
     );
@@ -244,19 +265,13 @@ ListenPhenosynth : Phenosynth {
         this.identityHash
       ]
     );
-/*    listenPatch = Patch(
+    reportPatch.play(group: genosynth.listenGroup);
+    listenPatch = Patch(
       listenInstr, [
-        voxPatch
+        voxBus
       ]
     );
-*/  }
-  play {
-    /*play reportingListener and voxPatch.*/
-    //super.play;
-    //listenPatch.play(
-    //  group: genosynth.voxGroup);
-    reportPatch.play(
-      group: genosynth.voxGroup);
+    listenPatch.play(group: genosynth.listenGroup, bus: genosynth.outBus);
     this.trigger;
   }
   free {
