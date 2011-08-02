@@ -4,16 +4,28 @@ PSController {
   details to be abstracted away, and to track resources needing freeing.*/
   
   //Instance vars are all public to aid debugging, but, honestly, don't
-  //touch 'em. Why would you touch them?
+  //touch them. Why would you touch them?
   var <server;
   var <queue;
   var <all;
-  *new {|server|
-    ^newCopyArgs(server).init;
+  var <group;
+  var <numChannels;
+  *new {|serverOrGroup|
+    ^super.new.init(serverOrGroup);
   }
-  init {
+  init {|serverOrGroup|
     all = IdentityDictionary.new;
-    queue = (queue ?? {PSServerQueue.new(server);});
+    serverOrGroup.isKindOf(Group).if(
+      {
+        server = serverOrGroup.server;
+        queue = PSServerQueue.new(server);
+        group = serverOrGroup;
+      }, {
+        server = serverOrGroup;
+        queue = PSServerQueue.new(server);
+        queue.push({group = Group.head(server);});
+      }
+    );
   }
   playIndividual {|phenome|
     NotYetImplementedError.new.throw;
@@ -22,7 +34,7 @@ PSController {
     NotYetImplementedError.new.throw;
   }
   updateFitnesses {
-    Not YetImplementedError.new.throw;
+    NotYetImplementedError.new.throw;
   }
 }
 
@@ -31,19 +43,19 @@ PSServerQueue {
   var <server;
   var <fifo;
   var <worker;
-  var flag;
+  var <doneFlag;
   *new {|server|
     ^super.newCopyArgs(server ? Server.default).init;
   }
   init {
     fifo = LinkedList.new;
-    flag = Condition.new(false);
+    doneFlag = Condition.new(false);
     worker = Routine({
       loop {
         var job, result;
         job = fifo.pop;
         job.isNil.if({
-          flag.hang;
+          doneFlag.hang;
         }, {
           server.sync;
           result = job.value;
@@ -53,6 +65,6 @@ PSServerQueue {
   }
   push {|job|
     fifo.addFirst(job);
-    flag.unhang;
+    doneFlag.unhang;
   }
 }
