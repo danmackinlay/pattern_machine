@@ -5,45 +5,71 @@ PSController {
   
   //Instance vars are all public to aid debugging, but, honestly, don't
   //touch them. Why would you touch them?
-  var <server;
-  var <queue;
-  var <all;
-  var <group;
+  var <phenoFactory;
+  var <outBus;
   var <numChannels;
-  *new {|serverOrGroup|
-    ^super.new.init(serverOrGroup);
+  var <q; //i.e. a Queue.
+  var <server;
+  var <all;
+  var <playGroup;
+  *new {|server, phenoFactory, bus, numChannels=2, q|
+    ^super.newCopyArgs(phenoFactory, bus, numChannels, q).init(server);
   }
   init {|serverOrGroup|
     all = IdentityDictionary.new;
     serverOrGroup.isKindOf(Group).if(
       {
         server = serverOrGroup.server;
-        queue = PSServerQueue.new(server);
-        group = serverOrGroup;
+        q ?? {q = PSServerQueue.new(server);};
+        playGroup = serverOrGroup;
       }, {
         server = serverOrGroup;
-        queue = PSServerQueue.new(server);
-        queue.push({group = Group.head(server);});
+        q ?? {q = PSServerQueue.new(server);};
+        q.push({playGroup = Group.head(server);});
       }
     );
+    outBus ?? {q.push({outBus = Bus.audio(server, numChannels)});};
   }
   playIndividual {|phenome|
-    NotYetImplementedError.new.throw;
+    all.put(phenome.identityHash, (\phenome: phenome));
   }
   freeIndividual {|phenome|
-    NotYetImplementedError.new.throw;
+    var freed = all.at(phenome.identityHash);
+    all.removeAt(phenome.identityHash);
+    ^freed;
   }
   updateFitnesses {
     NotYetImplementedError.new.throw;
   }
 }
 
+PSListenInstrController : PSController {
+  var <fitnessPollInterval;
+  var <listenGroup;
+  var <worker;
+  *new {|server, phenoFactory, bus, numChannels=2, q, fitnessPollInterval=1|
+    ^super.newCopyArgs(phenoFactory, bus, numChannels, q).init(
+      server, fitnessPollInterval);
+  }
+  init {|serverOrGroup, thisFitnessPollInterval|
+    super.init(serverOrGroup);
+    fitnessPollInterval = thisFitnessPollInterval;
+    q.push({listenGroup = Group.after(playGroup);});
+  }
+}
+
+//Factory instances 
+PSPhenosynthFactory {}
+
+PSInstrPhenosynthFactory : PSPhenosynthFactory {}
+
 PSServerQueue {
   //a queue to service instructions, waiting on sync from a particular server
   var <server;
   var <fifo;
   var <worker;
-  var <doneFlag;
+  var doneFlag;//internal condition for list servicing
+//  var <emptyFlag;//external signal that the list is empty - not implemented
   *new {|server|
     ^super.newCopyArgs(server ? Server.default).init;
   }

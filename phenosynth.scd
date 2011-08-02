@@ -11,7 +11,6 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~biome.play;
 ~biome.population[0].voxPatch.defName
 ~biome.population[0].voxPatch.server;
-Library.at[SynthDef, s][s].size.dup(500);
 
 ~plot= PhenosynthBiomeFitnessPlot(~biome);
 ~biome.fitnesses.plot;
@@ -47,14 +46,10 @@ Instr.loadAll;
 ~p2=~genosynth.spawn;
 ~p2.free;
 ~genosynth.all;
-//debugging synthdef overflows;
-Library.postTree;
-Library.at[SynthDef, s][s].size.dup(500);
 
-(
-Library.at[SynthDef, s][s].keysDo({ |key|
-				key.postln;
-                 s.sendMsg(\d_free, key); 
-             }); 
+s=Server.default;
+~control = PSController.new(s);
+~control.group;
+~control.server;
+~control.outBus;
 )
-
