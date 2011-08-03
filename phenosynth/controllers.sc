@@ -5,15 +5,14 @@ PSController {
   
   //Instance vars are all public to aid debugging, but, honestly, don't
   //touch them. Why would you touch them?
-  var <phenoFactory;
   var <outBus;
   var <numChannels;
   var <q; //i.e. a Queue.
   var <server;
   var <all;
   var <playGroup;
-  *new {|server, phenoFactory, bus, numChannels=2, q|
-    ^super.newCopyArgs(phenoFactory, bus, numChannels, q).init(server);
+  *new {|server, bus, numChannels=2, q|
+    ^super.newCopyArgs(bus, numChannels, q).init(server);
   }
   init {|serverOrGroup|
     all = IdentityDictionary.new;
@@ -31,40 +30,89 @@ PSController {
     outBus ?? {q.push({outBus = Bus.audio(server, numChannels)});};
   }
   playIndividual {|phenome|
-    all.put(phenome.identityHash, (\phenome: phenome));
+    //this doesn't actually play - it sets up a callback to play
+    q.push({
+      var indDict;
+      indDict = this.getIndividualDict(phenome);
+      this.loadIndividualDict(
+        indDict
+      );
+      this.actuallyPlay(indDict);
+    });
+  }
+  loadIndividualDict{|indDict|
+    all.put(indDict.phenome.identityHash, indDict);
+  }
+  getIndividualDict {|phenome|
+    //this doesn't need to be called in the server queue;
+    //but in general, one could so need.
+    ^(\phenome: phenome,
+      \playBus: outBus
+    );
+  }
+  actuallyPlay {|indDict|
+    q.push({
+      indDict.phenome.play(out:indDict.playBus, group:playGroup);
+    });
   }
   freeIndividual {|phenome|
     var freed = all.at(phenome.identityHash);
     all.removeAt(phenome.identityHash);
     ^freed;
   }
-  updateFitnesses {
-    NotYetImplementedError.new.throw;
-  }
 }
 
-PSListenInstrController : PSController {
+PSListenSynthController : PSController {
+  /* Handle a large number of simultaneous synths being digitally listened to
+  */
   var <fitnessPollInterval;
   var <listenGroup;
   var <worker;
-  *new {|server, phenoFactory, bus, numChannels=2, q, fitnessPollInterval=1|
-    ^super.newCopyArgs(phenoFactory, bus, numChannels, q).init(
+  classvar <listenSynth = \ps_listen_eight_hundred;
+  *new {|server, bus, numChannels=2, q, fitnessPollInterval=1|
+    ^super.newCopyArgs(bus, numChannels, q).init(
       server, fitnessPollInterval);
   }
   init {|serverOrGroup, thisFitnessPollInterval|
+    var clock;
     super.init(serverOrGroup);
     fitnessPollInterval = thisFitnessPollInterval;
     q.push({listenGroup = Group.after(playGroup);});
+    clock = TempoClock.new(fitnessPollInterval.reciprocal, 1);
+    worker = Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
+  }
+  getIndividualDict {|phenome|
+    ^(\phenome: phenome,
+      \playBus: Bus.audio(server, numChannels),
+      \listenBus: Bus.control(server, 1)
+    )
+  }
+  actuallyPlay {|indDict|
+    q.push({
+      indDict.phenome.play(out:indDict.playBus, group:playGroup);
+      Synth(this.class.listenSynth, this.getListenSynthArgs);
+    });
+  }
+  getListenSynthArgs{|indDict|
+    ^[\in, indDict.playBus];
+  }
+  freeIndividual {|phenome|
+    var freed = super.freeIndividual(phenome);
+    ^freed;
+  }
+  updateFitnesses {
+    all.do({|id, phenome|
+      ['tick', id, phenome].postln;
+    });
   }
 }
 
-//Factory instances 
-PSPhenosynthFactory {}
-
-PSInstrPhenosynthFactory : PSPhenosynthFactory {}
-
 PSServerQueue {
-  //a queue to service instructions, waiting on sync from a particular server
+  /*a queue to service instructions, waiting on sync from a particular server
+  
+  I know this looks overblown, but it sure does stop the wacky, unpredictable
+  explosions I was having before.
+  */
   var <server;
   var <fifo;
   var <worker;
