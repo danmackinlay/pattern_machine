@@ -8,7 +8,7 @@ s=Server.default;
 ~control.playGroup;
 ~control.server;
 ~control.outBus;
-~ind = PSSynthDefPhenome([0.5, 0.5, 0.5]);
+~ind = PSSynthDefPhenome.newRandom;
 ~control.playIndividual(~ind);
 ~ind.identityHash;
 ~ind.chromosome;
@@ -19,5 +19,7 @@ s=Server.default;
 /* TODO:
 
 * provide a way to unwarp as well as warp chromosomes, and look up values of either. 
+* work out why I get multiple values of the synth args when I wrap the chromosome.
 
 */
+

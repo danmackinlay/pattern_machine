@@ -59,6 +59,7 @@ PSSynthDefPhenome : PSPhenome{
   play {|out, group|
     var mappedArgs;
     mappedArgs = this.chromosomeAsSynthArgs;
+    (['MAPPED'] ++ mappedArgs).postln;
     ^Synth.new(
       this.class.synthdef,
       args: [\out, out] ++ mappedArgs,
@@ -66,10 +67,10 @@ PSSynthDefPhenome : PSPhenome{
     )
   }
   chromosomeAsSynthArgs {
-    ^all {: [keySpec[0], keySpec[1].map(val)],
+    ^(all {: [keySpec[0], keySpec[1].map(val)],
       keySpec <- this.class.map.asSortedArray,
       val <- chromosome
-    };
+    }).flat;
   }
 }
   
