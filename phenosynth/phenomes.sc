@@ -27,6 +27,10 @@ PSSynthDefPhenome : PSPhenome{
       this.setUpSynthDefs;
     }
   }
+  *newRandom {
+    var newChromosome = {1.0.rand;}.dup(genomeSize);
+    ^this.new(newChromosome);
+  }
   *setUpSynthDefs {
     SynthDef.writeOnce(
       \ps_reson_saw,

@@ -11,5 +11,13 @@ s=Server.default;
 ~ind = PSSynthDefPhenome([0.5, 0.5, 0.5]);
 ~control.playIndividual(~ind);
 ~ind.identityHash;
+~ind.chromosome;
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
+
+
+/* TODO:
+
+* provide a way to unwarp as well as warp chromosomes, and look up values of either. 
+
+*/
