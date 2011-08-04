@@ -23,11 +23,11 @@ PSSynthDefPhenome : PSPhenome{
   classvar <genomeSize = 3;
   classvar <map;
   *initClass {
-    Startup.add {
+    StartUp.add {
       this.setUpSynthDefs;
     }
   }
-  setUpSynthDefs {
+  *setUpSynthDefs {
     SynthDef.writeOnce(
       \ps_reson_saw,
       {|out=0, gate=0, t_reset=0, pitch, ffreq, rq|
@@ -63,7 +63,7 @@ PSSynthDefPhenome : PSPhenome{
   }
   chromosomeAsSynthArgs {
     ^all {: [keySpec[0], keySpec[1].map(val)],
-      keySpec <- map.asSortedArray,
+      keySpec <- this.class.map.asSortedArray,
       val <- chromosome
     };
   }

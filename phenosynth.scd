@@ -47,11 +47,12 @@ Instr.loadAll;
 ~p2.free;
 ~genosynth.all;
 
-ControlSpec
-
+(
 s=Server.default;
 ~control = PSListenSynthController.new(s);
 ~control.playGroup;
 ~control.server;
 ~control.outBus;
+~ind = PSSynthDefPhenome([0.5, 0.5, 0.5]);
+~control.playIndividual(~ind);
 )
