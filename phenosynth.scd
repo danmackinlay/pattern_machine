@@ -47,9 +47,11 @@ Instr.loadAll;
 ~p2.free;
 ~genosynth.all;
 
+ControlSpec
+
 s=Server.default;
-~control = PSController.new(s);
-~control.group;
+~control = PSListenSynthController.new(s);
+~control.playGroup;
 ~control.server;
 ~control.outBus;
 )

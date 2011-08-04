@@ -2,7 +2,7 @@ PSBasicPlaySynths {
   *initClass{
   	StartUp.add({
   		SynthDef.writeOnce(
-  		  \ps_listen_eight_hundred,
+  		  \ps_reson_saw,
   		  { |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5|
           var env;
           var time = 1;
@@ -11,7 +11,7 @@ PSBasicPlaySynths {
             gate: gate//,
             //doneAction: 2
           );
-          Out.ar(Resonz.ar(
+          Out.ar(out, Resonz.ar(
             Saw.ar(pitch),
               ffreq,   //cutoff
               rq       //inverse bandwidth

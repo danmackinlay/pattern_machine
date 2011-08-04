@@ -38,7 +38,7 @@ PSSynthDefPhenome : PSPhenome{
           gate: gate//,
           //doneAction: 2
         );
-        Out.ar(Resonz.ar(
+        Out.ar(out, Resonz.ar(
           Saw.ar(pitch),
             ffreq,   //cutoff
             rq       //inverse bandwidth
