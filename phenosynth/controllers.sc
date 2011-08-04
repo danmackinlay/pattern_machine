@@ -101,8 +101,13 @@ PSListenSynthController : PSController {
     ^freed;
   }
   updateFitnesses {
-    all.do({|id, phenome|
-      ['tick', id, phenome].postln;
+    all.keysValuesDo({|key, indDict|
+      ['tick', indDict, key].postln;
+      //server cmd, but doesn't need to be queued coz it's read-only.
+      indDict.listenBus.get({|val|
+        ["got val", val, "for phenome id", key].postln;
+        indDict.phenome.fitness = val;
+      });
     });
   }
 }

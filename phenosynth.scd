@@ -55,4 +55,6 @@ s=Server.default;
 ~control.outBus;
 ~ind = PSSynthDefPhenome([0.5, 0.5, 0.5]);
 ~control.playIndividual(~ind);
+~ind.identityHash;
+~control.all.do({|a,b,c| [a,b,c].postln;});
 )
