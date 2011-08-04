@@ -131,8 +131,8 @@ PSServerQueue {
         job.isNil.if({
           doneFlag.hang;
         }, {
-          server.sync;
           result = job.value;
+          server.sync;
         })
       }
     }).play;
