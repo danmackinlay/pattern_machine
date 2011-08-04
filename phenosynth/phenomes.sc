@@ -19,7 +19,7 @@ PSPhenome {
 
 PSSynthDefPhenome : PSPhenome{
   //A phenome mapping a chromosome to the inputs of a Synth
-  classvar <synthdef = \ps_listen_eight_hundred;
+  classvar <synthdef = \ps_reson_saw;
   classvar <genomeSize = 3;
   classvar <map;
   *initClass {
@@ -29,7 +29,7 @@ PSSynthDefPhenome : PSPhenome{
   }
   setUpSynthDefs {
     SynthDef.writeOnce(
-      \ps_listen_eight_hundred,
+      \ps_reson_saw,
       {|out=0, gate=0, t_reset=0, pitch, ffreq, rq|
         var env;
         var time = 1;

@@ -90,7 +90,7 @@ PSListenSynthController : PSController {
   actuallyPlay {|indDict|
     q.push({
       indDict.phenome.play(out:indDict.playBus, group:playGroup);
-      Synth(this.class.listenSynth, this.getListenSynthArgs);
+      Synth(this.class.listenSynth, this.getListenSynthArgs(indDict));
     });
   }
   getListenSynthArgs{|indDict|
