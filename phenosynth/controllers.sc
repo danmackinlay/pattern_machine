@@ -89,8 +89,14 @@ PSListenSynthController : PSController {
   }
   actuallyPlay {|indDict|
     q.push({
+      //play the synth to which we wish to listen
       indDict.phenome.play(out:indDict.playBus, group:playGroup);
-      Synth(this.class.listenSynth, this.getListenSynthArgs(indDict));
+      //analyse its output by listening to its bus
+      Synth(this.class.listenSynth,
+        this.getListenSynthArgs(indDict),
+        listenGroup);
+      //re-route some output to the master input
+      Synth(\jack, [indDict.playBus, outBus], listenGroup);
     });
   }
   getListenSynthArgs{|indDict|
