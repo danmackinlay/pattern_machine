@@ -63,7 +63,7 @@ PSController {
 }
 
 PSListenSynthController : PSController {
-  /* Handle a large number of simultaneous synths being digitally listened to
+  /* Handle a number of simultaneous synths being digitally listened to
   */
   var <fitnessPollInterval;
   var <listenGroup;
@@ -125,8 +125,8 @@ PSServerQueue {
     fifo = LinkedList.new;
     doneFlag = Condition.new(false);
     worker = Routine({
+      var job, result;
       loop {
-        var job, result;
         job = fifo.pop;
         job.isNil.if({
           doneFlag.hang;
