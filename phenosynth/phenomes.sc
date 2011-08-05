@@ -22,6 +22,7 @@ PSSynthDefPhenome : PSPhenome{
   classvar <synthdef = \ps_reson_saw;
   classvar <genomeSize = 3;
   classvar <map;
+  var <mappedArgs;
   *initClass {
     StartUp.add {
       this.setUpSynthDefs;
@@ -57,11 +58,10 @@ PSSynthDefPhenome : PSPhenome{
     );
   }
   play {|out, group|
-    var mappedArgs;
     mappedArgs = this.chromosomeAsSynthArgs;
     ^Synth.new(
       this.class.synthdef,
-      args: [\out, out] ++ mappedArgs,
+      args: [\out, out, \gate, 1] ++ mappedArgs,
       target: group
     )
   }

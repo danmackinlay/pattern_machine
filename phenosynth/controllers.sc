@@ -96,11 +96,11 @@ PSListenSynthController : PSController {
         this.getListenSynthArgs(indDict),
         listenGroup);
       //re-route some output to the master input
-      Synth(\jack, [indDict.playBus, outBus], listenGroup);
+      Synth(\jack, [\in, indDict.playBus, \out, outBus], listenGroup);
     });
   }
   getListenSynthArgs{|indDict|
-    ^[\in, indDict.playBus];
+    ^[\in, indDict.playBus, \active, 1];
   }
   freeIndividual {|phenome|
     var freed = super.freeIndividual(phenome);
