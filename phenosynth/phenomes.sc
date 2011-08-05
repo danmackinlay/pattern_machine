@@ -32,7 +32,7 @@ PSSynthDefPhenome : PSPhenome{
     ^this.new(newChromosome);
   }
   *setUpSynthDefs {
-    SynthDef.writeOnce(
+    SynthDef.new(
       \ps_reson_saw,
       {|out=0, gate=0, t_reset=0, pitch, ffreq, rq|
         var env;
@@ -49,7 +49,7 @@ PSSynthDefPhenome : PSPhenome{
           )*env
         );
       }
-    );
+    ).add;
     map = (
       \pitch: \midfreq.asSpec,
       \ffreq: \midfreq.asSpec,
@@ -59,7 +59,6 @@ PSSynthDefPhenome : PSPhenome{
   play {|out, group|
     var mappedArgs;
     mappedArgs = this.chromosomeAsSynthArgs;
-    (['MAPPED'] ++ mappedArgs).postln;
     ^Synth.new(
       this.class.synthdef,
       args: [\out, out] ++ mappedArgs,

@@ -18,7 +18,8 @@ s=Server.default;
 
 /* TODO:
 
-* provide a way to unwarp as well as warp chromosomes, and look up values of either. 
+* provide a way to unwarp as well as warp chromosomes, and look up values of either.
+* support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 
 */
 
