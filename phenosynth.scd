@@ -19,7 +19,6 @@ s=Server.default;
 /* TODO:
 
 * provide a way to unwarp as well as warp chromosomes, and look up values of either. 
-* work out why I get multiple values of the synth args when I wrap the chromosome.
 
 */
 

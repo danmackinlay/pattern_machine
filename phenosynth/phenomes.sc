@@ -67,9 +67,12 @@ PSSynthDefPhenome : PSPhenome{
     )
   }
   chromosomeAsSynthArgs {
-    ^(all {: [keySpec[0], keySpec[1].map(val)],
-      keySpec <- this.class.map.asSortedArray,
-      val <- chromosome
+/*    This list comprehension is not especially clear now, is it?
+    What it does is zip together the key, map spec and value 
+    lists into one, then iterates over this, returning mapped values
+    associated with their keys as a synth expects*/
+    ^(all {: [keySpecVal[0], keySpecVal[1].map(keySpecVal[2])],
+      keySpecVal <- (this.class.map.asSortedArray +++ chromosome)
     }).flat;
   }
 }
