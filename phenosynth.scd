@@ -18,6 +18,12 @@ s=Server.default;
 Bus.new(\audio, 60, 1).scope;
 )
 
+(
+~island = PSIsland.new;
+~island.params.deathRate;
+
+)
+
 /*
 NOTES:
 
