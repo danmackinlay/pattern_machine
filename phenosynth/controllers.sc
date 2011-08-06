@@ -53,6 +53,7 @@ PSController {
   actuallyPlay {|indDict|
     q.push({
       indDict.phenome.play(out:indDict.playBus, group:playGroup);
+      indDict.phenome.clockOn;
     });
   }
   freeIndividual {|phenome|
@@ -95,6 +96,7 @@ PSListenSynthController : PSController {
       Synth(this.class.listenSynth,
         this.getListenSynthArgs(indDict),
         listenGroup);
+      indDict.phenome.clockOn;
       //re-route some output to the master input
       Synth(\jack, [\in, indDict.playBus, \out, outBus], listenGroup);
     });

@@ -1,7 +1,8 @@
 PSPhenome {
   var <chromosome;
   var <>fitness=0;
-  var <age;
+  var <logicalAge=0;
+  var <birthTime;
   
   *new{|chromosome|
     ^super.new.init(chromosome);
@@ -14,6 +15,12 @@ PSPhenome {
   }
   play {|out|
     NotYetImplementedError.new.throw;
+  }
+  clockOn {
+    birthTime = Date.gmtime.rawSeconds;
+  }
+  wallClockAge {
+    ^Date.gmtime.rawSeconds - birthTime
   }
 }
 
