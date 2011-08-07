@@ -43,7 +43,7 @@ PSIsland {
       \numParents: 2,
       \chromosomeMinLength: 20,
       \crossoverProb: 0.1,
-      \individualClass: PSPhenome,
+      \individualClass: PSPhenotype,
       \mutationRate: 0.1
     );
   }

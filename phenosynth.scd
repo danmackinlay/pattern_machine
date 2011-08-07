@@ -8,12 +8,12 @@ s=Server.default;
 ~control.playGroup;
 ~control.server;
 ~control.outBus;
-~ind = PSSynthDefPhenome.newRandom;
+~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenome.newRandom)});
+10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 Bus.new(\audio, 60, 1).scope;
 )

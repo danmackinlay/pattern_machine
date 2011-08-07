@@ -1,4 +1,4 @@
-PSPhenome {
+PSPhenotype {
   var <chromosome;
   var <>fitness=0;
   var <logicalAge=0;
@@ -24,7 +24,7 @@ PSPhenome {
   }
 }
 
-PSSynthDefPhenome : PSPhenome{
+PSSynthDefPhenotype : PSPhenotype{
   //A phenome mapping a chromosome to the inputs of a Synth
   classvar <synthdef = \ps_reson_saw;
   classvar <genomeSize = 3;
