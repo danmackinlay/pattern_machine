@@ -195,7 +195,6 @@ PSIsland {
           Yeah.
           */
           [\iterations, iterations].postln;
-          [\delaying, delay].postln;
           delay.wait;
         }
       );
