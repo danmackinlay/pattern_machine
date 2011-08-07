@@ -1,19 +1,22 @@
 PSIsland {
   //Islands accept populations of individuals, which can be anything
   //responding to \chromosome and \fitness.
-  var deathSelector;
-  var birthSelector;
-  var mutator;
-  var crossover;
-  var initialChromosomeFactory;
-  var individualFactory;
-  var fitnessEvaluator;
-  var terminationCondition;
   
   //we keep instance settings in a mutable Environment so that
   //generic function parameters can be passed to mutators, and they may
   //be modified at run-time without defining new functions
   var <>params;
+  
+  //Here are the functions that do the selection. these can be modified
+  //by subclassing or by passing in functions at runtime.
+  var <>deathSelector;
+  var <>birthSelector;
+  var <>mutator;
+  var <>crossover;
+  var <>initialChromosomeFactory;
+  var <>individualFactory;
+  var <>fitnessEvaluator;
+  var <>terminationCondition;
   
   //This is the main state variable
   var <population;
@@ -29,14 +32,14 @@ PSIsland {
   //some default population massaging functions
   //since we can't define naked functions in a classvar, we set these up in 
   //the *defaultOperators method.
-  classvar defaultDeathSelector;
-  classvar defaultBirthSelector;
-  classvar defaultMutator;
-  classvar defaultCrossover;
-  classvar defaultInitialChromosomeFactory;
-  classvar defaultIndividualFactory;
-  classvar defaultFitnessEvaluator;
-  classvar defaultTerminationCondition;
+  classvar <defaultDeathSelector;
+  classvar <defaultBirthSelector;
+  classvar <defaultMutator;
+  classvar <defaultCrossover;
+  classvar <defaultInitialChromosomeFactory;
+  classvar <defaultIndividualFactory;
+  classvar <defaultFitnessEvaluator;
+  classvar <defaultTerminationCondition;
   
   *initClass {
     StartUp.add({
@@ -96,30 +99,25 @@ PSIsland {
     }
   }
   
-  *new {|params,
-    deathSelector,
-    birthSelector,
-    mutator,
-    crossover,
-    initialChromosomeFactory,
-    individualFactory,
-    fitnessEvaluator,
-    terminationCondition|
+  *new {|params|
     ^super.newCopyArgs(
-      deathSelector ? defaultDeathSelector,
-      birthSelector ? defaultBirthSelector,
-      mutator ? defaultMutator,
-      crossover ? defaultCrossover,
-      initialChromosomeFactory ? defaultInitialChromosomeFactory,
-      individualFactory ? defaultIndividualFactory,
-      fitnessEvaluator ? defaultFitnessEvaluator,
-      terminationCondition ? defaultTerminationCondition,
       params ? this.defaultParams
     ).init;
   }
   init {
+    this.initOperators;
     population = List.new;
     doneFlag = Condition.new(false)
+  }
+  initOperators {
+    deathSelector = this.class.defaultDeathSelector;
+    birthSelector = this.class.defaultBirthSelector;
+    mutator = this.class.defaultMutator;
+    crossover = this.class.defaultCrossover;
+    initialChromosomeFactory = this.class.defaultInitialChromosomeFactory;
+    individualFactory = this.class.defaultIndividualFactory;
+    fitnessEvaluator = this.class.defaultFitnessEvaluator;
+    terminationCondition = this.class.defaultTerminationCondition;
   }
   add {|phenotype|
     population.add(phenotype);
