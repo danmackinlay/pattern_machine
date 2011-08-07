@@ -22,6 +22,9 @@ PSPhenotype {
   wallClockAge {
     ^Date.gmtime.rawSeconds - birthTime
   }
+  printOn { arg stream;
+    stream << this.class.asString <<"(" << chromosome << ")";
+  }
 }
 
 PSSynthDefPhenotype : PSPhenotype{
