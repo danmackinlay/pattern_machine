@@ -177,30 +177,17 @@ PSIsland {
     var delay;
     doneFlag.test = false;
     this.populate;
-    delay = params.delay ? 0;
-    fork {
-      while(
-        {
-          terminationCondition.value(
-            params, population, iterations
-          ).not 
-        },
-        {
-          this.tend;
-          /* In principle, you don't need to actually wait, but practically
-          wait must be positive, however small, or very weird things happen
-          - instead of PSPhenome classes in the population you can get,
-          e.g., NetAddr or LimitedWriteStream instances.
-          
-          Yeah.
-          */
-          [\iterations, iterations].postln;
-          delay.wait;
-        }
-      );
-      doneFlag.test = true;
-      doneFlag.signal;
-    }
+    while(
+      {
+        terminationCondition.value(
+          params, population, iterations
+        ).not 
+      },
+      {
+        this.tend;
+        [\iterations, iterations].postln;
+      }
+    );
   }
   reset {
     this.cull(population);
