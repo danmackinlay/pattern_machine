@@ -20,8 +20,7 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 ~island = PSIsland.new;
-~island.params.deathRate;
-
+~island.go;
 )
 
 /*

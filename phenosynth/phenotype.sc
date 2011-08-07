@@ -4,11 +4,18 @@ PSPhenotype {
   var <logicalAge=0;
   var <birthTime;
   
+  classvar <genomeSize = 3;
+  
   *new{|chromosome|
     ^super.new.init(chromosome);
   }
+  *newRandom {
+    var newChromosome = {1.0.rand;}.dup(genomeSize);
+    ^this.new(newChromosome);
+  }
   init {|chromosome|
-    this.chromosome = chromosome;
+    //don't just copy a ref- each phenotype gets its own copy.
+    this.chromosome = Array.newFrom(chromosome);
   }
   chromosome_ {|newChromosome|
     chromosome = newChromosome;
@@ -30,17 +37,12 @@ PSPhenotype {
 PSSynthDefPhenotype : PSPhenotype{
   //A phenome mapping a chromosome to the inputs of a Synth
   classvar <synthdef = \ps_reson_saw;
-  classvar <genomeSize = 3;
   classvar <map;
   var <mappedArgs;
   *initClass {
     StartUp.add {
       this.setUpSynthDefs;
     }
-  }
-  *newRandom {
-    var newChromosome = {1.0.rand;}.dup(genomeSize);
-    ^this.new(newChromosome);
   }
   *setUpSynthDefs {
     SynthDef.new(
