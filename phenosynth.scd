@@ -20,7 +20,11 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 ~island = PSIsland.new;
+//~island.population[22];
+//~island.tend;
 ~island.go;
+~island.population.collect({|i| i.fitness})
+~island.iterations;
 )
 
 /*
@@ -31,6 +35,8 @@ TODO:
 
 * provide a way to unwarp as well as warp chromosomes
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
+* provide a "migration phase" in which to check for extinction and restock.
+* better, binary, mutation operator.
 * LFOs
   * support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
 * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
