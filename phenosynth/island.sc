@@ -193,3 +193,31 @@ PSIsland {
     iterations = 0;
   }
 }
+
+PSSynthDefIsland : PSIsland {
+  /* instead of checking my agents for fitness, I expect them to update
+  themselves. I poll them at a defined interval to do tending.*/
+  var <pollRate;
+  var worker;
+  var clock;
+  var <controller;
+  *new {| params, controller, pollRate=1|
+    ^super.new(params).init(controller, pollRate);
+  }
+  init {|newController, newPollRate|
+    controller = newController;
+    pollRate = newPollRate;
+    ^super.init;
+  }
+  evaluate {
+    //no-op
+  }
+  add {|phenotype|
+    super.add(phenotype);
+    controller.playIndividual(phenotype);
+  }
+  remove {|phenotype|
+    super.add(phenotype);
+    controller.freeIndividual(phenotype);
+  }
+}
