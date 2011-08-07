@@ -29,11 +29,11 @@ PSController {
     );
     outBus ?? {q.push({outBus = Bus.audio(server, numChannels)});};
   }
-  playIndividual {|phenome|
+  playIndividual {|phenotype|
     //this doesn't actually play - it sets up a callback to play
     q.push({
       var indDict;
-      indDict = this.getIndividualDict(phenome);
+      indDict = this.getIndividualDict(phenotype);
       this.loadIndividualDict(
         indDict
       );
@@ -41,24 +41,24 @@ PSController {
     });
   }
   loadIndividualDict{|indDict|
-    all.put(indDict.phenome.identityHash, indDict);
+    all.put(indDict.phenotype.identityHash, indDict);
   }
-  getIndividualDict {|phenome|
+  getIndividualDict {|phenotype|
     //this doesn't need to be called in the server queue;
     //but in general, one could so need.
-    ^(\phenome: phenome,
+    ^(\phenotype: phenotype,
       \playBus: outBus
     );
   }
   actuallyPlay {|indDict|
     q.push({
-      indDict.phenome.play(out:indDict.playBus, group:playGroup);
-      indDict.phenome.clockOn;
+      indDict.phenotype.play(out:indDict.playBus, group:playGroup);
+      indDict.phenotype.clockOn;
     });
   }
-  freeIndividual {|phenome|
-    var freed = all.at(phenome.identityHash);
-    all.removeAt(phenome.identityHash);
+  freeIndividual {|phenotype|
+    var freed = all.at(phenotype.identityHash);
+    all.removeAt(phenotype.identityHash);
     ^freed;
   }
 }
@@ -82,8 +82,8 @@ PSListenSynthController : PSController {
     clock = TempoClock.new(fitnessPollInterval.reciprocal, 1);
     worker = Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
   }
-  getIndividualDict {|phenome|
-    ^(\phenome: phenome,
+  getIndividualDict {|phenotype|
+    ^(\phenotype: phenotype,
       \playBus: Bus.audio(server, numChannels),
       \listenBus: Bus.control(server, 1)
     )
@@ -91,12 +91,12 @@ PSListenSynthController : PSController {
   actuallyPlay {|indDict|
     q.push({
       //play the synth to which we wish to listen
-      indDict.phenome.play(out:indDict.playBus, group:playGroup);
+      indDict.phenotype.play(out:indDict.playBus, group:playGroup);
       //analyse its output by listening to its bus
       Synth(this.class.listenSynth,
         this.getListenSynthArgs(indDict),
         listenGroup);
-      indDict.phenome.clockOn;
+      indDict.phenotype.clockOn;
       //re-route some output to the master input
       Synth(\jack, [\in, indDict.playBus, \out, outBus], listenGroup);
     });
@@ -104,8 +104,8 @@ PSListenSynthController : PSController {
   getListenSynthArgs{|indDict|
     ^[\in, indDict.playBus, \active, 1];
   }
-  freeIndividual {|phenome|
-    var freed = super.freeIndividual(phenome);
+  freeIndividual {|phenotype|
+    var freed = super.freeIndividual(phenotype);
     ^freed;
   }
   updateFitnesses {
@@ -113,8 +113,8 @@ PSListenSynthController : PSController {
       ['tick', indDict, key].postln;
       //server cmd, but doesn't need to be queued coz it's read-only.
       indDict.listenBus.get({|val|
-        ["got val", val, "for phenome id", key].postln;
-        indDict.phenome.fitness = val;
+        ["got val", val, "for phenotype id", key].postln;
+        indDict.phenotype.fitness = val;
       });
     });
   }

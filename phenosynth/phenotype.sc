@@ -35,7 +35,7 @@ PSPhenotype {
 }
 
 PSSynthDefPhenotype : PSPhenotype{
-  //A phenome mapping a chromosome to the inputs of a Synth
+  //A phenotype mapping a chromosome to the inputs of a Synth
   classvar <synthdef = \ps_reson_saw;
   classvar <map;
   var <mappedArgs;
