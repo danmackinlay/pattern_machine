@@ -1,4 +1,4 @@
-PSController {
+PSSwarmController {
   /*pass all server instructions through this guy to allow the instructions
   to be delivered in the right order and the boring bus/server allocation
   details to be abstracted away, and to track resources needing freeing.*/
@@ -63,7 +63,7 @@ PSController {
   }
 }
 
-PSListenSynthController : PSController {
+PSListenSynthSwarmController : PSSwarmController {
   /* Handle a number of simultaneous synths being digitally listened to
   */
   var <fitnessPollInterval;

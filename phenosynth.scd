@@ -4,7 +4,7 @@ Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(s, ~globalOuts);
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~control.playGroup;
 ~control.server;
 ~control.outBus;
