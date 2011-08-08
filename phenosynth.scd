@@ -1,9 +1,12 @@
 (
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
-
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
+~control.freeIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;

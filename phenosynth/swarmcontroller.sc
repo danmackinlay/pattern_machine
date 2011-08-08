@@ -52,13 +52,20 @@ PSSwarmController {
 	}
 	actuallyPlay {|indDict|
 		q.push({
-			indDict.phenotype.play(out:indDict.playBus, group:playGroup);
+			indDict.playSynth = indDict.phenotype.play(
+				out:indDict.playBus, group:playGroup
+			);
 			indDict.phenotype.clockOn;
 		});
 	}
 	freeIndividual {|phenotype|
-		var freed = all.at(phenotype.identityHash);
-		all.removeAt(phenotype.identityHash);
+		var freed;
+		freed = all.at(phenotype.identityHash);
+		[\freeing, freed].postln;
+		q.push({
+			all.removeAt(phenotype.identityHash);
+		  freed.playSynth.free;
+		});
 		^freed;
 	}
 }
@@ -91,14 +98,15 @@ PSListenSynthSwarmController : PSSwarmController {
 	actuallyPlay {|indDict|
 		q.push({
 			//play the synth to which we wish to listen
-			indDict.phenotype.play(out:indDict.playBus, group:playGroup);
+			indDict.playSynth = indDict.phenotype.play(
+				out:indDict.playBus, group:playGroup);
 			//analyse its output by listening to its bus
-			Synth(this.class.listenSynth,
+			indDict.listenSynth = Synth(this.class.listenSynth,
 				this.getListenSynthArgs(indDict),
 				listenGroup);
 			indDict.phenotype.clockOn;
 			//re-route some output to the master input
-			Synth(\jack, [\in, indDict.playBus, \out, outBus], listenGroup);
+			indDict.jackSynth = Synth(\jack, [\in, indDict.playBus, \out, outBus], listenGroup);
 		});
 	}
 	getListenSynthArgs{|indDict|
@@ -106,6 +114,10 @@ PSListenSynthSwarmController : PSSwarmController {
 	}
 	freeIndividual {|phenotype|
 		var freed = super.freeIndividual(phenotype);
+		q.push({
+			freed.playBus.free;
+			freed.listenBus.free;
+		});
 		^freed;
 	}
 	updateFitnesses {
