@@ -2,12 +2,6 @@
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
 
-s=Server.default;
-~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
-~control.playGroup;
-~control.server;
-~control.outBus;
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~ind.mappedArgs
@@ -20,13 +14,20 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 ~island = PSIsland.new;
-//~island.population[22];
-//~island.tend;
 ~island.go;
 ~island.population.collect({|i| i.fitness})
 ~island.iterations;
 )
 
+(
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~island = PSEarSwarmIsland.new(controller:~control);
+~island.go;
+~island.population.collect({|i| i.fitness})
+~island.iterations;
+)
 /*
 NOTES:
 
