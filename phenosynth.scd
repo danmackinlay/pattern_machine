@@ -2,12 +2,6 @@
 Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
 ~sample = Sample.new("tests/cariboutesque.aif");
 
-s=Server.default;
-~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(s, ~globalOuts);
-~control.playGroup;
-~control.server;
-~control.outBus;
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~ind.mappedArgs
@@ -20,13 +14,20 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 ~island = PSIsland.new;
-//~island.population[22];
-//~island.tend;
 ~island.go;
 ~island.population.collect({|i| i.fitness})
 ~island.iterations;
 )
 
+(
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~island = PSEarSwarmIsland.new(controller:~control);
+~island.go;
+~island.population.collect({|i| i.fitness})
+~island.iterations;
+)
 /*
 NOTES:
 
@@ -38,30 +39,30 @@ TODO:
 * provide a "migration phase" in which to check for extinction and restock.
 * better, binary, mutation operator.
 * LFOs
-  * support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
+	* support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
 * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
 * TODO: scale birthRate and deathRate so that they fit eventual fitness
 * reseed population when they all die
 * better aging calculations
 * sort out the interactions of all these different tick rates and periods.
 * Handle "free controls", values that are passed in live by the user. (esp for
-  triggers)
-  
-  * alter chromosome if Specs are changed through UI or any other means, using
-    all that Dependent business
+	triggers)
+	
+	* alter chromosome if Specs are changed through UI or any other means, using
+		all that Dependent business
 
 * Give the faintest of indications that I do care about tests
 
 * allow custom evolvability mappings and starting chromosome.
 * I've just noticed that MCLD has been facing the same problem and made
-  classes similar in spirit to mine, as regards selecting the phenotypes
-  rather than genotypes, as the NLTK does:
-  http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
+	classes similar in spirit to mine, as regards selecting the phenotypes
+	rather than genotypes, as the NLTK does:
+	http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
 * do free/cleanup logic
 * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
 * less arbitrary immigration
 * consistently use either class or instance methods for selection/mutation
-  operators
+	operators
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
