@@ -25,10 +25,6 @@ PSIsland {
 	// a state *dictionary*
 	var <iterations = 0;
 	
-	//this is a Condition to indicate when the thing is done, since you
-	//probably don't want it happening in a main thread.
-	var doneFlag;
-	
 	//some default population massaging functions
 	//since we can't define naked functions in a classvar, we set these up in 
 	//the *defaultOperators method.
@@ -107,7 +103,6 @@ PSIsland {
 	init {
 		this.initOperators;
 		population = List.new;
-		doneFlag = Condition.new(false)
 	}
 	initOperators {
 		deathSelector = this.class.defaultDeathSelector;
@@ -172,10 +167,15 @@ PSIsland {
 	}
 	go {
 		//The fire button. trigger this, and the simulation will run until it is bored
-		var delay;
-		doneFlag.test = false;
+		var iterator;
 		this.populate;
-		while(
+		iterator = this.iterator;
+		while {iterator.next } {
+			iterations.postln;
+		};
+	}
+	iterator {
+		^Routine.new({while(
 			{
 				terminationCondition.value(
 					params, population, iterations
@@ -184,12 +184,42 @@ PSIsland {
 			{
 				this.tend;
 				[\iterations, iterations].postln;
-			}
+				true.yield;
+			};
 		);
+		false.yield;}, stackSize: 1024);
 	}
 	reset {
 		this.cull(population);
 		this.populate;
 		iterations = 0;
+	}
+}
+
+PSRealTimeIsland : PSIsland {
+	/* instead of checking my agents for fitness, I expect them to update
+	themselves. I poll them at a defined interval to do tending.*/
+	var <pollPeriod;
+	var worker;
+	var clock;
+	*new {| params, pollPeriod=1|
+		^super.new(params).init(pollPeriod);
+	}
+	init {|newPollPeriod|
+		pollPeriod = newPollPeriod;
+		^super.init;
+	}
+	evaluate {
+		//no-op
+	}
+	go {
+		var iterator;
+		this.populate;
+		clock = TempoClock.new(pollPeriod.reciprocal, 1);
+		iterator = this.iterator;
+		worker = Routine.new({
+			while {iterator.next;}
+			  { 1.yield;}
+		}).play(clock);
 	}
 }
