@@ -122,10 +122,10 @@ PSListenSynthSwarmController : PSSwarmController {
 	}
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
-			['tick', indDict, key].postln;
+			//['tick', indDict, key].postln;
 			//server cmd, but doesn't need to be queued coz it's read-only.
 			indDict.listenBus.get({|val|
-				["got val", val, "for phenotype id", key].postln;
+				//["got val", val, "for phenotype id", key].postln;
 				indDict.phenotype.fitness = val;
 			});
 		});

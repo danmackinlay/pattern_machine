@@ -28,6 +28,7 @@ s=Server.default;
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~island = PSEarSwarmIsland.new(controller:~control);
 ~island.go;
+~island.controller.all[357057515].
 ~island.population.collect({|i| i.fitness})
 ~island.iterations;
 )
@@ -38,6 +39,7 @@ NOTES:
 TODO:
 
 * provide a way to unwarp as well as warp chromosomes
+* handle zero-fitness populations in the parent and death selector
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 * provide a "migration phase" in which to check for extinction and restock.
 * better, binary, mutation operator.
