@@ -90,10 +90,13 @@ PSListenSynthSwarmController : PSSwarmController {
 		worker = Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
 	}
 	getIndividualDict {|phenotype|
-		^(\phenotype: phenotype,
-			\playBus: Bus.audio(server, numChannels),
-			\listenBus: Bus.control(server, 1)
-		)
+		var indDict;
+		indDict = (\phenotype: phenotype);
+		q.push({
+			indDict.playBus = Bus.audio(server, numChannels);
+			indDict.listenBus = Bus.control(server, 1);
+		});
+		^indDict;
 	}
 	actuallyPlay {|indDict|
 		q.push({
