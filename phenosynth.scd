@@ -31,7 +31,8 @@ s.volume.gui;
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.go;
-~island.population.collect({|i| i.fitness}).size;
+~island.population.collect({|i| i.fitness});
+~island.population.collect({|i| i.wallClockAge});
 ~island.controller.all[~island.population[3].identityHash].listenBus.get({|v| [\HEY,v].postln;})
 ~island.controller.all[~island.population[3].identityHash].listenBus;
 ~island.controller.all[~island.population[3].identityHash].listenSynth.get(\in);
