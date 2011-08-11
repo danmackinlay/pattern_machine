@@ -24,13 +24,20 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 s=Server.default;
+s.volume.gui;
 ~globalOuts = Bus.new(\audio, 0, 2);
+~voxgroup = Group.new(s);
+//~outgroup = Group.after(~voxgroup);
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~island = PSEarSwarmIsland.new(controller:~control);
 ~island.go;
-~island.controller.all[357057515].
-~island.population.collect({|i| i.fitness})
+~island.population.collect({|i| i.fitness}).size;
+~island.controller.all[~island.population[3].identityHash].listenBus.get({|v| [\HEY,v].postln;})
+~island.controller.all[~island.population[3].identityHash].listenBus;
+~island.controller.all[~island.population[3].identityHash].listenSynth.get(\in);
+~island.controller.all[~island.population[3].identityHash].listenSynth.get(\out);
 ~island.iterations;
+
 )
 /*
 NOTES:
@@ -38,6 +45,7 @@ NOTES:
 
 TODO:
 
+* present the default operators as class methods on some class so they look like packaged functions.
 * provide a way to unwarp as well as warp chromosomes
 * handle zero-fitness populations in the parent and death selector
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 

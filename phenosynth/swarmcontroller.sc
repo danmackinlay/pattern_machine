@@ -110,7 +110,9 @@ PSListenSynthSwarmController : PSSwarmController {
 		});
 	}
 	getListenSynthArgs{|indDict|
-		^[\in, indDict.playBus, \active, 1];
+		var listenArgs;
+		listenArgs = [\in, indDict.playBus, \out, indDict.listenBus, \active, 1];
+		^listenArgs;
 	}
 	freeIndividual {|phenotype|
 		var freed = super.freeIndividual(phenotype);
@@ -125,7 +127,7 @@ PSListenSynthSwarmController : PSSwarmController {
 			//['tick', indDict, key].postln;
 			//server cmd, but doesn't need to be queued coz it's read-only.
 			indDict.listenBus.get({|val|
-				//["got val", val, "for phenotype id", key].postln;
+				//["got val", val, "for phenotype id", key, "on", indDict.listenBus].postln;
 				indDict.phenotype.fitness = val;
 			});
 		});
@@ -137,6 +139,8 @@ PSServerQueue {
 	
 	I know this looks overblown, but it sure does stop the wacky, unpredictable
 	explosions I was having before.
+	
+	On the other hand, this is as slow as hell. Smart bundling would be better.
 	*/
 	var <server;
 	var <fifo;

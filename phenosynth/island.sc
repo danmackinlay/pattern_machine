@@ -171,7 +171,7 @@ PSIsland {
 		this.populate;
 		iterator = this.iterator;
 		while {iterator.next } {
-			iterations.postln;
+			//action happens in iterator
 		};
 	}
 	iterator {
@@ -219,7 +219,9 @@ PSRealTimeIsland : PSIsland {
 		iterator = this.iterator;
 		worker = Routine.new({
 			while {iterator.next;}
-			  { 1.yield;}
+				{ 
+					1.yield;
+				}
 		}).play(clock);
 	}
 }
