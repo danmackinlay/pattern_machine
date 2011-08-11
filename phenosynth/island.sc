@@ -97,7 +97,7 @@ PSIsland {
 	
 	*new {|params|
 		^super.newCopyArgs(
-			params ? this.defaultParams
+			this.defaultParams.updatedFrom(params);
 		).init;
 	}
 	init {
@@ -203,6 +203,7 @@ PSRealTimeIsland : PSIsland {
 	var worker;
 	var clock;
 	*new {| params, pollPeriod=1|
+		//Why is pollPeriod not part of params?
 		^super.new(params).init(pollPeriod);
 	}
 	init {|newPollPeriod|

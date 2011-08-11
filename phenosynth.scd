@@ -29,7 +29,7 @@ s.volume.gui;
 ~voxgroup = Group.new(s);
 //~outgroup = Group.after(~voxgroup);
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
-~island = PSEarSwarmIsland.new(controller:~control);
+~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.go;
 ~island.population.collect({|i| i.fitness}).size;
 ~island.controller.all[~island.population[3].identityHash].listenBus.get({|v| [\HEY,v].postln;})
@@ -37,7 +37,6 @@ s.volume.gui;
 ~island.controller.all[~island.population[3].identityHash].listenSynth.get(\in);
 ~island.controller.all[~island.population[3].identityHash].listenSynth.get(\out);
 ~island.iterations;
-
 )
 /*
 NOTES:
