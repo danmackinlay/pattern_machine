@@ -21,4 +21,9 @@ PSEarSwarmIsland : PSRealTimeIsland {
 		super.add(phenotype);
 		controller.freeIndividual(phenotype);
 	}
+	free {
+		^super.free;
+		//TODO:
+		//controller.free;
+	}
 }

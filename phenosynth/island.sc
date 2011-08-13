@@ -56,8 +56,7 @@ PSIsland {
 			\individualClass: PSPhenotype,
 			\mutationProb: 0.1,
 			\mutationSize: 0.1,
-			\stopIterations: 10000,
-			\delay: 0.0001 //delay in seconds between cycles to stop explosions
+			\stopIterations: 10000
 		);
 	}
 	
@@ -165,7 +164,7 @@ PSIsland {
 		this.breed(toBreed);
 		iterations = iterations + 1;
 	}
-	go {
+	play {
 		//The fire button. trigger this, and the simulation will run until it is bored
 		var iterator;
 		this.populate;
@@ -173,6 +172,9 @@ PSIsland {
 		while {iterator.next } {
 			//action happens in iterator
 		};
+	}
+	free {
+		//nothing to free here. move along.
 	}
 	iterator {
 		^Routine.new({while(
@@ -213,7 +215,8 @@ PSRealTimeIsland : PSIsland {
 	evaluate {
 		//no-op
 	}
-	go {
+	play {
+		//note this does not call parent.
 		var iterator;
 		this.populate;
 		clock = TempoClock.new(pollPeriod.reciprocal, 1);
@@ -224,5 +227,10 @@ PSRealTimeIsland : PSIsland {
 					1.yield;
 				}
 		}).play(clock);
+	}
+	free {
+		super.free;
+		worker.free;
+		clock.free;
 	}
 }

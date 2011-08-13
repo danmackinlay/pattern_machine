@@ -17,20 +17,21 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 ~island = PSIsland.new;
-~island.go;
+~island.play;
 ~island.population.collect({|i| i.fitness})
 ~island.iterations;
 )
 
 (
 s=Server.default;
-s.volume.gui;
+//s.volume.gui;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~voxgroup = Group.new(s);
 //~outgroup = Group.after(~voxgroup);
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
-~island.go;
+~island.play;
+~island.params;
 ~island.population.collect({|i| i.fitness});
 ~island.population.collect({|i| i.wallClockAge});
 ~island.controller.all[~island.population[3].identityHash].listenBus.get({|v| [\HEY,v].postln;})
@@ -51,6 +52,7 @@ TODO:
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 * provide a "migration phase" in which to check for extinction and restock.
 * better, binary, mutation operator.
+* make Queues killable by allowing poison pills onto the queue.
 * LFOs
 	* support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
 * give lifespans using the exponential distribution \lambda \e ^-\lambda \e

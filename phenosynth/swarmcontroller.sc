@@ -37,7 +37,7 @@ PSSwarmController {
 			this.loadIndividualDict(
 				indDict
 			);
-			this.actuallyPlay(indDict);
+			this.actuallyPlayIndividual(indDict);
 		});
 	}
 	loadIndividualDict{|indDict|
@@ -50,7 +50,8 @@ PSSwarmController {
 			\playBus: outBus
 		);
 	}
-	actuallyPlay {|indDict|
+	actuallyPlayIndividual {|indDict|
+		//private.
 		q.push({
 			indDict.playSynth = indDict.phenotype.play(
 				out:indDict.playBus, group:playGroup
@@ -66,6 +67,9 @@ PSSwarmController {
 		  freed.playSynth.free;
 		});
 		^freed;
+	}
+	free {
+		all.do({|i| this.freeIndividual(i);});
 	}
 }
 
@@ -97,7 +101,7 @@ PSListenSynthSwarmController : PSSwarmController {
 		});
 		^indDict;
 	}
-	actuallyPlay {|indDict|
+	actuallyPlayIndividual {|indDict|
 		q.push({
 			//play the synth to which we wish to listen
 			indDict.playSynth = indDict.phenotype.play(
@@ -118,7 +122,7 @@ PSListenSynthSwarmController : PSSwarmController {
 	}
 	freeIndividual {|phenotype|
 		var freed = super.freeIndividual(phenotype);
-		q.push({
+		freed ?? q.push({
 			freed.playBus.free;
 			freed.listenBus.free;
 		});
