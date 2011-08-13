@@ -61,9 +61,8 @@ PSSwarmController {
 	freeIndividual {|phenotype|
 		var freed;
 		freed = all.at(phenotype.identityHash);
-		[\freeing, freed].postln;
-		q.push({
-			all.removeAt(phenotype.identityHash);
+		all.removeAt(phenotype.identityHash);
+		freed ?? q.push({
 		  freed.playSynth.free;
 		});
 		^freed;
