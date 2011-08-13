@@ -26,13 +26,15 @@ PSDeathSelectors {
 	*byRoulettePerRate {|params, population|
 		//choose enough doomed to meet the death rate on average, by fitness-
 		// weighted roulette
-		var hitList, localFitnesses, negFitnesses, meanFitness, rate;
+		var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, rate;
 		rate = params.deathRate;
 		localFitnesses = population.collect({|i| i.fitness;});
-		negFitnesses = localFitnesses.reciprocal;
+		maxFitness = localFitnesses.maxItem;
+		negFitnesses = maxFitness - localFitnesses;
 		meanFitness = negFitnesses.mean;
 		hitList = population.select(
-			{|i| ((((i.fitness.reciprocal)/meanFitness)*rate).coin)});
+			{|i| ((((maxFitness - i.fitness)/meanFitness)*rate).coin)}
+		);
 		^hitList;
 	}
 }
@@ -51,11 +53,7 @@ PSBirthSelectors {
 			params.numParents.collect(
 				population.wchoose(localFitnesses)
 			)
-		);		
-		["parentList fitness",
-			parentList.flat.collect({|i| i.fitness;}).mean,
-			"vs",
-			meanFitness ].postln;
+		);
 		^parentList;
 	}
 }
