@@ -17,14 +17,18 @@ Bus.new(\audio, 60, 1).scope;
 
 (
 s=Server.default;
-s.volume.gui;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~voxgroup = Group.new(s);
-//~outgroup = Group.after(~voxgroup);
+~outgroup = Group.after(~voxgroup);
+~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
+~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
+s.volume.gui;
+s.volume.volume= -20;
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.play;
 ~island.free;
+~island.worker.free;
 ~island.params;
 ~island.population.collect({|i| i.fitness});
 ~island.population.size;
@@ -32,7 +36,7 @@ s.volume.gui;
 ~island.controller.all.size;
 ~island.population.collect({|i| i.wallClockAge});
 ~island.controller.all[~island.population[3].identityHash].listenBus.get({|v| [\HEY,v].postln;})
-~island.controller.all[~island.population[3].identityHash].listenBus;
+~island.controller.all[~island.population[3].identityHash]
 ~island.controller.all[~island.population[3].identityHash].listenSynth.get(\in);
 ~island.controller.all[~island.population[3].identityHash].listenSynth.get(\out);
 )
@@ -45,6 +49,7 @@ NOTES:
 TODO:
 
 * present the default operators as class methods on some class so they look like packaged functions.
+* serialize phenotypes to disk so evolutjion can be resumed.
 * provide a way to unwarp as well as warp chromosomes
 * handle zero-fitness populations in the parent and death selector
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 

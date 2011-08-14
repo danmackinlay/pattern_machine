@@ -31,9 +31,11 @@ PSSwarmController {
 	}
 	playIndividual {|phenotype|
 		//this doesn't actually play - it sets up a callback to play
+		var indDict;
+		indDict = (\phenotype: phenotype);
+		all.put(indDict.phenotype.identityHash, indDict);
 		q.push({
-			var indDict;
-			indDict = this.getIndividualDict(phenotype);
+			this.decorateIndividualDict(indDict);
 			this.loadIndividualDict(
 				indDict
 			);
@@ -43,12 +45,10 @@ PSSwarmController {
 	loadIndividualDict{|indDict|
 		all.put(indDict.phenotype.identityHash, indDict);
 	}
-	getIndividualDict {|phenotype|
+	decorateIndividualDict {|indDict|
 		//this doesn't need to be called in the server queue;
-		//but in general, one could so need.
-		^(\phenotype: phenotype,
-			\playBus: outBus
-		);
+		//but in general, one could so need in, e.g., subclasses.
+		indDict.playBus = outBus;
 	}
 	actuallyPlayIndividual {|indDict|
 		//private.
@@ -61,15 +61,14 @@ PSSwarmController {
 	}
 	freeIndividual {|phenotype|
 		var freed;
-		freed = all.at(phenotype.identityHash);
-		all.removeAt(phenotype.identityHash);
+		freed = all.removeAt(phenotype.identityHash);
 		freed ?? q.push({
 		  freed.playSynth.free;
 		});
 		^freed;
 	}
 	free {
-		all.do({|i| this.freeIndividual(i);});
+		all.do({|i| this.freeIndividual(i.phenotype);});
 	}
 }
 
@@ -92,9 +91,7 @@ PSListenSynthSwarmController : PSSwarmController {
 		clock = TempoClock.new(fitnessPollInterval.reciprocal, 1);
 		worker = Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
 	}
-	getIndividualDict {|phenotype|
-		var indDict;
-		indDict = (\phenotype: phenotype);
+	decorateIndividualDict {|indDict|
 		q.push({
 			indDict.playBus = Bus.audio(server, numChannels);
 			indDict.listenBus = Bus.control(server, 1);
@@ -174,6 +171,13 @@ PSServerQueue {
 	}
 	push {|job|
 		fifo.addFirst(job);
+		doneFlag.unhang;
+	}
+	free {
+		this.push({this.actuallyFree;});
+	}
+	actuallyFree {
+		worker.free;
 		doneFlag.unhang;
 	}
 }

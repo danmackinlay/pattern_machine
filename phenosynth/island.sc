@@ -37,6 +37,9 @@ PSIsland {
 	classvar <defaultFitnessEvaluator;
 	classvar <defaultTerminationCondition;
 	
+	//flag to stop iterator gracefuly.
+	var playing = false;
+	
 	*initClass {
 		StartUp.add({
 			this.defaultOperators;
@@ -168,20 +171,22 @@ PSIsland {
 		//The fire button. trigger this, and the simulation will run until it is bored
 		var iterator;
 		this.populate;
+		playing = true;
 		iterator = this.iterator;
 		while {iterator.next } {
 			//action happens in iterator
 		};
 	}
 	free {
-		//nothing to free here. move along.
+		playing = false;
 	}
 	iterator {
 		^Routine.new({while(
 			{
-				terminationCondition.value(
+				(terminationCondition.value(
 					params, population, iterations
-				).not 
+				).not) && 
+				playing 
 			},
 			{
 				this.tend;
@@ -189,7 +194,7 @@ PSIsland {
 				true.yield;
 			};
 		);
-		false.yield;}, stackSize: 1024);
+		false.yield;}, stackSize: 1024);//seems to overflow easily?
 	}
 	reset {
 		this.cull(population);
@@ -202,7 +207,7 @@ PSRealTimeIsland : PSIsland {
 	/* instead of checking my agents for fitness, I expect them to update
 	themselves. I poll them at a defined interval to do tending.*/
 	var <pollPeriod;
-	var worker;
+	var <worker;
 	var clock;
 	*new {| params, pollPeriod=1|
 		//Why is pollPeriod not part of params?
@@ -221,6 +226,7 @@ PSRealTimeIsland : PSIsland {
 		this.populate;
 		clock = TempoClock.new(pollPeriod.reciprocal, 1);
 		iterator = this.iterator;
+		playing = true;
 		worker = Routine.new({
 			while {iterator.next;}
 				{ 
@@ -231,6 +237,6 @@ PSRealTimeIsland : PSIsland {
 	free {
 		super.free;
 		worker.free;
-		clock.free;
+		clock.stop;
 	}
 }
