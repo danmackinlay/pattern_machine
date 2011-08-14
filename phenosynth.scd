@@ -29,6 +29,7 @@ s.volume.volume= -20;
 ~island.play;
 ~island.free;
 ~island.worker.free;
+~island.controller.free;
 ~island.params;
 ~island.population.collect({|i| i.fitness});
 ~island.population.size;
@@ -48,8 +49,9 @@ NOTES:
 
 TODO:
 
-* present the default operators as class methods on some class so they look like packaged functions.
-* serialize phenotypes to disk so evolutjion can be resumed.
+* envelope synth deletion
+  * use Synth doneActions and per-listener groups to free all resources on demand
+* serialize phenotypes to disk so evolution can be resumed.
 * provide a way to unwarp as well as warp chromosomes
 * handle zero-fitness populations in the parent and death selector
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 

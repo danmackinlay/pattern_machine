@@ -38,6 +38,7 @@ PSSynthDefPhenotype : PSPhenotype{
 	//A phenotype mapping a chromosome to the inputs of a Synth
 	classvar <synthdef = \ps_reson_saw;
 	classvar <map;
+	classvar <synth; //mixed feeling about letting phenosynths hold a reference to their own synth
 	var <mappedArgs;
 	*initClass {
 		StartUp.add {
@@ -52,8 +53,8 @@ PSSynthDefPhenotype : PSPhenotype{
 				var time = 1;
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
-					gate: gate//,
-					//doneAction: 2
+					gate: gate,
+					doneAction: 2
 				);
 				Out.ar(out, Resonz.ar(
 					Saw.ar(pitch),
@@ -71,11 +72,15 @@ PSSynthDefPhenotype : PSPhenotype{
 	}
 	play {|out, group|
 		mappedArgs = this.chromosomeAsSynthArgs;
-		^Synth.new(
+		synth = Synth.new(
 			this.class.synthdef,
 			args: [\out, out, \gate, 1] ++ mappedArgs,
 			target: group
 		)
+		^synth;
+	}
+	free {
+		synth.set(\gate, 0);
 	}
 	chromosomeAsSynthArgs {
 /*		This list comprehension is not especially clear now, is it?

@@ -63,7 +63,9 @@ PSSwarmController {
 		var freed;
 		freed = all.removeAt(phenotype.identityHash);
 		freed ?? q.push({
-		  freed.playSynth.free;
+			//these should be separated, or the second elimiated by the first.
+			freed.phenotype.free;//closes envelope
+		  freed.playSynth.free;//forces synth to free
 		});
 		^freed;
 	}
