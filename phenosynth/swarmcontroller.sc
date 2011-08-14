@@ -120,6 +120,7 @@ PSListenSynthSwarmController : PSSwarmController {
 	freeIndividual {|phenotype|
 		var freed = super.freeIndividual(phenotype);
 		freed ?? q.push({
+			freed.listenSynth.free;
 			freed.playBus.free;
 			freed.listenBus.free;
 		});
