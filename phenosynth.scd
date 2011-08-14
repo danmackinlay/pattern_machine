@@ -1,6 +1,34 @@
 (
-Sample.dir = "/Users/dan/Library/Application Support/Ableton/Library/Samples/";
-~sample = Sample.new("tests/cariboutesque.aif");
+//initialisation:
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~voxgroup = Group.new(s);
+~outgroup = Group.after(~voxgroup);
+//limiter, to avoid little accidents
+~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
+~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
+s.volume.gui;
+s.volume.volume= -20;
+//actual real work nowl first choose the controller that will manage the synths
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+//now set up the "isalnd" that will control their evolution
+~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
+~island.play;
+//listen for a while.
+
+//testing that things are going OK:
+~island.population.collect({|i| i.fitness});
+~island.population.collect({|i| i.wallClockAge});
+//these should only ever differ momentarily
+~island.population.size;
+
+//when you are bored, do a
+~island.free;
+//(you might need to do it twice. I'm working on that.)
+)
+
+(
+//How the controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSListenSynthSwarmController.new(s, ~globalOuts);
@@ -12,34 +40,6 @@ s=Server.default;
 ~ind.chromosome;
 10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
-Bus.new(\audio, 60, 1).scope;
-)
-
-(
-s=Server.default;
-~globalOuts = Bus.new(\audio, 0, 2);
-~voxgroup = Group.new(s);
-~outgroup = Group.after(~voxgroup);
-~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
-~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
-s.volume.gui;
-s.volume.volume= -20;
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
-~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
-~island.play;
-~island.free;
-~island.worker.free;
-~island.controller.free;
-~island.params;
-~island.population.collect({|i| i.fitness});
-~island.population.size;
-~island.population.do({|i| i.postln;});
-~island.controller.all.size;
-~island.population.collect({|i| i.wallClockAge});
-~island.controller.all[~island.population[3].identityHash].listenBus.get({|v| [\HEY,v].postln;})
-~island.controller.all[~island.population[3].identityHash]
-~island.controller.all[~island.population[3].identityHash].listenSynth.get(\in);
-~island.controller.all[~island.population[3].identityHash].listenSynth.get(\out);
 )
 
 
