@@ -14,7 +14,12 @@ PSMutators {
 		rate = params.mutationProb * (chromosome.size.reciprocal);
 		chromosome.do({|val, index|
 			(rate.coin).if ({
-				chromosome[index] = (val + amp.sum3rand).wrap(0, 1);
+				//exponentially distributed mutations to mimic flipping bits in 
+				//32 bit binary floats. lazy, inefficient, effective.
+				chromosome[index] = (val + 
+					(2.0 ** (32.0.rand.neg)) *
+					(2.rand*2-1)
+				).wrap(0, 1);
 			});
 		});
 		^chromosome;

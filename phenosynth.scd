@@ -14,6 +14,7 @@ s.volume.volume= -20;
 //now set up the "isalnd" that will control their evolution
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.play;
+
 //listen for a while.
 
 //testing that things are going OK:
@@ -49,14 +50,15 @@ NOTES:
 
 TODO:
 
+* age-sensitive selection
 * envelope synth deletion
   * use Synth doneActions and per-listener groups to free all resources on demand
+* watch out for those double /n_frees - might break something.
 * serialize phenotypes to disk so evolution can be resumed.
 * provide a way to unwarp as well as warp chromosomes
 * handle zero-fitness populations in the parent and death selector
 * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 * provide a "migration phase" in which to check for extinction and restock.
-* better, binary, mutation operator.
 * LFOs
 	* support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
 * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
