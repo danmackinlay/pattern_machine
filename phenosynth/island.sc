@@ -167,6 +167,9 @@ PSIsland {
 		this.breed(toBreed);
 		iterations = iterations + 1;
 	}
+	fitnesses {
+		^population.collect(_.fitness);
+	}
 	play {
 		//The fire button. trigger this, and the simulation will run until it is bored
 		var iterator;
@@ -190,7 +193,7 @@ PSIsland {
 			},
 			{
 				this.tend;
-				[\iterations, iterations].postln;
+				[\iterations, iterations, this.fitnesses.mean].postln;
 				true.yield;
 			};
 		);

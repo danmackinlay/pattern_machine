@@ -18,7 +18,7 @@ s.volume.volume= -20;
 //listen for a while.
 
 //testing that things are going OK:
-~island.population.collect({|i| i.fitness});
+~island.fitnesses;
 ~island.population.collect({|i| i.wallClockAge});
 //these should only ever differ momentarily
 ~island.population.size;
