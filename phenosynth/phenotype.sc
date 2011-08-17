@@ -27,14 +27,16 @@ PSPhenotype {
 		birthTime = Date.gmtime.rawSeconds;
 	}
 	wallClockAge {
-		^Date.gmtime.rawSeconds - birthTime
+		birthTime.isNil.if({^0.0}, {
+			^Date.gmtime.rawSeconds - birthTime;
+		});
 	}
 	printOn { arg stream;
 		stream << this.class.asString <<"(" << chromosome << ")";
 	}
 }
 
-PSSynthDefPhenotype : PSPhenotype{
+PSSynthDefPhenotype : PSPhenotype {
 	//A phenotype mapping a chromosome to the inputs of a Synth
 	classvar <synthdef = \ps_reson_saw;
 	classvar <map;
@@ -83,7 +85,7 @@ PSSynthDefPhenotype : PSPhenotype{
 		synth.set(\gate, 0);
 	}
 	chromosomeAsSynthArgs {
-/*		This list comprehension is not especially clear now, is it?
+		/*This list comprehension is not especially clear now, is it?
 		What it does is zip together the key, map spec and value 
 		lists into one, then iterates over this, returning mapped values
 		associated with their keys as a synth expects*/

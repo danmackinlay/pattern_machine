@@ -50,7 +50,9 @@ NOTES:
 
 TODO:
 
+* support "fitness injection" - doing custom pre-processing on fitness?
 * age-sensitive selection
+* nont accumulating, genotype-style selection
 * envelope synth deletion
   * use Synth doneActions and per-listener groups to free all resources on demand
 * watch out for those double /n_frees - might break something.

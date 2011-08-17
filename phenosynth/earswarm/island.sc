@@ -1,9 +1,11 @@
+//Things specific to  my diabolical schemes - i.e. phenotypic selection on swarming agents
+
 PSEarSwarmIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a controller abstraction*/
 	var <controller;
 	*defaultParams {
 		var defParams = super.defaultParams;
-		defParams.individualClass = PSSynthDefPhenotype;
+		defParams.individualClass = PSEarSwarmPhenotype;
 		^defParams;
 	}
 	*new {| params, pollPeriod=1, controller|
