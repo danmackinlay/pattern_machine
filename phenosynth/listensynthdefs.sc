@@ -13,8 +13,8 @@ PSBasicJudgeSynths {
 		}).add;
 		// This judge is one of the simplest I can think of (for demo purposes) 
 		// - evaluates closeness of pitch to a reference value (800 Hz).
-		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=0, t_reset=0, i_targetpitch=800|
-			var testsig, comparison, integral, freq, hasFreq, logtargetpitch;
+		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=0, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
+			var testsig, comparison, integral, freq, hasFreq, logtargetpitch, realleakcoef;
 			logtargetpitch = i_targetpitch.log;
 			testsig = LeakDC.ar(Mix.ar(In.ar(in, 1)));
 			# freq, hasFreq = Pitch.kr(testsig);
@@ -26,9 +26,13 @@ PSBasicJudgeSynths {
 
 			// Divide by the server's control rate to bring it within a sensible range.
 			comparison = comparison / ControlRate.ir;
-		
+			
 			// Default coefficient of 1.0 = no leak. When t_reset briefly hits nonzero, the integrator drains.
-			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
+			// i_leakcoef <1 scales this down by a certain amount of leakage per second
+			realleakcoef = (i_leakcoef.log/ControlRate.ir).exp;
+			
+			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, realleakcoef));
+			
 			Out.kr(out, integral);
 		}).add;
 	}

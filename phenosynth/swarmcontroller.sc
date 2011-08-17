@@ -116,7 +116,7 @@ PSListenSynthSwarmController : PSSwarmController {
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
-		listenArgs = [\in, indDict.playBus, \out, indDict.listenBus, \active, 1];
+		listenArgs = [\in, indDict.playBus, \out, indDict.listenBus, \active, 1, \i_leakcoef, 1.0];
 		^listenArgs;
 	}
 	freeIndividual {|phenotype|
