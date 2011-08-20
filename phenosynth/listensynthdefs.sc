@@ -13,7 +13,7 @@ PSBasicJudgeSynths {
 		}).add;
 		// This judge is one of the simplest I can think of (for demo purposes) 
 		// - evaluates closeness of pitch to a reference value (800 Hz).
-		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=0, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
+		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 			var testsig, comparison, integral, freq, hasFreq, logtargetpitch, realleakcoef;
 			logtargetpitch = i_targetpitch.log;
 			testsig = LeakDC.ar(Mix.ar(In.ar(in, 1)));
@@ -36,7 +36,7 @@ PSBasicJudgeSynths {
 			Out.kr(out, integral);
 		}).add;
 		SynthDef.new(\ps_conv_eight_hundred,
-			{ |in, out, active=0, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|      
+			{ |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|      
 				var testsig, comparison, integral, realleakcoef;
 				testsig = LeakDC.ar(Mix.ar(In.ar(in, 1)));
 				comparison = (

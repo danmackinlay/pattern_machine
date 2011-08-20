@@ -30,7 +30,17 @@ s.volume.volume= -20;
 ~island.free;
 //(you might need to do it twice. I'm working on that.)
 )
-
+(
+~playGroup = Group.new(s);
+~listenGroup = Group.after(~playGroup);
+~audioBus = Bus.audio(s, 1);
+~fitBus = Bus.control(s,1);
+SynthDef.new(\sawy, {|out, freq| Out.ar(out, Saw.ar(freq));}).add;
+~play = Synth.new(\sawy, [\out, ~audioBus, \freq, 300], ~playGroup);
+~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~listenGroup);
+~play.set(\freq, 850);
+~fitBus.get(_.postln);
+)
 (
 //How the controller works, nuts-and-bolts
 s=Server.default;
@@ -45,7 +55,6 @@ s=Server.default;
 10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
-
 /*
 NOTES:
 
