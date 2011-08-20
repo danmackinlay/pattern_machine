@@ -12,7 +12,7 @@ s=Server.default;
 s.volume.gui;
 s.volume.volume= -20;
 //actual real work nowl first choose the controller that will manage the synths
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~control = PSEarSwarmController(s, ~globalOuts);
 //now set up the "isalnd" that will control their evolution
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.play;
