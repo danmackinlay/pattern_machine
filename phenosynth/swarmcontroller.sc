@@ -53,7 +53,7 @@ PSSwarmController {
 	actuallyPlayIndividual {|indDict|
 		//private.
 		q.push({
-			indDict.playSynth = indDict.phenotype.play(
+			indDict.playSynth = indDict.phenotype.asSynth(
 				out:indDict.playBus, group:playGroup
 			);
 			indDict.phenotype.clockOn;
@@ -62,10 +62,12 @@ PSSwarmController {
 	freeIndividual {|phenotype|
 		var freed;
 		freed = all.removeAt(phenotype.identityHash);
-		freed ?? q.push({
-			//these should be separated, or the second elimiated by the first.
-			freed.phenotype.free;//closes envelope
-		  freed.playSynth.free;//forces synth to free
+		freed.isNil.not.if({
+			q.push({
+				//these should be separated, or the second eliminated by the first.
+				freed.phenotype.stop(freed.playSynth);//closes envelope
+				freed.playSynth.free;//forces synth to free
+			});
 		});
 		^freed;
 	}
@@ -103,7 +105,7 @@ PSListenSynthSwarmController : PSSwarmController {
 	actuallyPlayIndividual {|indDict|
 		q.push({
 			//play the synth to which we wish to listen
-			indDict.playSynth = indDict.phenotype.play(
+			indDict.playSynth = indDict.phenotype.asSynth(
 				out:indDict.playBus, group:playGroup);
 			//analyse its output by listening to its bus
 			indDict.listenSynth = Synth(this.class.listenSynth,
@@ -120,21 +122,21 @@ PSListenSynthSwarmController : PSSwarmController {
 		^listenArgs;
 	}
 	freeIndividual {|phenotype|
-		var freed = super.freeIndividual(phenotype);
-		freed ?? q.push({
-			freed.listenSynth.free;
-			freed.jackSynth.free;
-			freed.playBus.free;
-			freed.listenBus.free;
+		var freed = super.freeIndividual(phenotype);		
+		freed.isNil.not.if({
+			q.push({
+				freed.playBus.free;
+				freed.listenBus.free;
+				freed.listenSynth.free;
+				freed.jackSynth.free;
+			});
 		});
 		^freed;
 	}
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
-			//['tick', indDict, key].postln;
 			//server cmd, but doesn't need to be queued coz it's read-only.
 			indDict.listenBus.get({|val|
-				//["got val", val, "for phenotype id", key, "on", indDict.listenBus].postln;
 				indDict.phenotype.fitness = val;
 			});
 			indDict.phenotype.incAge;

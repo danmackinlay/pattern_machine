@@ -14,7 +14,7 @@ s.volume.volume= -20;
 //actual real work nowl first choose the controller that will manage the synths
 ~control = PSEarSwarmController(s, ~globalOuts);
 //now set up the "isalnd" that will control their evolution
-~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
+~island = PSEarSwarmIsland.new((\population: 100), controller:~control);
 ~island.play;
 ~island.population.select(_.wallClockAge>0)
 //listen for a while.
@@ -62,16 +62,15 @@ NOTES:
 TODO:
 
 * infrastructure
+	* arse. busses aren't freed.
 	* use wrapping infrastructure to simplify the listensynth definitions.
 		* support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 
 	* sort out the interactions of all these different tick rates and periods.
 	* Handle "free controls", values that are passed in live by the user. (esp for
 	  triggers)
-	
 	* alter chromosome if Specs are changed through UI or any other means, using
 		all that Dependent business
-
 	* support "fitness injection" - doing custom pre-processing on fitness?
 		* so much more complex than simply overriding the calss. do that later.
 	* non-accumulating, genotype-style selection

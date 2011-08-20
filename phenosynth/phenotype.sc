@@ -44,7 +44,7 @@ PSSynthDefPhenotype : PSPhenotype {
 	//A phenotype mapping a chromosome to the inputs of a Synth
 	classvar <synthdef = \ps_reson_saw;
 	classvar <map;
-	classvar <synth; //mixed feeling about letting phenosynths hold a reference to their own synth
+	
 	var <mappedArgs;
 	*initClass {
 		StartUp.add {
@@ -76,7 +76,9 @@ PSSynthDefPhenotype : PSPhenotype {
 			\rq: \rq.asSpec
 		);
 	}
-	play {|out, group|
+	asSynth {|out, group|
+		var synth;
+		// should remove this MVC violation.
 		mappedArgs = this.chromosomeAsSynthArgs;
 		synth = Synth.new(
 			this.class.synthdef,
@@ -85,7 +87,7 @@ PSSynthDefPhenotype : PSPhenotype {
 		)
 		^synth;
 	}
-	free {
+	stop {|synth|
 		synth.set(\gate, 0);
 	}
 	chromosomeAsSynthArgs {

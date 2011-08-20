@@ -8,8 +8,8 @@ PSBasicPlaySynths {
 					var time = 1;
 					env = EnvGen.kr(
 						Env.asr(time/2, 1, time/2, 'linear'),
-						gate: gate//,
-						//doneAction: 2
+						gate: gate,
+						doneAction: 0
 					);
 					Out.ar(out, Resonz.ar(
 						Saw.ar(pitch),
