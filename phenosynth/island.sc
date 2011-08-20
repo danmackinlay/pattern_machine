@@ -67,29 +67,19 @@ PSIsland {
 	//even though the default implementations are static methods;
 	//you might want to mix and match them, after all.
 	*defaultOperators {
-		defaultDeathSelector = {|params, population|
-			PSDeathSelectors.byRoulettePerRate(params, population);
-		};
-		defaultBirthSelector = {|params, population|
-			PSBirthSelectors.byRoulettePerTotal(params, population);
-		};
-		defaultMutator = {|params, chromosome|
-			PSMutators.floatPointMutation(
-				params,
-				chromosome);
-		};
-		defaultCrossover = {|params, chromosomes|
-			//this is a pretty awful crossover.
-			PSCrossovers.uniformCrossover(params, chromosomes);
-		};
+		defaultDeathSelector = PSDeathSelectors.byRoulettePerRate;
+		defaultBirthSelector = PSBirthSelectors.byRoulettePerTotal;
+		defaultMutator = PSMutators.floatPointMutation;
+		//this is a pretty awful crossover.
+		defaultCrossover = PSCrossovers.uniformCrossover;
 		defaultInitialChromosomeFactory = {|params|
 			params.individualClass.newRandom;
 		};
 		defaultIndividualFactory = {|params, chromosome|
 			params.individualClass.new(chromosome);
 		};
+		//not practical, just a sanity check - return the mean of the chromosome
 		defaultFitnessEvaluator = {|params, phenotype|
-			//baseline sanity check - jsut return the mean of the chromosome
 			phenotype.fitness = phenotype.chromosome.mean;
 		};
 		defaultTerminationCondition = {|params, population, iterations|
