@@ -16,12 +16,13 @@ s.volume.volume= -20;
 //now set up the "isalnd" that will control their evolution
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.play;
-
+~island.population.select(_.wallClockAge>0)
 //listen for a while.
 
 //testing that things are going OK:
 ~island.fitnesses.mean;
-~island.population.collect({|i| i.wallClockAge});
+~island.population.collect({|i| i.wallClockAge}).mean;
+~island.population.collect({|i| i.logicalAge}).mean;
 //these should only ever differ momentarily
 ~island.population.size;
 

@@ -1,9 +1,8 @@
 PSEarSwarmPhenotype : PSSynthDefPhenotype {
+	var <>lifeSpan = 20;
 	fitness {
+		var ageNow = this.logicalAge;
 		//override fitness to give mean fitness *rate*
-		var ageNow = this.wallClockAge;
-		(ageNow>0).if({
-			^fitness/(ageNow);
-		}, { ^0 ;});
+		^(fitness * ageNow / (ageNow.exp));
 	}
 }
