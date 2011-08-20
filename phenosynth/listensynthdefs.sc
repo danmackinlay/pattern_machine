@@ -21,7 +21,7 @@ PSBasicJudgeSynths {
 			comparison = hasFreq.if(
 				(7 - ((freq.log) - logtargetpitch).abs).max(0),
 				0
-			);
+			).squared; //squared sharpens convergence. this is a test, after all.
 			// 0 if hasFreq.not because we don't want to encourage quietness
 
 			// Divide by the server's control rate to bring it within a sensible range.

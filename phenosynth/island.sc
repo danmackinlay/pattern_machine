@@ -130,6 +130,7 @@ PSIsland {
 	evaluate {
 		population.do({|phenotype|
 			fitnessEvaluator.value(params, phenotype);
+			phenotype.incAge;
 		});
 	}
 	breed {|parentLists|

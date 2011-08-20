@@ -8,6 +8,10 @@ PSEarSwarmIsland : PSRealTimeIsland {
 		defParams.individualClass = PSEarSwarmPhenotype;
 		^defParams;
 	}
+	*defaultOperators {
+		super.defaultOperators;
+		defaultDeathSelector = PSDeathSelectors.byRoulettePerRateAdultsOnly;
+	}
 	*new {| params, pollPeriod=1, controller|
 		^super.new(params).init(pollPeriod, controller);
 	}

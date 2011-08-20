@@ -31,6 +31,10 @@ PSPhenotype {
 			^Date.gmtime.rawSeconds - birthTime;
 		});
 	}
+	incAge {
+		//incremenets logical (iteration count) age
+		logicalAge = logicalAge +1;
+	}
 	printOn { arg stream;
 		stream << this.class.asString <<"(" << chromosome << ")";
 	}

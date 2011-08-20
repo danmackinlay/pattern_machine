@@ -42,6 +42,21 @@ PSDeathSelectors {
 		);
 		^hitList;
 	}
+	*byRoulettePerRateAdultsOnly {|params, population|
+		//choose enough doomed to meet the death rate on average, by fitness-
+		// weighted roulette
+		var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, localPopulation, rate;
+		rate = params.deathRate;
+		localPopulation = population.select(_.logicalAge>1);
+		localFitnesses = localPopulation.collect(_.fitness);
+		maxFitness = localFitnesses.maxItem;
+		negFitnesses = maxFitness - localFitnesses;
+		meanFitness = negFitnesses.mean;
+		hitList = localPopulation.select(
+			((((maxFitness - _.fitness)/meanFitness)*rate).coin)
+		);
+		^hitList;
+	}
 }
 PSBirthSelectors {
 	//birth selector protocol:

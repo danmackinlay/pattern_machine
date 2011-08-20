@@ -2,6 +2,8 @@
 //initialisation:
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
+//~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);//better way to get first audio in?
+~globalIns = Bus.audio(s, 1)
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
 //limiter, to avoid little accidents

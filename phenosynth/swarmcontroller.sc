@@ -137,6 +137,7 @@ PSListenSynthSwarmController : PSSwarmController {
 				//["got val", val, "for phenotype id", key, "on", indDict.listenBus].postln;
 				indDict.phenotype.fitness = val;
 			});
+			indDict.phenotype.incAge;
 		});
 	}
 }
