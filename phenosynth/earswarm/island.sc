@@ -10,7 +10,7 @@ PSEarSwarmIsland : PSRealTimeIsland {
 	}
 	*defaultOperators {
 		super.defaultOperators;
-		defaultDeathSelector = PSDeathSelectors.byRoulettePerRateAdultsOnly;
+		defaultDeathSelector = PSDeathSelectors.byRoulettePerRateAdultsOnly(_,_,_);
 	}
 	*new {| params, pollPeriod=1, controller|
 		^super.new(params).init(pollPeriod, controller);

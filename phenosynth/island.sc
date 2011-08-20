@@ -67,11 +67,13 @@ PSIsland {
 	//even though the default implementations are static methods;
 	//you might want to mix and match them, after all.
 	*defaultOperators {
-		defaultDeathSelector = PSDeathSelectors.byRoulettePerRate;
-		defaultBirthSelector = PSBirthSelectors.byRoulettePerTotal;
-		defaultMutator = PSMutators.floatPointMutation;
+		//wow, it's kind of hard to have a graceful library of functions 
+		//the _ make these return Functions, not function values.
+		defaultDeathSelector = PSDeathSelectors.byRoulettePerRate(_,_,_);
+		defaultBirthSelector = PSBirthSelectors.byRoulettePerTotal(_,_,_);
+		defaultMutator = PSMutators.floatPointMutation(_,_,_);
 		//this is a pretty awful crossover.
-		defaultCrossover = PSCrossovers.uniformCrossover;
+		defaultCrossover = PSCrossovers.uniformCrossover(_,_,_);
 		defaultInitialChromosomeFactory = {|params|
 			params.individualClass.newRandom;
 		};
