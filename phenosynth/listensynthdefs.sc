@@ -7,10 +7,6 @@ PSBasicJudgeSynths {
 		});
 	}
 	*loadSynthDefs {
-		//first, a simple connector to siphon one bus into another.
-		SynthDef.new(\jack, { |in, out|
-			Out.ar(out, In.ar(in));
-		}).add;
 		// This judge is one of the simplest I can think of (for demo purposes) 
 		// - evaluates closeness of pitch to a reference value (800 Hz).
 		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|

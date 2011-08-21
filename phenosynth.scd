@@ -1,5 +1,5 @@
 (
-//initialisation:
+//initialisation
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 //~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);//better way to get first audio in?
@@ -14,8 +14,10 @@ s.volume.volume= -20;
 //actual real work nowl first choose the controller that will manage the synths
 ~control = PSEarSwarmController(s, ~globalOuts);
 //now set up the "isalnd" that will control their evolution
-~island = PSEarSwarmIsland.new((\population: 100), controller:~control);
+~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.play;
+//
+~island.free;
 ~island.population.select(_.wallClockAge>0)
 //listen for a while.
 
@@ -25,10 +27,31 @@ s.volume.volume= -20;
 ~island.population.collect({|i| i.logicalAge}).mean;
 //these should only ever differ momentarily
 ~island.population.size;
-
+~island.population[0];
+~island.controller.all[~island.population[0].identityHash].playBus.scope
+~globalOuts.scope
 //when you are bored, do a
 ~island.free;
 //(you might need to do it twice. I'm working on that.)
+)
+(
+//multichannelising tests
+SynthDef.new(\testoffsets, {|outs| Out.ar(outs, DC.ar(2.pow((0..3))))}).add;
+SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.ar(In.ar(ins))))}).add;
+~mctestouts = Bus.audio(s, 4);
+~mcrezout = Bus.control(s, 1);
+~mcplaygroup = Group.head(s);
+~mclistengroup = Group.after(~mcplaygroup);
+~mcplaysynth = Synth.new(\testoffsets, [\outs, ~mctestouts], ~mcplaygroup);
+~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \out, ~mcrezout], ~mclistengroup);
+~mcrezout.get(_.postln);
+(1..17).do({|numChannels|
+  SynthDef.new('jack$' ++ numChannels.asString, { |in, out|
+	Out.ar(out, In.ar(in, numChannels));
+  }).add;
+});
+PSSynthDefPhenotype.map
+"nameBase" ++ "$$" ++ 4.asString
 )
 (
 ~playGroup = Group.new(s);
@@ -62,7 +85,8 @@ NOTES:
 TODO:
 
 * infrastructure
-	* arse. busses aren't freed.
+	* ensure Groups are also freed.
+	* allow a seed-bank supporting far more genomes than can be simultaneously simulated. (I.e. keep a much larger population, but only simulate a part of them at once
 	* use wrapping infrastructure to simplify the listensynth definitions.
 		* support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 

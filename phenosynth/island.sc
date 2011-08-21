@@ -153,9 +153,13 @@ PSIsland {
 		// this is a synchronous thing per default; if you want to do it
 		// incrementally, that's your bag.
 		var toCull, toBreed;
+		var beforeFitness, afterFitness;
 		this.evaluate;
 		toCull = deathSelector.value(params, population);
+		//beforeFitness = population.collect(_.fitness).mean;
 		this.cull(toCull);
+		//afterFitness = population.collect(_.fitness).mean;
+		//[\fitness_delta, afterFitness - beforeFitness].postln;
 		toBreed = birthSelector.value(params, population);
 		this.breed(toBreed);
 		iterations = iterations + 1;

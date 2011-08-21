@@ -49,27 +49,16 @@ PSSynthDefPhenotype : PSPhenotype {
 	*initClass {
 		StartUp.add {
 			this.setUpSynthDefs;
-		}
+		};
+		StartUp.add {
+			this.setUpMappingToSynthDef;
+		};
 	}
 	*setUpSynthDefs {
-		SynthDef.new(
-			\ps_reson_saw,
-			{|out=0, gate=0, t_reset=0, pitch, ffreq, rq|
-				var env;
-				var time = 1;
-				env = EnvGen.kr(
-					Env.asr(time/2, 1, time/2, 'linear'),
-					gate: gate,
-					doneAction: 2
-				);
-				Out.ar(out, Resonz.ar(
-					Saw.ar(pitch),
-						ffreq,	 //cutoff
-						rq			 //inverse bandwidth
-					)*env
-				);
-			}
-		).add;
+		/*Nothing to do here;  I just use the generic \ps_reson_saw in the
+		playsynthdefs file. Subclasses might be otherwise.*/
+	}
+	*setUpMappingToSynthDef {	
 		map = (
 			\pitch: \midfreq.asSpec,
 			\ffreq: \midfreq.asSpec,

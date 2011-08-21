@@ -11,7 +11,7 @@ PSSwarmController {
 	var <server;
 	var <all;
 	var <playGroup;
-	*new {|server, bus, numChannels=2, q|
+	*new {|server, bus, numChannels=1, q|
 		^super.newCopyArgs(bus, numChannels, q).init(server);
 	}
 	init {|serverOrGroup|
@@ -83,7 +83,7 @@ PSListenSynthSwarmController : PSSwarmController {
 	var <listenGroup;
 	var <worker;
 	classvar <listenSynth = \ps_listen_eight_hundred;
-	*new {|server, bus, numChannels=2, q, fitnessPollInterval=1|
+	*new {|server, bus, numChannels=1, q, fitnessPollInterval=1|
 		^super.newCopyArgs(bus, numChannels, q).init(
 			server, fitnessPollInterval);
 	}
@@ -113,7 +113,9 @@ PSListenSynthSwarmController : PSSwarmController {
 				listenGroup);
 			indDict.phenotype.clockOn;
 			//re-route some output to the master input
-			indDict.jackSynth = Synth(\jack, [\in, indDict.playBus, \out, outBus], listenGroup);
+			indDict.jackSynth = Synth(PSMCJack.n(numChannels),
+				[\in, indDict.playBus, \out, outBus],
+				listenGroup);
 		});
 	}
 	getListenSynthArgs{|indDict|
