@@ -1,4 +1,8 @@
 //Multichannel stuff
+
+//Can this class truly be necessary? 26 lines of code to plug *n* busses into
+//*n* other buses? 
+
 PSMCJack {
 	classvar <maxChannels = 16;
 	classvar <nameBase = "jack";
