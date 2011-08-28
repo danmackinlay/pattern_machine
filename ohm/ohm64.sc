@@ -12,15 +12,19 @@ Ohm64 {
 	
 	*new {|src|
 		src = src ?? {
-			//this magic incantation causes SC to listen to the Ohm
+			//I call this magic incantation "the Nausicaa spell", because it causes
+			// SC to listen to the Ohm
 			var inPorts = 16;
 			var outPorts = 16;
-			MIDIClient.init(inPorts,outPorts);			// explicitly intialize the client
+			// explicitly initialize the client for more MIDI ports than we are
+			// likely to need, or it doesn't show up.
+			MIDIClient.init(inPorts,outPorts);
 			inPorts.do({ arg i; 
 				MIDIIn.connect(i, MIDIClient.sources.at(i));
 			});
 			MIDIIn.findPort("Ohm64", "Control Surface");
 		};
+		("Ohm64 listening on" ++ src.asString).postln;
 		^super.newCopyArgs(src).init(this.noteMappings, this.ccMappings);
 	}
 	*noteMappings {
@@ -41,8 +45,8 @@ Ohm64 {
 		ccMap.leftFaders = [23, 22, 15, 14];
 		ccMap.rightFaders = [5, 7, 6, 4];
 		ccMap.leftKnobs = [21, 20, 13, 12, 19, 18, 11, 10, 17, 16, 9, 8];
-		ccMap.rightButton = [72];
-		ccMap.fButton = [77, 78, 79, 69, 70, 71];
+		ccMap.rightKnobs = [3, 1, 0, 2];
+		ccMap.xFader = [24];
 		^ccMap;
 	}
 	init {|noteMappings, ccMappings|
@@ -90,10 +94,19 @@ Ohm64 {
 			});
 		});
 	}
+	initDefaultResponders {
+		noteMap.keysDo({|controlName|
+			this.setNoteResponder(
+				{|...a| [controlName, a].postln;},
+				\controlName
+			);
+		});
+	}
 	setCCResponder {|fn, key|
 		ccResponderMap[key] = fn;
 	}
 	setNoteResponder {|fn, key|
+		//TODO: handle default/fallback responder.
 		noteResponderMap[key] = fn;
 	}
 	
