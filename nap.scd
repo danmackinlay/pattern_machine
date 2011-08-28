@@ -1,12 +1,13 @@
 http://www.gersic.com/blog.php?id=9
 
-
-().class
-
 ~o = Ohm64.new;
+~o.initDefaultResponders;
 ~o.src
 ~o.noteMap
+~o.ccMap;
+~o.noteResponderMap
 ~o.backNoteMap
+
 ~o.setNoteResponder({|...a| [\l, a].postln;}, \leftChannelButton);
 ~o.setNoteResponder({|...a| [\g, a].postln;}, \grid);
 

@@ -58,11 +58,12 @@ Ohm64 {
 			{ |x, xx, num, val|
 				var mapped = backNoteMap[num];
 				mapped.isNil.not.if({
-					var selector, id;
+					var selector, id, responder;
 					# selector, id = mapped;
-					noteResponderMap[selector].isNil.not.if({
+					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
+					responder.isNil.not.if({
 							("found responder " ++ [id, val, selector, noteResponderMap[selector]].asString).postln;
-							noteResponderMap[selector].value(id, val, selector);
+							responder.value(id, val, selector);
 						}, {("control has no responder " ++ [id, val, selector].asString).postln;}
 					);
 				}, {("unknown note " ++ num).postln;});
