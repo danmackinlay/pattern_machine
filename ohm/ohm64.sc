@@ -1,3 +1,11 @@
+/* My favourite MIDI controller, Livid Instruments' OHM64, set up just hte way I like it, with pluggable, single-button-per-responder linkages, and note-ons and note-offs handled the same way.
+
+TODO:
+
+* be bidirectional- i.e. forward note values to the device.
+* handle "states" for buttons- I .e. record which should be on or off, and allow the function keys to pave between them. (this should be a separate MVC-style calss)
+*/
+
 Ohm64 {
 	var <src;
 	var <ccresponder;
