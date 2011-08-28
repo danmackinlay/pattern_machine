@@ -1,13 +1,18 @@
 /* My favourite MIDI controller, Livid Instruments' OHM64, set up just hte way I like it, with pluggable, single-button-per-responder linkages, and note-ons and note-offs handled the same way.
 
+It also assumes that the led signal to the Ohm 
+
 TODO:
 
 * be bidirectional- i.e. forward note values to the device.
-* handle "states" for buttons- I .e. record which should be on or off, and allow the function keys to pave between them. (this should be a separate MVC-style calss)
+* handle "states" for buttons- I .e. record which should be on or off, and allow the function keys to pave between them. (this should be a separate MVC-style class)
+* who knows if my Ohm64 in any way approximates factory settings? should check that.
+* Who knows if this works with 2 Ohms? can't check, but I think the output stuff might be dodgy.
 */
 
 Ohm64 {
-	var <src;
+	var <inPort;
+	var <outPort;
 	var <ccresponder;
 	var <noteonresponder;
 	var <noteoffresponder;
@@ -18,8 +23,8 @@ Ohm64 {
 	var <ccResponderMap;
 	var <noteResponderMap;
 	
-	*new {|src|
-		src = src ?? {
+	*new {|inPort|
+		inPort = inPort ?? {
 			//I call this magic incantation "the Nausicaa spell", because it causes
 			// SC to listen to the Ohm
 			var inPorts = 16;
@@ -32,8 +37,8 @@ Ohm64 {
 			});
 			MIDIIn.findPort("Ohm64", "Control Surface");
 		};
-		("Ohm64 listening on" ++ src.asString).postln;
-		^super.newCopyArgs(src).init(this.noteMappings, this.ccMappings);
+		("Ohm64 listening on" ++ inPort.asString).postln;
+		^super.newCopyArgs(inPort).init(this.noteMappings, this.ccMappings);
 	}
 	*noteMappings {
 		//override this to define different notegroups
@@ -58,6 +63,7 @@ Ohm64 {
 		^ccMap;
 	}
 	init {|noteMappings, ccMappings|
+		outPort = MIDIOut.newByName(inPort.device, inPort.name);
 		this.initMaps(noteMappings, ccMappings);
 		ccResponderMap = ();
 		noteResponderMap = ();
@@ -77,7 +83,7 @@ Ohm64 {
 					});
 				});
 			}, 
-			src);
+			inPort);
 		noteoffresponder = NoteOffResponder(
 			{ |x, xx, num, val|
 				var mapped = backNoteMap[num];
@@ -90,7 +96,7 @@ Ohm64 {
 					});
 				});
 			}, 
-			src);
+			inPort);
 		ccresponder = CCResponder(
 			{ |x, xx, num, val|
 				var mapped = backCCMap[num];
@@ -103,7 +109,7 @@ Ohm64 {
 					});
 				});
 			}, 
-			src);
+			inPort);
 	}
 	initMaps {|noteMappings, ccMappings|
 		noteMap = noteMappings;
@@ -142,5 +148,19 @@ Ohm64 {
 		//TODO: handle default/fallback responder.
 		noteResponderMap[key] = fn;
 	}
-	
+	sendNote {|controlName, idx, val, onOff|
+		var foundNote, foundControl;
+		foundControl = noteMap[controlName];
+		foundControl.isNil.if({("no such controlName" ++ controlName).throw;});
+		foundNote = foundControl[idx];
+		foundNote.isNil.if({("no such index" +idx.asString + "for control" ++ controlName).throw;});
+		onOff = onOff ?? { (val>0).switch(
+			true, \on,
+			false, \off
+		)};
+		(onOff === \on).if(
+			{outPort.noteOn(0,foundNote,val);},
+			{outPort.noteOff(0,foundNote,val);}
+		);
+	}
 }
