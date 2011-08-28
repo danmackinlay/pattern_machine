@@ -61,8 +61,9 @@ Ohm64 {
 					var selector, id;
 					# selector, id = mapped;
 					noteResponderMap[selector].isNil.not.if({
-							noteResponderMap[selector].value(id, val);
-						}, {("unknown control " ++ selector).postln;}
+							("found responder " ++ [id, val, selector, noteResponderMap[selector]].asString).postln;
+							noteResponderMap[selector].value(id, val, selector);
+						}, {("control has no responder " ++ [id, val, selector].asString).postln;}
 					);
 				}, {("unknown note " ++ num).postln;});
 			}, 
@@ -90,7 +91,7 @@ Ohm64 {
 		});
 		ccMap.keysValuesDo({|key, ids|
 			ids.do({|midiId, localId|
-				backNoteMap[midiId] = [key, localId];
+				backCCMap[midiId] = [key, localId];
 			});
 		});
 	}
@@ -98,7 +99,13 @@ Ohm64 {
 		noteMap.keysDo({|controlName|
 			this.setNoteResponder(
 				{|...a| [controlName, a].postln;},
-				\controlName
+				controlName
+			);
+		});
+		ccMap.keysDo({|controlName|
+			this.setCCResponder(
+				{|...a| [controlName, a].postln;},
+				controlName
 			);
 		});
 	}
