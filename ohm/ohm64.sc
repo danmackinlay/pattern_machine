@@ -54,6 +54,9 @@ Ohm64 {
 		ccResponderMap = ();
 		noteResponderMap = ();
 		
+		//These responders could probably be set up in a more efficient way by
+		// creating one responder per mapped note. But much more complex to do so.
+		// Pfft. Or this could all be refactored into a less duplicated function.
 		noteonresponder = NoteOnResponder(
 			{ |x, xx, num, val|
 				var mapped = backNoteMap[num];
@@ -62,22 +65,36 @@ Ohm64 {
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
 					responder.isNil.not.if({
-							("found responder " ++ [id, val, selector, noteResponderMap[selector]].asString).postln;
-							responder.value(id, val, selector);
-						}, {("control has no responder " ++ [id, val, selector].asString).postln;}
-					);
-				}, {("unknown note " ++ num).postln;});
+						responder.value(id, val, selector, \on);
+					});
+				});
 			}, 
 			src);
 		noteoffresponder = NoteOffResponder(
 			{ |x, xx, num, val|
-				[\noteoff, x, xx, num, val].postln;
+				var mapped = backNoteMap[num];
+				mapped.isNil.not.if({
+					var selector, id, responder;
+					# selector, id = mapped;
+					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
+					responder.isNil.not.if({
+						responder.value(id, val, selector, \off);
+					});
+				});
 			}, 
 			src);
-		ccresponder= CCResponder(
-			{|x, xx, num, val|
-				[\cc, x, xx, num, val].postln;
-			},
+		ccresponder = CCResponder(
+			{ |x, xx, num, val|
+				var mapped = backCCMap[num];
+				mapped.isNil.not.if({
+					var selector, id, responder;
+					# selector, id = mapped;
+					responder =  ccResponderMap[selector]  ?? { ccResponderMap[\_default]};
+					responder.isNil.not.if({
+						responder.value(id, val, selector);
+					});
+				});
+			}, 
 			src);
 	}
 	initMaps {|noteMappings, ccMappings|
