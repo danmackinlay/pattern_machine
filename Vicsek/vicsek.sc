@@ -228,8 +228,8 @@ VicsekSynths {
 			yvel = Lag.kr(yvel, tickTime*2);
 			zvel = Lag.kr(zvel, tickTime*2);
 			amp = (1-posX.squared) *
-			      (1-posY.squared) *
-			      alive;
+						(1-posY.squared) *
+						alive;
 			amp = amp.squared; //inflexion tail-off
 			// rescale for mean number of voices;
 			amp = amp * total.sqrt.reciprocal * rescale.squared * 2;
@@ -252,9 +252,9 @@ VicsekSynths {
 				farSideDelay*(posX.squared+posY.squared+posZ.squared) // poor Doppler's distance estimation
 			);
 			env = EnvGen.kr(
-				  Env.asr(tickTime, 1, tickTime, 'linear'),
-				  gate: gate,
-				  doneAction: 2);
+					Env.asr(tickTime, 1, tickTime, 'linear'),
+					gate: gate,
+					doneAction: 2);
 			Out.ar(i_out, Pan4.ar(outMono, posX, posY, level: amp*env));
 		}, [
 			\ir,
