@@ -113,7 +113,7 @@ PSListenSynthSwarmController : PSSwarmController {
 				listenGroup);
 			indDict.phenotype.clockOn;
 			//re-route some output to the master input
-			indDict.jackSynth = Synth(PSMCJack.n(numChannels),
+			indDict.jackSynth = Synth(PSMCCore.n(numChannels),
 				[\in, indDict.playBus, \out, outBus],
 				listenGroup);
 		});

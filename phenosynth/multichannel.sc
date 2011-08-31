@@ -2,10 +2,9 @@
 
 //Can this class truly be necessary? 26 lines of code to plug *n* busses into
 //*n* other buses? 
-
-PSMCJack {
+PSMCCore {
 	classvar <maxChannels = 16;
-	classvar <nameBase = "jack";
+	classvar <nameBase = "core";
 	
 	*initClass{
 		StartUp.add({
@@ -28,6 +27,18 @@ PSMCJack {
 	*makeSynthDef {|numChannels|
 		^SynthDef.new(this.synthName(numChannels), { |in, out|
 			Out.ar(out, In.ar(in, numChannels));
+		});
+	}
+}
+
+//Can THIS class be truly necessary? To plug *n* in buses into 1 output bus?
+PSMCMix : PSMCCore {
+	classvar <maxChannels = 16;
+	classvar <nameBase = "mix";
+	
+	*makeSynthDef {|numChannels|
+		^SynthDef.new(this.synthName(numChannels), { |in, out|
+			Out.ar(out, Mix.ar(In.ar(in, numChannels)));
 		});
 	}
 }
