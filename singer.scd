@@ -31,8 +31,9 @@ fork {
 			sideFreq=10,
 			range=0.9, decay=0.5,
 			lag=0.1, rate=10.0,
+			offPeakGain=0, offPeakLag=0.2,
 			gate = 1|
-		var sigIn, sigOut, reference, offsetFreq, currentFreq, lower, middle, higher, velocity, env, offMax, delta;
+		var sigIn, sigOut, reference, offsetFreq, currentFreq, lower, middle, higher, velocity, env, offPeak, delta, peakGain;
 		in.poll(1, \i);
 		velocity = Lag.kr(LocalIn.kr(1), lag).poll(1, \v);
 		offsetFreq = Decay.kr(velocity, lag).poll(1, \off);
@@ -44,11 +45,12 @@ fork {
 		middle = (Amplitude.kr(sigOut)/reference).poll(1, \m);
 		higher = (Amplitude.kr(LeakDC.ar(CombL.ar(sigIn, 0.1, (currentFreq+sideFreq).reciprocal, decay)))/reference).poll(1, \h);
 		//now we know whether our local frequency is most resonant, or whether the sidebands are more resonant
-		offMax = (lower<middle) * (higher<middle);
+		offPeak = (lower<middle) * (higher<middle);
 		delta = rate * ((higher-lower).sign) * ((higher-middle).max(lower-middle)).poll(1, \delta) ;// /(ControlRate.ir);
 		//spring constraints here
-		LocalOut.kr(offMax*delta);
-		env = EnvGen.kr(Env.asr(0.01, 1.0, 0.1), gate, doneAction: 2);
+		LocalOut.kr(offPeak*delta);
+		peakGain = Lag.kr(Select.kr(offPeak, [1, offPeakGain]), offPeakLag);//mute when in transit
+		env = EnvGen.kr(Env.asr(0.01, 1.0, 0.1), gate, doneAction: 2) * peakGain;
 		Out.ar(out, (sigOut * env) ! 2);	// sig ! 2 is the same as [sig, sig]
 	}).send(s);
 	
@@ -93,5 +95,4 @@ s.volume.volume(-20);
 
 //Does Comb include dry information or only wet?
 { var dry, wet, ampwetdry, ampwet, ampdry; dry = Decay.ar(Impulse.ar(10,0), 0.2, WhiteNoise.ar); wet=CombL.ar(dry, 0.01, 0.1, 3); ampwet=Amplitude.kr(wet); ampwetdry = Amplitude.kr(wet-dry); ampdry = Amplitude.kr(dry); Out.kr(0, [ampdry, ampwet, ampwetdry, (ampwetdry-ampwet)]) }.scope;
-
-//Juding by aplitudes, seems that it does not - strictly wet only. which is what we want.
+//Juding by amplitudes, seems that it does not - strictly wet only. which is what we want.
