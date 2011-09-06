@@ -29,13 +29,13 @@ JsonParser {
 		desc: (Private.) Parse unspecified object - first consume whitespace until unambiguous token found - then delegate to parser based on that token. TODO-- handle premature json string ending and unknown characters.
 		@*/
 		var parsed;
-		this.toCurrentToken();
+		this.toCurrentToken;
 		parsed = thisToken.switch(
-			\TOKEN_SQUARED_OPEN, { this.parseArray(); },
-			\TOKEN_STRING, { this.parseString(); },
-			\TOKEN_ATOM, { this.parseAtom(); },
-			\TOKEN_CURLY_OPEN, { ^this.parseObject(); },
-			\TOKEN_NUMBER, { ^this.parseNumber(); } /*, 
+			\TOKEN_SQUARED_OPEN, { this.parseArray; },
+			\TOKEN_STRING, { this.parseString; },
+			\TOKEN_ATOM, { this.parseAtom; },
+			\TOKEN_CURLY_OPEN, { ^this.parseObject; },
+			\TOKEN_NUMBER, { ^this.parseNumber; } /*, 
 			\TOKEN_NONE //hmmmm;
 			\TOKEN_END //hmmmm*/
 		);
@@ -53,7 +53,7 @@ JsonParser {
 		/*@
 		desc: (Private.) This method increments the cursor to the next non-whitespace character so that we are pointing to a real token.
 		@*/
-		this.eatWhiteSpace();
+		this.eatWhiteSpace;
 		
 		if (parseCursor >= (jsonString.size),
 			{ ^\TOKEN_END; });
@@ -102,14 +102,14 @@ JsonParser {
 		@*/
 		var newObject, name, value, done, lastPos;
 		done = false;
-		newObject = Event.new();
+		newObject = Event.new;
 		// skip {
-		this.advanceCursor();
-		this.toCurrentToken();
+		this.advanceCursor;
+		this.toCurrentToken;
 		while ( 
 			{ thisToken != \TOKEN_CURLY_CLOSE },
 			{ 
-				this.toCurrentToken(); //optionally skip spaces
+				this.toCurrentToken; //optionally skip spaces
 				if ((lastPos == parseCursor), {
 					Error("Object parse is stuck at %!".format(parseCursor)).throw;
 				});
@@ -119,28 +119,28 @@ JsonParser {
 						"no string key found in object at %".format(parseCursor)
 					).throw;
 				});
-				name = this.parseString().asSymbol;
-				this.toCurrentToken(); //optionally skip spaces
+				name = this.parseString.asSymbol;
+				this.toCurrentToken; //optionally skip spaces
 				if ((thisToken != \TOKEN_COLON), {
 					Error(
 						"no separator : found in object at %".format(parseCursor)
 					).throw;
 				});
-				this.advanceCursor();
-				value = this.parseValue();
-				this.toCurrentToken();
+				this.advanceCursor;
+				value = this.parseValue;
+				this.toCurrentToken;
 				if ((thisToken == \TOKEN_COMMA), {
 					//we consume commas without checking for spurious or missing ones
 					//probably should be smarter.
-					this.advanceCursor();
-					this.toCurrentToken();
+					this.advanceCursor;
+					this.toCurrentToken;
 				});
 				newObject[name] = value;
 			}
 		);
 		
 		// skip }
-		this.advanceCursor();
+		this.advanceCursor;
 		^newObject;
 	}
 	parseAtom {
@@ -182,26 +182,26 @@ JsonParser {
 		lastPos = parseCursor.copy;
 		
 		//skip "["
-		this.advanceCursor();
+		this.advanceCursor;
 		
 		while ( 
 			{ (done == false) },
 			{ 
-				this.toCurrentToken(); //optionally skip spaces
+				this.toCurrentToken; //optionally skip spaces
 				 if ((lastPos == parseCursor), {
 					Error("Arrayparse is stuck at %!".format(parseCursor)).throw;
 				});
 				lastPos = parseCursor.copy;
 				if ((thisToken == \TOKEN_SQUARED_CLOSE), {
-					this.advanceCursor();
+					this.advanceCursor;
 					 //skip "]"
 					done = true;
 				}, {
 					newArray = newArray.add(this.parseValue);
-					this.toCurrentToken();
+					this.toCurrentToken;
 					if ((thisToken == \TOKEN_COMMA), {
 						//commas are skipped. we should *require* them.
-						this.advanceCursor();
+						this.advanceCursor;
 					});
 				});
 			}
@@ -216,7 +216,7 @@ JsonParser {
 		desc: (Private.) The token under the cursor is the first quote of a string. Parse the accordingly. (this string parser is a rule unto itself; there is a smaller bestiary of tokens inside strings than in lists or arrays, so we do it all by hand.
 		@*/
 		
-		this.advanceCursor();
+		this.advanceCursor;
 		while (
 			{
 				(parseCursor < jsonString.size) &&
@@ -229,10 +229,10 @@ JsonParser {
 				}, {
 						escaped = true;
 				});
-				this.advanceCursor();
+				this.advanceCursor;
 			}
 		);
-		this.advanceCursor();
+		this.advanceCursor;
 		
 		//skip final quote mark
 		^newString;
@@ -251,7 +251,7 @@ JsonParser {
 					legalNumberChars.includes(thisChar) },
 			{
 				numberString = numberString ++ thisChar;
-				this.advanceCursor();
+				this.advanceCursor;
 			}
 		);
 		^numberString.asFloat;
