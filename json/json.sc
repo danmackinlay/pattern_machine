@@ -119,7 +119,7 @@ JsonParser {
 						"no string key found in object at %".format(parseCursor)
 					).throw;
 				});
-				name = this.parseString();
+				name = this.parseString().asSymbol;
 				this.toCurrentToken(); //optionally skip spaces
 				if ((thisToken != \TOKEN_COLON), {
 					Error(
