@@ -22,11 +22,10 @@ TestJsonParse : UnitTest {
 		 ];
 	}
 	test_parsing {
-		var parser = JsonParser.new;
 		qAndAList.do({ arg qAndA ;
 			var jsonStr, nativeObj;
 			# jsonStr, nativeObj = qAndA.value;
-			this.assertEquals(parser.decode(jsonStr), nativeObj);
+			this.assertEquals(JsonParser.decode(jsonStr), nativeObj);
 		});
 	}
 }
