@@ -24,7 +24,13 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqbuf, freqbufpointer|
 //TODO: respect numbuf
 ~maxvoices = 20;
 SynthDef.new(\glimmergrains,
-	{|in, out, trigrate=10, induty=0.5, playduty=0.5, reso=1, attack=0.01, decay=0.5, freqbuf, freqbuflen=10, freqbufpointer, numbuf, numbuflen=10, nvoices=10|
+	{|in, out,
+		trigrate=10,
+		induty=0.5, playduty=0.5,
+		reso=1,
+		attack=0.01, decay=0.5,
+		freqbuf, freqbuflen=10, freqbufpointer,
+		numbuf, numbuflen=10, nvoices=10|
 		var trigRamp, voices;
 		in = In.ar(in);
 		freqbufpointer = In.kr(freqbufpointer);
@@ -54,7 +60,10 @@ SynthDef.new(\glimmergrains,
 
 SynthDef.new(\hardwarein,
 	{|inbus, out|
-		Out.ar(out, In.ar(SoundIn.ar(inbus)));}
+		var in;
+		in = SoundIn.ar(inbus);
+		Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
+		Out.ar(out, in);}
 ).send(s);
 
 ~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send(s);
@@ -65,9 +74,9 @@ SynthDef.new(\hardwarein,
 ~ratiobuf = Buffer(s, 1024, 1);
 // alloc and set the values
 //pitches all 440Hz by default
-s.listSendMsg( ~pitchbuf.allocMsg( ~pitchbuf.setnMsg(0, 440!512) ).postln );
+s.listSendMsg( ~pitchbuf.allocMsg( ~pitchbuf.setnMsg(0, 440!513) ).postln );
 //ratios all 1 by default.
-s.listSendMsg( ~ratiobuf.allocMsg( ~ratiobuf.setnMsg(0, 1!512) ).postln );
+s.listSendMsg( ~ratiobuf.allocMsg( ~ratiobuf.setnMsg(0, 1!513) ).postln );
 //Now..
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~indexbus = Bus.control(s,1);
@@ -75,7 +84,7 @@ s.listSendMsg( ~ratiobuf.allocMsg( ~ratiobuf.setnMsg(0, 1!512) ).postln );
 ~voxgroup = Group.new(s);
 ~fxgroup = Group.after(~voxgroup);
 ~outgroup = Group.after(~fxgroup);
-~invox = Synth(\hardwarein, [\inbus, 1, \outbus, ~sourceIns], ~voxgroup);
+~invox = Synth(\hardwarein, [\inbus, 0, \outbus, ~sourceIns], ~voxgroup);
 //limiter, to avoid little accidents
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 s.volume.gui;
