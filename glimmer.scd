@@ -5,7 +5,7 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
 	//we presume freqBuf has 513 samples, and use 512. Why not?
 	#freq, hasFreq = Pitch.kr(In.ar(in));
-	Amplitude.kr(In.ar(in), releaseTime:1).poll(1, \inamp);
+	Amplitude.kr(In.ar(in), releaseTime:1).poll(10, \inamp);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	BufWr.kr(
@@ -24,6 +24,7 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 //TODO: free voices in some nonlinear fashion to avoid obtrusiveness.
 //TODO: respect nVoices
 //TODO: respect numBuf
+
 ~maxVoices = 20;
 SynthDef.new(\glimmergrains,
 	{|in, out,
@@ -61,9 +62,8 @@ SynthDef.new(\glimmergrains,
 ).send(s);
 
 SynthDef.new(\hardwarein,
-	{|inbus, out|
-		var in;
-		in = SoundIn.ar(inbus);
+	{|in, out|
+		in = SoundIn.ar(in);
 		// Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
 		Out.ar(out, in);}
 ).send(s);
@@ -73,26 +73,27 @@ SynthDef.new(\hardwarein,
 
 (
 // indexing into a table
-~pitchBuf = Buffer(s, 513, 1);
+~freqBuf = Buffer(s, 513, 1);
 ~ratioBuf = Buffer(s, 1024, 1);
 // alloc and set the values
 //pitches all 440Hz by default
-s.listSendMsg( ~pitchBuf.allocMsg( ~pitchBuf.setnMsg(0, 440!513) ).postln );
+s.listSendMsg( ~freqBuf.allocMsg( ~freqBuf.setnMsg(0, 440!513) ).postln );
 //ratios all 1 by default.
 s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 //Now..
 ~globalOuts = Bus.new(\audio, 0, 2);
-~indexBus = Bus.control(s,1);
+~freqBufPointer = Bus.control(s, 1);
 ~sourceIns = Bus.audio(s, 1);
 ~voxGroup = Group.new(s);
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
-~inVox = Synth(\hardwarein, [\inbus, 0, \outbus, ~sourceIns], ~voxGroup);
+//read hardware in at head of ~voxGroup
+~inVox = Synth(\hardwarein, [\in, 0, \out, ~sourceIns], ~voxGroup);
 //limiter, to avoid little accidents.
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
-s.volume.gui;
+//s.volume.gui;
 s.volume.volume= -20;
-~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~pitchBuf, \freqBufPointer, ~indexBus]);
-~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~pitchBuf, \freqBufPointer, ~indexBus, \numBuf, ~ratioBuf]);
-~indexBus.get(_.postln);
+~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf]);
+~freqBufPointer.get(_.postln);
 )
