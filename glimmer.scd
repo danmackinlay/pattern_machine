@@ -14,14 +14,12 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	#freq, hasFreq = Pitch.kr(In.ar(in), execFreq: rate);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
-	index.poll(10, \idx);
 	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
 	BufWr.ar(
 		inputArray: K2A.ar(freq),
 		bufnum: freqBuf,
 		phase: K2A.ar(index)
 	);
-	freq.poll(10, \freq);
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
 }).send(s);
 
@@ -41,7 +39,6 @@ SynthDef.new(\glimmergrains,
 		in = In.ar(in);
 		freqBufPointer = In.kr(freqBufPointer);
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
-		maxIndicesSoFar.poll(1, \maxindex);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(~maxVoices, {|i|
 			var myRamp,inGate, outGate, inEnv, outEnv, myFreqLag, myFreq, myPan;
@@ -52,7 +49,7 @@ SynthDef.new(\glimmergrains,
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
 			myFreqLag = TIRand.kr(lo:0, hi:freqBufLength, trig:outGate).min(maxIndicesSoFar);
-			Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511).poll(10, \phase);
+			Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511);
 			myFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
 				phase: Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(10);
