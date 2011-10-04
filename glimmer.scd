@@ -15,10 +15,10 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
-	BufWr.ar(
-		inputArray: K2A.ar(freq),
+	BufWr.kr(
+		inputArray: freq,
 		bufnum: freqBuf,
-		phase: K2A.ar(index)
+		phase: index
 	);
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
 }).send(s);
