@@ -1,15 +1,21 @@
 
+//TODO: panning
+//TODO: create synthdefs for various numbers of voices than 20
+//TODO: free voices in some nonlinear fashion to avoid obtrusiveness.
+//TODO: respect nVoices
+//TODO: respect numBuf
+//TODO: go to demand-rate recording. Audio rate is lame.
 
 (
 SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
+	rate = rate.min(ControlRate.ir/2);//so triggers work
 	//we presume freqBuf has 513 samples, and use 512. Why not?
 	#freq, hasFreq = Pitch.kr(In.ar(in), execFreq: rate);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	index.poll(10, \idx);
 	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
-	index.poll(10, \idx2);
 	BufWr.ar(
 		inputArray: K2A.ar(freq),
 		bufnum: freqBuf,
@@ -19,28 +25,23 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
 }).send(s);
 
+
 //This little guy voices a whole bunch of flange frequencies at a given polyphony with known rate
-
-//TODO: panning
-//TODO: don't use freqs that haven't been written yet.
-//TODO: create synthdefs for various numbers of voices than 20
-//TODO: free voices in some nonlinear fashion to avoid obtrusiveness.
-//TODO: respect nVoices
-//TODO: respect numBuf
-
 ~maxVoices = 20;
 SynthDef.new(\glimmergrains,
 	{|in, out,
 		trigRate=10,
 		inDuty=0.5, playDuty=0.5,
 		reso=1,
-		attack=0.01, decay=0.5,
+		attack=0.01, decay=2.0,
 		freqBuf, freqBufLength=10, freqBufPointer,
 		numBuf, numBufLength=10,
 		nVoices=10|
-		var trigRamp, voices;
+		var trigRamp, voices, maxIndicesSoFar;
 		in = In.ar(in);
 		freqBufPointer = In.kr(freqBufPointer);
+		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
+		maxIndicesSoFar.poll(1, \maxindex);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(~maxVoices, {|i|
 			var myRamp,inGate, outGate, inEnv, outEnv, myFreqLag, myFreq, myPan;
@@ -50,8 +51,8 @@ SynthDef.new(\glimmergrains,
 			outGate = trigRamp < playDuty;
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
-			//myFreq = TIRand.kr(lo:1,hi:3,trig:outGate);
-			myFreqLag = TIRand.kr(lo:0, hi:freqBufLength, trig:outGate);
+			myFreqLag = TIRand.kr(lo:0, hi:freqBufLength, trig:outGate).min(maxIndicesSoFar);
+			Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511).poll(10, \phase);
 			myFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
 				phase: Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(10);
