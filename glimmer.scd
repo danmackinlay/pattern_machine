@@ -62,7 +62,7 @@ SynthDef.new(\hardwarein,
 	{|inbus, out|
 		var in;
 		in = SoundIn.ar(inbus);
-		Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
+		// Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
 		Out.ar(out, in);}
 ).send(s);
 
@@ -70,25 +70,25 @@ SynthDef.new(\hardwarein,
 )
 
 // indexing into a table
-~pitchbuf = Buffer(s, 513, 1);
-~ratiobuf = Buffer(s, 1024, 1);
+~pitchBuf = Buffer(s, 513, 1);
+~ratioBuf = Buffer(s, 1024, 1);
 // alloc and set the values
 //pitches all 440Hz by default
-s.listSendMsg( ~pitchbuf.allocMsg( ~pitchbuf.setnMsg(0, 440!513) ).postln );
+s.listSendMsg( ~pitchBuf.allocMsg( ~pitchBuf.setnMsg(0, 440!513) ).postln );
 //ratios all 1 by default.
-s.listSendMsg( ~ratiobuf.allocMsg( ~ratiobuf.setnMsg(0, 1!513) ).postln );
+s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 //Now..
 ~globalOuts = Bus.new(\audio, 0, 2);
-~indexbus = Bus.control(s,1);
+~indexBus = Bus.control(s,1);
 ~sourceIns = Bus.audio(s, 1);
-~voxgroup = Group.new(s);
-~fxgroup = Group.after(~voxgroup);
-~outgroup = Group.after(~fxgroup);
-~invox = Synth(\hardwarein, [\inbus, 0, \outbus, ~sourceIns], ~voxgroup);
-//limiter, to avoid little accidents
+~voxGroup = Group.new(s);
+~fxGroup = Group.after(~voxGroup);
+~outGroup = Group.after(~fxGroup);
+~inVox = Synth(\hardwarein, [\inbus, 0, \outbus, ~sourceIns], ~voxGroup);
+//limiter, to avoid little accidents. Why does this cause a duplicate node error?
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 s.volume.gui;
 s.volume.volume= -20;
-~listener = Synth.head(~fxgroup, \findfreqs, [\in, ~sourceIns, \freqbuf, ~pitchbuf, \freqbufpointer, ~indexbus]);
-~fx = Synth.tail(~fxgroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqbuf, ~pitchbuf, \freqbufpointer, ~indexbus, \numbuf, ~ratiobus]);
-~indexbus.get(_.postln);
+~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqbuf, ~pitchBuf, \freqbufpointer, ~indexBus]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqbuf, ~pitchBuf, \freqbufpointer, ~indexBus, \numbuf, ~ratioBuf]);
+~indexBus.get(_.postln);
