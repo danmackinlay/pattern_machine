@@ -1,17 +1,19 @@
 
 
 (
-SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqbuf, freqbufpointer|
+SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
-	//we presume freqbuf has 513 samples, and use 512. Why not?
+	//we presume freqBuf has 513 samples, and use 512. Why not?
 	#freq, hasFreq = Pitch.kr(In.ar(in));
+	Amplitude.kr(In.ar(in), releaseTime:1).poll(1, \inamp);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	BufWr.kr(
 		freq,
 		(index+(512*(1-writing))).min(512) //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
 	);
-	Out.kr(freqbufpointer, Gate.kr(index, hasFreq));
+	freq.poll(10, \freq);
+	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
 }).send(s);
 
 //This little guy voices a whole bunch of flange frequencies at a given polyphony with known rate
@@ -20,33 +22,33 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqbuf, freqbufpointer|
 //TODO: don't use freqs that haven't been written yet.
 //TODO: create synthdefs for various numbers of voices than 20
 //TODO: free voices in some nonlinear fashion to avoid obtrusiveness.
-//TODO: respect nvoices
-//TODO: respect numbuf
-~maxvoices = 20;
+//TODO: respect nVoices
+//TODO: respect numBuf
+~maxVoices = 20;
 SynthDef.new(\glimmergrains,
 	{|in, out,
-		trigrate=10,
-		induty=0.5, playduty=0.5,
+		trigRate=10,
+		inDuty=0.5, playDuty=0.5,
 		reso=1,
 		attack=0.01, decay=0.5,
-		freqbuf, freqbuflen=10, freqbufpointer,
-		numbuf, numbuflen=10, nvoices=10|
+		freqBuf, freqBufLength=10, freqBufPointer,
+		numBuf, numBufLength=10, nVoices=10|
 		var trigRamp, voices;
 		in = In.ar(in);
-		freqbufpointer = In.kr(freqbufpointer);
-		trigRamp = LFSaw.kr(freq:trigrate, mul:0.5, add:0.5);
-		voices = Array.fill(~maxvoices, {|i|
+		freqBufPointer = In.kr(freqBufPointer);
+		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
+		voices = Array.fill(~maxVoices, {|i|
 			var myRamp,inGate, outGate, inEnv, outEnv, myFreqLag, myFreq, myPan;
 			//voice-local phase-offset ramp
-			myRamp = Wrap.kr(trigRamp + (i * ~maxvoices.reciprocal));
-			inGate = trigRamp < induty;
-			outGate = trigRamp < playduty;
+			myRamp = Wrap.kr(trigRamp + (i * ~maxVoices.reciprocal));
+			inGate = trigRamp < inDuty;
+			outGate = trigRamp < playDuty;
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
 			//myFreq = TIRand.kr(lo:1,hi:3,trig:outGate);
-			myFreqLag = TIRand.kr(lo:0, hi:freqbuflen, trig:outGate);
-			myFreq = BufRd.kr(numChannels:1, bufnum:freqbuf,
-				phase: Wrap.kr(freqbufpointer - myFreqLag, lo: 0, hi: 511),
+			myFreqLag = TIRand.kr(lo:0, hi:freqBufLength, trig:outGate);
+			myFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
+				phase: Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(10);
 			CombL.ar(in: inEnv*in,
 				maxdelaytime: 0.1,
@@ -69,6 +71,7 @@ SynthDef.new(\hardwarein,
 ~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send(s);
 )
 
+(
 // indexing into a table
 ~pitchBuf = Buffer(s, 513, 1);
 ~ratioBuf = Buffer(s, 1024, 1);
@@ -85,10 +88,11 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
 ~inVox = Synth(\hardwarein, [\inbus, 0, \outbus, ~sourceIns], ~voxGroup);
-//limiter, to avoid little accidents. Why does this cause a duplicate node error?
+//limiter, to avoid little accidents.
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 s.volume.gui;
 s.volume.volume= -20;
-~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqbuf, ~pitchBuf, \freqbufpointer, ~indexBus]);
-~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqbuf, ~pitchBuf, \freqbufpointer, ~indexBus, \numbuf, ~ratioBuf]);
+~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~pitchBuf, \freqBufPointer, ~indexBus]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~pitchBuf, \freqBufPointer, ~indexBus, \numBuf, ~ratioBuf]);
 ~indexBus.get(_.postln);
+)
