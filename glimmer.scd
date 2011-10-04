@@ -4,13 +4,16 @@
 SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
 	//we presume freqBuf has 513 samples, and use 512. Why not?
-	#freq, hasFreq = Pitch.kr(In.ar(in));
-	Amplitude.kr(In.ar(in), releaseTime:1).poll(10, \inamp);
+	#freq, hasFreq = Pitch.kr(In.ar(in), execFreq: rate);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
-	BufWr.kr(
-		freq,
-		(index+(512*(1-writing))).min(512) //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
+	index.poll(10, \idx);
+	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
+	index.poll(10, \idx2);
+	BufWr.ar(
+		inputArray: K2A.ar(freq),
+		bufnum: freqBuf,
+		phase: K2A.ar(index)
 	);
 	freq.poll(10, \freq);
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
@@ -33,7 +36,8 @@ SynthDef.new(\glimmergrains,
 		reso=1,
 		attack=0.01, decay=0.5,
 		freqBuf, freqBufLength=10, freqBufPointer,
-		numBuf, numBufLength=10, nVoices=10|
+		numBuf, numBufLength=10,
+		nVoices=10|
 		var trigRamp, voices;
 		in = In.ar(in);
 		freqBufPointer = In.kr(freqBufPointer);
@@ -74,7 +78,7 @@ SynthDef.new(\hardwarein,
 (
 // indexing into a table
 ~freqBuf = Buffer(s, 513, 1);
-~ratioBuf = Buffer(s, 1024, 1);
+~ratioBuf = Buffer(s, 512, 1);
 // alloc and set the values
 //pitches all 440Hz by default
 s.listSendMsg( ~freqBuf.allocMsg( ~freqBuf.setnMsg(0, 440!513) ).postln );
@@ -96,4 +100,6 @@ s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
 ~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf]);
 ~freqBufPointer.get(_.postln);
+~freqs = \foo;
+~freqBuf.loadToFloatArray(count: -1, action: {|arr| ~freq=arr; ~freq.postln;});
 )
