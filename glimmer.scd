@@ -32,8 +32,8 @@ SynthDef.new(\glimmergrains,
 	{|in, out,
 		trigRate=10,
 		inDuty=0.5, playDuty=0.5,
-		reso=1,
-		attack=0.01, decay=2.0,
+		reso=2.0,
+		attack=0.01, decay=0.5,
 		freqBuf, freqBufLength=10, freqBufPointer,
 		numBuf, numBufLength=10,
 		nVoices=10|
@@ -47,8 +47,8 @@ SynthDef.new(\glimmergrains,
 			var myRamp,inGate, outGate, inEnv, outEnv, myFreqLag, myFreq, myPan;
 			//voice-local phase-offset ramp
 			myRamp = Wrap.kr(trigRamp + (i * ~maxVoices.reciprocal));
-			inGate = trigRamp < inDuty;
-			outGate = trigRamp < playDuty;
+			inGate = myRamp < inDuty;
+			outGate = myRamp < playDuty;
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
 			myFreqLag = TIRand.kr(lo:0, hi:freqBufLength, trig:outGate).min(maxIndicesSoFar);
