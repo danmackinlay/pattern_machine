@@ -51,23 +51,26 @@ SynthDef.new(\glimmergrains,
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(~maxVoices, {|i|
-			var myRamp,inGate, outGate, inEnv, outEnv, myFreqLag, myFreq, myPan, phaseI, panI;
-			//voice-local phase-offset ramp
+			var myRamp;
+			var inGate, outGate;
+			var inEnv, outEnv;
+			var myDelayFreqLag;
+			var myFreq, myPan;
+			var phaseI, panI;
 			//permute phases
 			phaseI = (i*29) % ~maxVoices;
 			panI = (i*17) % ~maxVoices;
+			//voice-local phase-offset ramp
 			myRamp = Wrap.kr(trigRamp + (phaseI * ~maxVoices.reciprocal));
 			inGate = myRamp < inDuty;
 			outGate = myRamp < playDuty;
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
-			myFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:outGate);
-			Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511);
+			myDelayFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:inGate);
+			Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511);
 			myFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
-				phase: Wrap.kr(freqBufPointer - myFreqLag, lo: 0, hi: 511),
+				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(10);
-			//debug panning situation
-			//DC.kr((2 * (i+0.5) * ~maxVoices.reciprocal) -1).poll(label: \pos);
 
 			Pan2.ar(
 				in: CombL.ar(
@@ -80,7 +83,7 @@ SynthDef.new(\glimmergrains,
 				level: 1.0
 			);
 		});
-		Out.ar(out, LeakDC.ar(Mix.ar(voices)));
+		Out.ar(out, Limiter.ar(LeakDC.ar(Mix.ar(voices)),1,0.01));
 	}	
 ).send(s);
 
@@ -90,8 +93,6 @@ SynthDef.new(\hardwarein,
 		// Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
 		Out.ar(out, in);}
 ).send(s);
-
-~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send(s);
 )
 
 (
@@ -111,8 +112,6 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 ~outGroup = Group.after(~fxGroup);
 //read hardware in at head of ~voxGroup
 ~inVox = Synth(\hardwarein, [\in, 0, \out, ~sourceIns], ~voxGroup);
-//limiter, to avoid little accidents.
-~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
