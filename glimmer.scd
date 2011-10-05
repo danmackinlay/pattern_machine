@@ -1,7 +1,6 @@
 //TODO: create synthdefs for various numbers of voices than 20
 //TODO: respect nVoices
 //TODO: respect numBuf
-//TODO: resonant filter
 //TODO: feedback
 //TODO: go to demand-rate recording. Control rate is lame.
 
@@ -38,7 +37,7 @@ SynthDef.new(\glimmergrains,
 	{|in, out,
 		trigRate=10,
 		inDuty=0.5, playDuty=0.5,
-		reso=2.0,
+		ringTime=2.0, wideness=1,
 		attack=0.01, decay=0.5,
 		freqBuf, freqBufLength=10, freqBufPointer,
 		numBuf, numBufLength=10,
@@ -54,9 +53,10 @@ SynthDef.new(\glimmergrains,
 			var myRamp;
 			var inGate, outGate;
 			var inEnv, outEnv;
-			var myDelayFreqLag;
-			var myFreq, myPan;
+			var myFilterFreqLag, myDelayFreqLag;
+			var myDelayFreq, myFilterFreq, myPan;
 			var phaseI, panI;
+			var sig;
 			//permute phases
 			phaseI = (i*29) % ~maxVoices;
 			panI = (i*17) % ~maxVoices;
@@ -67,18 +67,27 @@ SynthDef.new(\glimmergrains,
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
 			myDelayFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:inGate);
+			myFilterFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:inGate);
 			Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511);
-			myFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
+			myDelayFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
 				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(10);
-
+			myFilterFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
+				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
+				interpolation:1).max(80);
+			sig = Resonz.ar(
+				in: mixedIn*inEnv,
+				freq: myFilterFreq,
+				bwr: wideness
+			);
+			sig = CombL.ar(
+				in: sig,
+				maxdelaytime: 0.1,
+				delaytime: myDelayFreq.reciprocal,
+				decaytime: ringTime,
+				mul:outEnv);
 			Pan2.ar(
-				in: CombL.ar(
-					in: mixedIn*inEnv,
-					maxdelaytime: 0.1,
-					delaytime: myFreq.reciprocal,
-					decaytime: reso,
-					mul:outEnv),
+				in: sig,
 				pos: ((2 * (panI+0.5) * ~maxVoices.reciprocal) -1),
 				level: 1.0
 			);
@@ -115,7 +124,6 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
-~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 0.01]);
 ~freqBufPointer.get(_.postln);
 ~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});
-)
