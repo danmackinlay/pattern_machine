@@ -1,37 +1,13 @@
 //TODO: create synthdefs for various numbers of voices than 20
-//TODO: respect nVoices
 //TODO: respect numBuf
 //TODO: feedback
 //TODO: go to demand-rate recording. Control rate is lame.
 
 (
-SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
-	var hasFreq, freq, index, writing=0;
-	rate = rate.min(ControlRate.ir/2);//so triggers work
-	//we presume freqBuf has 513 samples, and use 512. Why not?
-	#freq, hasFreq = Pitch.kr(In.ar(in), execFreq: rate);
-	writing = hasFreq* gate;
-	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
-	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
-	//freq.poll(10, \written);
-	BufWr.kr(
-		inputArray: freq,
-		bufnum: freqBuf,
-		phase: index
-	);
-	BufRd.kr(numChannels:1,
-		bufnum: freqBuf,
-		phase: index,
-		interpolation:1
-	);//.poll(10, \read);
-	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
-}).send(s);
-
+var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
 
 //This little guy voices a whole bunch of flange frequencies at a given polyphony with known rate
 //input is assumed to be stereo
-
-~maxVoices = 23; //primes make it easy to permute, since everything is co-prime
 
 SynthDef.new(\glimmergrains,
 	{|in, out,
@@ -41,7 +17,7 @@ SynthDef.new(\glimmergrains,
 		attack=0.01, decay=0.5,
 		freqBuf, freqBufLength=10, freqBufPointer,
 		numBuf, numBufLength=10,
-		nVoices=10|
+		nVoices=23|
 		var trigRamp, voices, maxIndicesSoFar, mixedIn;
 		in = In.ar(in);
 		mixedIn = Mix.ar(in);
@@ -49,7 +25,7 @@ SynthDef.new(\glimmergrains,
 		freqBufPointer = In.kr(freqBufPointer);
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
-		voices = Array.fill(~maxVoices, {|i|
+		voices = Array.fill(maxVoices, {|i|
 			var myRamp;
 			var inGate, outGate;
 			var inEnv, outEnv;
@@ -57,13 +33,15 @@ SynthDef.new(\glimmergrains,
 			var myDelayFreq, myFilterFreq, myPan;
 			var phaseI, panI;
 			var sig;
+			var alive;
 			//permute phases
-			phaseI = (i*29) % ~maxVoices;
-			panI = (i*17) % ~maxVoices;
+			phaseI = (i*29) % maxVoices;
+			panI = (i*17) % maxVoices;
+			alive = i<nVoices;
 			//voice-local phase-offset ramp
-			myRamp = Wrap.kr(trigRamp + (phaseI * ~maxVoices.reciprocal));
-			inGate = myRamp < inDuty;
-			outGate = myRamp < playDuty;
+			myRamp = Wrap.kr(trigRamp + (phaseI * maxVoices.reciprocal));
+			inGate = (myRamp < inDuty) * alive;
+			outGate = (myRamp < playDuty) * alive;
 			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
 			myDelayFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:inGate);
@@ -88,7 +66,7 @@ SynthDef.new(\glimmergrains,
 				mul:outEnv);
 			Pan2.ar(
 				in: sig,
-				pos: ((2 * (panI+0.5) * ~maxVoices.reciprocal) -1),
+				pos: ((2 * (panI+0.5) * maxVoices.reciprocal) -1),
 				level: 1.0
 			);
 		});
@@ -96,12 +74,37 @@ SynthDef.new(\glimmergrains,
 	}	
 ).send(s);
 
+
+SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
+	var hasFreq, freq, index, writing=0;
+	rate = rate.min(ControlRate.ir/2);//so triggers work
+	//we presume freqBuf has 513 samples, and use 512. Why not?
+	#freq, hasFreq = Pitch.kr(In.ar(in), execFreq: rate);
+	writing = hasFreq* gate;
+	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
+	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
+	//freq.poll(10, \written);
+	BufWr.kr(
+		inputArray: freq,
+		bufnum: freqBuf,
+		phase: index
+	);
+	BufRd.kr(numChannels:1,
+		bufnum: freqBuf,
+		phase: index,
+		interpolation:1
+	);//.poll(10, \read);
+	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
+}).send(s);
+
+
 SynthDef.new(\hardwarein,
 	{|in, out|
 		in = SoundIn.ar(in);
 		// Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
 		Out.ar(out, in);}
 ).send(s);
+
 )
 
 (
@@ -124,6 +127,6 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
-~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 0.01]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
 ~freqBufPointer.get(_.postln);
 ~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});
