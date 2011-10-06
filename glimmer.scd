@@ -2,7 +2,7 @@
 //TODO: respect numBuf
 //TODO: feedback
 //TODO: go to demand-rate recording. Control rate is lame.
-
+//TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
 
@@ -19,7 +19,7 @@ SynthDef.new(\glimmergrains,
 		numBuf, numBufLength=10,
 		nVoices=23|
 		var trigRamp, voices, maxIndicesSoFar, mixedIn;
-		in = In.ar(in);
+		in = In.ar(in, 2);
 		mixedIn = Mix.ar(in);
 		//poor-man's ring buffer
 		freqBufPointer = In.kr(freqBufPointer);
@@ -79,7 +79,7 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
 	rate = rate.min(ControlRate.ir/2);//so triggers work
 	//we presume freqBuf has 513 samples, and use 512. Why not?
-	#freq, hasFreq = Pitch.kr(In.ar(in), execFreq: rate);
+	#freq, hasFreq = Pitch.kr(Mix.ar(In.ar(in, 2)), execFreq: rate);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
@@ -98,13 +98,21 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 }).send(s);
 
 
-SynthDef.new(\hardwarein,
-	{|in, out|
-		in = SoundIn.ar(in);
-		// Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
+SynthDef.new(\hardwarein__1,
+	{|out|
+		var in;
+		in = SoundIn.ar(0);
+		//Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
 		Out.ar(out, in);}
 ).send(s);
 
+SynthDef.new(\hardwarein__2,
+	{|out|
+		var in;
+		in = SoundIn.ar([0,1]);
+		//Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
+		Out.ar(out, in);}
+).send(s);
 )
 
 (
@@ -123,7 +131,7 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
 //read hardware in at head of ~voxGroup
-~inVox = Synth(\hardwarein, [\in, 0, \out, ~sourceIns], ~voxGroup);
+~inVox = Synth(\hardwarein__2, [\in, [0,1], \out, ~sourceIns], ~voxGroup);
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
