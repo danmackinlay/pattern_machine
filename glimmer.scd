@@ -1,8 +1,11 @@
-//TODO: create synthdefs for various numbers of voices than 20
+//TODO: (probably won't) create synthdefs for various numbers of voices than 23
 //TODO: respect numBuf
-//TODO: feedback
 //TODO: go to demand-rate recording. Control rate is lame.
 //TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
+//TODO: handle any number of input AND output channels (by being ambisonic internally?)
+//TODO: use JITLib to make this compile nicely
+//TODO: turn this into an instrument wiht nice intuitive GUI controls etc.
+
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
 
@@ -17,10 +20,12 @@ SynthDef.new(\glimmergrains,
 		attack=0.01, decay=0.5,
 		freqBuf, freqBufLength=10, freqBufPointer,
 		numBuf, numBufLength=10,
-		nVoices=23|
-		var trigRamp, voices, maxIndicesSoFar, mixedIn;
+		nVoices=23,
+		feedbackGain = 0.5, feedbackLen=0.1|
+		var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
 		in = In.ar(in, 2);
-		mixedIn = Mix.ar(in);
+		feedback = DelayL.ar(LocalIn.ar(2), maxdelaytime: 1.0, delaytime: feedbackLen, mul:feedbackGain) ;
+		mixedIn = Mix.ar(in+feedback);
 		//poor-man's ring buffer
 		freqBufPointer = In.kr(freqBufPointer);
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
@@ -70,7 +75,9 @@ SynthDef.new(\glimmergrains,
 				level: 1.0
 			);
 		});
-		Out.ar(out, Limiter.ar(LeakDC.ar(Mix.ar(voices)),1,0.01));
+		outChannels = Limiter.ar(LeakDC.ar(Mix.ar(voices)),1,0.01);
+		LocalOut.ar(outChannels);
+		Out.ar(out, outChannels);
 	}	
 ).send(s);
 
@@ -114,7 +121,7 @@ SynthDef.new(\hardwarein__2,
 		Out.ar(out, in);}
 ).send(s);
 )
-
+Function
 (
 ~freqBuf = Buffer(s, 513, 1);
 ~ratioBuf = Buffer(s, 512, 1);
