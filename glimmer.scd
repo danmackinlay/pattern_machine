@@ -24,7 +24,11 @@ SynthDef.new(\glimmergrains,
 		feedbackGain = 0.5, feedbackLen=0.1|
 		var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
 		in = In.ar(in, 2);
-		feedback = DelayL.ar(LocalIn.ar(2), maxdelaytime: 1.0, delaytime: feedbackLen, mul:feedbackGain) ;
+		feedback = DelayL.ar(
+			in: LocalIn.ar(2),
+			maxdelaytime: 1.0,
+			delaytime: feedbackLen-ControlRate.ir.reciprocal,
+			mul:feedbackGain) ;
 		mixedIn = Mix.ar(in+feedback);
 		//poor-man's ring buffer
 		freqBufPointer = In.kr(freqBufPointer);
@@ -103,9 +107,8 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	);//.poll(10, \read);
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
 }).send(s);
-
 )
-Function
+
 (
 ~freqBuf = Buffer(s, 513, 1);
 ~ratioBuf = Buffer(s, 512, 1);
