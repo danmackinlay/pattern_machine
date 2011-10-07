@@ -104,22 +104,6 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
 }).send(s);
 
-
-SynthDef.new(\hardwarein__1,
-	{|out|
-		var in;
-		in = SoundIn.ar(0);
-		//Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
-		Out.ar(out, in);}
-).send(s);
-
-SynthDef.new(\hardwarein__2,
-	{|out|
-		var in;
-		in = SoundIn.ar([0,1]);
-		//Amplitude.kr(in, releaseTime:1).poll(1, \inamp);
-		Out.ar(out, in);}
-).send(s);
 )
 Function
 (
@@ -138,7 +122,7 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
 //read hardware in at head of ~voxGroup
-~inVox = Synth(\hardwarein__2, [\in, [0,1], \out, ~sourceIns], ~voxGroup);
+~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
