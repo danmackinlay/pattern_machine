@@ -4,7 +4,8 @@
 //TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: use JITLib to make this compile nicely
-//TODO: turn this into an instrument wiht nice intuitive GUI controls etc.
+//TODO: turn this into an instrument with nice intuitive GUI controls etc.
+//rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
@@ -30,7 +31,7 @@ SynthDef.new(\glimmergrains,
 			delaytime: feedbackLen-ControlRate.ir.reciprocal,
 			mul:feedbackGain) ;
 		mixedIn = Mix.ar(in+feedback);
-		//poor-man's ring buffer
+		//poor-man's shared ring buffer
 		freqBufPointer = In.kr(freqBufPointer);
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
@@ -109,7 +110,6 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 }).send(s);
 )
 
-(
 ~freqBuf = Buffer(s, 513, 1);
 ~ratioBuf = Buffer(s, 512, 1);
 // alloc and set the values
