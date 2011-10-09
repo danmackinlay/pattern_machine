@@ -1,4 +1,6 @@
 GlimmerTracker {
+	var sourceIns, freqBufPointer, <freqBuf, <ratioBuf, server, group;
+	
 	*initClass{
 		StartUp.add({
 			this.loadSynthDefs
@@ -26,7 +28,19 @@ GlimmerTracker {
 				interpolation:1
 			);//.poll(10, \read);
 			Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
-		}).add;
+		}/*,
+		metadata: (specs: (
+			cutoff: \freq, volume: \amp)
+		)*/).add;
 	}
-	*new{}
+	*new{|sourceIns, defaultFreq=440|
+		^super.newCopyArgs(sourceIns).init;
+	}
+	init {
+		server = sourceIns.server;
+	}
+	play {|target, addAction|
+		//we 
+		
+	}
 }

@@ -8,6 +8,8 @@
 //TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 //TODO: switch to Tartini
 
+
+
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
 
@@ -111,6 +113,12 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 }).send(s);
 )
 
+~globalOuts = Bus.new(\audio, 0, 4);
+~voxGroup = Group.new(s);
+~sourceIns = Bus.audio(s, 2);
+~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
+~glim = GlimmerFilter.new(~globalOuts, ~sourceIns);
+
 ~freqBuf = Buffer(s, 513, 1);
 ~ratioBuf = Buffer(s, 512, 1);
 // alloc and set the values
@@ -121,12 +129,9 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 //Now..
 ~globalOuts = Bus.new(\audio, 0, 4);
 ~freqBufPointer = Bus.control(s, 1);
-~sourceIns = Bus.audio(s, 2);
-~voxGroup = Group.new(s);
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
 //read hardware in at head of ~voxGroup
-~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
