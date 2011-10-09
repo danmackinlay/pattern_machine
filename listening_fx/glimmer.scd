@@ -5,7 +5,8 @@
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: use JITLib to make this compile nicely
 //TODO: turn this into an instrument with nice intuitive GUI controls etc.
-//rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
+//TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
+//TODO: switch to Tartini
 
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
