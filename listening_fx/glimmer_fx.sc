@@ -3,7 +3,7 @@
 */
 //TODO: create synthdefs for various numbers of voices than 23
 //TODO: respect numBuf
-//TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
+//TODO: create a version that does not depend on GlimmerTracker - i.e which takes a buffer pre-filled from function args
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 
@@ -51,28 +51,19 @@ GlimmerFilter {
 		});
 	}
 	play {
-		/*~freqBuf = Buffer(s, 513, 1);
-		~ratioBuf = Buffer(s, 512, 1);
+		freqBuf = Buffer(s, 513, 1);
+		ratioBuf = Buffer(s, 512, 1);
 		// alloc and set the values
 		//pitches all 440Hz by default
-		s.listSendMsg( ~freqBuf.allocMsg( ~freqBuf.setnMsg(0, 440!513) ).postln );
+		s.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, 440!513) ).postln );
 		//ratios all 1 by default.
-		s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
+		s.listSendMsg( ratioBuf.allocMsg( ratioBuf.setnMsg(0, 1!513) ).postln );
 		//Now..
-		~outbus = Bus.new(\audio, 0, 4);
-		~freqBufPointer = Bus.control(s, 1);
-		~inbus = Bus.audio(s, 2);
-		~voxGroup = Group.new(s);
-		~fxGroup = Group.after(~voxGroup);
-		~outGroup = Group.after(~fxGroup);
-		//read hardware in at head of ~voxGroup
-		~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~inbus);
-		//s.volume.gui;
-		s.volume.volume= -20;
-		~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~inbus, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
-		~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~inbus, \out, ~outbus, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
-		~freqBufPointer.get(_.postln);
-		~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});*/
+		freqBufPointer = Bus.control(s, 1);
+		~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~inbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer]);
+		~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~inbus, \out, ~outbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer, \numBuf, ratioBuf, \trigRate, 1, \wideness, 1]);
+		freqBufPointer.get(_.postln);
+		freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});*/
 	}
 }
 
