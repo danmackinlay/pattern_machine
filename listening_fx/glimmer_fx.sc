@@ -1,3 +1,12 @@
+/* Granular effects for an analysed sound files, giving you just the frequencies that you want.
+
+*/
+//TODO: create synthdefs for various numbers of voices than 23
+//TODO: respect numBuf
+//TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
+//TODO: handle any number of input AND output channels (by being ambisonic internally?)
+//TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
+
 GlimmerFilter {
 	var outbus, inbus, <glimmerTracker, server, freqBuf, ratioBuf, freqBufPointer, group;
 	

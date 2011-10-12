@@ -1,3 +1,11 @@
+/* Track pitches in an input and write 'em to a buffer for use in 
+pitch sensitive effects (such as GlimmerFilter)
+*/
+
+//TODO: go to demand-rate recording. Control rate is lame.
+//TODO: switch to Tartini
+
+
 GlimmerTracker {
 	var sourceIns, freqBufPointer, <freqBuf, <ratioBuf, server, group;
 	
