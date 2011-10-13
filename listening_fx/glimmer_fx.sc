@@ -8,7 +8,9 @@
 //TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 
 GlimmerFilter {
-	var outbus, inbus, <glimmerTracker, server, freqBuf, ratioBuf, freqBufPointer, group;
+	var <outbus, <inbus, <glimmerTracker, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <listengroup, <listensynth, <fxsynth;
+	
+	classvar maxVoices = 23;
 	
 	*initClass{
 		StartUp.add({
@@ -92,29 +94,49 @@ GlimmerFilter {
 			}	
 		).add;
 	}
-	*new {|outbus, inbus, glimmerTracker|
-		^super.newCopyArgs(outbus,inbus,glimmerTracker).init;
+	*new {
+		^super.new.init;
 	}
 	init {
-		server = outbus.server;
-		glimmerTracker.isNil.if({
-			glimmerTracker = GlimmerTracker.new(inbus);
-		});
 	}
-	play {
-		freqBuf = Buffer(s, 513, 1);
-		ratioBuf = Buffer(s, 512, 1);
-		// alloc and set the values
-		//pitches all 440Hz by default
-		s.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, 440!513) ).postln );
-		//ratios all 1 by default.
-		s.listSendMsg( ratioBuf.allocMsg( ratioBuf.setnMsg(0, 1!513) ).postln );
-		//Now..
-		freqBufPointer = Bus.control(s, 1);
-		~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~inbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer]);
-		~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~inbus, \out, ~outbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer, \numBuf, ratioBuf, \trigRate, 1, \wideness, 1]);
-		freqBufPointer.get(_.postln);
-		freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});*/
+	play { |out, in, fxGroup, listenGroup|
+		fork {
+			server = out.server;
+			outbus = out;
+			inbus = in ? out;
+			[\fxGroup, fxGroup].postln;
+			fxGroup.isNil.if({fxGroup = Group.new(server);});
+			fxgroup = fxGroup;
+			[\fxgroup, fxgroup].postln;
+			[\listenGroup, listenGroup].postln;
+			listenGroup.isNil.if({
+				listenGroup = Group.new(fxgroup, addAction: \addBefore);
+			});
+			listengroup = listenGroup;
+			[\listenGroup, listenGroup].postln;
+			/*glimmerTracker.isNil.if({
+				glimmerTracker = GlimmerTracker.new(inbus);
+			});*/
+			freqBuf = Buffer(server, 513, 1);
+			ratioBuf = Buffer(server, 512, 1);
+			// alloc and set the values
+			//pitches all 440Hz by default
+			server.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, 440!513) ).postln );
+			//ratios all 1 by default.
+			server.listSendMsg( ratioBuf.allocMsg( ratioBuf.setnMsg(0, 1!513) ).postln );
+			//Now..
+			server.sync;
+			freqBufPointer = Bus.control(server, 1);
+			listensynth = Synth.new(
+				\findfreqs,
+				[\in, inbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer],
+				target: listengroup);
+			server.sync;
+			fxsynth = Synth.new(
+				\glimmergrains,
+				[\in, inbus, \out, outbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer, \numBuf, ratioBuf, \trigRate, 1, \wideness, 1],
+				target: fxgroup);
+		}
 	}
 }
 

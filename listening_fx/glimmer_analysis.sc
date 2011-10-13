@@ -41,11 +41,10 @@ GlimmerTracker {
 			cutoff: \freq, volume: \amp)
 		)*/).add;
 	}
-	*new{|sourceIns, defaultFreq=440|
-		^super.newCopyArgs(sourceIns).init;
+	*new{|defaultFreq=440|
+		^super.new.init;
 	}
 	init {
-		server = sourceIns.server;
 	}
 	play {|target, addAction|
 		//we 
