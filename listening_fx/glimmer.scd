@@ -9,12 +9,11 @@
 ~sourceIns = Bus.audio(s, 2);
 //read hardware in at head of ~voxGroup
 ~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
-~glim = GlimmerFilter.new
+~glim = ListeningGlimmerFilter.new
 ~glim.play(out:~globalOuts, in:~sourceIns, fxGroup: ~fxGroup);
 
 ~glim.outbus;
 ~glim.inbus;
-~glim.glimmerTracker;
 ~glim.server;
 ~glim.freqBuf;
 ~glim.ratioBuf;
@@ -27,5 +26,5 @@
 //s.volume.gui;
 s.volume.volume= -20;
 
-~freqBufPointer.get(_.postln);
-~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});
+~glim.freqBufPointer.get(_.postln);
+~glim.freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});

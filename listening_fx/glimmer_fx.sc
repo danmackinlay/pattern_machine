@@ -3,12 +3,15 @@
 */
 //TODO: create synthdefs for various numbers of voices than 23
 //TODO: respect numBuf
-//TODO: create a version that does not depend on GlimmerTracker - i.e which takes a buffer pre-filled from function args
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
+//TODO: go to demand-rate recording. Control rate is lame.
+//TODO: switch to Tartini
+//TODO: don't create and explicit Control bus for the freqBufPointer. kr bus can be implicity created.
+//TODO: disambiguate variables that will be used to update isntance vars by making them lowercase, and instance vars camelCase
 
 GlimmerFilter {
-	var <outbus, <inbus, <glimmerTracker, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <listengroup, <listensynth, <fxsynth;
+	var <outbus, <inbus, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <fxsynth;
 	
 	classvar maxVoices = 23;
 	
@@ -20,7 +23,6 @@ GlimmerFilter {
 	*loadSynthDefs {
 		//This little guy voices a whole bunch of flange frequencies at a given polyphony with known rate
 		//input is assumed to be stereo
-		//This one tracks frequencies in the input
 		SynthDef.new(\glimmergrains,
 			{|in, out,
 				trigRate=10,
@@ -95,48 +97,91 @@ GlimmerFilter {
 		).add;
 	}
 	*new {
-		^super.new.init;
+		^super.new;
 	}
-	init {
-	}
-	play { |out, in, fxGroup, listenGroup|
-		fork {
-			server = out.server;
-			outbus = out;
-			inbus = in ? out;
-			[\fxGroup, fxGroup].postln;
-			fxGroup.isNil.if({fxGroup = Group.new(server);});
-			fxgroup = fxGroup;
-			[\fxgroup, fxgroup].postln;
-			[\listenGroup, listenGroup].postln;
-			listenGroup.isNil.if({
-				listenGroup = Group.new(fxgroup, addAction: \addBefore);
-			});
-			listengroup = listenGroup;
-			[\listenGroup, listenGroup].postln;
-			/*glimmerTracker.isNil.if({
-				glimmerTracker = GlimmerTracker.new(inbus);
-			});*/
-			freqBuf = Buffer(server, 513, 1);
-			ratioBuf = Buffer(server, 512, 1);
-			// alloc and set the values
-			//pitches all 440Hz by default
-			server.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, 440!513) ).postln );
-			//ratios all 1 by default.
-			server.listSendMsg( ratioBuf.allocMsg( ratioBuf.setnMsg(0, 1!513) ).postln );
-			//Now..
-			server.sync;
-			freqBufPointer = Bus.control(server, 1);
-			listensynth = Synth.new(
-				\findfreqs,
-				[\in, inbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer],
-				target: listengroup);
-			server.sync;
-			fxsynth = Synth.new(
-				\glimmergrains,
-				[\in, inbus, \out, outbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer, \numBuf, ratioBuf, \trigRate, 1, \wideness, 1],
-				target: fxgroup);
-		}
+	play { |out, in, fxGroup|
+		fork { this.playRoutine(out, in, fxGroup); };
+	}	
+	
+	playRoutine {|out, in, fxGroup|
+		server = out.server;
+		outbus = out;
+		inbus = in ? out;
+		[\fxGroup, fxGroup].postln;
+		fxGroup.isNil.if({fxGroup = Group.new(server);});
+		fxgroup = fxGroup;
+		[\fxgroup, fxgroup].postln;
+		freqBuf = Buffer(server, 513, 1);
+		ratioBuf = Buffer(server, 512, 1);
+		// alloc and set the values
+		//pitches all 440Hz by default
+		server.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, 440!513) ).postln );
+		//ratios all 1 by default.
+		server.listSendMsg( ratioBuf.allocMsg( ratioBuf.setnMsg(0, 1!513) ).postln );
+		//Now..
+		server.sync;
+		freqBufPointer = Bus.control(server, 1);
+		server.sync;
+		fxsynth = Synth.new(
+			\glimmergrains,
+			[\in, inbus, \out, outbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer, \numBuf, ratioBuf, \trigRate, 1, \wideness, 1],
+			target: fxgroup);
 	}
 }
 
+ListeningGlimmerFilter : GlimmerFilter {
+	var <listenbus, <listensynth, <listengroup;
+		
+	*initClass{
+		StartUp.add({
+			this.loadSynthDefs
+		});
+	}
+	*loadSynthDefs {
+		//This guy tracks frequencies in the input
+		SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
+			var hasFreq, freq, index, writing=0;
+			rate = rate.min(ControlRate.ir/2);//so triggers work
+			//we presume freqBuf has 513 samples, and use 512. Why not?
+			#freq, hasFreq = Pitch.kr(Mix.ar(In.ar(in, 2)), execFreq: rate);
+			writing = hasFreq* gate;
+			index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
+			index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
+			//freq.poll(10, \written);
+			BufWr.kr(
+				inputArray: freq,
+				bufnum: freqBuf,
+				phase: index
+			);
+			BufRd.kr(numChannels:1,
+				bufnum: freqBuf,
+				phase: index,
+				interpolation:1
+			);//.poll(10, \read);
+			Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
+		}/*,
+		metadata: (specs: (
+			cutoff: \freq, volume: \amp)
+		)*/).add;
+	}
+
+	play { |out, in, listenin, fxGroup, listenGroup|
+		fork { this.playRoutine(out, in, listenin, fxGroup, listenGroup); };
+	}	
+	
+	playRoutine { |out, in, listenin, fxGroup, listenGroup|
+		super.playRoutine(out, in, fxGroup);
+		server.sync;
+		[\listenGroup, listenGroup].postln;
+		listenGroup.isNil.if({
+			listenGroup = Group.new(fxgroup, addAction: \addBefore);
+		});
+		listengroup = listenGroup;
+		[\listenGroup, listenGroup].postln;
+		listenbus = listenin ? in;
+		listensynth = Synth.new(
+			\findfreqs,
+			[\in, listenbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer],
+			target: listengroup);
+	}
+}
