@@ -5,13 +5,16 @@
 ~voxGroup = Group.new(s);
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
+s.volume.volume= -20;
+
 
 ~sourceIns = Bus.audio(s, 2);
 //read hardware in at head of ~voxGroup
 ~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
-~glim = ListeningGlimmerFilter.new
+~glim = GlimmerFilter.new;
+//~glim = ListeningGlimmerFilter.new;
 ~glim.play(out:~globalOuts, in:~sourceIns, fxGroup: ~fxGroup);
-
+~glim.freqs = [390, 335];
 ~glim.outbus;
 ~glim.inbus;
 ~glim.server;
@@ -24,7 +27,8 @@
 ~glim.fxsynth;
 
 //s.volume.gui;
-s.volume.volume= -20;
 
 ~glim.freqBufPointer.get(_.postln);
 ~glim.freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});
+
+440!512

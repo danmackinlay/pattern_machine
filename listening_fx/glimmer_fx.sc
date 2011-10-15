@@ -9,9 +9,11 @@
 //TODO: switch to Tartini
 //TODO: don't create and explicit Control bus for the freqBufPointer. kr bus can be implicity created.
 //TODO: disambiguate variables that will be used to update isntance vars by making them lowercase, and instance vars camelCase
+//TODO: bound freqlag above.
 
 GlimmerFilter {
 	var <outbus, <inbus, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <fxsynth;
+	var <freqs;
 	
 	classvar maxVoices = 23;
 	
@@ -97,7 +99,17 @@ GlimmerFilter {
 		).add;
 	}
 	*new {
-		^super.new;
+		^super.new.init;
+	}
+	init {
+		freqs = [440];
+	}
+	freqs_ {|freqlist|
+		freqs = freqlist;
+		freqBuf.isNil.not.if({
+			freqBuf.setn(freqs);
+			freqBufPointer.set(freqs.size-1);
+		});
 	}
 	play { |out, in, fxGroup|
 		fork { this.playRoutine(out, in, fxGroup); };
@@ -115,13 +127,14 @@ GlimmerFilter {
 		ratioBuf = Buffer(server, 512, 1);
 		// alloc and set the values
 		//pitches all 440Hz by default
-		server.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, 440!513) ).postln );
+		server.listSendMsg( freqBuf.allocMsg( freqBuf.setnMsg(0, freqs) ).postln );
 		//ratios all 1 by default.
 		server.listSendMsg( ratioBuf.allocMsg( ratioBuf.setnMsg(0, 1!513) ).postln );
 		//Now..
 		server.sync;
 		freqBufPointer = Bus.control(server, 1);
 		server.sync;
+		freqBufPointer.set(0);
 		fxsynth = Synth.new(
 			\glimmergrains,
 			[\in, inbus, \out, outbus, \freqBuf, freqBuf, \freqBufPointer, freqBufPointer, \numBuf, ratioBuf, \trigRate, 1, \wideness, 1],
@@ -164,7 +177,9 @@ ListeningGlimmerFilter : GlimmerFilter {
 			cutoff: \freq, volume: \amp)
 		)*/).add;
 	}
-
+  freqs {|freqlist|
+	  //do nothing, to prevent parent class's interfering sefault behaviour.
+	}
 	play { |out, in, listenin, fxGroup, listenGroup|
 		fork { this.playRoutine(out, in, listenin, fxGroup, listenGroup); };
 	}	
