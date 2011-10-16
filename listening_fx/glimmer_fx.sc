@@ -1,14 +1,15 @@
-/* Granular effects for an analysed sound files, giving you just the frequencies that you want.
+/* Granular effects for live adaptive filtering of input.*/
 
-*/
 //TODO: create synthdefs for various numbers of voices than 23
 //TODO: respect numBuf
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 //TODO: go to demand-rate recording. Control rate is lame.
 //TODO: switch to Tartini
-//TODO: don't create and explicit Control bus for the freqBufPointer. kr bus can be implicity created.
+//TODO: don't create an explicit Control bus for the freqBufPointer. kr bus can be implicity created.
 //TODO: disambiguate variables that will be used to update instance vars by making them lowercase, and instance vars camelCase
+//TODO: free voices. (free if we go to jitlib)
+//TODO: make subvoices demand a value from the parent oscillator rathe than running kr busses full of values.
 
 GlimmerFilter {
 	var <outbus, <inbus, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <fxsynth;
@@ -67,7 +68,7 @@ GlimmerFilter {
 					inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 					outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
 					myDelayFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar).min(sampleJitter), trig:inGate);
-					myFilterFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar).min(sampleJitter), trig:inGate).poll(1, \fflag, i);
+					myFilterFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar).min(sampleJitter), trig:inGate);
 					Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511);
 					myDelayFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
 						phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
