@@ -3,12 +3,11 @@
 //TODO: create synthdefs for various numbers of voices than 23
 //TODO: respect numBuf
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
-//TODO: rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 //TODO: go to demand-rate recording. Control rate is lame.
 //TODO: switch to Tartini
 //TODO: don't create an explicit Control bus for the freqBufPointer. kr bus can be implicity created.
 //TODO: disambiguate variables that will be used to update instance vars by making them lowercase, and instance vars camelCase
-//TODO: free voices. (free if we go to jitlib)
+//TODO: free voices. (easy if we go to jitlib)
 //TODO: make subvoices demand a value from the parent oscillator rathe than running kr busses full of values.
 
 GlimmerFilter {
@@ -57,9 +56,14 @@ GlimmerFilter {
 					var phaseI, panI;
 					var sig;
 					var alive;
+					var ihash;
 					//permute phases
-					phaseI = (i*29) % maxVoices;
-					panI = (i*17) % maxVoices;
+					ihash = i.hash;
+					phaseI = (ihash % 1024) /1024;
+					panI = (ihash.hash % 1024) /1024;
+					DC.kr(panI).poll(1,\pan);
+					DC.kr(phaseI).poll(1,\phase);
+					//low-budget dynamic voicer
 					alive = i<nVoices;
 					//voice-local phase-offset ramp
 					myRamp = Wrap.kr(trigRamp + (phaseI * maxVoices.reciprocal));
@@ -164,7 +168,6 @@ ListeningGlimmerFilter : GlimmerFilter {
 			writing = hasFreq* gate;
 			index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 			index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
-			//freq.poll(10, \written);
 			BufWr.kr(
 				inputArray: freq,
 				bufnum: freqBuf,
