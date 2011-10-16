@@ -8,8 +8,7 @@
 //TODO: go to demand-rate recording. Control rate is lame.
 //TODO: switch to Tartini
 //TODO: don't create and explicit Control bus for the freqBufPointer. kr bus can be implicity created.
-//TODO: disambiguate variables that will be used to update isntance vars by making them lowercase, and instance vars camelCase
-//TODO: bound freqlag above.
+//TODO: disambiguate variables that will be used to update instance vars by making them lowercase, and instance vars camelCase
 
 GlimmerFilter {
 	var <outbus, <inbus, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <fxsynth;
@@ -34,7 +33,8 @@ GlimmerFilter {
 				freqBuf, freqBufLength=10, freqBufPointer,
 				numBuf, numBufLength=10,
 				nVoices=23,
-				feedbackGain = 0.5, feedbackLen=0.1|
+				feedbackGain = 0.5, feedbackLen=0.1,
+				sampleJitter=10|
 				var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
 				in = In.ar(in, 2);
 				feedback = DelayL.ar(
@@ -66,8 +66,8 @@ GlimmerFilter {
 					outGate = (myRamp < playDuty) * alive;
 					inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
 					outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
-					myDelayFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:inGate);
-					myFilterFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar), trig:inGate);
+					myDelayFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar).min(sampleJitter), trig:inGate);
+					myFilterFreqLag = TIRand.kr(lo:0, hi: freqBufLength.min(maxIndicesSoFar).min(sampleJitter), trig:inGate).poll(1, \fflag, i);
 					Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511);
 					myDelayFreq = BufRd.kr(numChannels:1, bufnum:freqBuf,
 						phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
@@ -106,9 +106,12 @@ GlimmerFilter {
 	}
 	freqs_ {|freqlist|
 		freqs = freqlist;
-		freqBuf.isNil.not.if({
-			freqBuf.setn(freqs);
+		freqs.postln;
+		fxsynth.isNil.not.if({
+			[\updating, freqs, freqBuf].postln;
+			freqBuf.setn(0, freqs);
 			freqBufPointer.set(freqs.size-1);
+			fxsynth.set(\sampleJitter, freqs.size-1)
 		});
 	}
 	play { |out, in, fxGroup|
@@ -177,8 +180,8 @@ ListeningGlimmerFilter : GlimmerFilter {
 			cutoff: \freq, volume: \amp)
 		)*/).add;
 	}
-  freqs {|freqlist|
-	  //do nothing, to prevent parent class's interfering sefault behaviour.
+  freqs_ {|freqlist|
+	  //do nothing, to prevent parent class's interfering default behaviour.
 	}
 	play { |out, in, listenin, fxGroup, listenGroup|
 		fork { this.playRoutine(out, in, listenin, fxGroup, listenGroup); };
