@@ -8,7 +8,7 @@
 //TODO: don't create an explicit Control bus for the freqBufPointer. kr bus can be implicity created.
 //TODO: disambiguate variables that will be used to update instance vars by making them lowercase, and instance vars camelCase
 //TODO: free voices. (easy if we go to jitlib)
-//TODO: make subvoices demand a value from the parent oscillator rathe than running kr busses full of values.
+//TODO: make subvoices demand a value from the parent oscillator rather than running kr busses full of values.
 
 GlimmerFilter {
 	var <outbus, <inbus, <server, <freqBuf, <ratioBuf, <freqBufPointer, <fxgroup, <fxsynth;
