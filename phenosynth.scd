@@ -9,11 +9,11 @@ s=Server.default;
 //limiter, to avoid little accidents
 ~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
-s.volume.gui;
+//s.volume.gui;
 s.volume.volume= -20;
 //actual real work nowl first choose the controller that will manage the synths
 ~control = PSEarSwarmController(s, ~globalOuts);
-//now set up the "isalnd" that will control their evolution
+//now set up the "island" that will control their evolution
 ~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
 ~island.play;
 //
@@ -28,11 +28,21 @@ s.volume.volume= -20;
 //these should only ever differ momentarily
 ~island.population.size;
 ~island.population[0];
+~island.population[0].chromosomeAsSynthArgs;
 ~island.controller.all[~island.population[0].identityHash].playBus.scope
 ~globalOuts.scope
 //when you are bored, do a
 ~island.free;
 //(you might need to do it twice. I'm working on that.)
+)
+(
+//test listeners
+~playbus = Bus.audio(s, 1);
+~fitbus = Bus.control(s, 1);
+~eighthundredsource = {|freq=500| SinOsc.ar(freq); }.play(s, outbus: ~playbus)
+Synth.after(~eighthundredsource, \ps_conv_eight_hundred, [\in, ~playbus, \out, ~fitbus, \i_leakcoef, 0.5]);
+~fitbus.get(_.postln);
+~eighthundredsource.set(\freq, 800);
 )
 (
 //multichannelising tests
@@ -84,6 +94,8 @@ NOTES:
 
 TODO:
 
+* right now this doesn't especially converge to 800 Hz, even over large timescales
+
 * infrastructure
 	* ensure Groups are also freed.
 	* allow a seed-bank supporting far more genomes than can be simultaneously simulated. (I.e. keep a much larger population, but only simulate a part of them at once
@@ -109,6 +121,7 @@ TODO:
 		* go to all-binary chromosomes for increased happiness and elegance/
 	* handle zero-fitness populations in the parent and death selector
 	* provide a "migration phase" in which to check for extinction and restock.
+	* switch to jitlib
 
 * Give the faintest of indications that I do care about tests
 
@@ -118,7 +131,7 @@ TODO:
 	* LFOs
 		* support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
 	* give lifespans using the exponential distribution \lambda \e ^-\lambda \e
-	*doesnt' apply ATM but might with different regims:
+	* doesnt' apply ATM but might with different regimes:
 		* scale birthRate and deathRate so that they fit eventual fitness
 		* reseed population when they all die
 

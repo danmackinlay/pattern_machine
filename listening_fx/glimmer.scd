@@ -6,6 +6,7 @@
 ~fxGroup = Group.after(~voxGroup);
 ~outGroup = Group.after(~fxGroup);
 s.volume.volume= -20;
+GlimmerFilter.loadSynthDefs;
 
 ~sourceIns = Bus.audio(s, 2);
 //read hardware in at head of ~voxGroup
@@ -14,7 +15,7 @@ s.volume.volume= -20;
 ~glim.play(out:~globalOuts, in:~sourceIns, fxGroup: ~fxGroup);
 //~glim = ListeningGlimmerFilter.new;
 //~glim.play(out:~globalOuts, in:~sourceIns, fxGroup: ~fxGroup);
-~glim.freqs = [391, 335];
+~glim.freqs = [391, 335, 939, 262, 114, 157, 111, 99, 115, 114, 272, 298];
 ~glim.outbus;
 ~glim.inbus;
 ~glim.server;

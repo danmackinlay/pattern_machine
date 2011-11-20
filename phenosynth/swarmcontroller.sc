@@ -3,8 +3,8 @@ PSSwarmController {
 	to be delivered in the right order and the boring bus/server allocation
 	details to be abstracted away, and to track resources needing freeing.*/
 	
-	//Instance vars are all public to aid debugging, but, honestly, don't
-	//touch them. Why would you touch them? Don't touch them.
+	/*Instance vars are all public to aid debugging, but not much use to look 
+	at unless you are debugging.*/
 	var <outBus;
 	var <numChannels;
 	var <q; //i.e. a Queue.
@@ -153,6 +153,9 @@ PSServerQueue {
 	explosions I was having before.
 	
 	On the other hand, this is as slow as hell. Smart bundling would be better.
+	
+	TODO: experiment with dropping this guy entirely, now that there are some bugfixes
+	in SC trunk that seem to be related.
 	*/
 	var <server;
 	var <fifo;
