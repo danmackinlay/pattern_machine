@@ -5,7 +5,7 @@
 		^this;
 	}
 	updatedFrom {|updates|
-		//return a copy of this dictionary, udpated from this other dictionary passed in.
+		//return a copy of this dictionary, updated from this other dictionary passed in.
 		^this.copy.updateFrom(updates);
 	}
 }
