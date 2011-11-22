@@ -11,29 +11,33 @@ s=Server.default;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 //s.volume.gui;
 s.volume.volume= -20;
-//actual real work nowl first choose the controller that will manage the synths
+//actual real work now: first choose the controller that will manage the synths
 ~control = PSEarSwarmController(s, ~globalOuts);
 //now set up the "island" that will control their evolution
-~island = PSEarSwarmIsland.new((\population: 30), controller:~control);
+~island = PSEarSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
-//
-~island.free;
-~island.population.select(_.wallClockAge>0)
 //listen for a while.
+//when you are bored, do a
+~island.free;
+//(you might need to do it twice. I'm working on that.)
+~island.free;
+
 
 //testing that things are going OK:
+~island.population.collect(_.fitness);
+~island.fitnesses;
 ~island.fitnesses.mean;
+~island.population;
+~island.population.select(_.wallClockAge>0)
 ~island.population.collect({|i| i.wallClockAge}).mean;
 ~island.population.collect({|i| i.logicalAge}).mean;
 //these should only ever differ momentarily
 ~island.population.size;
 ~island.population[0];
 ~island.population[0].chromosomeAsSynthArgs;
+~island.population[0].synth;
 ~island.controller.all[~island.population[0].identityHash].playBus.scope
 ~globalOuts.scope
-//when you are bored, do a
-~island.free;
-//(you might need to do it twice. I'm working on that.)
 )
 (
 //test listeners
@@ -43,25 +47,6 @@ s.volume.volume= -20;
 Synth.after(~eighthundredsource, \ps_conv_eight_hundred, [\in, ~playbus, \out, ~fitbus, \i_leakcoef, 0.5]);
 ~fitbus.get(_.postln);
 ~eighthundredsource.set(\freq, 400);
-)
-(
-//multichannelising tests
-SynthDef.new(\testoffsets, {|outs| Out.ar(outs, DC.ar(2.pow((0..3))))}).add;
-SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.ar(In.ar(ins))))}).add;
-~mctestouts = Bus.audio(s, 4);
-~mcrezout = Bus.control(s, 1);
-~mcplaygroup = Group.head(s);
-~mclistengroup = Group.after(~mcplaygroup);
-~mcplaysynth = Synth.new(\testoffsets, [\outs, ~mctestouts], ~mcplaygroup);
-~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \out, ~mcrezout], ~mclistengroup);
-~mcrezout.get(_.postln);
-(1..17).do({|numChannels|
-  SynthDef.new('jack$' ++ numChannels.asString, { |in, out|
-	Out.ar(out, In.ar(in, numChannels));
-  }).add;
-});
-PSSynthDefPhenotype.map
-"nameBase" ++ "$$" ++ 4.asString
 )
 (
 ~playGroup = Group.new(s);
@@ -74,20 +59,7 @@ SynthDef.new(\sawy, {|out, freq| Out.ar(out, Saw.ar(freq));}).add;
 ~play.set(\freq, 850);
 ~fitBus.get(_.postln);
 )
-(
-//How the controller works, nuts-and-bolts
-s=Server.default;
-~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
-~ind = PSSynthDefPhenotype.newRandom;
-~control.playIndividual(~ind);
-~control.freeIndividual(~ind);
-~ind.mappedArgs
-~ind.identityHash;
-~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
-~control.all.do({|a,b,c| [a,b,c].postln;});
-)
+
 /*
 NOTES:
 

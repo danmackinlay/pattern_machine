@@ -1,8 +1,14 @@
-//Things specific to  my diabolical schemes - i.e. phenotypic selection on swarming agents
+//Things specific to my diabolical schemes - i.e. phenotypic selection on swarming agents
 
 PSEarSwarmIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a controller abstraction*/
 	var <controller;
+	*initClass {
+		//apparently you have to do this for them all
+		StartUp.add({
+			this.defaultOperators;
+		});
+	}
 	*defaultParams {
 		var defParams = super.defaultParams;
 		defParams.individualClass = PSEarSwarmPhenotype;
@@ -10,7 +16,7 @@ PSEarSwarmIsland : PSRealTimeIsland {
 	}
 	*defaultOperators {
 		super.defaultOperators;
-		defaultDeathSelector = PSDeathSelectors.byRoulettePerRateAdultsOnly(_,_,_);
+		defaultCrossover = PSCrossovers.meanCrossover(_,_,_);
 	}
 	*new {| params, pollPeriod=1, controller|
 		^super.new(params).init(pollPeriod, controller);

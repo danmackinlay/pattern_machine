@@ -6,6 +6,13 @@ PSCrossovers {
 		//an awful crossover, useful for only the most boneheaded of problems
 		^(chromosomes[0].size).collect({|i| chromosomes.slice(nil, i).choose;});
 	}
+	*meanCrossover {|params, chromosomes|
+		//Useful for small problems with short float-based chromosomes - 
+		// chooses either number or a mean of two adjacent ones (diploid-lite)
+		var size = (chromosomes.size*2+1);
+		[\size, size, \chromosomes, chromosomes].postln;
+		^chromosomes.flop.collect(_.blendAt(size.rand/2));
+	}
 }
 PSMutators {
 	*floatPointMutation{|params, chromosome|
@@ -32,6 +39,10 @@ PSDeathSelectors {
 		//choose enough doomed to meet the death rate on average, by fitness-
 		// weighted roulette
 		var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, rate;
+		(population.size == 0).if({
+			"Warning: empty population; no death for now".postln;
+			^[];
+		});
 		rate = params.deathRate;
 		localFitnesses = population.collect({|i| i.fitness;});
 		maxFitness = localFitnesses.maxItem;
@@ -44,11 +55,17 @@ PSDeathSelectors {
 	}
 	*byRoulettePerRateAdultsOnly {|params, population|
 		//choose enough doomed to meet the death rate on average, by fitness-
-		// weighted roulette
+		// weighted roulette, in sufficiently old agents
 		var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, localPopulation, rate;
 		rate = params.deathRate;
 		localPopulation = population.select(_.logicalAge>1);
 		localFitnesses = localPopulation.collect(_.fitness);
+		//[\localPopulation, localPopulation.size, localPopulation, population].postln;
+		(localPopulation.size == 0).if({
+			"Warning: no valid candidates; no death for now".postln;
+			^[];
+		});
+		
 		maxFitness = localFitnesses.maxItem;
 		negFitnesses = maxFitness - localFitnesses;
 		meanFitness = negFitnesses.mean;
@@ -65,6 +82,10 @@ PSBirthSelectors {
 		// choose enough proud parents to keep the population constant, by
 		// fitness-weighted roulette
 		var parentList, localFitnesses, meanFitness, targetBirths;
+		(population.size == 0).if({
+			"Warning: empty population; no breeding for now".postln;
+			^[];
+		});
 		targetBirths = (params.population) - population.size;
 		localFitnesses = population.collect({|i| i.fitness;});
 		meanFitness = localFitnesses.mean;

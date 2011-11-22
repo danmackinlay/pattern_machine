@@ -4,13 +4,13 @@ PSPhenotype {
 	var <logicalAge=0;
 	var <birthTime;
 	
-	classvar <genomeSize = 3;
+	classvar <>genomeSize = 3;
 	
 	*new{|chromosome|
 		^super.new.init(chromosome);
 	}
-	*newRandom {
-		var newChromosome = {1.0.rand;}.dup(genomeSize);
+	*newRandom {|forceGenomeSize|
+		var newChromosome = {1.0.rand;}.dup(forceGenomeSize ? genomeSize);
 		^this.new(newChromosome);
 	}
 	init {|chromosome|

@@ -1,3 +1,19 @@
+/*
+(
+//How the controller works, nuts-and-bolts
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~ind = PSSynthDefPhenotype.newRandom;
+~control.playIndividual(~ind);
+~control.freeIndividual(~ind);
+~ind.mappedArgs
+~ind.identityHash;
+~ind.chromosome;
+10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
+~control.all.do({|a,b,c| [a,b,c].postln;});
+)
+*/
 PSSwarmController {
 	/*pass all server instructions through this guy to allow the instructions
 	to be delivered in the right order and the boring bus/server allocation

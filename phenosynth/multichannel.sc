@@ -1,7 +1,30 @@
 //Multichannel stuff
 
 //Can this class truly be necessary? 26 lines of code to plug *n* busses into
-//*n* other buses? 
+//*n* other buses?
+
+/*
+(
+//multichannelising tests
+SynthDef.new(\testoffsets, {|outs| Out.ar(outs, DC.ar(2.pow((0..3))))}).add;
+SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.ar(In.ar(ins))))}).add;
+~mctestouts = Bus.audio(s, 4);
+~mcrezout = Bus.control(s, 1);
+~mcplaygroup = Group.head(s);
+~mclistengroup = Group.after(~mcplaygroup);
+~mcplaysynth = Synth.new(\testoffsets, [\outs, ~mctestouts], ~mcplaygroup);
+~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \out, ~mcrezout], ~mclistengroup);
+~mcrezout.get(_.postln);
+(1..17).do({|numChannels|
+  SynthDef.new('jack$' ++ numChannels.asString, { |in, out|
+	Out.ar(out, In.ar(in, numChannels));
+  }).add;
+});
+PSSynthDefPhenotype.map
+"nameBase" ++ "$$" ++ 4.asString
+)
+*/
+ 
 PSMCCore {
 	classvar <maxChannels = 16;
 	classvar <nameBase = "core";

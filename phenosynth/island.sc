@@ -149,18 +149,19 @@ PSIsland {
 		individuals.do({|i| this.remove(i);});
 	}
 	tend {
-		//walk the population, doing all the things that GAs do.
+		// walk the population, doing all the things that GAs do.
 		// this is a synchronous thing per default; if you want to do it
 		// incrementally, that's your bag.
 		var toCull, toBreed;
 		var beforeFitness, afterFitness;
 		this.evaluate;
 		toCull = deathSelector.value(params, population);
-		//beforeFitness = population.collect(_.fitness).mean;
+		//[\culling, toCull].postln;
 		this.cull(toCull);
 		//afterFitness = population.collect(_.fitness).mean;
 		//[\fitness_delta, afterFitness - beforeFitness].postln;
 		toBreed = birthSelector.value(params, population);
+		//[\breeding, toBreed].postln;
 		this.breed(toBreed);
 		iterations = iterations + 1;
 	}
@@ -181,6 +182,8 @@ PSIsland {
 		playing = false;
 	}
 	iterator {
+		/* Return a routine that does the work of triggering the work we want as
+			long as things are supposed to be moving along. */
 		^Routine.new({while(
 			{
 				(terminationCondition.value(
@@ -213,15 +216,31 @@ PSRealTimeIsland : PSIsland {
 		//Why is pollPeriod not part of params?
 		^super.new(params).init(pollPeriod);
 	}
+	*defaultOperators {
+		super.defaultOperators;
+		defaultDeathSelector = PSDeathSelectors.byRoulettePerRateAdultsOnly(_,_,_);
+	}
+	*defaultParams {
+		var defParams = super.defaultParams;
+		defParams.individualClass = PSEarSwarmPhenotype;
+		^defParams;
+	}
+	*initClass {
+		StartUp.add({
+			this.defaultOperators;
+		});
+	}
 	init {|newPollPeriod|
 		pollPeriod = newPollPeriod;
 		^super.init;
 	}
 	evaluate {
-		//no-op
+		//no-op in this class; they are realtime self-updating
 	}
 	play {
-		//note this does not call parent.
+		/*note this does not call parent. If you can find a way of making this do
+		the right thing with the generated routine while still caling the parent
+		method, more power to you. Submit a patch. */
 		var iterator;
 		this.populate;
 		clock = TempoClock.new(pollPeriod.reciprocal, 1);
