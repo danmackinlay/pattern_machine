@@ -93,49 +93,61 @@ SynthDef.new(\sawy, {|out, freq| Out.ar(out, Saw.ar(freq));}).add;
 )
 
 /*
-NOTES:
-
-
 TODO:
 
-* right now this doesn't especially converge to 800 Hz, even over large timescales
+* right now this doesn't especially converge to 800 Hz, even over large
+  timescales
+
+  * tr that newfangled averaging crossover
+  
+* In fact, now, it just explodes and causes ear damage. Did i break something
+  recently? It used to be somewhat functional.
 
 * infrastructure
+
 	* ensure Groups are also freed.
-	* allow a seed-bank supporting far more genomes than can be simultaneously simulated. (I.e. keep a much larger population, but only simulate a part of them at once
+	* allow a seed-bank supporting far more genomes than can be simultaneously
+		simulated. (I.e. keep a much larger population, but only simulate a part
+		of them at once
 	* use wrapping infrastructure to simplify the listensynth definitions.
+	
 		* support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 
 	* sort out the interactions of all these different tick rates and periods.
-	* Handle "free controls", values that are passed in live by the user. (esp for
-	  triggers)
+	* Handle "free controls", values that are passed in live by the user. (esp
+		for triggers)
 	* alter chromosome if Specs are changed through UI or any other means, using
 		all that Dependent business
 	* support "fitness injection" - doing custom pre-processing on fitness?
+	
 		* so much more complex than simply overriding the calss. do that later.
+		
 	* non-accumulating, genotype-style selection
+	
 		* but I don't personally need that.
+		
 	* envelope synth deletion
+	
 		* use Synth doneActions and per-listener groups to free all resources on demand
 		* don't bother freeing the "jack" synths where population is constant.
 		* watch out for those double /n_frees - might break something.
+		
 	* serialize phenotypes to disk so evolution can be resumed.
 	* chromosome management
+	
 		* provide a way to unwarp as well as warp chromosomes
-		* go to all-binary chromosomes for increased happiness and elegance/
-	* handle zero-fitness populations in the parent and death selector
+		* go to all-binary chromosomes for increased happiness and elegance.
+		
 	* provide a "migration phase" in which to check for extinction and restock.
-	* switch to jitlib
 
 * Give the faintest of indications that I do care about tests
-
-
 * my earswarm
 	* normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
 	* LFOs
 		* support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
 	* give lifespans using the exponential distribution \lambda \e ^-\lambda \e
 	* doesnt' apply ATM but might with different regimes:
+	
 		* scale birthRate and deathRate so that they fit eventual fitness
 		* reseed population when they all die
 
@@ -143,7 +155,8 @@ TODO:
 * I've just noticed that MCLD has been facing the same problem and made
 	classes similar in spirit to mine, as regards selecting the phenotypes
 	rather than genotypes, as the NLTK does:
-	http://www.mcld.co.uk/supercollider/ - see also https://github.com/howthebodyworks/MCLD_Genetic
+	http://www.mcld.co.uk/supercollider/ - see also 
+	https://github.com/howthebodyworks/MCLD_Genetic
 
 CREDITS:
 Thanks to Martin Marier and Crucial Felix for tips that make this go, and
