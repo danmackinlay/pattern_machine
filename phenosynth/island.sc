@@ -69,11 +69,11 @@ PSIsland {
 	*defaultOperators {
 		//wow, it's kind of hard to have a graceful library of functions 
 		//the _ make these return Functions, not function values.
-		defaultDeathSelector = PSDeathSelectors.byRoulettePerRate(_,_,_);
-		defaultBirthSelector = PSBirthSelectors.byRoulettePerTotal(_,_,_);
-		defaultMutator = PSMutators.floatPointMutation(_,_,_);
+		defaultDeathSelector = Library.at(\phenosynth, \deathselectors, \byRoulettePerRate);
+		defaultBirthSelector = Library.at(\phenosynth, \birthselectors, \byRoulettePerTotal);
+		defaultMutator = Library.at(\phenosynth, \mutators, \floatPointMutation);
 		//this is a pretty awful crossover.
-		defaultCrossover = PSCrossovers.uniformCrossover(_,_,_);
+		defaultCrossover = Library.at(\phenosynth, \mutators, \uniformCrossover);
 		defaultInitialChromosomeFactory = {|params|
 			params.individualClass.newRandom;
 		};
@@ -218,7 +218,7 @@ PSRealTimeIsland : PSIsland {
 	}
 	*defaultOperators {
 		super.defaultOperators;
-		defaultDeathSelector = PSDeathSelectors.byRoulettePerRateAdultsOnly(_,_,_);
+		defaultDeathSelector = Library.at(\phenosynth, \deathselectors, \byRoulettePerRateAdultsOnly);
 	}
 	*defaultParams {
 		var defParams = super.defaultParams;

@@ -16,7 +16,7 @@ PSEarSwarmIsland : PSRealTimeIsland {
 	}
 	*defaultOperators {
 		super.defaultOperators;
-		defaultCrossover = PSCrossovers.meanCrossover(_,_,_);
+		defaultCrossover = Library.at(\phenosynth, \crossovers, \meanCrossover);
 	}
 	*new {| params, pollPeriod=1, controller|
 		^super.new(params).init(pollPeriod, controller);
