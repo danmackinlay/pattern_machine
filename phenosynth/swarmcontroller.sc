@@ -3,7 +3,7 @@
 //How the controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~control = PSSwarmController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
@@ -20,70 +20,58 @@ PSSwarmController {
 	details to be abstracted away, and to track resources needing freeing.*/
 	
 	/*Instance vars are all public to aid debugging, but not much use to look 
-	at unless you are debugging.*/
+	at unless you *are* debugging.*/
 	var <outBus;
 	var <numChannels;
-	var <q; //i.e. a Queue.
 	var <server;
 	var <all;
 	var <playGroup;
-	*new {|server, bus, numChannels=1, q|
-		^super.newCopyArgs(bus, numChannels, q).init(server);
+	*new {|server, numChannels=1|
+		^super.newCopyArgs(numChannels).init(server);
 	}
 	init {|serverOrGroup|
 		all = IdentityDictionary.new;
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
-				q ?? {q = PSServerQueue.new(server);};
 				playGroup = serverOrGroup;
 			}, {
 				server = serverOrGroup;
-				q ?? {q = PSServerQueue.new(server);};
-				q.push({playGroup = Group.head(server);});
+				playGroup = Group.head(server);
 			}
 		);
-		outBus ?? {q.push({outBus = Bus.audio(server, numChannels)});};
+		outBus ?? {outBus = Bus.audio(server, numChannels)};
 	}
 	playIndividual {|phenotype|
-		//this doesn't actually play - it sets up a callback to play
 		var indDict;
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
-		q.push({
-			this.decorateIndividualDict(indDict);
-			this.loadIndividualDict(
-				indDict
-			);
-			this.actuallyPlayIndividual(indDict);
-		});
+		this.decorateIndividualDict(indDict);
+		this.loadIndividualDict(
+			indDict
+		);
+		this.actuallyPlayIndividual(indDict);
 	}
 	loadIndividualDict{|indDict|
-		all.put(indDict.phenotype.identityHash, indDict);
+		//pass
 	}
 	decorateIndividualDict {|indDict|
-		//this doesn't need to be called in the server queue;
-		//but in general, one could so need in, e.g., subclasses.
 		indDict.playBus = outBus;
 	}
 	actuallyPlayIndividual {|indDict|
-		//private.
-		q.push({
-			indDict.playSynth = indDict.phenotype.asSynth(
-				out:indDict.playBus, group:playGroup
-			);
-			indDict.phenotype.clockOn;
-		});
+		//private
+		indDict.playNode = indDict.phenotype.asSynth(
+			out:indDict.playBus, group:playGroup
+		);
+		indDict.phenotype.clockOn;
 	}
 	freeIndividual {|phenotype|
 		var freed;
 		freed = all.removeAt(phenotype.identityHash);
 		freed.isNil.not.if({
-			q.push({
-				//these should be separated, or the second eliminated by the first.
-				freed.phenotype.stop(freed.playSynth);//closes envelope
-				freed.playSynth.free;//forces synth to free
-			});
+			//these should be separated, or the second eliminated by the first.
+			freed.phenotype.stop(freed.playNode);//closes envelope
+			freed.playNode.free;//forces synth to free
 		});
 		^freed;
 	}
@@ -92,47 +80,59 @@ PSSwarmController {
 	}
 }
 
+/*
+(
+//How the listening controller works, nuts-and-bolts
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~ind = PSSynthDefPhenotype.newRandom;
+~control.playIndividual(~ind);
+~control.freeIndividual(~ind);
+~ind.mappedArgs
+~ind.identityHash;
+~ind.chromosome;
+10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
+~control.all.do({|a,b,c| [a,b,c].postln;});
+)
+*/
 PSListenSynthSwarmController : PSSwarmController {
 	/* Handle a number of simultaneous synths being digitally listened to
 	*/
 	var <fitnessPollInterval;
 	var <listenGroup;
 	var <worker;
-	classvar <listenSynth = \ps_listen_eight_hundred;
-	*new {|server, bus, numChannels=1, q, fitnessPollInterval=1|
-		^super.newCopyArgs(bus, numChannels, q).init(
+	classvar <listenNode = \ps_listen_eight_hundred;
+	*new {|server, bus, numChannels=1, fitnessPollInterval=1|
+		^super.newCopyArgs(bus, numChannels).init(
 			server, fitnessPollInterval);
 	}
 	init {|serverOrGroup, thisFitnessPollInterval|
 		var clock;
 		super.init(serverOrGroup);
 		fitnessPollInterval = thisFitnessPollInterval;
-		q.push({listenGroup = Group.after(playGroup);});
+		listenGroup = Group.after(playGroup);
 		clock = TempoClock.new(fitnessPollInterval.reciprocal, 1);
 		worker = Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
 	}
 	decorateIndividualDict {|indDict|
-		q.push({
-			indDict.playBus = Bus.audio(server, numChannels);
-			indDict.listenBus = Bus.control(server, 1);
-		});
+		indDict.playBus = Bus.audio(server, numChannels);
+		indDict.listenBus = Bus.control(server, 1);
 		^indDict;
 	}
 	actuallyPlayIndividual {|indDict|
-		q.push({
-			//play the synth to which we wish to listen
-			indDict.playSynth = indDict.phenotype.asSynth(
-				out:indDict.playBus, group:playGroup);
-			//analyse its output by listening to its bus
-			indDict.listenSynth = Synth(this.class.listenSynth,
-				this.getListenSynthArgs(indDict),
-				listenGroup);
-			indDict.phenotype.clockOn;
-			//re-route some output to the master input
-			indDict.jackSynth = Synth(PSMCCore.n(numChannels),
-				[\in, indDict.playBus, \out, outBus],
-				listenGroup);
-		});
+		//play the synth to which we wish to listen
+		indDict.playNode = indDict.phenotype.asSynth(
+			out:indDict.playBus, group:playGroup);
+		//analyse its output by listening to its bus
+		indDict.listenNode = Synth(this.class.listenNode,
+			this.getListenSynthArgs(indDict),
+			listenGroup);
+		indDict.phenotype.clockOn;
+		//re-route some output to the master input
+		indDict.jackNode = Synth(PSMCCore.n(numChannels),
+			[\in, indDict.playBus, \out, outBus],
+			listenGroup);
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
@@ -140,72 +140,21 @@ PSListenSynthSwarmController : PSSwarmController {
 		^listenArgs;
 	}
 	freeIndividual {|phenotype|
-		var freed = super.freeIndividual(phenotype);		
+		var freed = super.freeIndividual(phenotype);
 		freed.isNil.not.if({
-			q.push({
-				freed.playBus.free;
-				freed.listenBus.free;
-				freed.listenSynth.free;
-				freed.jackSynth.free;
-			});
+			freed.playBus.free;
+			freed.listenBus.free;
+			freed.listenNode.free;
+			freed.jackNode.free;
 		});
 		^freed;
 	}
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
-			//server cmd, but doesn't need to be queued coz it's read-only.
 			indDict.listenBus.get({|val|
 				indDict.phenotype.fitness = val;
 			});
 			indDict.phenotype.incAge;
 		});
-	}
-}
-
-PSServerQueue {
-	/*a queue to service instructions, waiting on sync from a particular server
-	
-	I know this looks overblown, but it sure does stop the wacky, unpredictable
-	explosions I was having before.
-	
-	On the other hand, this is as slow as hell. Smart bundling would be better.
-	
-	TODO: experiment with dropping this guy entirely, now that there are some bugfixes
-	in SC trunk that seem to be related.
-	*/
-	var <server;
-	var <fifo;
-	var <worker;
-	var doneFlag;//internal condition for list servicing
-//	var <emptyFlag;//external signal that the list is empty - not implemented
-	*new {|server|
-		^super.newCopyArgs(server ? Server.default).init;
-	}
-	init {
-		fifo = LinkedList.new;
-		doneFlag = Condition.new(false);
-		worker = Routine({
-			var job, result;
-			loop {
-				job = fifo.pop;
-				job.isNil.if({
-					doneFlag.hang;
-				}, {
-					result = job.value;
-					server.sync;
-				})
-			}
-		}).play;
-	}
-	push {|job|
-		fifo.addFirst(job);
-		doneFlag.unhang;
-	}
-	free {
-		this.push({this.actuallyFree;});
-	}
-	actuallyFree {
-		worker.free;
-		doneFlag.unhang;
 	}
 }
