@@ -2,21 +2,15 @@
 
 PSEarSwarmIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a controller abstraction*/
+	
+	classvar <defaultCrossover = #[\phenosynth, \crossovers, \meanCrossover];
+	
 	var <controller;
-	*initClass {
-		//apparently you have to do this for them all
-		StartUp.add({
-			this.defaultOperators;
-		});
-	}
+	
 	*defaultParams {
 		var defParams = super.defaultParams;
 		defParams.individualClass = PSEarSwarmPhenotype;
 		^defParams;
-	}
-	*defaultOperators {
-		super.defaultOperators;
-		defaultCrossover = Library.at(\phenosynth, \crossovers, \meanCrossover);
 	}
 	*new {| params, pollPeriod=1, controller|
 		^super.new(params).init(pollPeriod, controller);

@@ -8,40 +8,28 @@ PSOperators {
 		});
 	}
 	*loadOperators {
-		Library.put(\phenosynth, \crossovers, \uniformCrossover,
-			{|params, chromosomes|
-				//an awful crossover, useful for only the most boneheaded of problems
-				(chromosomes[0].size).collect({|i| chromosomes.slice(nil, i).choose;});
+		Library.put(\phenosynth, \chromosome_fact, \basic,
+			{|params|
+				params.individualClass.newRandom;
 			}
 		);
-		Library.put(\phenosynth, \crossovers, \meanCrossover,
-			{|params, chromosomes|
-				//Useful for small problems with short float-based chromosomes - 
-				// chooses either number or a mean of two adjacent ones (diploid-lite)
-				var size = (chromosomes.size*2+1);
-				[\size, size, \chromosomes, chromosomes].postln;
-				chromosomes.flop.collect(_.blendAt(size.rand/2));
-			}
-		);
-		Library.put(\phenosynth, \mutators, \floatPointMutation,
+		Library.put(\phenosynth, \individual_fact, \basic,
 			{|params, chromosome|
-				var rate;
-				var amp = params.mutationSize;
-				rate = params.mutationProb * (chromosome.size.reciprocal);
-				chromosome.do({|val, index|
-					(rate.coin).if ({
-						//exponentially distributed mutations to mimic flipping bits in 
-						//32 bit binary floats. lazy, inefficient, effective.
-						chromosome[index] = (val + 
-							(2.0 ** (32.0.rand.neg)) *
-							(2.rand*2-1)
-						).wrap(0, 1);
-					});
-				});
-				chromosome;
+				params.individualClass.new(chromosome);
 			}
 		);
-		Library.put(\phenosynth, \deathselectors, \byRoulettePerRate,
+		//not practical, just a sanity check - return the mean of the chromosome
+		Library.put(\phenosynth, \fitness_evals, \chromosomemean,
+			{|params, phenotype|
+					phenotype.fitness = phenotype.chromosome.mean;
+			}
+		);
+		Library.put(\phenosynth, \termination_conds, \basic,
+			{|params, population, iterations|
+				iterations > params.stopIterations;
+			}
+		);
+		Library.put(\phenosynth, \death_selectors, \byRoulettePerRate,
 			{|params, population|
 				//choose enough doomed to meet the death rate on average, by fitness-
 				// weighted roulette
@@ -49,7 +37,8 @@ PSOperators {
 				(population.size == 0).if({
 					"Warning: empty population; no death for now".postln;
 					[];
-				}, {				rate = params.deathRate;
+				}, {
+					rate = params.deathRate;
 					localFitnesses = population.collect({|i| i.fitness;});
 					maxFitness = localFitnesses.maxItem;
 					negFitnesses = maxFitness - localFitnesses;
@@ -61,7 +50,7 @@ PSOperators {
 				});
 			}
 		);
-		Library.put(\phenosynth, \deathselectors, \byRoulettePerRateAdultsOnly,
+		Library.put(\phenosynth, \death_selectors, \byRoulettePerRateAdultsOnly,
 			{|params, population|
 				//choose enough doomed to meet the death rate on average, by fitness-
 				// weighted roulette, in sufficiently old agents
@@ -86,7 +75,7 @@ PSOperators {
 		);
 		//birth selector protocol:
 		//return an array of arrays of parents
-		Library.put(\phenosynth, \deathselectors, \byRoulettePerTotal,
+		Library.put(\phenosynth, \birth_selectors, \byRoulettePerTotal,
 			{|params, population|
 				// choose enough proud parents to keep the population constant, by
 				// fitness-weighted roulette
@@ -106,6 +95,40 @@ PSOperators {
 					);
 					parentList;
 				});
+			}
+		);
+		Library.put(\phenosynth, \mutators, \floatPointMutation,
+			{|params, chromosome|
+				var rate;
+				var amp = params.mutationSize;
+				rate = params.mutationProb * (chromosome.size.reciprocal);
+				chromosome.do({|val, index|
+					(rate.coin).if ({
+						//exponentially distributed mutations to mimic flipping bits in 
+						//32 bit binary floats. lazy, inefficient, effective.
+						chromosome[index] = (val + 
+							(2.0 ** (32.0.rand.neg)) *
+							(2.rand*2-1)
+						).wrap(0, 1);
+					});
+				});
+				chromosome;
+			}
+		);
+		Library.put(\phenosynth, \crossovers, \uniformCrossover,
+			{|params, chromosomes|
+				//an awful crossover, useful for only the most boneheaded of problems
+				(chromosomes[0].size).collect(
+					{|i| chromosomes.slice(nil, i).choose;}
+				);
+			}
+		);
+		Library.put(\phenosynth, \crossovers, \meanCrossover,
+			{|params, chromosomes|
+				//Useful for small problems with short float-based chromosomes - 
+				// chooses either number or a mean of two adjacent ones (diploid-lite)
+				var size = (chromosomes.size*2+1);
+				chromosomes.flop.collect(_.blendAt(size.rand/2));
 			}
 		);
 	}

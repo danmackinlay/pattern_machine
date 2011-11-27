@@ -1,22 +1,28 @@
 PSIsland {
-	//Islands accept populations of individuals, which can be anything
-	//responding to \chromosome and \fitness.
+	/*Islands manage populations of individuals, which can be anything
+	responding to \chromosome and \fitness.*/
+
+	/*
+	where we define the default operators. These are, in general, vanilla
+	functions or paths to Library functions that will be cast to Library
+	functions at run time, in the initOperators method.
 	
+	Since we can't define naked functions in a classvar, these particular ones
+	are all Library Paths.
+	*/
+	
+	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
+	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
+	classvar <defaultFitnessEvaluator = #[phenosynth, fitness_evals, chromosomemean];
+	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
+	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRate];
+	classvar <defaultBirthSelector = #[phenosynth, birth_selectors, byRoulettePerTotal];
+	classvar <defaultMutator = #[phenosynth, mutators, floatPointMutation];
+	classvar <defaultCrossover = #[phenosynth, crossovers, uniformCrossover];
 	//we keep instance settings in a mutable Environment so that
 	//generic function parameters can be passed to mutators, and they may
 	//be modified at run-time without defining new functions
 	var <>params;
-	
-	//Here are the functions that do the selection. these can be modified
-	//by subclassing or by passing in functions at runtime.
-	var <>deathSelector;
-	var <>birthSelector;
-	var <>mutator;
-	var <>crossover;
-	var <>initialChromosomeFactory;
-	var <>individualFactory;
-	var <>fitnessEvaluator;
-	var <>terminationCondition;
 	
 	//This is the main state variable
 	var <population;
@@ -25,70 +31,40 @@ PSIsland {
 	// a state *dictionary*
 	var <iterations = 0;
 	
-	//some default population massaging functions
-	//since we can't define naked functions in a classvar, we set these up in 
-	//the *defaultOperators method.
-	classvar <defaultDeathSelector;
-	classvar <defaultBirthSelector;
-	classvar <defaultMutator;
-	classvar <defaultCrossover;
-	classvar <defaultInitialChromosomeFactory;
-	classvar <defaultIndividualFactory;
-	classvar <defaultFitnessEvaluator;
-	classvar <defaultTerminationCondition;
-	
 	//flag to stop iterator gracefuly.
 	var playing = false;
 	
-	*initClass {
-		StartUp.add({
-			this.defaultOperators;
-		});
-	}
-	
+	/*
+	Here are the variables that hold the operator functions.
+	Paths are coerced to functions at instantiation time to avoid problems with 
+	not knowing when the Library gets filled.
+	*/
+	var <>deathSelector;
+	var <>birthSelector;
+	var <>mutator;
+	var <>crossover;
+	var <>initialChromosomeFactory;
+	var <>individualFactory;
+	var <>fitnessEvaluator;
+	var <>terminationCondition;
+
+
 	// default values for that parameter thing
 	// I wish I could do this with a literal instead of a method
 	// because overriding is way awkward this way.
 	*defaultParams {
 		^(
 			\deathRate: 0.1,
-			\population: 100,
+			\populationSize: 100,
 			\numParents: 2,
 			\chromosomeMinLength: 20,
-			\crossoverProb: 0.1,
+			\crossoverProb: 1,
 			\individualClass: PSPhenotype,
 			\mutationProb: 0.1,
 			\mutationSize: 0.1,
 			\stopIterations: 10000
 		);
 	}
-	
-	//where we define the default operators. These are vanilla functions,
-	//even though the default implementations are static methods;
-	//you might want to mix and match them, after all.
-	*defaultOperators {
-		//wow, it's kind of hard to have a graceful library of functions 
-		//the _ make these return Functions, not function values.
-		defaultDeathSelector = Library.at(\phenosynth, \deathselectors, \byRoulettePerRate);
-		defaultBirthSelector = Library.at(\phenosynth, \birthselectors, \byRoulettePerTotal);
-		defaultMutator = Library.at(\phenosynth, \mutators, \floatPointMutation);
-		//this is a pretty awful crossover.
-		defaultCrossover = Library.at(\phenosynth, \mutators, \uniformCrossover);
-		defaultInitialChromosomeFactory = {|params|
-			params.individualClass.newRandom;
-		};
-		defaultIndividualFactory = {|params, chromosome|
-			params.individualClass.new(chromosome);
-		};
-		//not practical, just a sanity check - return the mean of the chromosome
-		defaultFitnessEvaluator = {|params, phenotype|
-			phenotype.fitness = phenotype.chromosome.mean;
-		};
-		defaultTerminationCondition = {|params, population, iterations|
-			iterations > params.stopIterations;
-		}
-	}
-	
 	*new {|params|
 		^super.newCopyArgs(
 			this.defaultParams.updatedFrom(params);
@@ -99,14 +75,38 @@ PSIsland {
 		population = List.new;
 	}
 	initOperators {
-		deathSelector = this.class.defaultDeathSelector;
-		birthSelector = this.class.defaultBirthSelector;
-		mutator = this.class.defaultMutator;
-		crossover = this.class.defaultCrossover;
-		initialChromosomeFactory = this.class.defaultInitialChromosomeFactory;
-		individualFactory = this.class.defaultIndividualFactory;
-		fitnessEvaluator = this.class.defaultFitnessEvaluator;
-		terminationCondition = this.class.defaultTerminationCondition;
+		deathSelector = this.loadFunction(this.class.defaultDeathSelector);
+		birthSelector = this.loadFunction(this.class.defaultBirthSelector);
+		mutator = this.loadFunction(this.class.defaultMutator);
+		crossover = this.loadFunction(this.class.defaultCrossover);
+		initialChromosomeFactory = this.loadFunction(this.class.defaultInitialChromosomeFactory);
+		individualFactory = this.loadFunction(this.class.defaultIndividualFactory);
+		fitnessEvaluator = this.loadFunction(this.class.defaultFitnessEvaluator);
+		terminationCondition = this.loadFunction(this.class.defaultTerminationCondition);
+	}
+	loadFunction {|nameOrFunction|
+		/* we have a method here fo two reasons:
+		1. it allows us to transparently pass through actual functions, but load
+			other things from the Library
+		2. to force a test for missing library names, or it's hard to track what
+			went wrong. (Because nil is callable(!))
+		*/
+		var candidate;
+		nameOrFunction.isFunction.if(
+			{^nameOrFunction},
+			{
+				candidate = Library.atList(nameOrFunction);
+				candidate.isNil.if({
+					("Nothing found at %".format(nameOrFunction.cs)).throw;
+				});
+				candidate.isFunction.not.if({
+					("Non-function found at % (%)".format(
+						nameOrFunction.cs, candidate.cs)
+				).throw;
+				});
+				^candidate;
+			}
+		);
 	}
 	add {|phenotype|
 		population.add(phenotype);
@@ -115,7 +115,7 @@ PSIsland {
 		population.remove(phenotype);
 	}
 	populate {
-		params.population.do({
+		params.populationSize.do({
 			this.add(initialChromosomeFactory.value(params));
 		});
 	}
@@ -161,7 +161,6 @@ PSIsland {
 		//afterFitness = population.collect(_.fitness).mean;
 		//[\fitness_delta, afterFitness - beforeFitness].postln;
 		toBreed = birthSelector.value(params, population);
-		//[\breeding, toBreed].postln;
 		this.breed(toBreed);
 		iterations = iterations + 1;
 	}
@@ -212,23 +211,12 @@ PSRealTimeIsland : PSIsland {
 	var <pollPeriod;
 	var <worker;
 	var clock;
+	
+	classvar defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
+	
 	*new {| params, pollPeriod=1|
 		//Why is pollPeriod not part of params?
 		^super.new(params).init(pollPeriod);
-	}
-	*defaultOperators {
-		super.defaultOperators;
-		defaultDeathSelector = Library.at(\phenosynth, \deathselectors, \byRoulettePerRateAdultsOnly);
-	}
-	*defaultParams {
-		var defParams = super.defaultParams;
-		defParams.individualClass = PSEarSwarmPhenotype;
-		^defParams;
-	}
-	*initClass {
-		StartUp.add({
-			this.defaultOperators;
-		});
 	}
 	init {|newPollPeriod|
 		pollPeriod = newPollPeriod;

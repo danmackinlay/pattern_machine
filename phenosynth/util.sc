@@ -9,3 +9,4 @@
 		^this.copy.updateFrom(updates);
 	}
 }
+
