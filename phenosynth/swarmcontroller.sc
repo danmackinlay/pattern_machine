@@ -26,10 +26,15 @@ PSSwarmController {
 	var <server;
 	var <all;
 	var <playGroup;
+	var <allocatedNodes;
+	var <freedNodes;
+	
 	*new {|server, numChannels=1|
 		^super.newCopyArgs(numChannels).init(server);
 	}
 	init {|serverOrGroup|
+		allocatedNodes = IdentityDictionary.new;
+		freedNodes = List.new;
 		all = IdentityDictionary.new;
 		serverOrGroup.isKindOf(Group).if(
 			{
@@ -51,6 +56,7 @@ PSSwarmController {
 			indDict
 		);
 		this.actuallyPlayIndividual(indDict);
+		{this.trackSynths(indDict);}.defer(0.5);
 	}
 	loadIndividualDict{|indDict|
 		//pass
@@ -65,9 +71,18 @@ PSSwarmController {
 		);
 		indDict.phenotype.clockOn;
 	}
+	trackSynths {|indDict|
+		//for debugging, associate each synth with a server node so I can see if anything is leaking.
+		indDict.values.do({|indDictEntry|
+			indDictEntry.isKindOf(Synth).if({
+				allocatedNodes[indDictEntry.nodeID] = indDictEntry.defName;
+			});
+		});
+	}
 	freeIndividual {|phenotype|
 		var freed;
 		freed = all.removeAt(phenotype.identityHash);
+		freedNodes.add(freed);
 		freed.isNil.not.if({
 			//these should be separated, or the second eliminated by the first.
 			freed.phenotype.stop(freed.playNode);//closes envelope
@@ -126,12 +141,12 @@ PSListenSynthSwarmController : PSSwarmController {
 		indDict.playNode = indDict.phenotype.asSynth(
 			out:indDict.playBus, group:playGroup);
 		//analyse its output by listening to its bus
-		indDict.listenNode = Synth(this.class.listenNode,
+		indDict.listenNode = Synth.new(this.class.listenNode,
 			this.getListenSynthArgs(indDict),
 			listenGroup);
 		indDict.phenotype.clockOn;
 		//re-route some output to the master input
-		indDict.jackNode = Synth(PSMCCore.n(numChannels),
+		indDict.jackNode = Synth.new(PSMCCore.n(numChannels),
 			[\in, indDict.playBus, \out, outBus],
 			listenGroup);
 	}

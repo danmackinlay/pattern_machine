@@ -48,15 +48,13 @@ s.volume.volume= -20;
 //now set up the "island" that will control their evolution
 ~island = PSEarSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
+~island.params;
 ~island.population;
-PSEarSwarmIsland.defaultCrossover;
-~island.crossover.cs;
 //listen for a while.
 //when you are bored, do a
 ~island.free;
-//(you might need to do it twice. I'm working on that.)
-~island.free;
-
+~control.freedNodes;
+~control.allocatedNodes;
 
 //testing that things are going OK:
 ~island.population.collect(_.fitness);
@@ -70,6 +68,7 @@ PSEarSwarmIsland.defaultCrossover;
 ~island.population.size;
 ~island.population[0];
 ~island.population[0].chromosomeAsSynthArgs;
+~island.population[0].chromosome;
 ~island.population[0].synth;
 ~island.controller.all[~island.population[0].identityHash].playBus.scope
 ~globalOuts.scope
@@ -101,15 +100,13 @@ TODO:
 * right now this doesn't especially converge to 800 Hz, even over large
   timescales
 
-  * try that newfangled averaging crossover
-  
-* In fact, now, it just explodes and causes ear damage. Did i break something
-  recently? It used to be somewhat functional.
-
 * infrastructure
 
 	* allow dynamic (re) assignment of evolutionary operators
-	* ensure Groups are also freed.
+	* Fx leaking Synths
+	
+		* ensure Groups are also freed.
+		* also, if you run for a few iterations, there are still hundred of synths left round allocted-  What are they?
 	* allow a seed-bank supporting far more genomes than can be simultaneously
 		simulated. (I.e. keep a much larger population, but only simulate a part
 		of them at once
@@ -146,10 +143,14 @@ TODO:
 
 * Give the faintest of indications that I do care about tests
 * my earswarm
+
 	* normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
 	* LFOs
-		* support creatures which vocalise only sporadically (saving CPU, or at least saving earspace)
+	
+		* support creatures which vocalise only sporadically (saving CPU, or at least saving
+		  earspace)
 	* give lifespans using the exponential distribution \lambda \e ^-\lambda \e
+	
 	* doesnt' apply ATM but might with different regimes:
 	
 		* scale birthRate and deathRate so that they fit eventual fitness
