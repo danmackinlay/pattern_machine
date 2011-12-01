@@ -158,9 +158,9 @@ PSListenSynthSwarmController : PSSwarmController {
 	freeIndividual {|phenotype|
 		var freed = super.freeIndividual(phenotype);
 		freed.isNil.not.if({
+			freed.listenNode.free;
 			freed.playBus.free;
 			freed.listenBus.free;
-			freed.listenNode.free;
 			freed.jackNode.free;
 		});
 		^freed;

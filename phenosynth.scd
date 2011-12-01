@@ -53,8 +53,10 @@ s.volume.volume= -20;
 //listen for a while.
 //when you are bored, do a
 ~island.free;
+~control.all;
+~control.all.size;
 ~control.freedNodes;
-~control.allocatedNodes;
+~control.allocatedNodes[5];
 
 //testing that things are going OK:
 ~island.population.collect(_.fitness);
@@ -103,10 +105,11 @@ TODO:
 * infrastructure
 
 	* allow dynamic (re) assignment of evolutionary operators
+	* Collapse RealTimeISland and RealtimeEarswarmIsland coz there is no clear division anyway.
 	* Fx leaking Synths
 	
 		* ensure Groups are also freed.
-		* also, if you run for a few iterations, there are still hundred of synths left round allocted-  What are they?
+		* also, if you run for a few iterations, there are still hundred of synths left round allocted-  What are they? (Everything! my cleanup routine is awful. Possibly new nodes are being created while old ones are being destroyed? Need to sempahore that.)
 	* allow a seed-bank supporting far more genomes than can be simultaneously
 		simulated. (I.e. keep a much larger population, but only simulate a part
 		of them at once

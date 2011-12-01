@@ -1,7 +1,7 @@
 //Things specific to my diabolical schemes - i.e. phenotypic selection on swarming agents
 
 PSEarSwarmIsland : PSRealTimeIsland {
-	/* PSIsland that plays agents through a controller abstraction*/
+	/* PSIsland that plays agents through a (presumably server?) controller abstraction*/
 	
 	classvar <defaultCrossover = #[\phenosynth, \crossovers, \meanCrossover];
 	
