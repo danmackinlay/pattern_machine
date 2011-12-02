@@ -17,7 +17,14 @@ s=Server.default;
 PSSwarmController {
 	/*pass all server instructions through this guy to allow the instructions
 	to be delivered in the right order and the boring bus/server allocation
-	details to be abstracted away, and to track resources needing freeing.*/
+	details to be abstracted away, and to track resources needing freeing.
+	
+	This basic controller only does *playing* of synths, presuming that you are
+	going to rank them manually or something as per Dan Stowell's neat GOAD.sc
+	
+	A subclass, PSListenSwarmController, handles setting up candidate
+	phenosynths and listeners simultaneously.
+	*/
 	
 	/*Instance vars are all public to aid debugging, but not much use to look 
 	at unless you *are* debugging.*/
@@ -79,7 +86,10 @@ PSSwarmController {
 		indDict.phenotype.clockOn;
 	}
 	trackSynths {|indDict|
-		//for debugging, associate each synth with a server node so I can see if anything is leaking.
+		/*
+		for debugging, associate each synth with a server node so I can see if
+		anything is leaking.
+		*/
 		indDict.values.do({|indDictEntry|
 			indDictEntry.isKindOf(Synth).if({
 				allocatedNodes[indDictEntry.nodeID] = indDictEntry.defName;
@@ -117,13 +127,12 @@ PSSwarmController {
 	}
 }
 
-
 /*
 (
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~control = PSListenSwarmController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
@@ -134,13 +143,16 @@ s=Server.default;
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */
-PSListenSynthSwarmController : PSSwarmController {
-	/* Handle a number of simultaneous synths being digitally listened to
+PSListenSwarmController : PSSwarmController {
+	/*
+	This Controller subclass sets up Synths and listeners to those synths
+	simultaneously.
 	*/
 	var <fitnessPollInterval;
 	var <listenGroup;
 	var <worker;
-	classvar <listenNode = \ps_listen_eight_hundred;
+	//Toy 
+	classvar <listenSynth = \ps_listen_eight_hundred;
 	*new {|server, bus, numChannels=1, fitnessPollInterval=1|
 		^super.newCopyArgs(bus, numChannels).init(
 			server, fitnessPollInterval);
@@ -163,7 +175,7 @@ PSListenSynthSwarmController : PSSwarmController {
 		indDict.playNode = indDict.phenotype.asSynth(
 			out:indDict.playBus, group:playGroup);
 		//analyse its output by listening to its bus
-		indDict.listenNode = Synth.new(this.class.listenNode,
+		indDict.listenNode = Synth.new(this.class.listenSynth,
 			this.getListenSynthArgs(indDict),
 			listenGroup);
 		indDict.phenotype.clockOn;

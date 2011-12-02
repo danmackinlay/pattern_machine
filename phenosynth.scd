@@ -16,7 +16,7 @@ s=Server.default;
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthSwarmController.new(s, ~globalOuts);
+~control = PSListenSwarmController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
@@ -44,7 +44,7 @@ s=Server.default;
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-~control = PSListenSynthSwarmController(s, ~globalOuts);
+~control = PSListenSwarmController(s, ~globalOuts);
 //now set up the "island" that will control their evolution
 ~island = PSSynthSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
