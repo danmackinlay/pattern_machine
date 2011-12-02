@@ -56,7 +56,14 @@ s.volume.volume= -20;
 ~control.all;
 ~control.all.size;
 ~control.freedNodes;
-~control.allocatedNodes[5];
+~control.allocatedNodes;
+
+~d=IdentityDictionary.new;
+~d.size;
+~d[\foo]=\bar;
+~d.keys.keyAt(0);
+~d.keys.keyAt(1);
+~d.pop;
 
 //testing that things are going OK:
 ~island.population.collect(_.fitness);

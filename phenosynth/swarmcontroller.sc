@@ -101,7 +101,19 @@ PSSwarmController {
 		//Stop taking requests.
 		playing = false;
 		//free synths
-		all.do({|i| this.freeIndividual(i.phenotype);});
+		//do it in a routine to maximise our hope of killing ones spawned
+		// concurrently
+		Routine.new({
+			while (
+				{ (all.size > 0) },
+				{ all.do(
+					{|i|
+						this.freeIndividual(i.phenotype);
+						0.01.yield;
+					});
+				}
+			)
+		}).play;
 	}
 }
 
