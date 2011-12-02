@@ -105,13 +105,9 @@ TODO:
 * infrastructure
 
 	* allow dynamic (re) assignment of evolutionary operators
-	* Collapse RealTimeISland and RealtimeEarswarmIsland coz there is no clear division anyway.
-	* Fx leaking Synths
+	* Fix leaking Synths
 	
 		* ensure Groups are also freed.
-		* also, if you run for a few iterations, there are still hundred of synths left round
-		  allocted-  What are they? (Everything! my cleanup routine is awful. Possibly new nodes
-		  are being created while old ones are being destroyed? Need to sempahore that.)
 		* remove debugging cruft when this all works - specifically, allocatedNodes and freedNodes 
 		  member vars on teh controller.
 		
@@ -123,7 +119,7 @@ TODO:
 		* support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
 
 	* sort out the interactions of all these different tick rates and periods.
-	* Handle "free controls", values that are passed in live by the user. (esp
+	* Handle "free controls", values that are passed in live by the user, or external LFOs or data in general. (esp
 		for triggers)
 	* alter chromosome if Specs are changed through UI or any other means, using
 		all that Dependent business
