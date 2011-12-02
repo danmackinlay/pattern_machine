@@ -46,7 +46,7 @@ s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 ~control = PSListenSynthSwarmController(s, ~globalOuts);
 //now set up the "island" that will control their evolution
-~island = PSEarSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
+~island = PSSynthSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
 ~island.params;
 ~island.population;
@@ -56,14 +56,7 @@ s.volume.volume= -20;
 ~control.all;
 ~control.all.size;
 ~control.freedNodes;
-~control.allocatedNodes;
-
-~d=IdentityDictionary.new;
-~d.size;
-~d[\foo]=\bar;
-~d.keys.keyAt(0);
-~d.keys.keyAt(1);
-~d.pop;
+~control.allocatedNodes[5];
 
 //testing that things are going OK:
 ~island.population.collect(_.fitness);
