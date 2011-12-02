@@ -28,6 +28,7 @@ PSSwarmController {
 	var <playGroup;
 	var <allocatedNodes;
 	var <freedNodes;
+	var playing = false;
 	
 	*new {|server, numChannels=1|
 		^super.newCopyArgs(numChannels).init(server);
@@ -47,8 +48,14 @@ PSSwarmController {
 		);
 		outBus ?? {outBus = Bus.audio(server, numChannels)};
 	}
+	play {
+		//This ONLY sets a flag to allow playing of synths, so that we don't end
+		//up with concurrency problems with playing/freeing
+		playing = true;
+	}
 	playIndividual {|phenotype|
 		var indDict;
+		playing.not.if({"Controller is not playing!".throw});
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
 		this.decorateIndividualDict(indDict);
@@ -91,6 +98,9 @@ PSSwarmController {
 		^freed;
 	}
 	free {
+		//Stop taking requests.
+		playing = false;
+		//free synths
 		all.do({|i| this.freeIndividual(i.phenotype);});
 	}
 }

@@ -44,7 +44,7 @@ s=Server.default;
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-~control = PSEarSwarmController(s, ~globalOuts);
+~control = PSListenSynthSwarmController(s, ~globalOuts);
 //now set up the "island" that will control their evolution
 ~island = PSEarSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
@@ -109,7 +109,12 @@ TODO:
 	* Fx leaking Synths
 	
 		* ensure Groups are also freed.
-		* also, if you run for a few iterations, there are still hundred of synths left round allocted-  What are they? (Everything! my cleanup routine is awful. Possibly new nodes are being created while old ones are being destroyed? Need to sempahore that.)
+		* also, if you run for a few iterations, there are still hundred of synths left round
+		  allocted-  What are they? (Everything! my cleanup routine is awful. Possibly new nodes
+		  are being created while old ones are being destroyed? Need to sempahore that.)
+		* remove debugging cruft when this all works - specifically, allocatedNodes and freedNodes 
+		  member vars on teh controller.
+		
 	* allow a seed-bank supporting far more genomes than can be simultaneously
 		simulated. (I.e. keep a much larger population, but only simulate a part
 		of them at once
