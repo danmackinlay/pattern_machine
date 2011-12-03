@@ -78,10 +78,17 @@ PSSwarmController {
 	decorateIndividualDict {|indDict|
 		indDict.playBus = outBus;
 	}
+	getSynthArgs {|indDict|
+		var playArgs;
+		playArgs = [\out, indDict.playBus, \gate, 1] ++ indDict.phenotype.chromosomeAsSynthArgs;
+		^playArgs;
+	}
 	actuallyPlayIndividual {|indDict|
 		//private
-		indDict.playNode = indDict.phenotype.asSynth(
-			out:indDict.playBus, group:playGroup
+		indDict.playNode = Synth.new(
+			indDict.phenotype.class.synthdef,
+			this.getSynthArgs(indDict),
+			target: playGroup
 		);
 		indDict.phenotype.clockOn;
 	}
@@ -171,9 +178,9 @@ PSListenSwarmController : PSSwarmController {
 		^indDict;
 	}
 	actuallyPlayIndividual {|indDict|
+		//NB - I suspect this routine of having concurrency problems at high load.
 		//play the synth to which we wish to listen
-		indDict.playNode = indDict.phenotype.asSynth(
-			out:indDict.playBus, group:playGroup);
+		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		indDict.listenNode = Synth.new(this.class.listenSynth,
 			this.getListenSynthArgs(indDict),
@@ -200,8 +207,11 @@ PSListenSwarmController : PSSwarmController {
 		^freed;
 	}
 	updateFitnesses {
+		[\updating_fitness].postln;
 		all.keysValuesDo({|key, indDict|
+			[\updating, key, indDict].postln;
 			indDict.listenBus.get({|val|
+				[\updating, key, \to, val].postln;
 				indDict.phenotype.fitness = val;
 			});
 			indDict.phenotype.incAge;

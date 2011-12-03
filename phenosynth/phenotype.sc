@@ -65,17 +65,6 @@ PSSynthDefPhenotype : PSPhenotype {
 			\rq: \rq.asSpec
 		);
 	}
-	asSynth {|out, group|
-		var synth;
-		// should remove this MVC violation.
-		mappedArgs = this.chromosomeAsSynthArgs;
-		synth = Synth.new(
-			this.class.synthdef,
-			args: [\out, out, \gate, 1] ++ mappedArgs,
-			target: group
-		)
-		^synth;
-	}
 	stop {|synth|
 		synth.set(\gate, 0);
 	}

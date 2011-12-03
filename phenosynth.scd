@@ -34,6 +34,7 @@ s=Server.default;
 //initialisation
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
+~globalOuts.scope;
 //~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);//better way to get first audio in?
 ~globalIns = Bus.audio(s, 1)
 ~voxgroup = Group.new(s);
@@ -50,6 +51,7 @@ s.volume.volume= -20;
 ~island.play;
 ~island.params;
 ~island.population;
+~island.controller.getListenSynthArgs();
 //listen for a while.
 //when you are bored, do a
 ~island.free;
