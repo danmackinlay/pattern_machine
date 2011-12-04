@@ -248,7 +248,7 @@ PSRealTimeIsland : PSIsland {
 	}
 }
 
-//Things specific to my diabolical schemes - i.e. phenotypic selection on swarming agents
+//Things specific to phenotypic selection on swarming agents
 
 PSSynthSwarmIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a (presumably server?) controller abstraction*/

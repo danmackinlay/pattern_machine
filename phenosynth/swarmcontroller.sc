@@ -158,6 +158,8 @@ PSListenSwarmController : PSSwarmController {
 	var <fitnessPollInterval;
 	var <listenGroup;
 	var <worker;
+	var <clock;
+	
 	//Toy 
 	classvar <listenSynth = \ps_listen_eight_hundred;
 	*new {|server, bus, numChannels=1, fitnessPollInterval=1|
@@ -165,12 +167,24 @@ PSListenSwarmController : PSSwarmController {
 			server, fitnessPollInterval);
 	}
 	init {|serverOrGroup, thisFitnessPollInterval|
-		var clock;
 		super.init(serverOrGroup);
 		fitnessPollInterval = thisFitnessPollInterval;
-		listenGroup = Group.after(playGroup);
-		clock = TempoClock.new(fitnessPollInterval.reciprocal, 1);
-		worker = Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
+	}
+	play {
+		listenGroup = listenGroup ?? { Group.after(playGroup);};
+		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
+		worker = worker ?? {
+			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
+		};
+		super.play;
+	}
+	free {
+		super.free;
+		listenGroup.free;
+		listenGroup = nil;
+		clock.stop;
+		clock = nil;
+		worker = nil;
 	}
 	decorateIndividualDict {|indDict|
 		indDict.playBus = Bus.audio(server, numChannels);
@@ -207,11 +221,9 @@ PSListenSwarmController : PSSwarmController {
 		^freed;
 	}
 	updateFitnesses {
-		[\updating_fitness].postln;
 		all.keysValuesDo({|key, indDict|
-			[\updating, key, indDict].postln;
 			indDict.listenBus.get({|val|
-				[\updating, key, \to, val].postln;
+				//[\updating, key, \to, val].postln;
 				indDict.phenotype.fitness = val;
 			});
 			indDict.phenotype.incAge;

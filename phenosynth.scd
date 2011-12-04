@@ -51,7 +51,6 @@ s.volume.volume= -20;
 ~island.play;
 ~island.params;
 ~island.population;
-~island.controller.getListenSynthArgs();
 //listen for a while.
 //when you are bored, do a
 ~island.free;
@@ -111,7 +110,14 @@ TODO:
   
     * ensure Groups are also freed.
     * remove debugging cruft when this all works - specifically,
-      allocatedNodes and freedNodes member vars on teh controller.
+      allocatedNodes and freedNodes member vars on the controller.
+  
+  * envelope synth deletion
+  
+    * use Synth doneActions and per-listener groups to free all resources on
+      demand
+    * don't bother freeing the "jack" synths where population is constant.
+    * watch out for those double /n_frees - might break something.
     
   * allow a seed-bank supporting far more genomes than can be simultaneously
     simulated. (I.e. keep a much larger population, but only simulate a part
@@ -132,18 +138,10 @@ TODO:
   * non-accumulating, genotype-style selection
   
     * but I don't personally need that.
-    
-  * envelope synth deletion
-  
-    * use Synth doneActions and per-listener groups to free all resources on
-      demand
-    * don't bother freeing the "jack" synths where population is constant.
-    * watch out for those double /n_frees - might break something.
-    
+        
   * serialize phenotypes to disk so evolution can be resumed.
   * chromosome management
   
-    * provide a way to unwarp as well as warp chromosomes
     * go to all-binary chromosomes for increased happiness and elegance.
     
   * provide a "migration phase" in which to check for extinction and restock.
