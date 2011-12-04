@@ -70,6 +70,7 @@ s.volume.volume= -20;
 //these should only ever differ momentarily
 ~island.population.size;
 ~island.population[0];
+
 ~island.population[0].chromosomeAsSynthArgs;
 ~island.population[0].chromosome;
 ~island.population[0].synth;

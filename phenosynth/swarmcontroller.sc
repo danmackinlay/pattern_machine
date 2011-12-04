@@ -180,8 +180,8 @@ PSListenSwarmController : PSSwarmController {
 	}
 	free {
 		super.free;
-		listenGroup.free;
-		listenGroup = nil;
+		//listenGroup.free;
+		//listenGroup = nil;
 		clock.stop;
 		clock = nil;
 		worker = nil;
@@ -207,7 +207,7 @@ PSListenSwarmController : PSSwarmController {
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
-		listenArgs = [\in, indDict.playBus, \out, indDict.listenBus, \active, 1, \i_leakcoef, 1.0];
+		listenArgs = [\in, indDict.playBus, \out, indDict.listenBus, \active, 1, \i_leakcoef, 0.9];
 		^listenArgs;
 	}
 	freeIndividual {|phenotype|

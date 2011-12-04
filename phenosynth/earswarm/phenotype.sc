@@ -12,7 +12,8 @@ PSEarSwarmPhenotype : PSSynthDefPhenotype {
 	}
 	fitness {
 		var ageNow = this.logicalAge;
-		//override fitness to give mean fitness *rate*
-		^(fitness * ageNow / (ageNow.exp));
+		//override fitness to cause aging in chromosomes
+		//^(fitness * ageNow / (ageNow.exp));
+		^fitness;
 	}
 }
