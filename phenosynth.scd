@@ -1,18 +1,4 @@
 (
-//How the controller works, nuts-and-bolts
-s=Server.default;
-~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSSwarmController.new(s, ~globalOuts);
-~ind = PSSynthDefPhenotype.newRandom;
-~control.playIndividual(~ind);
-~control.freeIndividual(~ind);
-~ind.mappedArgs
-~ind.identityHash;
-~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
-~control.all.collect({|key, indDict| indDict.postln});
-)
-(
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
@@ -103,10 +89,13 @@ TODO:
 
 * right now this doesn't especially converge to 800 Hz, even over large
   timescales
+  
+  * manual polyploidy?
 
 * infrastructure
 
   * allow dynamic (re) assignment of evolutionary operators
+  * make synth loading methods be consisten (add or writeOnce?)
   * Fix leaking Synths
   
     * ensure Groups are also freed.
@@ -122,7 +111,7 @@ TODO:
     
   * allow a seed-bank supporting far more genomes than can be simultaneously
     simulated. (I.e. keep a much larger population, but only simulate a part
-    of them at once
+    of them at once)
   * use wrapping infrastructure to simplify the listensynth definitions.
   
     * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
@@ -134,7 +123,7 @@ TODO:
     all that Dependent business
   * support "fitness injection" - doing custom pre-processing on fitness?
   
-    * so much more complex than simply overriding the calss. do that later.
+    * so much more complex than simply overriding the class. do that later.
     
   * non-accumulating, genotype-style selection
   
@@ -144,6 +133,7 @@ TODO:
   * chromosome management
   
     * go to all-binary chromosomes for increased happiness and elegance.
+    * although increased difficulty in doing gradient ascent.
     
   * provide a "migration phase" in which to check for extinction and restock.
 
