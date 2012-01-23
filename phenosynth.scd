@@ -95,7 +95,7 @@ TODO:
 * infrastructure
 
   * allow dynamic (re) assignment of evolutionary operators
-  * make synth loading methods be consisten (add or writeOnce?)
+  * make synth loading methods be consistent (add or writeOnce?)
   * Fix leaking Synths
   
     * ensure Groups are also freed.
