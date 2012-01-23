@@ -12,7 +12,7 @@ PSBasicJudgeSynths {
 		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 			var testsig, comparison, integral, freq, hasFreq, logtargetpitch, realleakcoef;
 			logtargetpitch = i_targetpitch.log;
-			testsig = LeakDC.ar(Mix.ar(In.ar(in, 1)));
+			testsig = LeakDC.ar(Mix.new(In.ar(in, 1)));
 			# freq, hasFreq = Pitch.kr(testsig);
 			comparison = hasFreq.if(
 				(7 - ((freq.log) - logtargetpitch).abs).max(0),
@@ -34,7 +34,7 @@ PSBasicJudgeSynths {
 		SynthDef.new(\ps_conv_eight_hundred,
 			{ |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|      
 				var testsig, comparison, integral, realleakcoef;
-				testsig = LeakDC.ar(Mix.ar(In.ar(in, 1)));
+				testsig = LeakDC.ar(Mix.new(In.ar(in, 1)));
 				comparison = (
 					A2K.kr(
 						Lag.ar(

@@ -7,7 +7,7 @@
 (
 //multichannelising tests
 SynthDef.new(\testoffsets, {|outs| Out.ar(outs, DC.ar(2.pow((0..3))))}).add;
-SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.ar(In.ar(ins))))}).add;
+SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.new(In.ar(ins))))}).add;
 ~mctestouts = Bus.audio(s, 4);
 ~mcrezout = Bus.control(s, 1);
 ~mcplaygroup = Group.head(s);
@@ -61,7 +61,7 @@ PSMCMix : PSMCCore {
 	
 	*makeSynthDef {|numChannels|
 		^SynthDef.new(this.synthName(numChannels), { |in, out|
-			Out.ar(out, Mix.ar(In.ar(in, numChannels)));
+			Out.ar(out, Mix.new(In.ar(in, numChannels)));
 		});
 	}
 }

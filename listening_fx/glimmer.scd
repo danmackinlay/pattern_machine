@@ -30,7 +30,7 @@ SynthDef.new(\glimmergrains,
 			maxdelaytime: 1.0,
 			delaytime: feedbackLen-ControlRate.ir.reciprocal,
 			mul:feedbackGain) ;
-		mixedIn = Mix.ar(in+feedback);
+		mixedIn = Mix.new(in+feedback);
 		//poor-man's shared ring buffer
 		freqBufPointer = In.kr(freqBufPointer);
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
@@ -80,7 +80,7 @@ SynthDef.new(\glimmergrains,
 				level: 1.0
 			);
 		});
-		outChannels = Limiter.ar(LeakDC.ar(Mix.ar(voices)),1,0.01);
+		outChannels = Limiter.ar(LeakDC.ar(Mix.new(voices)),1,0.01);
 		LocalOut.ar(outChannels);
 		Out.ar(out, outChannels);
 	}	
@@ -91,7 +91,7 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
 	rate = rate.min(ControlRate.ir/2);//so triggers work
 	//we presume freqBuf has 513 samples, and use 512. Why not?
-	#freq, hasFreq = Pitch.kr(Mix.ar(In.ar(in, 2)), execFreq: rate);
+	#freq, hasFreq = Pitch.kr(Mix.new(In.ar(in, 2)), execFreq: rate);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
