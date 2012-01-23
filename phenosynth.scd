@@ -43,7 +43,7 @@ s.volume.volume= -20;
 ~control.all;
 ~control.all.size;
 ~control.freedNodes;
-~control.allocatedNodes[5];
+~control.allocatedNodes;
 
 //testing that things are going OK:
 ~island.population.collect(_.fitness);
@@ -101,6 +101,8 @@ TODO:
     * ensure Groups are also freed.
     * remove debugging cruft when this all works - specifically,
       allocatedNodes and freedNodes member vars on the controller.
+    * They seemed to have magically fixed themselves in SC 3.5 beta 2. Remove
+      debug code?
   
   * envelope synth deletion
   
@@ -134,6 +136,7 @@ TODO:
   
     * go to all-binary chromosomes for increased happiness and elegance.
     * although increased difficulty in doing gradient ascent.
+    * or just create handy new classes to cast as needed. (UnsignedUnitFloat)
     
   * provide a "migration phase" in which to check for extinction and restock.
 
@@ -146,7 +149,6 @@ TODO:
     * support creatures which vocalise only sporadically (saving CPU, or at
       least saving earspace)
   * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
-  
   * doesn't apply ATM but might with different regimes:
   
     * scale birthRate and deathRate so that they fit eventual fitness

@@ -96,6 +96,8 @@ PSSwarmController {
 		/*
 		for debugging, associate each synth with a server node so I can see if
 		anything is leaking.
+		
+		Note that this will, of course, eventually cause leaks of its own.
 		*/
 		indDict.values.do({|indDictEntry|
 			indDictEntry.isKindOf(Synth).if({
@@ -108,18 +110,20 @@ PSSwarmController {
 		freed = all.removeAt(phenotype.identityHash);
 		freedNodes.add(freed);
 		freed.isNil.not.if({
-			//these should be separated, or the second eliminated by the first.
+			// These should be separated, or the second eliminated by the first.
 			freed.phenotype.stop(freed.playNode);//closes envelope
 			freed.playNode.free;//forces synth to free
 		});
 		^freed;
 	}
 	free {
-		//Stop taking requests.
+		/* Stop taking requests. */
 		playing = false;
-		//free synths
-		//do it in a routine to maximise our hope of killing ones spawned
-		// concurrently
+		
+		/* Free synths
+		   Do it in a routine to maximise our hope of killing ones spawned
+		   concurrently. (you'd think no new ones would be spawned if we
+		   didn't surrender control, no? Apparently this is not so.)*/
 		Routine.new({
 			while (
 				{ (all.size > 0) },
