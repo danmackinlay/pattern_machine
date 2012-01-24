@@ -84,7 +84,7 @@ SynthDef.new(\glimmergrains,
 		LocalOut.ar(outChannels);
 		Out.ar(out, outChannels);
 	}	
-).send(s);
+).add(s);
 
 
 SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
@@ -107,7 +107,7 @@ SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
 		interpolation:1
 	);//.poll(10, \read);
 	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
-}).send(s);
+}).add(s);
 )
 
 ~freqBuf = Buffer(s, 513, 1);

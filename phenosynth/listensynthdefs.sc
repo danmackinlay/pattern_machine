@@ -1,4 +1,5 @@
-// based on MCLD's example MCLD_Genetic tests
+/* originally based on MCLD's example MCLD_Genetic tests, though the
+resemblance is rapidly diminishing */
 
 PSBasicJudgeSynths {
 	*initClass{
@@ -60,7 +61,7 @@ PSBasicJudgeSynths {
 				Out.kr(out, integral);
 			}
 		).add;
-		SynthDef.writeOnce(\_ga_judge_targetpitch, { |testbus, out=0, active=0, t_reset=0, targetpitch=660|
+		SynthDef.new(\_ga_judge_targetpitch, { |testbus, out=0, active=0, t_reset=0, targetpitch=660|
 			var testsig, comparison, integral, freq, hasFreq;
 			
 			testsig = LeakDC.ar(In.ar(testbus, 1));
@@ -76,11 +77,11 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 		
 		// This judge aims for the fundamental pitch to vary as much as possible.
 		// You may find that this tends towards white noise or similar...
-		SynthDef.writeOnce(\_ga_judge_movingpitch, { |testbus, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_movingpitch, { |testbus, out=0, active=0, t_reset=0|
 			var testsig, comparison, integral, freq, hasFreq;
 			
 			testsig = LeakDC.ar(In.ar(testbus, 1));
@@ -101,11 +102,11 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 		
 		// Match a specific not-quite-trivial amplitude envelope
 		// Env.new([0.001, 1, 0.3, 0.8, 0.001],[0.2,0.3,0.1,0.4],'welch').test.plot
-		SynthDef.writeOnce(\_ga_judge_ampenv, { |testbus, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_ampenv, { |testbus, out=0, active=0, t_reset=0|
 			var testsig, comparison, integral, env;
 			
 			testsig = LeakDC.ar(In.ar(testbus, 1));
@@ -121,10 +122,10 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 
 		// Try and match amplitude envelope against a template signal
-		SynthDef.writeOnce(\_ga_judge_ampmatch, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_ampmatch, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				resynth;
 			
@@ -143,11 +144,11 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 
 
 		// Try and match pitch envelope against a template signal
-		SynthDef.writeOnce(\_ga_judge_pitchmatch, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_pitchmatch, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigpitch, opitch, sighaspitch, ohaspitch,
 				resynth;
 			
@@ -166,10 +167,10 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 		
 		// Try and match pitch envelope against a template signal - but using ZeroCrossing
-		SynthDef.writeOnce(\_ga_judge_pitchmatch_zc, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_pitchmatch_zc, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigpitch, opitch, 
 				resynth;
 			
@@ -188,10 +189,10 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 		// Try and match the FFT of the individual against some "template" signal - typically an audio sample.
 		// NB - this uses a CUSTOM UGEN, available from http://www.mcld.co.uk/supercollider/
-		SynthDef.writeOnce(\_ga_judge_fftmatch, {		|testbus, bfr1, bfr2, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_fftmatch, {		|testbus, bfr1, bfr2, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff,
 				resynth;
@@ -217,15 +218,15 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 
 		// Really simple SynthDef to play a buffer when triggered
-		SynthDef.writeOnce(\_ga_just_playbuf, {		|bufnum, out=0, t_trig=0|
+		SynthDef.new(\_ga_just_playbuf, {		|bufnum, out=0, t_trig=0|
 			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 		});
 
 		// Like FFT but with normaliser
-		SynthDef.writeOnce(\_ga_judge_fftmatch_norm, {		|testbus, bfr1, bfr2, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_fftmatch_norm, {		|testbus, bfr1, bfr2, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff,
 				resynth;
@@ -247,6 +248,6 @@ PSBasicJudgeSynths {
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
 			Out.kr(out, integral);
-		});
+		}).add;
 	}
 }
