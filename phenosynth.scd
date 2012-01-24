@@ -1,7 +1,9 @@
 (
 //initialisation
-Phenosynth.reInit;
+Server.default = s = Server.internal;
+Server.default = s = Server.local;
 s=Server.default;
+Phenosynth.reInit;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
 //better way to get first audio in?
@@ -14,7 +16,7 @@ s=Server.default;
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-~control = PSCompareSwarmController.new(s, bus:~globalOuts, numChannels:2, fitnessPollInterval:1, templateBus: ~globalIns);
+~control = PSCompareSwarmController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
 //now set up the "island" that will control their evolution
 ~island = PSSynthSwarmIsland.new((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
@@ -60,8 +62,9 @@ s.volume.volume= -20;
   * allow dynamic (re) assignment of evolutionary operators
   * move Bus allocation into PS*Controller play methods
   * make synth loading methods be consistent (add or writeOnce?)
-  * Fix leaking Synths
-  
+  * fix operation when numChannels>1 (at the moment there are bus allocation
+    failures and misc screencruft in that case)
+  * Fix leaks  
     * ensure Groups are also freed.
     * remove debugging cruft when this all works - specifically,
       allocatedNodes and freedNodes member vars on the controller.
@@ -119,6 +122,8 @@ s.volume.volume= -20;
     * reseed population when they all die
 
 * allow custom evolvability mappings and starting chromosome.
+* evolve a map between input and output to teach creatures to produce maximally
+  versatile responses to diverse signals
 * I've just noticed that MCLD has been facing the same problem and made
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
