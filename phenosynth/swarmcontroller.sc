@@ -196,8 +196,8 @@ PSListenSwarmController : PSSwarmController {
 		^indDict;
 	}
 	actuallyPlayIndividual {|indDict|
-		//NB - I suspect this routine of having concurrency problems at high load.
 		//play the synth to which we wish to listen
+		//NB - I suspect this routine of having concurrency problems at high load.
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		indDict.listenNode = Synth.new(this.class.listenSynth,
@@ -232,5 +232,41 @@ PSListenSwarmController : PSSwarmController {
 			});
 			indDict.phenotype.incAge;
 		});
+	}
+}
+
+PSCompareSwarmController : PSListenSwarmController {
+	/* This evolutionary listener compares the agents against an incoming
+	(external?) signal and allocates fitness accordingly. */
+	
+	classvar <listenSynth = \ps_listen_eight_hundred;
+	var <templateBus;
+	
+	*new {|server, bus, numChannels=1, fitnessPollInterval=1, templateBus|
+		var noob;
+		noob = super.newCopyArgs(bus, numChannels);
+		noob.init(
+			server, fitnessPollInterval, templateBus);
+		^noob;
+	}
+	init {|serverOrGroup, thisFitnessPollInterval, thisTemplateBus|
+		super.init(serverOrGroup, thisFitnessPollInterval);
+		templateBus = thisTemplateBus;
+		
+	}
+	
+	getListenSynthArgs{|indDict|
+		var listenArgs;
+		listenArgs = [\in, indDict.playBus,
+			\out, indDict.listenBus,
+			\templatebus, indDict.templateBus,
+			\active, 1,
+			\i_leakcoef, 0.9];
+		^listenArgs;
+	}
+	decorateIndividualDict {|indDict|
+		super.decorateIndividualDict(indDict);
+		indDict.templateBus = templateBus;
+		^indDict;
 	}
 }

@@ -1,5 +1,51 @@
+(
+//initialisation
+Phenosynth.reInit;
+s=Server.default;
+~globalOuts = Bus.new(\audio, 0, 2);
+~globalOuts.scope;
+//better way to get first audio in?
+~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);~globalIns = Bus.audio(s, 1)
+~voxgroup = Group.new(s);
+~outgroup = Group.after(~voxgroup);
+//limiter, to avoid little accidents
+~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
+~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
+//s.volume.gui;
+s.volume.volume= -20;
+//actual real work now: first choose the controller that will manage the synths
+~control = PSCompareSwarmController.new(s, bus:~globalOuts, numChannels:2, fitnessPollInterval:1, templateBus: ~globalIns);
+//now set up the "island" that will control their evolution
+~island = PSSynthSwarmIsland.new((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
+~island.play;
+~control.templateBus;
+~control.fitnessPollInterval;
+~island.params;
+~island.population;
+//listen for a while.
+//when you are bored, do a
+~island.free;
+~control.all;
+~control.all.size;
+~control.freedNodes;
+~control.allocatedNodes;
+//testing that things are going OK:
+~island.population.collect(_.fitness);
+~island.fitnesses;
+~island.fitnesses.mean;
+~island.population;
+~island.population.select(_.wallClockAge>0)
+~island.population.collect({|i| i.wallClockAge}).mean;
+~island.population.collect({|i| i.logicalAge}).mean;
+//these should only ever differ momentarily
+~island.population.size;
+~island.population[0];
 
-
+~island.population[0].chromosomeAsSynthArgs;
+~island.population[0].chromosome;
+~island.population[0].synth;
+~island.controller.all[~island.population[0].identityHash].playBus.scope
+)
 /**************************
  * Debugging bits
  **************************
@@ -12,6 +58,7 @@
 * infrastructure
 
   * allow dynamic (re) assignment of evolutionary operators
+  * move Bus allocation into PS*Controller play methods
   * make synth loading methods be consistent (add or writeOnce?)
   * Fix leaking Synths
   
@@ -112,7 +159,6 @@ s=Server.default;
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
-//~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);//better way to get first audio in?
 ~globalIns = Bus.audio(s, 1)
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
