@@ -4,8 +4,13 @@ resemblance is rapidly diminishing */
 PSBasicJudgeSynths {
 	*initClass{
 		StartUp.add({
-			this.loadSynthDefs
+			this.classInit;
 		});
+	}
+	*classInit{
+		/* I give my *actual* class initialisation the name of classInit, for ease of consistently initialising classes
+		*/
+		this.loadSynthDefs;
 	}
 	*loadSynthDefs {
 		// This judge is one of the simplest I can think of (for demo purposes) 
@@ -33,7 +38,7 @@ PSBasicJudgeSynths {
 			Out.kr(out, integral);
 		}).add;
 		SynthDef.new(\ps_conv_eight_hundred,
-			{ |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|      
+			{ |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 				var testsig, comparison, integral, realleakcoef;
 				testsig = LeakDC.ar(Mix.new(In.ar(in, 1)));
 				comparison = (

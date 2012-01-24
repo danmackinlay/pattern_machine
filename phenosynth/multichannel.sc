@@ -1,8 +1,5 @@
 //Multichannel stuff
 
-//Can this class truly be necessary? 26 lines of code to plug *n* busses into
-//*n* other buses?
-
 /*
 (
 //multichannelising tests
@@ -16,22 +13,36 @@ SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.new(In.ar(ins))))}).add
 ~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \out, ~mcrezout], ~mclistengroup);
 ~mcrezout.get(_.postln);
 (1..17).do({|numChannels|
-  SynthDef.new('jack$' ++ numChannels.asString, { |in, out|
+	SynthDef.new('jack$' ++ numChannels.asString, { |in, out|
 	Out.ar(out, In.ar(in, numChannels));
-  }).add;
+	}).add;
 });
 PSSynthDefPhenotype.map
 "nameBase" ++ "$$" ++ 4.asString
 )
 */
- 
+
+//Can this class truly be necessary? 26 lines of code to plug *n* busses into
+//*n* other buses?
+
 PSMCCore {
 	classvar <maxChannels = 16;
 	classvar <nameBase = "core";
 	
 	*initClass{
 		StartUp.add({
-			this.loadSynthDefs
+			this.classInit
+		});
+	}
+	*classInit{
+		/* I give my *actual* class initialisation the name of classInit, for ease of consistently initialising classes
+		*/
+		this.loadSynthDefs;
+	}
+	*loadSynthDefs {
+		//a simple connector to siphon one bus into another, for a few channels.
+		(1..(maxChannels+1)).do({|numChannels|
+			this.makeSynthDef(numChannels).add;
 		});
 	}
 	*synthName {|numChannels=1|
@@ -40,12 +51,6 @@ PSMCCore {
 	*n {|numChannels=1|
 		//convenience alias for synthName
 		^this.synthName(numChannels);
-	}
-	*loadSynthDefs {
-		//first, a simple connector to siphon one bus into another.
-		(1..(maxChannels+1)).do({|numChannels|
-			this.makeSynthDef(numChannels).add;
-		});
 	}
 	*makeSynthDef {|numChannels|
 		^SynthDef.new(this.synthName(numChannels), { |in, out|

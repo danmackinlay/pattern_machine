@@ -1,6 +1,15 @@
 PSBasicPlaySynths {
 	*initClass{
 		StartUp.add({
+			this.classInit;
+		});
+	}
+	*classInit{
+		/* I give my *actual* class initialisation the name of classInit, for ease of consistently initialising classes
+		*/
+		this.loadSynthDefs;
+	}
+	*loadSynthDefs{
 			SynthDef.new(
 				\ps_reson_saw,
 				{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5|
@@ -39,6 +48,5 @@ PSBasicPlaySynths {
 					);
 				}
 			).add;
-		});
 	}
 }
