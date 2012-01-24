@@ -8,7 +8,11 @@ PSOperators {
 		});
 	}
 	*loadOperators {
-		Library.put(\phenosynth, \chromosome_fact, \basic,
+		Library.put(\phenosynth, \nulloperator,
+			{|...args|
+				"null operator called!".throw;
+			}
+		);		Library.put(\phenosynth, \chromosome_fact, \basic,
 			{|params|
 				params.individualClass.newRandom;
 			}

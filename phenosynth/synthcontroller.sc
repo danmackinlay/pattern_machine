@@ -3,7 +3,7 @@
 //How the controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSSwarmController.new(s, ~globalOuts);
+~control = PSSynthController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
@@ -14,7 +14,7 @@ s=Server.default;
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */
-PSSwarmController {
+PSSynthController {
 	/*pass all server instructions through this guy to allow the instructions
 	to be delivered in the right order and the boring bus/server allocation
 	details to be abstracted away, and to track resources needing freeing.
@@ -22,7 +22,7 @@ PSSwarmController {
 	This basic controller only does *playing* of synths, presuming that you are
 	going to rank them manually or something as per Dan Stowell's neat GOAD.sc
 	
-	A subclass, PSListenSwarmController, handles setting up candidate
+	A subclass, PSListenSynthController, handles setting up candidate
 	phenosynths and listeners simultaneously.
 	*/
 	
@@ -143,7 +143,7 @@ PSSwarmController {
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSwarmController.new(s, ~globalOuts);
+~control = PSListenSynthController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
@@ -154,7 +154,7 @@ s=Server.default;
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */
-PSListenSwarmController : PSSwarmController {
+PSListenSynthController : PSSynthController {
 	/*
 	This Controller subclass sets up Synths and listeners to those synths
 	simultaneously.
@@ -235,7 +235,7 @@ PSListenSwarmController : PSSwarmController {
 	}
 }
 
-PSCompareSwarmController : PSListenSwarmController {
+PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	

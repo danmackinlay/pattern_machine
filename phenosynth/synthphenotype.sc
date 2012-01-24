@@ -1,4 +1,4 @@
-PSEarSwarmPhenotype : PSSynthDefPhenotype {
+PSSynthPhenotype : PSSynthDefPhenotype {
 	var <>lifeSpan = 20;
 	classvar <synthdef = \ps_reson_saw_2pan;
 	
@@ -11,8 +11,8 @@ PSEarSwarmPhenotype : PSSynthDefPhenotype {
 		);
 	}
 	fitness {
-		var ageNow = this.logicalAge;
 		//override fitness to cause aging in chromosomes
+		//var ageNow = this.logicalAge;
 		//^(fitness * ageNow / (ageNow.exp));
 		^fitness;
 	}

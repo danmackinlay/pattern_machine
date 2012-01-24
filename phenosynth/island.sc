@@ -7,7 +7,7 @@ PSIsland {
 	functions or paths to Library functions that will be cast to Library
 	functions at run time, in the initOperators method.
 	
-	Since we can't define naked functions in a classvar, these particular ones
+	Since we can't define naked functions in a classvar, these *particular* ones
 	are all Library Paths.
 	*/
 	
@@ -47,7 +47,6 @@ PSIsland {
 	var <>individualFactory;
 	var <>fitnessEvaluator;
 	var <>terminationCondition;
-
 
 	// default values for that parameter thing
 	// I wish I could do this with a literal instead of a method
@@ -212,6 +211,7 @@ PSRealTimeIsland : PSIsland {
 	var <worker;
 	var clock;
 	
+	classvar <defaultFitnessEvaluator = #[phenosynth, nulloperator];
 	classvar defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 	
 	*new {| params, pollPeriod=1|
@@ -227,7 +227,7 @@ PSRealTimeIsland : PSIsland {
 	}
 	play {
 		/*note this does not call parent. If you can find a way of making this do
-		the right thing with the generated routine while still caling the parent
+		the right thing with the generated routine while still calling the parent
 		method, more power to you. Submit a patch. */
 		var iterator;
 		this.populate;
@@ -250,16 +250,15 @@ PSRealTimeIsland : PSIsland {
 
 //Things specific to phenotypic selection on swarming agents
 
-PSSynthSwarmIsland : PSRealTimeIsland {
-	/* PSIsland that plays agents through a (presumably server?) controller abstraction*/
-	
-	classvar <defaultCrossover = #[\phenosynth, \crossovers, \meanCrossover];
+PSControllerIsland : PSRealTimeIsland {
+	/* PSIsland that plays agents through a (presumably server?) controller
+	 * abstraction */
 	
 	var <controller;
 	
 	*defaultParams {
 		var defParams = super.defaultParams;
-		defParams.individualClass = PSEarSwarmPhenotype;
+		defParams.individualClass = PSSynthPhenotype;
 		^defParams;
 	}
 	*new {| params, pollPeriod=1, controller|

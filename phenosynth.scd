@@ -16,9 +16,9 @@ Phenosynth.reInit;
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-~control = PSCompareSwarmController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
+~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
 //now set up the "island" that will control their evolution
-~island = PSSynthSwarmIsland.new((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
+~island = PSControllerIsland((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
 ~control.templateBus;
 ~control.fitnessPollInterval;
@@ -145,7 +145,7 @@ James Nichols for the peer pressure to do it.
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSwarmController.new(s, ~globalOuts);
+~control = PSListenSynthController.new(s, ~globalOuts);
 ~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
@@ -173,9 +173,9 @@ s=Server.default;
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-~control = PSListenSwarmController(s, ~globalOuts);
+~control = PSListenSynthController(s, ~globalOuts);
 //now set up the "island" that will control their evolution
-~island = PSSynthSwarmIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
+~island = PSControllerIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
 ~island.params;
 ~island.population;
