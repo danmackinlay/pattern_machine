@@ -39,14 +39,14 @@ PSIsland {
 	Paths are coerced to functions at instantiation time to avoid problems with 
 	not knowing when the Library gets filled.
 	*/
-	var <>deathSelector;
-	var <>birthSelector;
-	var <>mutator;
-	var <>crossover;
-	var <>initialChromosomeFactory;
-	var <>individualFactory;
-	var <>fitnessEvaluator;
-	var <>terminationCondition;
+	var <deathSelector;
+	var <birthSelector;
+	var <mutator;
+	var <crossover;
+	var <initialChromosomeFactory;
+	var <individualFactory;
+	var <fitnessEvaluator;
+	var <terminationCondition;
 
 	// default values for that parameter thing
 	// I wish I could do this with a literal instead of a method
@@ -61,30 +61,54 @@ PSIsland {
 			\individualClass: PSPhenotype,
 			\mutationProb: 0.1,
 			\mutationSize: 0.1,
-			\stopIterations: 10000
+			\stopIterations: 1000
 		);
 	}
 	*new {|params|
 		^super.newCopyArgs(
-			this.defaultParams.updatedFrom(params);
+			this.defaultParams.updatedFrom(params ? Event.new);
 		).init;
+	}
+	deathSelector_ {|fn|
+		deathSelector = this.loadFunction(fn);
+	}
+	birthSelector_ {|fn|
+		birthSelector = this.loadFunction(fn);
+	}
+	mutator_ {|fn|
+		mutator = this.loadFunction(fn);
+	}
+	crossover_ {|fn|
+		crossover = this.loadFunction(fn);
+	}
+	initialChromosomeFactory_ {|fn|
+		initialChromosomeFactory = this.loadFunction(fn);
+	}
+	individualFactory_ {|fn|
+		individualFactory = this.loadFunction(fn);
+	}
+	fitnessEvaluator_ {|fn|
+		fitnessEvaluator = this.loadFunction(fn);
+	}
+	terminationCondition_ {|fn|
+		terminationCondition = this.loadFunction(fn);
 	}
 	init {
 		this.initOperators;
 		population = List.new;
 	}
 	initOperators {
-		deathSelector = this.loadFunction(this.class.defaultDeathSelector);
-		birthSelector = this.loadFunction(this.class.defaultBirthSelector);
-		mutator = this.loadFunction(this.class.defaultMutator);
-		crossover = this.loadFunction(this.class.defaultCrossover);
-		initialChromosomeFactory = this.loadFunction(this.class.defaultInitialChromosomeFactory);
-		individualFactory = this.loadFunction(this.class.defaultIndividualFactory);
-		fitnessEvaluator = this.loadFunction(this.class.defaultFitnessEvaluator);
-		terminationCondition = this.loadFunction(this.class.defaultTerminationCondition);
+		this.deathSelector = this.class.defaultDeathSelector;
+		this.birthSelector = this.class.defaultBirthSelector;
+		this.mutator = this.class.defaultMutator;
+		this.crossover = this.class.defaultCrossover;
+		this.initialChromosomeFactory = this.class.defaultInitialChromosomeFactory;
+		this.individualFactory = this.class.defaultIndividualFactory;
+		this.fitnessEvaluator = this.class.defaultFitnessEvaluator;
+		this.terminationCondition = this.class.defaultTerminationCondition;
 	}
 	loadFunction {|nameOrFunction|
-		/* we have a method here fo two reasons:
+		/* we have a method here for two reasons:
 		1. it allows us to transparently pass through actual functions, but load
 			other things from the Library
 		2. to force a test for missing library names, or it's hard to track what
@@ -120,7 +144,7 @@ PSIsland {
 	}
 	evaluate {
 		population.do({|phenotype|
-			fitnessEvaluator.value(params, phenotype);
+			phenotype.fitness = fitnessEvaluator.value(params, phenotype);
 			phenotype.incAge;
 		});
 	}
@@ -207,19 +231,17 @@ PSIsland {
 PSRealTimeIsland : PSIsland {
 	/* instead of checking my agents for fitness, I expect them to update
 	themselves. I poll them at a defined interval to do tending.*/
-	var <pollPeriod;
 	var <worker;
 	var clock;
 	
 	classvar <defaultFitnessEvaluator = #[phenosynth, nulloperator];
-	classvar defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
+	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 	
-	*new {| params, pollPeriod=1|
+	*new {|params|
 		//Why is pollPeriod not part of params?
-		^super.new(params).init(pollPeriod);
+		^super.new(params).init;
 	}
-	init {|newPollPeriod|
-		pollPeriod = newPollPeriod;
+	init {
 		^super.init;
 	}
 	evaluate {
@@ -231,7 +253,7 @@ PSRealTimeIsland : PSIsland {
 		method, more power to you. Submit a patch. */
 		var iterator;
 		this.populate;
-		clock = TempoClock.new(pollPeriod.reciprocal, 1);
+		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
 		iterator = this.iterator;
 		playing = true;
 		worker = Routine.new({
@@ -261,12 +283,12 @@ PSControllerIsland : PSRealTimeIsland {
 		defParams.individualClass = PSSynthPhenotype;
 		^defParams;
 	}
-	*new {| params, pollPeriod=1, controller|
-		^super.new(params).init(pollPeriod, controller);
+	*new {|params, controller|
+		^super.new(params).init(controller);
 	}
-	init {|newPollPeriod, newController|
+	init {|newController|
 		controller = newController;
-		^super.init(newPollPeriod);
+		^super.init;
 	}
 	add {|phenotype|
 		super.add(phenotype);

@@ -143,7 +143,12 @@ James Nichols for the peer pressure to do it.
 /**************************
  * Debugging bits
  **************************/
- 
+(
+~island = PSIsland.new;
+~island.params;
+~island.params.stopIterations=100;
+~island.play;
+)
 (
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
