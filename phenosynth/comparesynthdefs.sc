@@ -89,11 +89,12 @@ PSBasicCompareSynths {
 		}).add;
 		// Try and match the FFT of the individual against some "template" signal - typically an audio sample.
 		// NB - this uses a CUSTOM UGEN, available from http://www.mcld.co.uk/supercollider/
-		SynthDef.new(\_ga_judge_fftmatch, {		|testbus, bfr1, bfr2, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_fftmatch, {|testbus, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff,
-				resynth;
-			
+				resynth, bfr1, bfr2;
+			bfr1 = LocalBuf.new(128,1);
+			bfr2 = LocalBuf.new(128,1);
 			testsig  = LeakDC.ar(In.ar(testbus, 1));
 			othersig = LeakDC.ar(In.ar(templatebus, 1));
 			
@@ -123,10 +124,12 @@ PSBasicCompareSynths {
 		});
 
 		// Like FFT but with normaliser
-		SynthDef.new(\_ga_judge_fftmatch_norm, {		|testbus, bfr1, bfr2, templatebus=0, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_fftmatch_norm, {		|testbus, templatebus=0, out=0, active=0, t_reset=0|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff,
-				resynth;
+				resynth, bfr1, bfr2;
+			bfr1 = LocalBuf.new(128,1);
+			bfr2 = LocalBuf.new(128,1);
 			
 			testsig  = Normalizer.ar(LeakDC.ar(In.ar(testbus, 1)));
 			othersig = Normalizer.ar(LeakDC.ar(In.ar(templatebus, 1)));
