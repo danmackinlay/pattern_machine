@@ -4,13 +4,13 @@
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSSynthController.new(s, ~globalOuts);
-~ind = PSSynthDefPhenotype.newRandom;
+~ind = PSSynthPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
+10.do({~control.playIndividual(PSSynthPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */
@@ -144,13 +144,13 @@ PSSynthController {
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSListenSynthController.new(s, ~globalOuts);
-~ind = PSSynthDefPhenotype.newRandom;
+~ind = PSSynthPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
+10.do({~control.playIndividual(PSSynthPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */
@@ -239,7 +239,7 @@ PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	
-	classvar <listenSynth = \ps_listen_eight_hundred;
+	classvar <listenSynth = \_ga_judge_fftmatch;
 	var <templateBus;
 	
 	*new {|server, bus, numChannels=1, fitnessPollInterval=1, templateBus|
