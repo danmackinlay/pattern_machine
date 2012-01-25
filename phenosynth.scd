@@ -144,9 +144,10 @@ James Nichols for the peer pressure to do it.
  * Debugging bits
  **************************/
 (
+//this NEEDS to log to a file. displaying to the GUI is hopelessly stupid.
 ~island = PSIsland.new;
 ~island.params;
-~island.params.stopIterations=100;
+~island.params.stopIterations=1;
 ~island.play;
 )
 (

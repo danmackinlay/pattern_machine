@@ -197,6 +197,11 @@ PSIsland {
 		playing = true;
 		iterator = this.iterator;
 		while {iterator.next } {
+			//Wouldn't it be nice if I could suspend execution momentarily here?
+			/*teaBreak.notNil.if({
+				((iterations % teaBreak) == (teaBreak-1).if(
+				);
+			});*/
 			//action happens in iterator
 		};
 	}
@@ -216,10 +221,11 @@ PSIsland {
 			{
 				this.tend;
 				[\iterations, iterations, this.fitnesses.mean].postln;
+				((iterations % 100) == 0).if({1.wait;});
 				true.yield;
 			};
 		);
-		false.yield;}, stackSize: 1024);//seems to overflow easily?
+		false.yield;}, stackSize: 16384);//seems to overflow easily?
 	}
 	reset {
 		this.cull(population);
