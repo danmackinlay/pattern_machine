@@ -1,15 +1,25 @@
 (
 //initialisation
 Server.default = s = Server.internal;
-Server.default = s = Server.local;
+//Server.default = s = Server.local;
 s=Server.default;
 Phenosynth.reInit;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
 //better way to get first audio in?
-~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);~globalIns = Bus.audio(s, 1)
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
+
+/*******************/
+/* Do either THIS: */
+//~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+
+/* or THIS */
+/*******************/
+~globalIns = Bus.audio(s, 1);
+{|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore)
+/*******************/
+
 //limiter, to avoid little accidents
 ~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
@@ -20,33 +30,23 @@ s.volume.volume= -20;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
 ~island.play;
-~control.templateBus;
-~control.fitnessPollInterval;
 ~island.params;
 ~island.population;
 //listen for a while.
 //when you are bored, do a
 ~island.free;
-~control.all;
-~control.all.size;
-~control.freedNodes;
-~control.allocatedNodes;
 //testing that things are going OK:
 ~island.population.collect(_.fitness);
 ~island.fitnesses;
 ~island.fitnesses.mean;
 ~island.population;
 ~island.population.select(_.wallClockAge>0)
-~island.population.collect({|i| i.wallClockAge}).mean;
-~island.population.collect({|i| i.logicalAge}).mean;
 //these should only ever differ momentarily
-~island.population.size;
-~island.population[0];
-
 ~island.population[0].chromosomeAsSynthArgs;
 ~island.population[0].chromosome;
-~island.population[0].synth;
-~island.controller.all[~island.population[0].identityHash].playBus.scope
+~island.controller.all[~island.population[0].identityHash].playBus.scope;
+FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
+//~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 )
 /**************************
  * Debugging bits
@@ -60,11 +60,13 @@ s.volume.volume= -20;
 * infrastructure
 
   * allow dynamic (re) assignment of evolutionary operators
+  * test convergence offline with non-DSP algorithms
   * move Bus allocation into PS*Controller play methods
-  * make synth loading methods be consistent (add or writeOnce?)
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
+  * allow custom evolvability mappings and starting chromosome.
   * Fix leaks  
+  
     * ensure Groups are also freed.
     * remove debugging cruft when this all works - specifically,
       allocatedNodes and freedNodes member vars on the controller.
@@ -103,7 +105,8 @@ s.volume.volume= -20;
   
     * go to all-binary chromosomes for increased happiness and elegance.
     * although increased difficulty in doing gradient ascent.
-    * or just create handy new classes to cast as needed. (UnsignedUnitFloat)
+    * or just create handy new classes to cast as needed. (UnsignedUnitFloat,
+      and a Genome class.)
     
   * provide a "migration phase" in which to check for extinction and restock.
 
@@ -111,19 +114,19 @@ s.volume.volume= -20;
 * my earswarm
 
   * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
+  * evolve a map between input and output to teach creatures to produce maximally
+    versatile responses to diverse signals
   * LFOs
   
     * support creatures which vocalise only sporadically (saving CPU, or at
       least saving earspace)
+
   * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
   * doesn't apply ATM but might with different regimes:
   
     * scale birthRate and deathRate so that they fit eventual fitness
     * reseed population when they all die
 
-* allow custom evolvability mappings and starting chromosome.
-* evolve a map between input and output to teach creatures to produce maximally
-  versatile responses to diverse signals
 * I've just noticed that MCLD has been facing the same problem and made
   classes similar in spirit to mine, as regards selecting the phenotypes
   rather than genotypes, as the NLTK does:
@@ -146,13 +149,13 @@ James Nichols for the peer pressure to do it.
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSListenSynthController.new(s, ~globalOuts);
-~ind = PSSynthDefPhenotype.newRandom;
+~ind = PSSynthPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
+10.do({~control.playIndividual(PSSynthPhenotype.newRandom)});
 ~control.all.do({|a,b| [a,b].postln;});
 ~control.updateFitnesses;
 ~control.all.collect({|indDict, key| [indDict, key]});
