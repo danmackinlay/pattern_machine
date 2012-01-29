@@ -95,7 +95,7 @@ PSOperators {
 					localFitnesses = localFitnesses / (localFitnesses.sum);
 					parentList = targetBirths.collect(
 						params.numParents.collect(
-							population.wchoose(localFitnesses)
+							population.asArray.wchoose(localFitnesses.asArray)
 						)
 					);
 					parentList;
