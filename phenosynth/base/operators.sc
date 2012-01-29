@@ -26,7 +26,7 @@ PSOperators {
 		//not practical, just a sanity check - return the mean of the chromosome
 		Library.put(\phenosynth, \fitness_evals, \chromosomemean,
 			{|params, phenotype|
-					^phenotype.chromosome.mean;
+				phenotype.chromosome.mean;
 			}
 		);
 		Library.put(\phenosynth, \termination_conds, \basic,
