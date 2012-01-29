@@ -89,7 +89,7 @@ PSOperators {
 					"Warning: empty population; no breeding for now".postln;
 					[];
 				}, {
-					targetBirths = (params.population) - population.size;
+					targetBirths = (params.populationSize) - population.size;
 					localFitnesses = population.collect({|i| i.fitness;});
 					meanFitness = localFitnesses.mean;
 					localFitnesses = localFitnesses / (localFitnesses.sum);
