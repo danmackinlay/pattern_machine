@@ -1,4 +1,35 @@
-LogFile {
+NullLogger {
+	/* this parent class provdes a black hole logger so that you can stop
+	 logging without changing code. */
+	formatMsg {|msgs|
+		var stampedMsgs = msgs;
+		//A nil in the first msg argument will be replaced by a datestamp
+		msgs[0].isNil.if({
+			stampedMsgs = msgs.copy;
+			stampedMsgs[0] = Date.gmtime.stamp;
+		});
+		^"|||"+stampedMsgs.join("|")++"\n";
+	}
+	*new {|fileName|
+		^super.new;
+	}
+	*newFromDate {|prefix|
+		^this.new;
+	}
+	*global {
+		^this.new;
+	}
+	*default {
+		^this.new;
+	}
+	log {|...msgargs|
+		^this.formatMsg(msgargs);
+	}
+	logFlush {|...msgargs|
+		^this.log(*msgargs);
+	}
+}
+LogFile : NullLogger {
 	/* writes pipe-separated log messages */
 	classvar global;
 	classvar default;
@@ -49,14 +80,5 @@ LogFile {
 		var formatted = this.log(*msgargs);
 		file.flush;
 		^formatted;
-	}
-	formatMsg {|msgs|
-		var stampedMsgs = msgs;
-		//A nil in the first msg argument will be replaced by a datestamp
-		msgs[0].isNil.if({
-			stampedMsgs = msgs.copy;
-			stampedMsgs[0] = Date.gmtime.stamp;
-		});
-		^"|||"+stampedMsgs.join("|")++"\n";
 	}
 }
