@@ -197,12 +197,8 @@ PSIsland {
 		playing = true;
 		iterator = this.iterator;
 		while {iterator.next } {
-			//Wouldn't it be nice if I could suspend execution momentarily here?
-			/*teaBreak.notNil.if({
-				((iterations % teaBreak) == (teaBreak-1).if(
-				);
-			});*/
-			//action happens in iterator
+			//Loop body cannot be empty or SC segfaults
+			true;
 		};
 	}
 	free {
