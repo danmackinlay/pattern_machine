@@ -195,33 +195,18 @@ PSIsland {
 		var iterator;
 		this.populate;
 		playing = true;
-		iterator = this.iterator;
-		while {iterator.next } {
-			//Loop body cannot be empty or SC segfaults
-			true;
-		};
+		while(
+			{(terminationCondition.value(
+				params, population, iterations
+				).not) && 
+				playing},
+			{
+				this.tend;
+			}
+		);
 	}
 	free {
 		playing = false;
-	}
-	iterator {
-		/* Return a routine that does the work of triggering the work we want as
-			long as things are supposed to be moving along. */
-		^Routine.new({while(
-			{
-				(terminationCondition.value(
-					params, population, iterations
-				).not) && 
-				playing 
-			},
-			{
-				this.tend;
-				[\iterations, iterations, this.fitnesses.mean].postln;
-				((iterations % 100) == 0).if({1.wait;});
-				true.yield;
-			};
-		);
-		false.yield;}, stackSize: 16384);//seems to overflow easily?
 	}
 	reset {
 		this.cull(population);
@@ -253,16 +238,20 @@ PSRealTimeIsland : PSIsland {
 		/*note this does not call parent. If you can find a way of making this do
 		the right thing with the generated routine while still calling the parent
 		method, more power to you. Submit a patch. */
-		var iterator;
 		this.populate;
 		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
-		iterator = this.iterator;
 		playing = true;
 		worker = Routine.new({
-			while {iterator.next;}
-				{ 
+			while(
+				{(terminationCondition.value(
+					params, population, iterations
+					).not) && 
+					playing
+				}, {
+					this.tend;
 					1.yield;
 				}
+			);
 		}).play(clock);
 	}
 	free {
@@ -271,8 +260,6 @@ PSRealTimeIsland : PSIsland {
 		clock.stop;
 	}
 }
-
-//Things specific to phenotypic selection on swarming agents
 
 PSControllerIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a (presumably server?) controller
