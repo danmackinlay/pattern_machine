@@ -227,6 +227,7 @@ PSRealTimeIsland : PSIsland {
 	*defaultParams {
 		var defParams = super.defaultParams;
 		defParams.pollPeriod = 1;
+		defParams.populationSize = 100;
 		^defParams;
 	}	
 	*new {|params|
@@ -275,6 +276,8 @@ PSControllerIsland : PSRealTimeIsland {
 	*defaultParams {
 		var defParams = super.defaultParams;
 		defParams.individualClass = PSSynthPhenotype;
+		//These are kinda CPU-heavy
+		defParams.populationSize = 50;
 		^defParams;
 	}
 	*new {|params, controller|
