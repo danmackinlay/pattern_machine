@@ -1,6 +1,8 @@
 /*
- * file-based loggers, because logging to a GUI window is no good when SuperCollide does its segfault thing.
- */
+File-based loggers, because logging to a GUI window is no good when
+SuperCollider does its segfault thing.
+*/
+
 NullLogger {
 	/* this parent class provdes a black hole logger so that you can stop
 	 logging without changing code. */
