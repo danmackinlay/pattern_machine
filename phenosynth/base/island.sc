@@ -241,9 +241,7 @@ PSRealTimeIsland : PSIsland {
 		//no-op in this class; they are realtime self-updating
 	}
 	play {
-		/*note this does not call parent. If you can find a way of making this do
-		the right thing with the generated routine while still calling the parent
-		method, more power to you. Submit a patch. */
+		/*note this does not call parent. */
 		this.populate;
 		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
 		playing = true;
