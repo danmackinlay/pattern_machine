@@ -26,7 +26,7 @@ PSOperators {
 		//not practical, just a sanity check - return the mean of the chromosome
 		Library.put(\phenosynth, \fitness_evals, \chromosomemean,
 			{|params, phenotype|
-					^phenotype.chromosome.mean;
+				phenotype.chromosome.mean;
 			}
 		);
 		Library.put(\phenosynth, \termination_conds, \basic,
@@ -89,13 +89,13 @@ PSOperators {
 					"Warning: empty population; no breeding for now".postln;
 					[];
 				}, {
-					targetBirths = (params.population) - population.size;
+					targetBirths = (params.populationSize) - population.size;
 					localFitnesses = population.collect({|i| i.fitness;});
 					meanFitness = localFitnesses.mean;
 					localFitnesses = localFitnesses / (localFitnesses.sum);
 					parentList = targetBirths.collect(
 						params.numParents.collect(
-							population.wchoose(localFitnesses)
+							population.asArray.wchoose(localFitnesses.asArray)
 						)
 					);
 					parentList;
