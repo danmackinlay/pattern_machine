@@ -29,12 +29,14 @@ PSSynthDefPhenotype : PSPhenotype {
 		);
 	}
 	chromosomeAsSynthArgs {
-		/*This list comprehension is not especially clear now, is it?
-		What it does is zip together the key, map spec and value 
+		/*Zip together the key, map spec and value 
 		lists into one, then iterates over this, returning mapped values
 		associated with their keys as a synth expects*/
-		^(all {: [keySpecVal[0], keySpecVal[1].map(keySpecVal[2])],
-			keySpecVal <- (this.class.map.asSortedArray +++ chromosome)
+		var maparray = map.asSortedArray;
+		^this.class.genomeSize.collect({|i|
+			[maparray[i][0], 
+			  maparray[i][1].map(chromosome.at(i))
+			]
 		}).flat;
 	}
 }

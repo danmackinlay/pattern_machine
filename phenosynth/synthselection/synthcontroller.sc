@@ -164,8 +164,9 @@ PSListenSynthController : PSSynthController {
 	var <worker;
 	var <clock;
 	
-	//Toy 
+	//Toy example synth
 	classvar <listenSynth = \ps_listen_eight_hundred;
+	
 	*new {|server, bus, numChannels=1, fitnessPollInterval=1|
 		^super.newCopyArgs(bus, numChannels).init(
 			server, fitnessPollInterval);
@@ -252,9 +253,7 @@ PSCompareSynthController : PSListenSynthController {
 	init {|serverOrGroup, thisFitnessPollInterval, thisTemplateBus|
 		super.init(serverOrGroup, thisFitnessPollInterval);
 		templateBus = thisTemplateBus;
-		
 	}
-	
 	getListenSynthArgs{|indDict|
 		var listenArgs;
 		listenArgs = [\in, indDict.playBus,

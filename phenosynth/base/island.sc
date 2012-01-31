@@ -195,37 +195,18 @@ PSIsland {
 		var iterator;
 		this.populate;
 		playing = true;
-		iterator = this.iterator;
-		while {iterator.next } {
-			//Wouldn't it be nice if I could suspend execution momentarily here?
-			/*teaBreak.notNil.if({
-				((iterations % teaBreak) == (teaBreak-1).if(
-				);
-			});*/
-			//action happens in iterator
-		};
+		while(
+			{(terminationCondition.value(
+				params, population, iterations
+				).not) && 
+				playing},
+			{
+				this.tend;
+			}
+		);
 	}
 	free {
 		playing = false;
-	}
-	iterator {
-		/* Return a routine that does the work of triggering the work we want as
-			long as things are supposed to be moving along. */
-		^Routine.new({while(
-			{
-				(terminationCondition.value(
-					params, population, iterations
-				).not) && 
-				playing 
-			},
-			{
-				this.tend;
-				[\iterations, iterations, this.fitnesses.mean].postln;
-				((iterations % 100) == 0).if({1.wait;});
-				true.yield;
-			};
-		);
-		false.yield;}, stackSize: 16384);//seems to overflow easily?
 	}
 	reset {
 		this.cull(population);
@@ -242,7 +223,13 @@ PSRealTimeIsland : PSIsland {
 	
 	classvar <defaultFitnessEvaluator = #[phenosynth, nulloperator];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
-	
+
+	*defaultParams {
+		var defParams = super.defaultParams;
+		defParams.pollPeriod = 1;
+		defParams.populationSize = 100;
+		^defParams;
+	}	
 	*new {|params|
 		//Why is pollPeriod not part of params?
 		^super.new(params).init;
@@ -254,19 +241,21 @@ PSRealTimeIsland : PSIsland {
 		//no-op in this class; they are realtime self-updating
 	}
 	play {
-		/*note this does not call parent. If you can find a way of making this do
-		the right thing with the generated routine while still calling the parent
-		method, more power to you. Submit a patch. */
-		var iterator;
+		/*note this does not call parent. */
 		this.populate;
 		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
-		iterator = this.iterator;
 		playing = true;
 		worker = Routine.new({
-			while {iterator.next;}
-				{ 
+			while(
+				{(terminationCondition.value(
+					params, population, iterations
+					).not) && 
+					playing
+				}, {
+					this.tend;
 					1.yield;
 				}
+			);
 		}).play(clock);
 	}
 	free {
@@ -275,8 +264,6 @@ PSRealTimeIsland : PSIsland {
 		clock.stop;
 	}
 }
-
-//Things specific to phenotypic selection on swarming agents
 
 PSControllerIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a (presumably server?) controller
@@ -287,6 +274,8 @@ PSControllerIsland : PSRealTimeIsland {
 	*defaultParams {
 		var defParams = super.defaultParams;
 		defParams.individualClass = PSSynthPhenotype;
+		//These are kinda CPU-heavy
+		defParams.populationSize = 50;
 		^defParams;
 	}
 	*new {|params, controller|
