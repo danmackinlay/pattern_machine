@@ -223,7 +223,12 @@ PSRealTimeIsland : PSIsland {
 	
 	classvar <defaultFitnessEvaluator = #[phenosynth, nulloperator];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
-	
+
+	*defaultParams {
+		var defParams = super.defaultParams;
+		defParams.pollPeriod = 1;
+		^defParams;
+	}	
 	*new {|params|
 		//Why is pollPeriod not part of params?
 		^super.new(params).init;
