@@ -4,6 +4,7 @@ Server.default = s = Server.internal;
 //Server.default = s = Server.local;
 s=Server.default;
 Phenosynth.reInit;
+StartUp.run;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
 //better way to get first audio in?
@@ -42,9 +43,12 @@ s.volume.volume= -20;
 ~island.population.select(_.wallClockAge>0)
 //these should only ever differ momentarily
 ~island.population[0].chromosomeAsSynthArgs;
+~island.population.asArray.choose.chromosomeAsSynthArgs;
 ~island.population[0].chromosome;
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
+FreqScope.new(busNum:~globalIns);
+~globalIns
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 )
 /**************************
