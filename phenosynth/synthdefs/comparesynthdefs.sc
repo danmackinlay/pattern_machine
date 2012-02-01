@@ -108,7 +108,7 @@ PSBasicCompareSynths {
 		NB - this uses a CUSTOM UGEN, available from
 		 	http://www.mcld.co.uk/supercollider/ */
 		SynthDef.new(\_ga_judge_fftmatch, {
-			|testbus, templatebus=0, out=0,active=0, t_reset=0|
+			|testbus, templatebus=0, out=0, active=0, t_reset=0, i_leak=0.75|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff,
 				resynth, bfr1, bfr2;
@@ -117,6 +117,13 @@ PSBasicCompareSynths {
 			testsig  = LeakDC.ar(In.ar(testbus, 1));
 			othersig = LeakDC.ar(In.ar(templatebus, 1));
 			
+			/*Calculate a leak coefficient to discount fitness over time, presuming
+			 the supplied value is a decay rate _per_second_. (Half life is less
+			 convenient, since it doesn't admit infinity easily) */
+			
+			i_leak = i_leak**(ControlRate.ir.reciprocal);
+			//sanity check that.
+			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
 			/* Take a wideband FFT of the signals since we're interested in
 			 time-domain features rather than freq precision
 			 (use buffers of ~64 or 128 size - NB 32 is too small - kills the
@@ -135,7 +142,7 @@ PSBasicCompareSynths {
 			
 			/* Default coefficient of 1.0 = no leak. When t_reset briefly hits
 			 nonzero, the integrator drains.*/
-			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
+			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, i_leak));
 			
 			Out.kr(out, integral);
 		}).add;

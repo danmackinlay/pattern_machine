@@ -36,7 +36,6 @@ s.volume.volume= -20;
 //when you are bored, do a
 ~island.free;
 //testing that things are going OK:
-~island.population.collect(_.fitness);
 ~island.fitnesses;
 ~island.fitnesses.mean;
 ~island.population;
