@@ -49,11 +49,11 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 )
 /**************************
- * Debugging bits
+ * TODO
  **************************
 
-* right now the test script doesn't especially converge to 800 Hz, even over large
-  timescales
+* right now the test script doesn't especially converge to 800 Hz, even over
+  large timescales. Is Synth selection horribly broken?
   
   * manual polyploidy?
 
@@ -72,6 +72,8 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
       allocatedNodes and freedNodes member vars on the controller.
     * They seemed to have magically fixed themselves in SC 3.5 beta 2. Remove
       debug code?
+  * allow tagging - speciation based on acquiring the right "tag" variable.
+
   
   * envelope synth deletion
   
@@ -111,6 +113,8 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
   * provide a "migration phase" in which to check for extinction and restock.
 
 * Give the faintest of indications that I do care about tests
+* document classes
+* provide examples
 * my earswarm
 
   * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
@@ -126,18 +130,6 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
   
     * scale birthRate and deathRate so that they fit eventual fitness
     * reseed population when they all die
-
-* I've just noticed that MCLD has been facing the same problem and made
-  classes similar in spirit to mine, as regards selecting the phenotypes
-  rather than genotypes, as the NLTK does:
-  http://www.mcld.co.uk/supercollider/ - see also 
-  https://github.com/howthebodyworks/MCLD_Genetic
-
-CREDITS:
-Thanks to Martin Marier and Crucial Felix for tips that make this go, and
-James Nichols for the peer pressure to do it.
-
-
 */
 
 /**************************
