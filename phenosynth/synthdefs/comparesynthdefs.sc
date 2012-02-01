@@ -25,9 +25,6 @@ PSBasicCompareSynths {
 		SynthDef.new(\_ga_just_playbuf, {		|bufnum, out=0, t_trig=0|
 			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 		});
-		
-		// This judge is one of the simplest I can think of (for demo purposes) 
-		// - evaluates closeness of pitch to a reference value (800 Hz).
 			
 		// Try and match amplitude envelope against a template signal
 		SynthDef.new(\_ga_judge_ampmatch, {
