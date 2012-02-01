@@ -3,16 +3,15 @@
 Server.default = s = Server.internal;
 //Server.default = s = Server.local;
 s.boot;
-Phenosynth.reInit;
 StartUp.run;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
-//better way to get first audio in?
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
 
 /*******************/
 /* Do either THIS: */
+//better way to get first audio in?
 //~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 
 /* or THIS */
@@ -58,6 +57,9 @@ FreqScope.new(busNum:~globalIns);
 * what happens with negative fitness?
 
   * Does MCLD's FFTdiffmgs have the right polarity?
+
+* write a quick tester for comparesynths
+* make sure gate is set right!
   
 * right now the test script doesn't especially converge to 800 Hz, even over
   large timescales. Is Synth selection horribly broken?
@@ -139,8 +141,35 @@ FreqScope.new(busNum:~globalIns);
 /**************************
  * Debugging bits
  **************************/
-d=(\aa:2);
-d.keys.asArray.collect({|i,j| [i, j].postln;});
+(
+//initialisation
+Server.default = s = Server.internal;
+//Server.default = s = Server.local;
+s.boot;
+StartUp.run;
+~globalOuts = Bus.new(\audio, 0, 2);
+~matchOut = Bus.control(s, 1);
+~globalOuts.scope;
+~voxgroup = Group.new(s);
+~outgroup = Group.after(~voxgroup);
+~globalIns = Bus.audio(s, 1);
+~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(target: ~voxgroup, outbus: ~globalIns, addAction: \addToHead, args: [\freq, 600]);
+~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
+~comparer = Synth.new(\_ga_judge_fftmatch, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+Routine.new({
+	while( true, {~matchOut.get(_.postln);
+	1.yield;})
+}).play;
+FreqScope.new(busNum:~globalIns);
+~candidate.set(\pitch, 600);
+~candidate.set(\ffreq, 600);
+~candidate.set(\rq, 0.001);
+~candidate.set(\gain, 1);
+
+~candidate.autogui;
+)
+
+)
 (
 ~island = PSIsland.new((\genomeSize: 4));
 ~island.params;
