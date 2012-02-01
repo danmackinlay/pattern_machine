@@ -3,25 +3,21 @@ PSPhenotype {
 	var <>fitness=0;
 	var <logicalAge=0;
 	var <birthTime;
-	
-	classvar <>genomeSize = 3;
-	
+		
 	*new{|chromosome|
 		^super.new.init(chromosome);
 	}
-	*newRandom {|forceGenomeSize|
-		var newChromosome = {1.0.rand;}.dup(forceGenomeSize ? genomeSize);
+	*newRandom {|initialGenomeSize|
+		var newChromosome = {1.0.rand;}.dup(initialGenomeSize);
 		^this.new(newChromosome);
 	}
-	init {|chromosome|
-		//don't just copy a ref- each phenotype gets its own copy.
-		this.chromosome = Array.newFrom(chromosome);
+	init {|newChromosome|
+		//make sure chromosome access goes through *our* setter.
+		this.chromosome = newChromosome;
 	}
 	chromosome_ {|newChromosome|
-		chromosome = newChromosome;
-	}
-	play {|out|
-		NotYetImplementedError.new.throw;
+		//don't just copy a ref- each phenotype gets its own copy.
+		chromosome = Array.newFrom(newChromosome);
 	}
 	clockOn {
 		birthTime = Date.gmtime.rawSeconds;
@@ -32,7 +28,7 @@ PSPhenotype {
 		});
 	}
 	incAge {
-		//incremenets logical (iteration count) age
+		//increments logical (iteration count) age
 		logicalAge = logicalAge +1;
 	}
 	printOn { arg stream;

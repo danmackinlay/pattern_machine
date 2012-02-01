@@ -15,7 +15,7 @@ PSOperators {
 		);
 		Library.put(\phenosynth, \chromosome_fact, \basic,
 			{|params|
-				params.individualClass.newRandom;
+				params.individualClass.newRandom(params.initialGenomeSize);
 			}
 		);
 		Library.put(\phenosynth, \individual_fact, \basic,

@@ -56,7 +56,7 @@ PSIsland {
 			\deathRate: 0.1,
 			\populationSize: 100,
 			\numParents: 2,
-			\chromosomeMinLength: 20,
+			\initialGenomeSize: 1,
 			\crossoverProb: 1,
 			\individualClass: PSPhenotype,
 			\mutationProb: 0.1,
