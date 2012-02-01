@@ -59,12 +59,15 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
 
 * infrastructure
 
-  * allow dynamic (re) assignment of evolutionary operators
-  * test convergence offline with non-DSP algorithms
+  * change fitness protocol to evaluate all at once (so that we can do, e.g.
+    ranked selection ), or perhaps just augment it...
+  * augment all protocols to pass in the PSIsand instance, or some global
+    state, or both
   * move Bus allocation into PS*Controller play methods
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
+  * plots and histograms of values
   * Fix leaks  
   
     * ensure Groups are also freed.
@@ -73,8 +76,6 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
     * They seemed to have magically fixed themselves in SC 3.5 beta 2. Remove
       debug code?
   * allow tagging - speciation based on acquiring the right "tag" variable.
-
-  
   * envelope synth deletion
   
     * use Synth doneActions and per-listener groups to free all resources on
@@ -94,14 +95,7 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
     external LFOs or data in general. (esp for triggers)
   * alter chromosome if Specs are changed through UI or any other means, using
     all that Dependent business
-  * support "fitness injection" - doing custom pre-processing on fitness?
-  
-    * so much more complex than simply overriding the class. do that later.
-    
-  * non-accumulating, genotype-style selection
-  
-    * but I don't personally need that.
-        
+  * examples of using this to do vanilla non-accumulating, genotype-style selection
   * serialize phenotypes to disk so evolution can be resumed.
   * chromosome management
   
@@ -135,12 +129,32 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
 /**************************
  * Debugging bits
  **************************/
+d=(\aa:2);
+d.keys.asArray.collect({|i,j| [i, j].postln;});
 (
-//this NEEDS to log to a file. displaying to the GUI is hopelessly stupid.
-~island = PSIsland.new;
+~island = PSIsland.new((\genomeSize: 4));
 ~island.params;
 //~island.params.stopIterations=1;
+// Solve sin(3wx\pi/2) = cos(yz\pi)
+~spine = {|a0, a1, a2, a3|
+	(2 - 
+		((
+			((a0*a1*pi).cos) -
+			((a2*a3*pi*3/2).sin)
+		).abs)
+	).max(0);
+};
+~island.fitnessEvaluator = {|params, phenotype|
+	phenotype.chromosome.postln;
+	~spine.value(*phenotype.chromosome).postln;
+};
 ~island.play;
+~best = ~island.population[0];
+~island.population[0].fitness;
+~spine.value(*~best.chromosome);
+# a, b, c, d = ~best.chromosome;
+(a*b*pi).cos;
+(c*d*pi*3/2).sin;
 )
 (
 //How the listening controller works, nuts-and-bolts
