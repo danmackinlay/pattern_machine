@@ -29,21 +29,18 @@ PSSynthDefPhenotype : PSPhenotype {
 		/*Zip together the key, map spec and value lists into one, then
 		iterate over this, returning mapped values associated with their
 		keys as a synth expects*/
-		var maparray = map.asSortedArray;
-		^this.map.size.collect({|i|
+		var maparray = this.class.map.asSortedArray;
+		^this.class.map.size.collect({|i|
 			[maparray[i][0], 
 			  maparray[i][1].map(chromosome.at(i))
 			]
 		}).flat;
 	}
 }
-	
 
 PSSynthPhenotype : PSSynthDefPhenotype {
 	/* Hold a particular synth *instance* and associate fitness with it.
 	I'm not sure this merits a distinct subclass. */
-	
-//	var <>lifeSpan = 20;
 	
 	stop {|synth|
 		synth.set(\gate, 0);
