@@ -2,7 +2,7 @@
 //initialisation
 Server.default = s = Server.internal;
 //Server.default = s = Server.local;
-s=Server.default;
+s.boot;
 Phenosynth.reInit;
 StartUp.run;
 ~globalOuts = Bus.new(\audio, 0, 2);

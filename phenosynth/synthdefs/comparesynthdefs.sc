@@ -100,27 +100,18 @@ PSBasicCompareSynths {
 			
 			Out.kr(out, integral);
 		}).add;
+		
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
 		NB - this uses a CUSTOM UGEN, available from
 		 	http://www.mcld.co.uk/supercollider/ */
-		SynthDef.new(\_ga_judge_fftmatch, {
-			|testbus, templatebus=0, out=0, active=0, t_reset=0, i_leak=0.75|
-			var othersig, testsig, comparison, integral, sigamp, oamp, 
-				sigfft, offt, sigbufplay, obufplay, fftdiff,
-				resynth, bfr1, bfr2;
+		this.makeComparer(\_ga_judge_fftmatch, {
+			|testsig, othersig|
+			var sigfft, offt, bfr1, bfr2;
+			
 			bfr1 = LocalBuf.new(128,1);
 			bfr2 = LocalBuf.new(128,1);
-			testsig  = LeakDC.ar(In.ar(testbus, 1));
-			othersig = LeakDC.ar(In.ar(templatebus, 1));
-			
-			/*Calculate a leak coefficient to discount fitness over time, presuming
-			 the supplied value is a decay rate _per_second_. (Half life is less
-			 convenient, since it doesn't admit infinity easily) */
-			
-			i_leak = i_leak**(ControlRate.ir.reciprocal);
-			//sanity check that.
-			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
+
 			/* Take a wideband FFT of the signals since we're interested in
 			 time-domain features rather than freq precision
 			 (use buffers of ~64 or 128 size - NB 32 is too small - kills the
@@ -131,18 +122,9 @@ PSBasicCompareSynths {
 			// Smear the FFT a little to avoid being trapped in bins
 			sigfft = PV_MagSmear(sigfft, 5);
 			  offt = PV_MagSmear(  offt, 5);
-
-			comparison = FFTDiffMags.kr(sigfft, offt);
-
-			// Divide by the server's control rate to scale the output nicely
-			comparison = comparison / ControlRate.ir;
 			
-			/* Default coefficient of 1.0 = no leak. When t_reset briefly hits
-			 nonzero, the integrator drains.*/
-			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, i_leak));
-			
-			Out.kr(out, integral);
-		}).add;
+			FFTDiffMags.kr(sigfft, offt);
+		});
 
 		// Like FFT but with normaliser
 		SynthDef.new(\_ga_judge_fftmatch_norm, {
@@ -192,7 +174,8 @@ PSBasicCompareSynths {
 			//sanity check that.
 			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
 			
-			comparison = SynthDef.wrap(func, lags, [testbus, templatebus]);
+			comparison = SynthDef.wrap(func, lags, [testsig, othersig]);
+			
 			// Divide by the server's control rate to scale the output nicely
 			comparison = comparison / ControlRate.ir;
 
