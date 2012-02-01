@@ -18,14 +18,13 @@ PSBasicPlaySynths {
 					env = EnvGen.kr(
 						Env.asr(time/2, 1, time/2, 'linear'),
 						gate: gate,
-						doneAction: 0,
-						levelScale: gain
+						doneAction: 0
 					);
 					Out.ar(out, Resonz.ar(
 						Saw.ar(pitch, env),
 						ffreq,	 //cutoff
 						rq			 //inverse bandwidth
-					) * env);
+					) * env * gain);
 				}
 			).add;
 			SynthDef.new(
@@ -36,8 +35,7 @@ PSBasicPlaySynths {
 					env = EnvGen.kr(
 						Env.asr(time/2, 1, time/2, 'linear'),
 						gate: gate,
-						doneAction: 0,
-						levelScale: gain
+						doneAction: 0
 					);
 					Out.ar(out, Pan2.ar(
 						Resonz.ar(
@@ -45,7 +43,7 @@ PSBasicPlaySynths {
 							ffreq,	//cutoff
 							rq			//inverse bandwidth
 						)
-					) * env);
+					) * env * gain);
 				}
 			).add;
 	}
