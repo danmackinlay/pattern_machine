@@ -7,8 +7,8 @@ PSPhenotype {
 	*new{|chromosome|
 		^super.new.init(chromosome);
 	}
-	*newRandom {|initialGenomeSize|
-		var newChromosome = {1.0.rand;}.dup(initialGenomeSize);
+	*newRandom {|initialChromosomeSize|
+		var newChromosome = {1.0.rand;}.dup(initialChromosomeSize);
 		^this.new(newChromosome);
 	}
 	init {|newChromosome|

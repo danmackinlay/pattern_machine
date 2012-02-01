@@ -28,7 +28,7 @@ s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 ~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
 //now set up the "island" that will control their evolution
-~island = PSControllerIsland((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
+~island = PSControllerIsland((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4), controller:~control);
 ~island.play;
 ~island.params;
 ~island.population;
@@ -63,6 +63,8 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
     ranked selection ), or perhaps just augment it...
   * augment all protocols to pass in the PSIsand instance, or some global
     state, or both
+  * optionally conduct evolution in a Routine which yields from time to time 
+    to facilite realtime use
   * move Bus allocation into PS*Controller play methods
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
@@ -75,6 +77,7 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
       allocatedNodes and freedNodes member vars on the controller.
     * They seemed to have magically fixed themselves in SC 3.5 beta 2. Remove
       debug code?
+      
   * allow tagging - speciation based on acquiring the right "tag" variable.
   * envelope synth deletion
   
