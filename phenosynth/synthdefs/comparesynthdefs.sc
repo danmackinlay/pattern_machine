@@ -114,7 +114,7 @@ PSBasicCompareSynths {
 		/* skeleton of a better synthdef factory. Be careful with those bus
 		 arguments.*/
 		SynthDef.new(name, {
-			|testbus, templatebus=0, out=0, active=0, t_reset=0, i_leak=0.75|
+			|testbus, templatebus=0, out=0, active=1, t_reset=0, i_leak=0.75|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff, resynth, bfr1, bfr2;
 			testsig  = LeakDC.ar(In.ar(testbus, 1));
