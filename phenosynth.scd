@@ -55,6 +55,10 @@ FreqScope.new(busNum:~globalIns);
  * TODO
  **************************
 
+* what happens with negative fitness?
+
+  * Does MCLD's FFTdiffmgs have the right polarity?
+  
 * right now the test script doesn't especially converge to 800 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
