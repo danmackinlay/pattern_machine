@@ -25,9 +25,6 @@ PSBasicCompareSynths {
 		SynthDef.new(\_ga_just_playbuf, {		|bufnum, out=0, t_trig=0|
 			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 		});
-		
-		// This judge is one of the simplest I can think of (for demo purposes) 
-		// - evaluates closeness of pitch to a reference value (800 Hz).
 			
 		// Try and match amplitude envelope against a template signal
 		SynthDef.new(\_ga_judge_ampmatch, {
@@ -175,6 +172,34 @@ PSBasicCompareSynths {
 			 nonzero, the integrator drains.*/
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 			
+			Out.kr(out, integral);
+		}).add;
+	}
+	*makeComparer { |name, func, lags|
+		/* skeleton of a better synthdef factory. Be careful with those bus
+		 arguments.*/
+		SynthDef.new(name, {
+			|testbus, templatebus=0, out=0, active=0, t_reset=0, i_leak=0.75|
+			var othersig, testsig, comparison, integral, sigamp, oamp, 
+				sigfft, offt, sigbufplay, obufplay, fftdiff, resynth, bfr1, bfr2;
+			testsig  = LeakDC.ar(In.ar(testbus, 1));
+			othersig = LeakDC.ar(In.ar(templatebus, 1));
+
+			/*Calculate a leak coefficient to discount fitness over time,
+			 presuming the supplied value is a decay rate _per_second_. (Half
+			 life is less convenient, since it doesn't admit infinity easily) */
+			i_leak = i_leak**(ControlRate.ir.reciprocal);
+			//sanity check that.
+			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
+			
+			comparison = SynthDef.wrap(func, lags, [testbus, templatebus]);
+			// Divide by the server's control rate to scale the output nicely
+			comparison = comparison / ControlRate.ir;
+
+			/* Default coefficient of 1.0 = no leak. When t_reset briefly hits
+			 nonzero, the integrator drains.*/
+			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, i_leak));
+
 			Out.kr(out, integral);
 		}).add;
 	}
