@@ -49,6 +49,9 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
 FreqScope.new(busNum:~globalIns);
 ~globalIns
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
+[1, 2, 3, 4].keysValuesDo({|i,j| [i,j].postln;});
+Dictionary.newFrom([1,2,3,4]);
+
 )
 /**************************
  * TODO
@@ -60,7 +63,7 @@ FreqScope.new(busNum:~globalIns);
 
 * write a quick tester for comparesynths
 * make sure gate is set right!
-  
+* don't use a List or a LinkedList. Use a Set or IdentityDict. When do we need ordering?
 * right now the test script doesn't especially converge to 800 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
@@ -183,7 +186,7 @@ FreqScope.new(busNum:~globalIns);
 		).abs)
 	).max(0);
 };
-~island.fitnessEvaluator = {|params, phenotype|
+~island.individualFitnessEvaluator = {|params, phenotype|
 	phenotype.chromosome.postln;
 	~spine.value(*phenotype.chromosome).postln;
 };

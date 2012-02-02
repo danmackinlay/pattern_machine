@@ -13,7 +13,7 @@ PSIsland {
 	
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
-	classvar <defaultFitnessEvaluator = #[phenosynth, fitness_evals, chromosomemean];
+	classvar <defaultIndividualFitnessEvaluator = #[phenosynth, ind_ind_fitness_evals, chromosomemean];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRate];
 	classvar <defaultBirthSelector = #[phenosynth, birth_selectors, byRoulettePerTotal];
@@ -26,6 +26,8 @@ PSIsland {
 	
 	//This is the main state variable
 	var <population;
+	//Where we keep the working fitnesses
+	var <cookedFitnesses;
 	
 	// this is another state variable. If I got one more I'd make it
 	// a state *dictionary*
@@ -45,7 +47,8 @@ PSIsland {
 	var <crossover;
 	var <initialChromosomeFactory;
 	var <individualFactory;
-	var <fitnessEvaluator;
+	var <individualFitnessEvaluator;
+	var <collectiveFitnessEvaluator;
 	var <terminationCondition;
 
 	// default values for that parameter thing
@@ -87,8 +90,11 @@ PSIsland {
 	individualFactory_ {|fn|
 		individualFactory = this.loadFunction(fn);
 	}
-	fitnessEvaluator_ {|fn|
-		fitnessEvaluator = this.loadFunction(fn);
+	individualFitnessEvaluator_ {|fn|
+		individualFitnessEvaluator = this.loadFunction(fn);
+	}
+	collectiveFitnessEvaluator_ {|fn|
+		collectiveFitnessEvaluator = this.loadFunction(fn);
 	}
 	terminationCondition_ {|fn|
 		terminationCondition = this.loadFunction(fn);
@@ -104,7 +110,8 @@ PSIsland {
 		this.crossover = this.class.defaultCrossover;
 		this.initialChromosomeFactory = this.class.defaultInitialChromosomeFactory;
 		this.individualFactory = this.class.defaultIndividualFactory;
-		this.fitnessEvaluator = this.class.defaultFitnessEvaluator;
+		this.individualFitnessEvaluator = this.class.defaultIndividualFitnessEvaluator;
+		this.individualFitnessEvaluator = this.class.defaultCollectiveFitnessEvaluator;
 		this.terminationCondition = this.class.defaultTerminationCondition;
 	}
 	loadFunction {|nameOrFunction|
@@ -144,9 +151,10 @@ PSIsland {
 	}
 	evaluate {
 		population.do({|phenotype|
-			phenotype.fitness = fitnessEvaluator.value(params, phenotype);
+			phenotype.fitness = individualFitnessEvaluator.value(params, phenotype);
 			phenotype.incAge;
 		});
+		cookedFitnesses = collectiveFitnessEvaluator.value(params, population);
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -221,7 +229,7 @@ PSRealTimeIsland : PSIsland {
 	var <worker;
 	var clock;
 	
-	classvar <defaultFitnessEvaluator = #[phenosynth, nulloperator];
+	classvar <defaultIndividualFitnessEvaluator = #[phenosynth, nulloperator];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 
 	*defaultParams {

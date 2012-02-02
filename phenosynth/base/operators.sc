@@ -23,12 +23,44 @@ PSOperators {
 				params.individualClass.new(chromosome);
 			}
 		);
+		/************************************************************************/
+		/* Individual/raw fitness measures. */
+		/************************************************************************/
+		
 		//not practical, just a sanity check - return the mean of the chromosome
-		Library.put(\phenosynth, \fitness_evals, \chromosomemean,
+		Library.put(\phenosynth, \ind_fitness_evals, \chromosomemean,
 			{|params, phenotype|
 				phenotype.chromosome.mean;
 			}
 		);
+		//
+		/************************************************************************/
+		/* Collective/cooked fitness measures. */
+		/************************************************************************/
+		//Collective fitnesses are just the individual ones
+		// This works if they are always positive and neatly distributed
+		Library.put(\phenosynth, \coll_fitness_evals, \return_ind,
+			{|params, population|
+				var popfit = ();
+				population.do({|ind| popfit[ind] = ind.fitness});
+				popfit;
+			}
+		);
+		/* Library.put(\phenosynth, \coll_fitness_evals, \zero_clipped,
+			{|params, population|
+				phenotype.chromosome.mean;
+			}
+		);
+		Library.put(\phenosynth, \coll_fitness_evals, \ranked,
+			{|params, population|
+				phenotype.chromosome.mean;
+			}
+		);
+		Library.put(\phenosynth, \coll_fitness_evals, \normalized,
+			{|params, population|
+				phenotype.chromosome.mean;
+			}
+		);*/
 		Library.put(\phenosynth, \termination_conds, \basic,
 			{|params, population, iterations|
 				iterations > params.stopIterations;
