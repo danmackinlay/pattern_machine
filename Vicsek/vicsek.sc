@@ -40,7 +40,7 @@ VicsekParticle {
 	}
 }
 VicsekGrid {
-	var <>population, <>noise, <>delta, <>radius, <dim, <tickTime, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false;
+	var <>population, <>baseNoise, <>baseDelta, <>baseRadius, <dim, <tickTime, <>lfo1p, <>lfo2p, <>lfo3p, <>lfoa, <rescale, <clock, <ticker, <particles, myServer, myGroup, myOutBus, addAction, <myBuffers, <isPlaying=false, <outSynth, <noise, <radius, <delta;
 	classvar <normRng;
 	classvar <samples;
 	*initClass { samples = [
@@ -49,13 +49,16 @@ VicsekGrid {
 		"seagull-walk-this-time-its-personal.wav.aif",
 		"whistling-wind.wav.aif"];
 	}
-	*new {|population, noise, delta, radius, dim=2, tickTime=1|
-		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime).init; 
+	*new {|population, noise, delta, radius, dim=2, tickTime=1, lfo1p=0.007, lfo2p=0.031, lfo3p=0.022, lfoa=4, rescale|
+		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime, lfo1p, lfo2p, lfo3p, lfoa, rescale).init; 
 	}
 	init {
 		particles = population.collect({VicsekParticle.new;});
 	}
 	start {
+		noise= baseNoise;
+		delta=baseDelta;
+		radius=baseRadius;
 		clock = TempoClock.new(tickTime.reciprocal, 1);
 		ticker = Task.new({loop {this.tick; 1.wait;}}, clock);
 		ticker.start;
@@ -64,6 +67,7 @@ VicsekGrid {
 		ticker.stop;
 	}
 	tick {
+		var timenow=clock.seconds*2pi;
 		var tempVels = population.collect({this.class.nullVector(dim);});
 		//move
 		particles.do({|particle, idx|
@@ -108,11 +112,17 @@ VicsekGrid {
 				\zvel, particle.vel[2]
 			);
 		});
+		//update vars
+		noise = (timenow*lfo1p).cos.linexp(-1,1, lfoa.reciprocal, lfoa) * baseNoise;
+		delta = (timenow*lfo2p).cos.linexp(-1,1, lfoa.reciprocal, lfoa) * baseDelta;
+		noise = (timenow*lfo3p).cos.linexp(-1,1, lfoa.reciprocal, lfoa) * baseRadius;
+		
+		
 	}
 	server {^myServer;}
 	group {^myGroup;}
 	bus {^myOutBus;}
-	play {|server, target, bus, addAction=\addToTail, samplePath|
+	play {|server, target, bus, addAction=\addToTail, samplePath, gain=1.0|
 		//this really should be wrapped in a generic other class
 		myBuffers = List.new;
 		samplePath.isNil.if({samplePath=~zamples++"cockatoo island/textures/"});
@@ -136,13 +146,14 @@ VicsekGrid {
 				myBuffers[i].debug;
 			});
 			//final FX bus
-			{ |amp = 1.0|
+			outSynth = { |amp = 1.0|
 				var son;
-				son = In.ar(myOutBus, 4) * amp * 0.7;
-				son = Limiter.ar(son, 0.6, 0.02);
+				son = In.ar(myOutBus, 4)  * 0.7;
+				son = Limiter.ar(son, 0.6, 0.02) * amp;
 				ReplaceOut.ar(myOutBus, son);
 				}.play(myGroup, myOutBus, addAction:\addToTail);
 			server.sync;
+			outSynth.set(\amp, gain);
 			particles.do({|particle, i| 
 				particle.synth = Synth.new(\vicsek_gull4,
 					[
@@ -156,7 +167,8 @@ VicsekGrid {
 						\zpos, particle.pos[2],
 						\xvel, particle.vel[0],
 						\yvel, particle.vel[1],
-						\zvel, particle.vel[2]
+						\zvel, particle.vel[2],
+						\rescale, rescale
 					],
 					myGroup
 				);
