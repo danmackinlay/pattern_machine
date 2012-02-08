@@ -3,6 +3,7 @@
 Server.default = s = Server.internal;
 //Server.default = s = Server.local;
 s.boot;
+s.reboot;
 StartUp.run;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
@@ -171,7 +172,7 @@ FreqScope.new(busNum:~globalIns);
 
 )
 (
-~island = PSIsland.new((\genomeSize: 4));
+~island = PSIsland.new((\initialChromosomeSize: 4));
 ~island.params;
 //~island.params.stopIterations=1;
 // Solve sin(3wx\pi/2) = cos(yz\pi)
@@ -188,10 +189,12 @@ FreqScope.new(busNum:~globalIns);
 	~spine.value(*phenotype.chromosome).postln;
 };
 ~island.play;
-~best = ~island.population[0];
-~island.population[0].fitness;
-~spine.value(*~best.chromosome);
-# a, b, c, d = ~best.chromosome;
+~island.population;
+~arbitrary = ~island.population.asArray[0];
+~arbitrary.fitness;
+~arbitrary.chromosome;
+~spine.value(*~arbitrary.chromosome);
+# a, b, c, d = ~arbitrary.chromosome;
 (a*b*pi).cos;
 (c*d*pi*3/2).sin;
 )

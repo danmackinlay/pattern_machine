@@ -44,7 +44,7 @@ PSOperators {
 					[];
 				}, {
 					rate = params.deathRate;
-					localFitnesses = population.collect({|i| i.fitness;});
+					localFitnesses = population.asArray.collect({|i| i.fitness;});
 					maxFitness = localFitnesses.maxItem;
 					negFitnesses = maxFitness - localFitnesses;
 					meanFitness = negFitnesses.mean;
@@ -61,7 +61,7 @@ PSOperators {
 				// weighted roulette, in sufficiently old agents
 				var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, localPopulation, rate;
 				rate = params.deathRate;
-				localPopulation = population.select(_.logicalAge>1);
+				localPopulation = population.asArray.select(_.logicalAge>1);
 				localFitnesses = localPopulation.collect(_.fitness);
 				//[\localPopulation, localPopulation.size, localPopulation, population].postln;
 				(localPopulation.size == 0).if({
@@ -90,7 +90,7 @@ PSOperators {
 					[];
 				}, {
 					targetBirths = (params.populationSize) - population.size;
-					localFitnesses = population.collect({|i| i.fitness;});
+					localFitnesses = population.asArray.collect({|i| i.fitness;});
 					meanFitness = localFitnesses.mean;
 					localFitnesses = localFitnesses / (localFitnesses.sum);
 					parentList = targetBirths.collect(

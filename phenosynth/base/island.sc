@@ -95,7 +95,7 @@ PSIsland {
 	}
 	init {
 		this.initOperators;
-		population = LinkedList.new;
+		population = IdentitySet.new;
 	}
 	initOperators {
 		this.deathSelector = this.class.defaultDeathSelector;
