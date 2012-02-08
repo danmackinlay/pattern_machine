@@ -176,24 +176,12 @@ FreqScope.new(busNum:~globalIns);
 ~island.params;
 //~island.params.stopIterations=1;
 // Solve sin(3wx\pi/2) = cos(yz\pi)
-~spine = {|a0, a1, a2, a3|
-	(2 - 
-		((
-			((a0*a1*pi).cos) -
-			((a2*a3*pi*3/2).sin)
-		).abs)
-	).max(0);
-};
-~island.fitnessEvaluator = {|params, phenotype|
-	phenotype.chromosome.postln;
-	~spine.value(*phenotype.chromosome).postln;
-};
+~island.fitnessEvaluator = [\phenosynth, \fitness_evals, \trigonometry];
 ~island.play;
 ~island.population;
 ~arbitrary = ~island.population.asArray[0];
 ~arbitrary.fitness;
 ~arbitrary.chromosome;
-~spine.value(*~arbitrary.chromosome);
 # a, b, c, d = ~arbitrary.chromosome;
 (a*b*pi).cos;
 (c*d*pi*3/2).sin;

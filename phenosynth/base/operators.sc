@@ -29,6 +29,21 @@ PSOperators {
 				phenotype.chromosome.mean;
 			}
 		);
+		//another test one - solve some trigonometry for fun
+		// specifically, sin(3wx\pi/2) = cos(yz\pi)
+		// The 2-foo term is about making the term be >0
+		Library.put(\phenosynth, \fitness_evals, \trigonometry,
+			{|params, phenotype|
+				var a0, a1, a2, a3;
+				# a0, a1, a2, a3 = phenotype.chromosome;
+				(2 - 
+					((
+						((a0*a1*pi).cos) -
+						((a2*a3*pi*3/2).sin)
+					).abs)
+				).max(0);
+			};
+		);
 		Library.put(\phenosynth, \termination_conds, \basic,
 			{|params, population, iterations|
 				iterations > params.stopIterations;
