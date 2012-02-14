@@ -26,9 +26,10 @@ PSIsland {
 	
 	//This is the main state variable
 	var <population;
+	var <rawFitnesses;
 	
-	// this is another state variable. If I got one more I'd make it
-	// a state *dictionary*
+	/* this is another state variable. If I got one nore small var like this I'd make it
+	a state *dictionary* */
 	var <iterations = 0;
 	
 	//flag to stop iterator gracefuly.
@@ -94,8 +95,9 @@ PSIsland {
 		terminationCondition = this.loadFunction(fn);
 	}
 	init {
-		this.initOperators;
 		population = IdentitySet.new;
+		rawFitnesses = IdentityDictionary.new;
+		this.initOperators;
 	}
 	initOperators {
 		this.deathSelector = this.class.defaultDeathSelector;
@@ -133,9 +135,11 @@ PSIsland {
 	}
 	add {|phenotype|
 		population.add(phenotype);
+		rawFitnesses.put(phenotype, 0.0)
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
+		rawFitnesses.removeAt(phenotype)
 	}
 	populate {
 		params.populationSize.do({
@@ -144,9 +148,10 @@ PSIsland {
 	}
 	evaluate {
 		population.do({|phenotype|
-			phenotype.fitness = fitnessEvaluator.value(params, phenotype);
+			rawFitnesses[phenotype] = fitnessEvaluator.value(params, phenotype);
 			phenotype.incAge;
 		});
+		
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -178,17 +183,16 @@ PSIsland {
 		var toCull, toBreed;
 		var beforeFitness, afterFitness;
 		this.evaluate;
-		toCull = deathSelector.value(params, population);
-		//[\culling, toCull].postln;
+		toCull = deathSelector.value(params, rawFitnesses);
+		[\culling, toCull].postln;
+		beforeFitness = rawFitnesses.values.asArray.mean;
 		this.cull(toCull);
-		//afterFitness = population.collect(_.fitness).mean;
-		//[\fitness_delta, afterFitness - beforeFitness].postln;
-		toBreed = birthSelector.value(params, population);
+		afterFitness = rawFitnesses.values.asArray.mean;
+		[\fitness_delta, afterFitness - beforeFitness].postln;
+		toBreed = birthSelector.value(params, rawFitnesses);
+		[\parents, toBreed].postln;
 		this.breed(toBreed);
 		iterations = iterations + 1;
-	}
-	fitnesses {
-		^population.collect(_.fitness);
 	}
 	play {
 		//The fire button. trigger this, and the simulation will run until it is bored

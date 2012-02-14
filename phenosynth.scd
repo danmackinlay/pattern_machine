@@ -37,8 +37,8 @@ s.volume.volume= -20;
 //when you are bored, do a
 ~island.free;
 //testing that things are going OK:
-~island.fitnesses;
-~island.fitnesses.mean;
+~island.rawFitnesses;
+~island.rawFitnesses.mean;
 ~island.population;
 ~island.population.select(_.wallClockAge>0)
 //these should only ever differ momentarily
@@ -54,6 +54,9 @@ FreqScope.new(busNum:~globalIns);
 /**************************
  * TODO
  **************************
+
+* Don't inject 0.0 as a dummy fitness on .add! inject nill and require 
+  fitness prcoessors to handle it
 
 * what happens with negative fitness?
 
@@ -80,6 +83,7 @@ FreqScope.new(busNum:~globalIns);
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
+  do create own us allocao, so ouput may be multitrck recorded
   * Fix leaks  
   
     * ensure Groups are also freed.
@@ -180,7 +184,9 @@ FreqScope.new(busNum:~globalIns);
 ~island.play;
 ~island.population;
 ~arbitrary = ~island.population.asArray[0];
-~arbitrary.fitness;
+~island.init;
+~island.rawFitnesses;
+~island.rawFitnesses[~arbitrary];
 ~arbitrary.chromosome;
 # a, b, c, d = ~arbitrary.chromosome;
 (a*b*pi).cos;
@@ -234,8 +240,8 @@ s.volume.volume= -20;
 
 //testing that things are going OK:
 ~island.population.collect(_.fitness);
-~island.fitnesses;
-~island.fitnesses.mean;
+~island.rawFitnesses;
+~island.rawFitnesses.mean;
 ~island.population;
 ~island.population.select(_.wallClockAge>0)
 ~island.population.collect({|i| i.wallClockAge}).mean;
