@@ -31,8 +31,8 @@ PSOperators {
 		);
 		//another test one - solve some trigonometry for fun
 		// specifically, sin(3wx\pi/2) = cos(yz\pi)
-		// The 2-foo term is about making the term be >0
-		Library.put(\phenosynth, \fitness_evals, \trigonometry,
+		// The 2-foo term is about making the term be >0 without a cooker
+		Library.put(\phenosynth, \fitness_evals, \scaled_trigonometry,
 			{|params, phenotype|
 				var a0, a1, a2, a3;
 				# a0, a1, a2, a3 = phenotype.chromosome;
@@ -44,12 +44,46 @@ PSOperators {
 				).max(0);
 			};
 		);
-		/* Fitness processors take the fitness of the entire population */
-		Library.put(\phenosynth, \fitness_processor, \rank,
-			{|params, fitnesses|
-				
+		//another test one - solve some trigonometry for fun
+		// specifically, sin(3wx\pi/2) = cos(yz\pi)
+		// this needs to be re-scaled
+		Library.put(\phenosynth, \fitness_evals, \trigonometry,
+			{|params, phenotype|
+				var a0, a1, a2, a3;
+				# a0, a1, a2, a3 = phenotype.chromosome;
+				((
+					((a0*a1*pi).cos) -
+					((a2*a3*pi*3/2).sin)
+				).abs);
 			};
 		);
+		/* Fitness processors take the fitnesses of the entire population and postprocess it*/
+		Library.put(\phenosynth, \fitness_cookers, \nothing,
+			{|params, rawFitnesses|
+				rawFitnesses;
+			};
+		);
+		Library.put(\phenosynth, \fitness_cookers, \ranked,
+			{|params, rawFitnesses|
+				//return the fitnesses as (descending) ranks- that is, select by ordinality
+				//Doesn't work yet!
+				rawFitnesses;
+			};
+		);
+		Library.put(\phenosynth, \fitness_cookers, \zero_peak,
+			{|params, rawFitnesses|
+				// if fitness approaches zero for a good result....
+				var cookedFitnesses, fitnessVals, range;
+				fitnessVals = rawFitnesses.values.asArray;
+				range = [fitnessVals.maxItem.abs, fitnessVals.minItem.abs, 0.01].maxItem;
+				cookedFitnesses = IdentityDictionary.new;
+				rawFitnesses.keysValuesDo({|key,val|
+					cookedFitnesses[key] = range-val;
+				});
+				cookedFitnesses;
+			};
+		);
+		/*termination conditions tell us when to stop - when we are "close enough" or have run too long*/
 		Library.put(\phenosynth, \termination_conds, \basic,
 			{|params, population, iterations|
 				iterations > params.stopIterations;

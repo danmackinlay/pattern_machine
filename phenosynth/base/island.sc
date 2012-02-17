@@ -14,6 +14,7 @@ PSIsland {
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
 	classvar <defaultFitnessEvaluator = #[phenosynth, fitness_evals, chromosomemean];
+	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, nothing];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRate];
 	classvar <defaultBirthSelector = #[phenosynth, birth_selectors, byRoulettePerTotal];
@@ -24,9 +25,10 @@ PSIsland {
 	//be modified at run-time without defining new functions
 	var <>params;
 	
-	//This is the main state variable
+	//These are the main state variable
 	var <population;
 	var <rawFitnesses;
+	var <cookedFitnesses;
 	
 	/* this is another state variable. If I got one nore small var like this I'd make it
 	a state *dictionary* */
@@ -47,6 +49,7 @@ PSIsland {
 	var <initialChromosomeFactory;
 	var <individualFactory;
 	var <fitnessEvaluator;
+	var <fitnessCooker;
 	var <terminationCondition;
 
 	// default values for that parameter thing
@@ -91,12 +94,16 @@ PSIsland {
 	fitnessEvaluator_ {|fn|
 		fitnessEvaluator = this.loadFunction(fn);
 	}
+	fitnessCooker_ {|fn|
+		fitnessCooker = this.loadFunction(fn);
+	}
 	terminationCondition_ {|fn|
 		terminationCondition = this.loadFunction(fn);
 	}
 	init {
 		population = IdentitySet.new;
 		rawFitnesses = IdentityDictionary.new;
+		cookedFitnesses = IdentityDictionary.new;
 		this.initOperators;
 	}
 	initOperators {
@@ -107,6 +114,7 @@ PSIsland {
 		this.initialChromosomeFactory = this.class.defaultInitialChromosomeFactory;
 		this.individualFactory = this.class.defaultIndividualFactory;
 		this.fitnessEvaluator = this.class.defaultFitnessEvaluator;
+		this.fitnessCooker = this.class.defaultFitnessCooker;
 		this.terminationCondition = this.class.defaultTerminationCondition;
 	}
 	loadFunction {|nameOrFunction|
@@ -135,11 +143,13 @@ PSIsland {
 	}
 	add {|phenotype|
 		population.add(phenotype);
-		rawFitnesses.put(phenotype, 0.0)
+		rawFitnesses.put(phenotype, 0.0);
+		cookedFitnesses.put(phenotype, 0.0);
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
-		rawFitnesses.removeAt(phenotype)
+		rawFitnesses.removeAt(phenotype);
+		cookedFitnesses.removeAt(phenotype);
 	}
 	populate {
 		params.populationSize.do({
@@ -151,7 +161,7 @@ PSIsland {
 			rawFitnesses[phenotype] = fitnessEvaluator.value(params, phenotype);
 			phenotype.incAge;
 		});
-		
+		cookedFitnesses = fitnessCooker.value(params, rawFitnesses);
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -183,13 +193,13 @@ PSIsland {
 		var toCull, toBreed;
 		var beforeFitness, afterFitness;
 		this.evaluate;
-		toCull = deathSelector.value(params, rawFitnesses);
+		toCull = deathSelector.value(params, cookedFitnesses);
 		[\culling, toCull].postln;
-		beforeFitness = rawFitnesses.values.asArray.mean;
+		beforeFitness = cookedFitnesses.values.asArray.mean;
 		this.cull(toCull);
-		afterFitness = rawFitnesses.values.asArray.mean;
+		afterFitness = cookedFitnesses.values.asArray.mean;
 		[\fitness_delta, afterFitness - beforeFitness].postln;
-		toBreed = birthSelector.value(params, rawFitnesses);
+		toBreed = birthSelector.value(params, cookedFitnesses);
 		[\parents, toBreed].postln;
 		this.breed(toBreed);
 		iterations = iterations + 1;

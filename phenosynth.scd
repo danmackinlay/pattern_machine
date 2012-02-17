@@ -55,7 +55,7 @@ FreqScope.new(busNum:~globalIns);
  * TODO
  **************************
 
-* Don't inject 0.0 as a dummy fitness on .add! inject nill and require 
+* Don't inject 0.0 as a dummy fitness on .add! inject nil and require 
   fitness prcoessors to handle it
 
 * what happens with negative fitness?
@@ -63,8 +63,7 @@ FreqScope.new(busNum:~globalIns);
   * Does MCLD's FFTdiffmgs have the right polarity?
 
 * write a quick tester for comparesynths
-* make sure gate is set right!
-  
+* make sure gate is set right! 
 * right now the test script doesn't especially converge to 800 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
@@ -83,7 +82,7 @@ FreqScope.new(busNum:~globalIns);
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
-  do create own us allocao, so ouput may be multitrck recorded
+  * create own bus allocator, so ouput may be multitrck recorded
   * Fix leaks  
   
     * ensure Groups are also freed.
@@ -101,8 +100,9 @@ FreqScope.new(busNum:~globalIns);
     * watch out for those double /n_frees - might break something.
     
   * allow a seed-bank supporting far more genomes than can be simultaneously
-    simulated. (I.e. keep a much larger population, but only simulate a part
+    simulated in DSP. (I.e. keep a much larger population, but only simulate a part
     of them at once)
+  *support geographical separation of populations to aid speciation
   * use wrapping infrastructure to simplify the listensynth definitions.
   
     * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
@@ -178,15 +178,17 @@ FreqScope.new(busNum:~globalIns);
 (
 ~island = PSIsland.new((\initialChromosomeSize: 4));
 ~island.params;
-//~island.params.stopIterations=1;
 // Solve sin(3wx\pi/2) = cos(yz\pi)
 ~island.fitnessEvaluator = [\phenosynth, \fitness_evals, \trigonometry];
+~island.fitnessCooker = [\phenosynth, \fitness_cookers, \zero_peak];
 ~island.play;
 ~island.population;
 ~arbitrary = ~island.population.asArray[0];
 ~island.init;
 ~island.rawFitnesses;
 ~island.rawFitnesses[~arbitrary];
+~island.cookedFitnesses[~arbitrary];
+~island.cookedFitnesses.values;
 ~arbitrary.chromosome;
 # a, b, c, d = ~arbitrary.chromosome;
 (a*b*pi).cos;
