@@ -42,9 +42,7 @@ s.volume.volume= -20;
 ~island.population;
 ~island.population.select(_.wallClockAge>0)
 //these should only ever differ momentarily
-~island.population[0].chromosomeAsSynthArgs;
 ~island.population.asArray.choose.chromosomeAsSynthArgs;
-~island.population[0].chromosome;
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
 FreqScope.new(busNum:~globalIns);
@@ -55,8 +53,6 @@ FreqScope.new(busNum:~globalIns);
  * TODO
  **************************
 
-* Don't inject 0.0 as a dummy fitness on .add! rather, inject nil and require 
-  fitness prcoessors to handle it
 * write a quick tester for comparesynths
 * make sure gate is set right! 
 * right now the test script doesn't especially converge to 800 Hz, even over

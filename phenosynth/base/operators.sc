@@ -74,11 +74,14 @@ PSOperators {
 			{|params, rawFitnesses|
 				// if fitness approaches zero for a good result....
 				var cookedFitnesses, fitnessVals, range;
-				fitnessVals = rawFitnesses.values.asArray;
-				range = [fitnessVals.maxItem.abs, fitnessVals.minItem.abs, 0.01].maxItem;
 				cookedFitnesses = IdentityDictionary.new;
-				rawFitnesses.keysValuesDo({|key,val|
-					cookedFitnesses[key] = range-val;
+				
+				fitnessVals = rawFitnesses.values.asArray;
+				fitnessVals.notEmpty.if({ 
+					range = [fitnessVals.maxItem.abs, fitnessVals.minItem.abs, 0.01].maxItem;
+					rawFitnesses.keysValuesDo({|key,val|
+						cookedFitnesses[key] = range-val;
+					});
 				});
 				cookedFitnesses;
 			};
