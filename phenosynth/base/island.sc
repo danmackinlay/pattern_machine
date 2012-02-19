@@ -230,7 +230,9 @@ PSIsland {
 	}
 	rankedPopulation {
 		//return all population with a fitness, ranked in descending order thereof.
-		^cookedFitnesses.keys.asArray.sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
+		^cookedFitnesses.keys.asArray.select(
+			{|i| cookedFitnesses[i].notNil}
+			).sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
 	}
 }
 

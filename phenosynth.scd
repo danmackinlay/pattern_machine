@@ -20,7 +20,7 @@ StartUp.run;
 ~globalIns = Bus.audio(s, 1);
 {|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore)
 /*******************/
-
+~globalIns.scope;
 //limiter, to avoid little accidents
 ~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
@@ -40,7 +40,14 @@ s.volume.volume= -20;
 ~island.rawFitnesses;
 ~island.rawFitnesses.mean;
 ~island.population;
-~island.rankedPopulation[0];
+(
+var best, worst, ranked;
+ranked = ~island.rankedPopulation;
+best = ranked[0];
+worst = ranked[ranked.size];
+[~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
+[~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
+)
 ~island.population.select(_.wallClockAge>0)
 //these should only ever differ momentarily
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
@@ -53,6 +60,8 @@ FreqScope.new(busNum:~globalIns);
 /**************************
  * TODO
  **************************
+
+* these have reversed cardinality: [~island.population.size, ~island.rankedPopulation.size];
 
 * write a quick tester for comparesynths
 * make sure gate is set right! 

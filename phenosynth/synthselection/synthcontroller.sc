@@ -230,7 +230,6 @@ PSListenSynthController : PSSynthController {
 		^freed;
 	}
 	updateFitnesses {
-		["using island", island].postln;
 		all.keysValuesDo({|key, indDict|
 			indDict.listenBus.get({|val|
 				//[\updating, key, \to, val].postln;
