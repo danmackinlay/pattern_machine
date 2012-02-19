@@ -158,10 +158,12 @@ PSIsland {
 	}
 	evaluate {
 		population.do({|phenotype|
-			rawFitnesses[phenotype] = fitnessEvaluator.value(params, phenotype);
+			this.setFitness(phenotype, fitnessEvaluator.value(params, phenotype));
 			phenotype.incAge;
 		});
-		cookedFitnesses = fitnessCooker.value(params, rawFitnesses);
+	}
+	setFitness {|phenotype, value|
+		rawFitnesses[phenotype] = value;
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -194,13 +196,13 @@ PSIsland {
 		var beforeFitness, afterFitness;
 		this.evaluate;
 		toCull = deathSelector.value(params, cookedFitnesses);
-		[\culling, toCull].postln;
+		//[\culling, toCull].postln;
 		beforeFitness = cookedFitnesses.values.asArray.mean;
 		this.cull(toCull);
 		afterFitness = cookedFitnesses.values.asArray.mean;
 		[\fitness_delta, afterFitness - beforeFitness].postln;
 		toBreed = birthSelector.value(params, cookedFitnesses);
-		[\parents, toBreed].postln;
+		//[\parents, toBreed].postln;
 		this.breed(toBreed);
 		iterations = iterations + 1;
 	}
@@ -252,7 +254,9 @@ PSRealTimeIsland : PSIsland {
 		^super.init;
 	}
 	evaluate {
-		//no-op in this class; they are realtime self-updating
+		//No individual fitness updating; (they are updated for us)
+		// but allow group fitness alterations
+		cookedFitnesses = fitnessCooker.value(params, rawFitnesses);
 	}
 	play {
 		/*note this does not call parent. */
@@ -284,6 +288,9 @@ PSControllerIsland : PSRealTimeIsland {
 	 * abstraction */
 	
 	var <controller;
+ 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
+	//Because I re-use MCLD's listensynths, and they approach zero wheen signals match:
+	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
 	
 	*defaultParams {
 		var defParams = super.defaultParams;
@@ -308,7 +315,10 @@ PSControllerIsland : PSRealTimeIsland {
 		controller.freeIndividual(phenotype);
 	}
 	play {
-		controller.play;
+		//pass the controller a refernce to me so it can tell me things 
+		//asynchronously
+		["playing with island", this.postln];
+		controller.play(this);
 		super.play;
 	}
 	free {

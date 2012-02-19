@@ -55,13 +55,8 @@ FreqScope.new(busNum:~globalIns);
  * TODO
  **************************
 
-* Don't inject 0.0 as a dummy fitness on .add! inject nil and require 
+* Don't inject 0.0 as a dummy fitness on .add! rather, inject nil and require 
   fitness prcoessors to handle it
-
-* what happens with negative fitness?
-
-  * Does MCLD's FFTdiffmgs have the right polarity?
-
 * write a quick tester for comparesynths
 * make sure gate is set right! 
 * right now the test script doesn't especially converge to 800 Hz, even over

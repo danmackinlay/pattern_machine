@@ -35,7 +35,8 @@ PSSynthController {
 	var <playGroup;
 	var <allocatedNodes;
 	var <freedNodes;
-	var playing = false;
+	var <playing = false;
+	var <island;
 	
 	*new {|server, numChannels=1|
 		^super.newCopyArgs(numChannels).init(server);
@@ -55,10 +56,13 @@ PSSynthController {
 		);
 		outBus ?? {outBus = Bus.audio(server, numChannels)};
 	}
-	play {
-		//This ONLY sets a flag to allow playing of synths, so that we don't end
+	play {|newIsland|
+		//This sets a flag to allow playing of synths, so that we don't end
 		//up with concurrency problems with playing/freeing
 		playing = true;
+		// also, we set an island to report back to about synth business
+		island = newIsland;
+		["setting island", island].postln;
 	}
 	playIndividual {|phenotype|
 		var indDict;
@@ -175,13 +179,13 @@ PSListenSynthController : PSSynthController {
 		super.init(serverOrGroup);
 		fitnessPollInterval = thisFitnessPollInterval;
 	}
-	play {
+	play {|island|
 		listenGroup = listenGroup ?? { Group.after(playGroup);};
 		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
 		worker = worker ?? {
 			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
 		};
-		super.play;
+		super.play(island);
 	}
 	free {
 		super.free;
@@ -226,10 +230,11 @@ PSListenSynthController : PSSynthController {
 		^freed;
 	}
 	updateFitnesses {
+		["using island", island].postln;
 		all.keysValuesDo({|key, indDict|
 			indDict.listenBus.get({|val|
 				//[\updating, key, \to, val].postln;
-				indDict.phenotype.fitness = val;
+				island.setFitness(indDict.phenotype, val);
 			});
 			indDict.phenotype.incAge;
 		});

@@ -118,7 +118,7 @@ PSOperators {
 				rate = params.deathRate;
 				localPopulation = fitnesses.keys.asArray.select(_.logicalAge>1);
 				localFitnesses = localPopulation.collect({|i| fitnesses[i];});
-				[\localPopulation, localPopulation.size, localPopulation, fitnesses].postln;
+				//[\localPopulation, localPopulation.size, localPopulation, fitnesses].postln;
 				(localPopulation.size == 0).if({
 					"Warning: no valid candidates; no death for now".postln;
 					[];

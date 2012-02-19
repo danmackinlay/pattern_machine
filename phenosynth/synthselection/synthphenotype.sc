@@ -45,10 +45,4 @@ PSSynthPhenotype : PSSynthDefPhenotype {
 	stop {|synth|
 		synth.set(\gate, 0);
 	}
-	fitness {
-		//override fitness to cause aging in chromosomes
-		//var ageNow = this.logicalAge;
-		//^(fitness * ageNow / (ageNow.exp));
-		^fitness;
-	}
 }
