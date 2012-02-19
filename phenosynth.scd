@@ -63,8 +63,6 @@ FreqScope.new(busNum:~globalIns);
 
 * infrastructure
 
-  * change fitness protocol to evaluate all at once (so that we can do, e.g.
-    ranked selection ), or perhaps just augment it...
   * augment all protocols to pass in the PSIsand instance, or some global
     state, or both
   * optionally conduct evolution in a Routine which yields from time to time 
@@ -74,7 +72,7 @@ FreqScope.new(busNum:~globalIns);
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
-  * create own bus allocator, so ouput may be multitrck recorded
+  * create own bus allocator, so ouput may be multitrack recorded
   * Fix leaks  
   
     * ensure Groups are also freed.
@@ -118,6 +116,7 @@ FreqScope.new(busNum:~globalIns);
 * Give the faintest of indications that I do care about tests
 * document classes
 * provide examples
+* go to generalised Feynman-Kac particle fitlering methods http://www.math.u-bordeaux1.fr/~delmoral/simulinks.html
 * my earswarm
 
   * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
