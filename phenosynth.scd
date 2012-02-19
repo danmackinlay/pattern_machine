@@ -40,9 +40,10 @@ s.volume.volume= -20;
 ~island.rawFitnesses;
 ~island.rawFitnesses.mean;
 ~island.population;
+~island.rankedPopulation[0];
 ~island.population.select(_.wallClockAge>0)
 //these should only ever differ momentarily
-~island.population.asArray.choose.chromosomeAsSynthArgs;
+~island.rankedPopulation[0].chromosomeAsSynthArgs;
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
 FreqScope.new(busNum:~globalIns);

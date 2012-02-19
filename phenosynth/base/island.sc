@@ -228,6 +228,10 @@ PSIsland {
 		this.populate;
 		iterations = 0;
 	}
+	rankedPopulation {
+		//return all population with a fitness, ranked in descending order thereof.
+		^cookedFitnesses.keys.asArray.sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
+	}
 }
 
 PSRealTimeIsland : PSIsland {
