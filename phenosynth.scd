@@ -179,7 +179,7 @@ FreqScope.new(busNum:~globalIns);
 ~island.play;
 ~island.population;
 ~arbitrary = ~island.population.asArray[0];
-~island.init;
+//~island.init;
 ~island.rawFitnesses;
 ~island.rawFitnesses[~arbitrary];
 ~island.cookedFitnesses[~arbitrary];

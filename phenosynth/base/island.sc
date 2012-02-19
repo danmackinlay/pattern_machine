@@ -143,8 +143,6 @@ PSIsland {
 	}
 	add {|phenotype|
 		population.add(phenotype);
-		rawFitnesses.put(phenotype, 0.0);
-		cookedFitnesses.put(phenotype, 0.0);
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
@@ -161,6 +159,7 @@ PSIsland {
 			this.setFitness(phenotype, fitnessEvaluator.value(params, phenotype));
 			phenotype.incAge;
 		});
+		cookedFitnesses = fitnessCooker.value(params, rawFitnesses);
 	}
 	setFitness {|phenotype, value|
 		rawFitnesses[phenotype] = value;
