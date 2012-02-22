@@ -62,10 +62,8 @@ FreqScope.new(busNum:~globalIns);
  * TODO
  **************************
 
-* these have reversed cardinality: [~island.population.size, ~island.rankedPopulation.size];
-
 * write a quick tester for comparesynths
-* make sure gate is set right! 
+* make sure gate is set right.
 * right now the test script doesn't especially converge to 800 Hz, even over
   large timescales. Is Synth selection horribly broken?
   

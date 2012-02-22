@@ -228,7 +228,7 @@ PSIsland {
 		this.populate;
 		iterations = 0;
 	}
-	rankedPopulation {||
+	rankedPopulation {
 		//return all population that have a fitness, ranked in descending order thereof.
 		//Individuals that do not yet have a fitness are not returned
 		^population.selectAs(
