@@ -37,20 +37,21 @@ s.volume.volume= -20;
 //when you are bored, do a
 ~island.free;
 //testing that things are going OK:
-~island.rawFitnesses;
-~island.rawFitnesses.mean;
-~island.population;
+(~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
+(~island.population - (~island.rawFitnesses.keys)).size;
+(~island.population - (~island.cookedFitnesses.keys)).size;
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
 best = ranked[0];
-worst = ranked[ranked.size];
+worst = ranked[ranked.size-1];
 [~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
 [~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
 )
-~island.population.select(_.wallClockAge>0)
-//these should only ever differ momentarily
+[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawFitnesses.size];
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
+//these should only ever differ momentarily
+~island.population.select(_.wallClockAge>0)
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
 FreqScope.new(busNum:~globalIns);

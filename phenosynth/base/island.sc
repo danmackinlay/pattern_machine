@@ -1,6 +1,6 @@
 PSIsland {
 	/*Islands manage populations of individuals, which can be anything
-	responding to \chromosome and \fitness.*/
+	responding to \chromosome*/
 
 	/*
 	where we define the default operators. These are, in general, vanilla
@@ -196,10 +196,10 @@ PSIsland {
 		this.evaluate;
 		toCull = deathSelector.value(params, cookedFitnesses);
 		//[\culling, toCull].postln;
-		beforeFitness = cookedFitnesses.values.asArray.mean;
+		//beforeFitness = cookedFitnesses.values.asArray.mean;
 		this.cull(toCull);
-		afterFitness = cookedFitnesses.values.asArray.mean;
-		[\fitness_delta, afterFitness - beforeFitness].postln;
+		//afterFitness = cookedFitnesses.values.asArray.mean;
+		//[\fitness_delta, afterFitness - beforeFitness].postln;
 		toBreed = birthSelector.value(params, cookedFitnesses);
 		//[\parents, toBreed].postln;
 		this.breed(toBreed);
@@ -228,11 +228,12 @@ PSIsland {
 		this.populate;
 		iterations = 0;
 	}
-	rankedPopulation {
-		//return all population with a fitness, ranked in descending order thereof.
-		^cookedFitnesses.keys.asArray.select(
-			{|i| cookedFitnesses[i].notNil}
-			).sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
+	rankedPopulation {||
+		//return all population that have a fitness, ranked in descending order thereof.
+		//Individuals that do not yet have a fitness are not returned
+		^population.selectAs(
+			{|i| cookedFitnesses[i].notNil}, Array
+		).sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
 	}
 }
 
@@ -291,7 +292,6 @@ PSRealTimeIsland : PSIsland {
 PSControllerIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a (presumably server?) controller
 	 * abstraction */
-	
 	var <controller;
  	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 	//Because I re-use MCLD's listensynths, and they approach zero wheen signals match:
