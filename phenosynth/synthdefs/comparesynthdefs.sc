@@ -47,6 +47,21 @@ PSBasicCompareSynths {
 			
 			(100 - ((sigpitch - opitch).abs * 0.1)).max(0);
 		});
+		// Try and match pitch and amplitude envelope against a template signal
+		this.makeComparer(\_ga_judge_pitchampmatch, {
+			|testsig, othersig|
+			var sigpitch, sighaspitch, sigamp, opitch, ohaspitch, oamp, nanfitness, nanness;
+			var eps = 0.00001;
+			
+			# sigpitch, sighaspitch = Pitch.kr(testsig);
+			# opitch, ohaspitch = Pitch.kr(othersig);
+			sigamp = Amplitude.kr(testsig);
+			oamp = Amplitude.kr(othersig);
+			
+			nanfitness = ((sigpitch+eps)/(opitch+eps)).log.abs + ((sigamp+eps)/(oamp+eps)).log.abs;
+			//nanness = CheckBadValues.kr
+			nanfitness;
+		});
 		/* Try and match pitch envelope against a template signal - but using
 		 ZeroCrossing*/
 		this.makeComparer(\_ga_judge_pitchmatch_zc, {

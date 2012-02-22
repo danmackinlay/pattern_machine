@@ -167,17 +167,19 @@ PSListenSynthController : PSSynthController {
 	var <listenGroup;
 	var <worker;
 	var <clock;
+	var <>listenSynth;
 	
 	//Toy example synth
-	classvar <listenSynth = \ps_listen_eight_hundred;
+	classvar <>listenSynth = \ps_listen_eight_hundred;
 	
 	*new {|server, bus, numChannels=1, fitnessPollInterval=1|
 		^super.newCopyArgs(bus, numChannels).init(
-			server, fitnessPollInterval);
+			server, fitnessPollInterval, listenSynth);
 	}
-	init {|serverOrGroup, thisFitnessPollInterval|
+	init {|serverOrGroup, thisFitnessPollInterval, newListenSynth|
 		super.init(serverOrGroup);
 		fitnessPollInterval = thisFitnessPollInterval;
+		listenSynth=newListenSynth
 	}
 	play {|island|
 		listenGroup = listenGroup ?? { Group.after(playGroup);};
@@ -205,7 +207,7 @@ PSListenSynthController : PSSynthController {
 		//NB - I suspect this routine of having concurrency problems at high load.
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
-		indDict.listenNode = Synth.new(this.class.listenSynth,
+		indDict.listenNode = Synth.new(this.listenSynth,
 			this.getListenSynthArgs(indDict),
 			listenGroup);
 		indDict.phenotype.clockOn;
