@@ -272,9 +272,13 @@ Synth.after(~eighthundredsource, \ps_conv_eight_hundred, [\in, ~playbus, \out, ~
 ~listenGroup = Group.after(~playGroup);
 ~audioBus = Bus.audio(s, 1);
 ~fitBus = Bus.control(s,1);
-SynthDef.new(\sawy, {|out, freq| Out.ar(out, Saw.ar(freq));}).add;
+SynthDef.new(\sawy, {|out, freq=200, ffreq=300, rq=0.3| Out.ar(out, BPF.ar(Saw.ar(freq), ffreq, rq));}).add;
 ~play = Synth.new(\sawy, [\out, ~audioBus, \freq, 300], ~playGroup);
 ~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~listenGroup);
 ~play.set(\freq, 850);
-~fitBus.get(_.postln);
-)
+Routine.new({true.while({ 1.yield; ~fitBus.get(_.postln);});}).play;
+~play.autogui(specs:(
+	\freq: [20, 20000, \exp, 1, 440],
+	\ffreq: [100, 10000, \exp, 1, 440],	
+	\rq: [0.01, 1, \exp, 1, 0.3]
+));
