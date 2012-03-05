@@ -13,12 +13,14 @@ TestJsonParse : UnitTest {
 			["[true, false, null, true, false]", [true, false, nil, true, false]],
 			["[\"true\", \"fot\", \"BAZ\"]", ["true", "fot", "BAZ"]],
 			["[\"foo\"]", ["foo"]],
-							["[\"bar\", \"BAZ\"]", ["bar", "BAZ"]],
-			 ["{}", ()],
-			 ["{\"x\": \"A\", \"y\": \"b\"}", (\x: "A", \y: "b")],
-			 ["[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]",
-						[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]],
-			 ["{ \"foo\": null }", (\foo: nil)] 
+					["[\"bar\", \"BAZ\"]", ["bar", "BAZ"]],
+			["{}", ()],
+			["{\"x\": \"A\", \"y\": \"b\"}", (\x: "A", \y: "b")],
+			["[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]",
+					[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]],
+			["{ \"foo\": null }", (\foo: nil)],
+			["[\"line\\nbreak\", \"no line\\\\nbreak\"]",
+					["line\nbreak", "no line\\nbreak"]]
 		 ];
 	}
 	test_parsing {
