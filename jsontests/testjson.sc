@@ -19,8 +19,10 @@ TestJsonParse : UnitTest {
 			["[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]",
 					[1, 2, 3, 4, 5, 6, 7, 8, 9, -10, 12.34, 1e6]],
 			["{ \"foo\": null }", (\foo: nil)],
-			["[\"line\\nbreak\", \"no line\\\\nbreak\"]",
-					["line\nbreak", "no line\\nbreak"]]
+			["[\"line\\nbreak\", \"no line\\\\nbreak\", \"tabs \\t\", \"etc \\b\\r\\f\"]",
+					["line\nbreak", "no line\\nbreak", "tabs \t", "etc \b\r\f"]],
+			['[\"quotes\\\"\"]'.asString, //SC's parser cries if you try this in a string
+					["quotes\""]]
 		 ];
 	}
 	test_parsing {

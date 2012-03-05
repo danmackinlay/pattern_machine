@@ -212,11 +212,11 @@ JsonParser {
 		^newArray;
 	}
 	parseString {
-		var nextChar;
+		var nextChar = nil;
 		var newString = "";
 		var escaped = false;
 		/*@
-		desc: (Private.) The token under the cursor is the first quote of a string. Parse the accordingly. (this string parser is a rule unto itself; there is a smaller bestiary of tokens inside strings than in lists or arrays, so we do it all by hand.
+		desc: (Private.) The token under the cursor is the first quote of a string. Parse accordingly. (this string parser is a rule unto itself; there is a smaller bestiary of tokens inside strings than in lists or arrays, so we do it all by hand.
 		@*/
 		
 		this.advanceCursor;
@@ -227,10 +227,27 @@ JsonParser {
 			},
 			{
 				if (((thisChar != $\\) || (escaped==true)) , {
-						newString = newString ++ thisChar;
-						escaped = false;
+					// Now, if we are escaped, we need to handle the next character specially.
+					// if SC supported unicode, this would be where we'd parse it.
+					escaped.if({
+						nextChar = switch (thisChar,
+							34.asAscii, { 34.asAscii},
+							$\\, { $\\ },
+							$/, { $/ },
+							$b, { $\b },
+							$f, { $\f },
+							$n, { $\n },
+							$r, { $\r },
+							$t, { $\t },
+							{ thisChar }
+						);
+					}, {
+						nextChar = thisChar;	
+					});
+					newString = newString ++ nextChar;	
+					escaped = false;
 				}, {
-						escaped = true;
+					escaped = true;
 				});
 				this.advanceCursor;
 			}
