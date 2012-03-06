@@ -28,12 +28,13 @@ StartUp.run;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);//now set up the "island" that will control their evolution
+~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:5, templateBus: ~globalIns);
+//now set up the "island" that will control their evolution
 ~control.listenSynth = \_ga_judge_pitchampmatch;
-~island = PSControllerIsland((\population: 50, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4), controller:~control);
+~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5), controller:~control);
 ~island.play;
 ~island.params;
-~island.population;
+~island.population.size;
 //listen for a while.
 //when you are bored, do a
 ~island.free;
@@ -68,6 +69,8 @@ FreqScope.new(busNum:~globalIns);
   large timescales. Is Synth selection horribly broken?
   
   * manual polyploidy?
+  * fucntion inlining problems? - http://danielnouri.org/docs/SuperColliderHelp/Language/Understanding-Errors.html
+  * fitness bus is all wrong? (not control, nor not right controlbus?)
 
 * infrastructure
 

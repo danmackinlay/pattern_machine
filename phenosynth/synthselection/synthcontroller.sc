@@ -233,8 +233,9 @@ PSListenSynthController : PSSynthController {
 	}
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
+			[\startupdating, key, \frombus, indDict.listenBus.index].postln;			
 			indDict.listenBus.get({|val|
-				//[\updating, key, \to, val].postln;
+				[\updating, key, \to, val, \frombus, indDict.listenBus.index].postln;
 				island.setFitness(indDict.phenotype, val);
 			});
 			indDict.phenotype.incAge;

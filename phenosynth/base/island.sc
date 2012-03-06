@@ -248,12 +248,14 @@ PSRealTimeIsland : PSIsland {
 
 	*defaultParams {
 		var defParams = super.defaultParams;
-		defParams.pollPeriod = 1;
 		defParams.populationSize = 100;
 		^defParams;
 	}	
 	*new {|params|
-		//Why is pollPeriod not part of params?
+		params.pollPeriod ?? {
+			params = params.copy;
+			params.pollPeriod = 1;
+		}
 		^super.new(params).init;
 	}
 	init {

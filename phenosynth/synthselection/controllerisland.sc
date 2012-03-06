@@ -15,6 +15,10 @@ PSControllerIsland : PSRealTimeIsland {
 		^defParams;
 	}
 	*new {|params, controller|
+		params.pollPeriod ?? {
+			params = params.copy;
+			params.pollPeriod = controller.fitnessPollInterval ? 1;
+		}
 		^super.new(params).init(controller);
 	}
 	init {|newController|
