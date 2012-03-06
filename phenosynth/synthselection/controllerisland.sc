@@ -4,7 +4,7 @@ PSControllerIsland : PSRealTimeIsland {
 	 * abstraction */
 	var <controller;
  	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
-	//Because I re-use MCLD's listensynths, and they approach zero wheen signals match:
+	//Because I re-use MCLD's listensynths, and they approach zero when signals match:
 	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
 	
 	*defaultParams {

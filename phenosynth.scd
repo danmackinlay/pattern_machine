@@ -63,7 +63,6 @@ FreqScope.new(busNum:~globalIns);
  * TODO
  **************************
 
-* write a quick tester for comparesynths
 * make sure gate is set right.
 * right now the test script doesn't especially converge to 800 Hz, even over
   large timescales. Is Synth selection horribly broken?
@@ -125,7 +124,8 @@ FreqScope.new(busNum:~globalIns);
 * Give the faintest of indications that I do care about tests
 * document classes
 * provide examples
-* go to generalised Feynman-Kac particle fitlering methods http://www.math.u-bordeaux1.fr/~delmoral/simulinks.html
+* go to generalised Feynman-Kac particle filtering methods http://www.math.u-bordeaux1.fr/~delmoral/simulinks.html
+* multi-server controllers
 * my earswarm
 
   * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
