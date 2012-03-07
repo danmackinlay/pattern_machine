@@ -51,6 +51,8 @@ PSIsland {
 	var <fitnessEvaluator;
 	var <fitnessCooker;
 	var <terminationCondition;
+	
+	var <fitnessPlotWindow;
 
 	// default values for that parameter thing
 	// I wish I could do this with a literal instead of a method
@@ -234,6 +236,13 @@ PSIsland {
 		^population.selectAs(
 			{|i| cookedFitnesses[i].notNil}, Array
 		).sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
+	}
+	plotFitness {|parent|
+		var orderedFitnesses, orderedPopulation;
+		orderedPopulation = population.asArray;
+		orderedPopulation.sort({ arg a, b; a.hash < b.hash });
+		orderedFitnesses = orderedPopulation.collect({|i| cookedFitnesses[i]});
+		fitnessPlotWindow = orderedFitnesses.plot(parent:parent ? fitnessPlotWindow);
 	}
 }
 

@@ -38,10 +38,14 @@ s.volume.volume= -20;
 //listen for a while.
 //when you are bored, do a
 ~island.free;
+~island.cookedFitnesses.values.postln;
+~island.rawFitnesses.values.postln;
+~island.rawFitnesses.keys.asArray[1].hash.asHexString
 //testing that things are going OK:
-(~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
-(~island.population - (~island.rawFitnesses.keys)).size;
-(~island.population - (~island.cookedFitnesses.keys)).size;
+~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
+~island.population - (~island.rawFitnesses.keys)).size;
+~island.population - (~island.cookedFitnesses.keys)).size;
+b.parent
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
@@ -49,6 +53,7 @@ best = ranked[0];
 worst = ranked[ranked.size-1];
 [~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
 [~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
+nil;
 )
 [~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawFitnesses.size];
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
