@@ -33,6 +33,7 @@ s.volume.volume= -20;
 ~control.listenSynth = \_ga_judge_pitchampmatch;
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5), controller:~control);
 ~island.play;
+~island.plotFitness(raw:true);
 ~island.params;
 ~island.population.size;
 //listen for a while.
@@ -81,6 +82,7 @@ FreqScope.new(busNum:~globalIns);
 
   * augment all protocols to pass in the PSIsand instance, or some global
     state, or both
+  * better locking around tending processes,  or better rapping for nils
   * optionally conduct evolution in a Routine which yields from time to time 
     to facilite realtime use
   * move Bus allocation into PS*Controller play methods
@@ -88,7 +90,13 @@ FreqScope.new(busNum:~globalIns);
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
-  * create own bus allocator, so ouput may be multitrack recorded
+  
+    * updated to use Till's ScatterView class rather than SC's lame native plot
+      method (which does not support parent args to re-use the GUI or scale)
+      Anyway, as Bill Tozier points, out, 'tis better to use scatter plots or
+      similar rich displays for GAs
+  
+  * create own bus allocator, so ouput may be multitrack recorded easily
   * Fix leaks  
   
     * ensure Groups are also freed.
