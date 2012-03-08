@@ -13,6 +13,13 @@ PSSynthDefPhenotype : PSPhenotype {
 		noob.synthArgMap = synthArgMap ? defaultSynthArgMap;
 		^noob;
 	}
+	*newFromSynthArgs {|synthArgs, synthDef, synthArgMap|
+		var chromosome;
+		synthDef = synthDef ? defaultSynthDef;
+		synthArgMap = synthArgMap ? defaultSynthArgMap;
+		chromosome = this.synthArgsAsChromosome(synthArgs, synthArgMap);
+		^this.new(chromosome, synthDef, synthArgMap)
+	}
 	*initClass {
 		StartUp.add {
 			this.setUpSynthDefs;

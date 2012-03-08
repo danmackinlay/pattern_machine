@@ -207,7 +207,6 @@ PSListenSynthController : PSSynthController {
 	}
 	actuallyPlayIndividual {|indDict|
 		//play the synth to which we wish to listen
-		//NB - I suspect this routine of having concurrency problems at high load.
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		indDict.listenNode = Synth.new(this.listenSynth,
@@ -237,12 +236,11 @@ PSListenSynthController : PSSynthController {
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
-				[\phenoclass, indDict.phenotype.class].postln;
+				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.listenBus.getSynchronous].postln;
 				[\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val].postln;
 				island.setFitness(indDict.phenotype, val);
 				indDict.phenotype.incAge;
 			};
-			[\startupdating, key, \frombus, indDict.listenBus.index].postln;		
 			indDict.listenBus.get(updater);
 		});
 	}

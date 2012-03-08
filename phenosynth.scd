@@ -7,7 +7,7 @@ s.reboot;
 StartUp.run;
 s.hasShmInterface;
 ~globalOuts = Bus.new(\audio, 0, 2);
-//~globalOuts.scope;
+~globalOuts.scope;
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
 /*******************/
@@ -19,7 +19,7 @@ s.hasShmInterface;
 ~globalIns = Bus.audio(s, 1);
 {|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore)
 /*******************/
-~globalIns.scope;
+//~globalIns.scope;
 //limiter, to avoid little accidents
 ~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
@@ -34,6 +34,8 @@ s.volume.volume= -20;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5));
 ~island.play(~control);
+//add in the perfect one and see how it survives:
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 0.002]));
 ~island.plotFitness(raw:true);
 ~island.params;
 ~island.population.size;
@@ -56,6 +58,8 @@ worst = ranked[ranked.size-1];
 [~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
+~ind = ~island.rankedPopulation[0].chromosomeAsSynthArgs;
+
 [~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawFitnesses.size];
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
 //these should only ever differ momentarily
@@ -66,7 +70,10 @@ FreqScope.new(busNum:~globalIns);
 ~globalIns
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 (
-PSSynthDefPhenotype.
+PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
+PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.002]);
+PSSynthDefPhenotype.synthArgsAsChromosome(PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]));
+PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.01]));
 )
 )
 /**************************
@@ -74,9 +81,10 @@ PSSynthDefPhenotype.
  **************************
 
 * make sure gate is set right.
-* right now the test script doesn't especially converge to 800 Hz, even over
+* right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
+  * at least, my synth outpu is broken. /actually/ similar sounds score poorly.
   * manual polyploidy?
   * fucntion inlining problems? - http://danielnouri.org/docs/SuperColliderHelp/Language/Understanding-Errors.html
   * fitness bus is all wrong? (not control, nor not right controlbus?)
