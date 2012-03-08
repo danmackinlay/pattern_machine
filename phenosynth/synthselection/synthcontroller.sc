@@ -233,11 +233,14 @@ PSListenSynthController : PSSynthController {
 	}
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
-			[\startupdating, key, \frombus, indDict.listenBus.index].postln;		
-			indDict.listenBus.get({|val|
-				[\updating, key, \to, val, \frombus, indDict.listenBus.index].postln;
+			var updater = {|val|
+				var iD = indDict;
+				var k = key;
+				[\updating, key, k, \to, val, \frombus, indDict.listenBus.index, iD.listenBus.index].postln;
 				island.setFitness(indDict.phenotype, val);
-			});
+			};
+			[\startupdating, key, \frombus, indDict.listenBus.index].postln;		
+			indDict.listenBus.get(updater);
 			indDict.phenotype.incAge;
 		});
 	}
