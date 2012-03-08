@@ -5,8 +5,9 @@ Server.default = s = Server.internal;
 s.boot;
 s.reboot;
 StartUp.run;
+s.hasShmInterface;
 ~globalOuts = Bus.new(\audio, 0, 2);
-~globalOuts.scope;
+//~globalOuts.scope;
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
 /*******************/
@@ -64,6 +65,9 @@ FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].
 FreqScope.new(busNum:~globalIns);
 ~globalIns
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
+(
+PSSynthDefPhenotype.
+)
 )
 /**************************
  * TODO

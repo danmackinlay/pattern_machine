@@ -92,7 +92,7 @@ PSSynthController {
 	actuallyPlayIndividual {|indDict|
 		//private
 		indDict.playNode = Synth.new(
-			indDict.phenotype.class.synthdef,
+			indDict.phenotype.synthDef,
 			this.getSynthArgs(indDict),
 			target: playGroup
 		);
@@ -237,14 +237,13 @@ PSListenSynthController : PSSynthController {
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
-				var iD = indDict;
-				var k = key;
-				[\updating, key, k, \to, val, \frombus, indDict.listenBus.index, iD.listenBus.index].postln;
+				[\phenoclass, indDict.phenotype.class].postln;
+				[\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val].postln;
 				island.setFitness(indDict.phenotype, val);
+				indDict.phenotype.incAge;
 			};
 			[\startupdating, key, \frombus, indDict.listenBus.index].postln;		
 			indDict.listenBus.get(updater);
-			indDict.phenotype.incAge;
 		});
 	}
 }

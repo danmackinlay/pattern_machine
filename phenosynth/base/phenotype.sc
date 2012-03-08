@@ -5,15 +5,13 @@ PSPhenotype {
 	var <birthTime;
 		
 	*new{|chromosome|
-		^super.new.init(chromosome);
+		var noob = super.new;
+		noob.chromosome = chromosome;
+		^noob
 	}
 	*newRandom {|initialChromosomeSize|
 		var newChromosome = {1.0.rand;}.dup(initialChromosomeSize);
 		^this.new(newChromosome);
-	}
-	init {|newChromosome|
-		//make sure chromosome access goes through *our* setter.
-		this.chromosome = newChromosome;
 	}
 	chromosome_ {|newChromosome|
 		//don't just copy a ref- each phenotype gets its own copy.
