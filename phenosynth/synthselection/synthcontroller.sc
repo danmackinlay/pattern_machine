@@ -20,7 +20,7 @@ PSSynthController {
 	details to be abstracted away, and to track resources needing freeing.
 	
 	This basic controller only does *playing* of synths, presuming that you are
-	going to rank them manually or something as per Dan Stowell's neat GOAD.sc
+	going to rank them manually or something (e.g. Dan Stowell's neat GOAD.sc)
 	
 	A subclass, PSListenSynthController, handles setting up candidate
 	phenosynths and listeners simultaneously.
@@ -233,7 +233,7 @@ PSListenSynthController : PSSynthController {
 	}
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
-			[\startupdating, key, \frombus, indDict.listenBus.index].postln;			
+			[\startupdating, key, \frombus, indDict.listenBus.index].postln;		
 			indDict.listenBus.get({|val|
 				[\updating, key, \to, val, \frombus, indDict.listenBus.index].postln;
 				island.setFitness(indDict.phenotype, val);
