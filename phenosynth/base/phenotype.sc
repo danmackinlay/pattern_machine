@@ -1,14 +1,11 @@
 PSPhenotype {
-	classvar <counter=0;
-	
-	var <idx;
 	var <chromosome;
 	var <>fitness=0;
 	var <logicalAge=0;
 	var <birthTime;
 		
 	*new{|chromosome|
-		^super.newCopyArgs(counter).init(chromosome);
+		^super.new.init(chromosome);
 	}
 	*newRandom {|initialChromosomeSize|
 		var newChromosome = {1.0.rand;}.dup(initialChromosomeSize);
