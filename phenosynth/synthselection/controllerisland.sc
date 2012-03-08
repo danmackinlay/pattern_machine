@@ -2,7 +2,7 @@
 PSControllerIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a (presumably server?) controller
 	 * abstraction */
-	var <controller;
+	var <>controller;
  	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 	//Because I re-use MCLD's listensynths, and they approach zero when signals match:
 	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
@@ -14,15 +14,13 @@ PSControllerIsland : PSRealTimeIsland {
 		defParams.populationSize = 50;
 		^defParams;
 	}
-	*new {|params, controller|
+	*new {|params|
 		params.pollPeriod ?? {
 			params = params.copy;
-			params.pollPeriod = controller.fitnessPollInterval ? 1;
 		}
-		^super.new(params).init(controller);
+		^super.new(params).init;
 	}
 	init {|newController|
-		controller = newController;
 		^super.init;
 	}
 	add {|phenotype|
@@ -33,11 +31,13 @@ PSControllerIsland : PSRealTimeIsland {
 		super.remove(phenotype);
 		controller.freeIndividual(phenotype);
 	}
-	play {
-		//pass the controller a refernce to me so it can tell me things 
-		//asynchronously
+	play {|controller|
+		//pass the controller a reference to me so it can push notifications
+		//A pub-sub solution would scale better to future multi-server parallelism
 		["playing with island", this.postln];
-		controller.play(this);
+		this.controller = controller;
+		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
+		controller.connect(this);
 		super.play;
 	}
 	free {

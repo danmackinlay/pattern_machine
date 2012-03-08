@@ -9,12 +9,10 @@ StartUp.run;
 ~globalOuts.scope;
 ~voxgroup = Group.new(s);
 ~outgroup = Group.after(~voxgroup);
-
 /*******************/
 /* Do either THIS: */
 //better way to get first audio in?
 //~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);
-
 /* or THIS */
 /*******************/
 ~globalIns = Bus.audio(s, 1);
@@ -28,12 +26,13 @@ StartUp.run;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:5, templateBus: ~globalIns);
+~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5)
+~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
 //~control.listenSynth = \_ga_judge_pitchampmatch;
 ~control.listenSynth = \_ga_judge_fftmatch;
 //now set up the "island" that will control their evolution
-~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5), controller:~control);
-~island.play;
+~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5));
+~island.play(~control);
 ~island.plotFitness(raw:true);
 ~island.params;
 ~island.population.size;
@@ -47,7 +46,6 @@ s.volume.volume= -20;
 ~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
 ~island.population - (~island.rawFitnesses.keys)).size;
 ~island.population - (~island.cookedFitnesses.keys)).size;
-b.parent
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
@@ -84,9 +82,8 @@ FreqScope.new(busNum:~globalIns);
   * augment all protocols to pass in the PSIsand instance, or some global
     state, or both
   * better locking around tending processes,  or better rapping for nils
-  * optionally conduct evolution in a Routine which yields from time to time 
-    to facilite realtime use
-  * move Bus allocation into PS*Controller play methods
+  * for non-realtime use, optionally conduct evolution in a Routine which yields from time to time 
+    to facilite responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.

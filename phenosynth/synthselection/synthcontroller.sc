@@ -28,8 +28,8 @@ PSSynthController {
 	
 	/*Instance vars are all public to aid debugging, but not much use to look 
 	at unless you *are* debugging.*/
-	var <outBus;
 	var <numChannels;
+	var <>outBus;
 	var <server;
 	var <all;
 	var <playGroup;
@@ -38,13 +38,15 @@ PSSynthController {
 	var <playing = false;
 	var <island;
 	
-	*new {|server, numChannels=1|
-		^super.newCopyArgs(numChannels).init(server);
+	*new {|numChannels=1|
+		^super.newCopyArgs(numChannels).init;
 	}
-	init {|serverOrGroup|
+	init {
 		allocatedNodes = IdentityDictionary.new;
 		freedNodes = List.new;
 		all = IdentityDictionary.new;
+	}
+	play {|serverOrGroup, outBus|
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
@@ -54,15 +56,15 @@ PSSynthController {
 				playGroup = Group.head(server);
 			}
 		);
-		outBus ?? {outBus = Bus.audio(server, numChannels)};
-	}
-	play {|newIsland|
+		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
 		//This sets a flag to allow playing of synths, so that we don't end
 		//up with concurrency problems with playing/freeing
 		playing = true;
 		// also, we set an island to report back to about synth business
+	}
+	connect {|newIsland|
+		//couple to an island
 		island = newIsland;
-		["setting island", island].postln;
 	}
 	playIndividual {|phenotype|
 		var indDict;
@@ -163,31 +165,32 @@ PSListenSynthController : PSSynthController {
 	This Controller subclass sets up Synths and listeners to those synths
 	simultaneously.
 	*/
-	var <fitnessPollInterval;
-	var <listenGroup;
-	var <worker;
-	var <clock;
+	var <>fitnessPollInterval;
+	var <>listenGroup;
+	var <>worker;
+	var <>clock;
 	var <>listenSynth;
 	
 	//Toy example synth
 	classvar <>listenSynth = \ps_listen_eight_hundred;
 	
-	*new {|server, bus, numChannels=1, fitnessPollInterval=1|
-		^super.newCopyArgs(bus, numChannels).init(
-			server, fitnessPollInterval, listenSynth);
+	*new {|numChannels=1, fitnessPollInterval=1, listenSynth|
+		^super.newCopyArgs(numChannels).init(
+			fitnessPollInterval, listenSynth);
 	}
-	init {|serverOrGroup, thisFitnessPollInterval, newListenSynth|
-		super.init(serverOrGroup);
+	init {|thisFitnessPollInterval, listenSynth|
+		super.init;
 		fitnessPollInterval = thisFitnessPollInterval;
-		listenSynth=newListenSynth
+		this.listenSynth = listenSynth ?? this.class.listenSynth;
 	}
-	play {|island|
-		listenGroup = listenGroup ?? { Group.after(playGroup);};
+	play {|serverOrGroup, outBus, listenGroup|
+		//set server and group using the parent method
+		super.play(serverOrGroup, outBus);
+		this.listenGroup = listenGroup ?? { Group.after(playGroup);};
 		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
 		worker = worker ?? {
 			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
 		};
-		super.play(island);
 	}
 	free {
 		super.free;
@@ -250,19 +253,22 @@ PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	
-	classvar <listenSynth = \_ga_judge_fftmatch;
-	var <templateBus;
+	classvar <>listenSynth = \_ga_judge_fftmatch;
+	var <>templateBus;
 	
-	*new {|server, bus, numChannels=1, fitnessPollInterval=1, templateBus|
+	*new {|numChannels=1, fitnessPollInterval=1, listenSynth|
 		var noob;
-		noob = super.newCopyArgs(bus, numChannels);
+		noob = super.newCopyArgs(numChannels);
 		noob.init(
-			server, fitnessPollInterval, templateBus);
+			fitnessPollInterval);
 		^noob;
 	}
-	init {|serverOrGroup, thisFitnessPollInterval, thisTemplateBus|
-		super.init(serverOrGroup, thisFitnessPollInterval);
-		templateBus = thisTemplateBus;
+	init {|thisFitnessPollInterval, newListenSynth|
+		super.init(thisFitnessPollInterval);
+	}
+	play {|serverOrGroup, outBus, listenGroup, templateBus|
+		super.play(serverOrGroup, outBus, listenGroup);
+		this.templateBus = templateBus;
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
