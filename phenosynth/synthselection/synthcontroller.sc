@@ -113,7 +113,7 @@ PSSynthController {
 		var freed;
 		freed = all.removeAt(phenotype.identityHash);
 		freedNodes.add(freed);
-		freed.isNil.not.if({
+		freed.notNil.if({
 			// These should be separated, or the second eliminated by the first.
 			freed.phenotype.stop(freed.playNode);//closes envelope
 			freed.playNode.free;//forces synth to free
@@ -223,7 +223,7 @@ PSListenSynthController : PSSynthController {
 	}
 	freeIndividual {|phenotype|
 		var freed = super.freeIndividual(phenotype);
-		freed.isNil.not.if({
+		freed.notNil.if({
 			freed.listenNode.free;
 			freed.playBus.free;
 			freed.listenBus.free;

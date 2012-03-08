@@ -74,11 +74,11 @@ Ohm64 {
 		noteonresponder = NoteOnResponder(
 			{ |x, xx, num, val|
 				var mapped = backNoteMap[num];
-				mapped.isNil.not.if({
+				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
-					responder.isNil.not.if({
+					responder.notNil.if({
 						responder.value(id, val, selector, \on);
 					});
 				});
@@ -87,11 +87,11 @@ Ohm64 {
 		noteoffresponder = NoteOffResponder(
 			{ |x, xx, num, val|
 				var mapped = backNoteMap[num];
-				mapped.isNil.not.if({
+				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
-					responder.isNil.not.if({
+					responder.notNil.if({
 						responder.value(id, val, selector, \off);
 					});
 				});
@@ -100,11 +100,11 @@ Ohm64 {
 		ccresponder = CCResponder(
 			{ |x, xx, num, val|
 				var mapped = backCCMap[num];
-				mapped.isNil.not.if({
+				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
 					responder =  ccResponderMap[selector]  ?? { ccResponderMap[\_default]};
-					responder.isNil.not.if({
+					responder.notNil.if({
 						responder.value(id, val, selector);
 					});
 				});
