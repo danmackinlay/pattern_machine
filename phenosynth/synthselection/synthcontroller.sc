@@ -170,18 +170,17 @@ PSListenSynthController : PSSynthController {
 	var <>worker;
 	var <>clock;
 	var <>listenSynth;
+	var <>leakCoef;
 	
 	//Toy example synth
-	classvar <>listenSynth = \ps_listen_eight_hundred;
+	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
 	
-	*new {|numChannels=1, fitnessPollInterval=1, listenSynth|
-		^super.newCopyArgs(numChannels).init(
-			fitnessPollInterval, listenSynth);
-	}
-	init {|thisFitnessPollInterval, listenSynth|
-		super.init;
-		fitnessPollInterval = thisFitnessPollInterval;
-		this.listenSynth = listenSynth ?? this.class.listenSynth;
+	*new {|numChannels=1, fitnessPollInterval=1, listenSynth, leakCoef=0.5|
+		var noob = super.new(numChannels);
+		noob.fitnessPollInterval = fitnessPollInterval;
+		noob.listenSynth = listenSynth ? defaultListenSynth;
+		noob.leakCoef = leakCoef;
+		^noob;
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
@@ -220,7 +219,10 @@ PSListenSynthController : PSSynthController {
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
-		listenArgs = [\in, indDict.playBus, \out, indDict.listenBus, \active, 1, \i_leakcoef, 0.9];
+		listenArgs = [\in, indDict.playBus,
+			\out, indDict.listenBus,
+			\active, 1,
+			\i_leak, leakCoef];
 		^listenArgs;
 	}
 	freeIndividual {|phenotype|
@@ -250,31 +252,17 @@ PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	
-	classvar <>listenSynth = \_ga_judge_fftmatch;
+	classvar <>defaultListenSynth = \_ga_judge_fftmatch;
 	var <>templateBus;
 	
-	*new {|numChannels=1, fitnessPollInterval=1, listenSynth|
-		var noob;
-		noob = super.newCopyArgs(numChannels);
-		noob.init(
-			fitnessPollInterval);
-		^noob;
-	}
-	init {|thisFitnessPollInterval, newListenSynth|
-		super.init(thisFitnessPollInterval);
-	}
 	play {|serverOrGroup, outBus, listenGroup, templateBus|
 		super.play(serverOrGroup, outBus, listenGroup);
 		this.templateBus = templateBus;
 	}
 	getListenSynthArgs{|indDict|
-		var listenArgs;
-		listenArgs = [\in, indDict.playBus,
-			\out, indDict.listenBus,
-			\templatebus, indDict.templateBus,
-			\active, 1,
-			\i_leakcoef, 0.9];
-		^listenArgs;
+		^super.getListenSynthArgs(indDict).addAll([
+			\templatebus, indDict.templateBus
+		]);
 	}
 	decorateIndividualDict {|indDict|
 		super.decorateIndividualDict(indDict);

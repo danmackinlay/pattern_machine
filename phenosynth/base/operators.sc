@@ -58,7 +58,7 @@ PSOperators {
 			};
 		);
 		/* Fitness processors take the fitnesses of the entire population and postprocess it*/
-		Library.put(\phenosynth, \fitness_cookers, \nothing,
+		Library.put(\phenosynth, \fitness_cookers, \raw,
 			{|params, rawFitnesses|
 				rawFitnesses;
 			};

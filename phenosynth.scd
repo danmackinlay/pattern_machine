@@ -27,12 +27,14 @@ s.hasShmInterface;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5)
-~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
+~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5)
 //~control.listenSynth = \_ga_judge_pitchampmatch;
 ~control.listenSynth = \_ga_judge_fftmatch;
+~control.leakCoef;
+~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5));
+~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
 ~island.play(~control);
 //add in the perfect one and see how it survives:
 ~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 0.002]));
@@ -59,7 +61,7 @@ worst = ranked[ranked.size-1];
 nil;
 )
 ~ind = ~island.rankedPopulation[0].chromosomeAsSynthArgs;
-
+~ind
 [~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawFitnesses.size];
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
 //these should only ever differ momentarily
@@ -84,16 +86,18 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
-  * at least, my synth outpu is broken. /actually/ similar sounds score poorly.
+  * at least, my synth output is broken. /actually/ similar sounds score poorly.
   * manual polyploidy?
   * fucntion inlining problems? - http://danielnouri.org/docs/SuperColliderHelp/Language/Understanding-Errors.html
   * fitness bus is all wrong? (not control, nor not right controlbus?)
 
 * infrastructure
 
-  * augment all protocols to pass in the PSIsand instance, or some global
+  * augment all operator protocols to pass in the PSIsand instance, or some global
     state, or both
-  * better locking around tending processes,  or better rapping for nils
+  * track fitness in a logarithmic domain?
+  * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date
+  * better locking around tending processes,  or better trapping for nils
   * for non-realtime use, optionally conduct evolution in a Routine which yields from time to time 
     to facilite responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation

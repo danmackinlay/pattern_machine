@@ -77,8 +77,9 @@ PSBasicCompareSynths {
 		
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
-		NB - this uses a CUSTOM UGEN, available from
-		 	http://www.mcld.co.uk/supercollider/ */
+		NB - this uses a CUSTOM UGEN, available in the SC3-plugins project 
+		This appears to evaluate to 0 for unmatched signals, and 1 for identical ones
+		(i.e. not zero_peak style as per other MCLD ones.)*/
 		this.makeComparer(\_ga_judge_fftmatch, {
 			|testsig, othersig|
 			var sigfft, offt, bfr1, bfr2;
@@ -126,10 +127,10 @@ PSBasicCompareSynths {
 		});
 	}
 	*makeComparer { |name, func, lags|
-		/* skeleton of a better synthdef factory. Be careful with those bus
+		/* A listen synthdef factory, complete with graceful. Be careful with those bus
 		 arguments.*/
 		SynthDef.new(name, {
-			|testbus, templatebus=0, out=0, active=1, t_reset=0, i_leak=0.75|
+			|testbus, templatebus=0, out=0, active=1, t_reset=0, i_leak=0.5|
 			var othersig, testsig, comparison, integral, sigamp, oamp, 
 				sigfft, offt, sigbufplay, obufplay, fftdiff, resynth, bfr1, bfr2;
 			testsig  = LeakDC.ar(In.ar(testbus, 1));
@@ -140,14 +141,14 @@ PSBasicCompareSynths {
 			 life is less convenient, since it doesn't admit infinity easily) */
 			i_leak = i_leak**(ControlRate.ir.reciprocal);
 			//sanity check that.
-			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
+			Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
 			
 			comparison = SynthDef.wrap(func, lags, [testsig, othersig]);
 			
 			// Divide by the server's control rate to scale the output nicely
 			comparison = comparison / ControlRate.ir;
 
-			/* Default coefficient of 1.0 = no leak. When t_reset briefly hits
+			/* Default coefficient of i_leak = no leak. When t_reset briefly hits
 			 nonzero, the integrator drains.*/
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, i_leak));
 

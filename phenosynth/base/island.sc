@@ -14,7 +14,7 @@ PSIsland {
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
 	classvar <defaultFitnessEvaluator = #[phenosynth, fitness_evals, chromosomemean];
-	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, nothing];
+	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, raw];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRate];
 	classvar <defaultBirthSelector = #[phenosynth, birth_selectors, byRoulettePerTotal];
