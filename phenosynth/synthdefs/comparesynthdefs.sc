@@ -141,7 +141,7 @@ PSBasicCompareSynths {
 			 life is less convenient, since it doesn't admit infinity easily) */
 			i_leak = i_leak**(ControlRate.ir.reciprocal);
 			//sanity check that.
-			Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
+			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
 			
 			comparison = SynthDef.wrap(func, lags, [testsig, othersig]);
 			
@@ -150,7 +150,7 @@ PSBasicCompareSynths {
 
 			/* Default coefficient of i_leak = no leak. When t_reset briefly hits
 			 nonzero, the integrator drains.*/
-			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, i_leak));
+			integral = Integrator.kr(comparison * active * (1-i_leak), if(t_reset>0, 0, i_leak));
 
 			Out.kr(out, integral);
 		}).add;
