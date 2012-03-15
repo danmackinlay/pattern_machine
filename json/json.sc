@@ -8,6 +8,10 @@ JsonParser {
 	longInstDesc: Instantiation takes no arguments; pass the string you want to decode to the <strong>decode</strong> method of an instance. All other methods should be considered private. The parser object is re-usable if you wish to keep it around to decode multiple strings.
 	@*/
 	
+	//credit for the walk-through that helped me write this aprser goes to PAtrick van Bergen - 
+	//http://techblog.procurios.nl/k/news/view/14605/14863/How-do-I-write-my-own-parser-for-JSON.html
+	//although no actual code of his was used (he writes in c# anyway)
+	
 	var parseCursor, jsonString, thisToken, thisChar;
 	
 	*decode { arg jsonstr;
