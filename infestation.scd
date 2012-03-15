@@ -4,9 +4,6 @@
 Server.default = s = Server.local;
 s.reboot;
 StartUp.run;
-~recBuf = Buffer.alloc(s, s.sampleRate*60.0,1);
-~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
-~phaseBus = Bus.control(s, 1);
 )
 (
 SynthDef(\ps_infest_recorder, {|in, sndbuffer, phaseout|
@@ -24,6 +21,32 @@ SynthDef(\ps_infest_recorder, {|in, sndbuffer, phaseout|
 	);
 	Out.kr(phaseout, A2K.kr(phase));
 }).add;
+SynthDef(\ps_infest_pest_basic, {
+	|out, gate=1,
+	phasein, i_sndbuffer,
+	windowSize=0.1,
+	windowRandRatio=0.1|
+	var phase, monosig;
+	//can this handle gate set to 1 initially?
+	phase = Latch.kr(gate, In.kr(phasein)) * BufFrames.ir(i_sndbuffer).reciprocal;
+	phase.poll(1, label: \grainphase);
+	monosig = Warp1.ar(
+		numChannels: 1,
+		bufnum: i_sndbuffer,
+		pointer: phase,
+		interp: 2,
+		windowSize: windowSize,
+		overlaps: 2,
+		windowRandRatio: windowRandRatio
+	);
+	Out.ar(out, monosig);
+}).add;
+~recBuf = Buffer.alloc(s, s.sampleRate*60.0, 1);
+~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~phaseBus = Bus.control(s, 1);
+~globalOuts = Bus.new(\audio, 0, 1);
 ~rec=Synth.new(\ps_infest_recorder, [\in, ~in, \sndbuffer, ~recBuf, \phaseout, ~phaseBus], s);
 ~phaseBus.get;
+~pest=Synth.new(\ps_infest_pest_basic, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, ~recBuf, \phasein, ~phaseBus], addAction:\addAfter, target:~rec);
+~recBuf.plot;
 )
