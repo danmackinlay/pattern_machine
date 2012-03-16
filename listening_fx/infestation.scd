@@ -27,8 +27,11 @@ SynthDef(\ps_infest_pest_basic, {
 	windowSize=0.1,
 	windowRandRatio=0.1|
 	var phase, monosig;
-	//can this handle gate set to 1 initially?
-	phase = Latch.kr(gate, In.kr(phasein)) * BufFrames.ir(i_sndbuffer).reciprocal;
+	//This does what we want w/ gate set to 1 initially/
+	phase = Latch.kr(
+		In.kr(phasein),
+		gate
+	) * BufFrames.ir(i_sndbuffer).reciprocal;
 	phase.poll(1, label: \grainphase);
 	monosig = Warp1.ar(
 		numChannels: 1,
