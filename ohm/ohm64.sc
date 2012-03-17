@@ -53,6 +53,11 @@ Ohm64 {
 		ccMap.xFader = [24];
 		^ccMap;
 	}
+	gridNote {|idx|
+		//divmod turns the Note number into a grid ref.
+		var row = (idx/8).floor;
+		^[row, idx-(8*row)];
+	}
 	init {|noteMappings, ccMappings|
 		outPort = MIDIOut.newByName(inPort.device, inPort.name);
 		this.initMaps(noteMappings, ccMappings);
@@ -118,16 +123,18 @@ Ohm64 {
 			});
 		});
 	}
-	initDefaultResponders {
+	initDebugResponders {
 		noteMap.keysDo({|controlName|
 			this.setNoteResponder(
-				{|...a| [controlName, a].postln;},
+				{|idx, val, name, onoff|
+					[name, this.gridNote(idx), val, onoff].postln;},
 				controlName
 			);
 		});
 		ccMap.keysDo({|controlName|
 			this.setCCResponder(
-				{|...a| [controlName, a].postln;},
+				{|idx, val, name|
+					[name, idx, val].postln;},
 				controlName
 			);
 		});

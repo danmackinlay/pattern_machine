@@ -140,6 +140,12 @@ SynthDef(\ps_twinkle_player, {}).add;
 
 )
 (
+//controllerism
+~o=Ohm64.new;
+~o.initDebugResponders;
+
+)
+(
 // uni_ -style
 ~recBuf = Buffer.alloc(s, s.sampleRate*60.0, 1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
