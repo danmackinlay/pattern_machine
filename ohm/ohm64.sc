@@ -179,6 +179,14 @@ Ohm64 {
 			{outPort.noteOff(outchan,foundNote,val); [\noteoffout, outchan, foundNote, val].postln;}
 		);
 	}
+	resetLights{
+		noteMap.keysValuesDo({|controlName, ids|
+			ids.do({|midiId, localId|
+				this.sendNote(idx:localId, val:0, on:false, controlName:controlName);
+			});
+		});
+		
+	}
 	sendGridNote {|rowcol, val, outchan, on, controlName=\grid|
 		this.sendNote(this.degridNote(rowcol), val, outchan, on, controlName);
 	}
