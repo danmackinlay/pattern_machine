@@ -34,6 +34,10 @@ Ohm64 {
 	var <ccResponderMap;
 	var <noteResponderMap;
 	var <chan=0; //assumed the same throughout, updated automagically if not 0
+	var <noteDebounceRegisterEvents;
+	var <noteDebounceRegisterTimes;
+	var <noteDebounceRegisterWorkers;
+	var <>debounceTime=0.05; //50ms default
 	
 	*new {|inPort|
 		inPort = inPort ?? {
@@ -78,15 +82,18 @@ Ohm64 {
 		this.initMaps(noteMappings, ccMappings);
 		ccResponderMap = ();
 		noteResponderMap = ();
+		noteDebounceRegisterEvents = Array.fill(128,nil);
+		noteDebounceRegisterWorkers = Array.fill(128,nil);
+		noteDebounceRegisterTimes = Array.fill(128,Date.gmtime.rawSeconds);
 		
 		noteonresponder = MIDIFunc.noteOn(
 			func: { |val, num, inchan, src|
-				this.noteRespond(val, num, inchan, true, src);
+				this.debounceNoteRespond(val, num, inchan, true, src);
 			}, 
 			srcID: inPort.uid);
-		noteonresponder = MIDIFunc.noteOn(
+		noteoffresponder = MIDIFunc.noteOff(
 			func: { |val, num, inchan, src|
-				this.noteRespond(val, num, inchan, false, src);
+				this.debounceNoteRespond(val, num, inchan, false, src);
 			}, 
 			srcID: inPort.uid);
 		ccresponder = MIDIFunc.cc(
@@ -108,8 +115,46 @@ Ohm64 {
 			});
 		});
 	}
+	debounceNoteRespond { |val, num, inchan, on, src|
+		//we don't want notes sounding too often, or badness ensues.
+		//we do thsi with two queues (instead of a queue full of workers with closures)
+		// because i see odd nondeterminisim
+		var now = Date.gmtime.rawSeconds;
+		((noteDebounceRegisterTimes[num]+debounceTime)<now).if({
+			//easy. play the note
+			[\nobounce, num].postln;
+			this.noteRespond(val, num, inchan, on, src);
+		}, {
+			[\bounce, num].postln;
+			//we just PLAYED that note. defer it in case it is a bounce.
+			noteDebounceRegisterWorkers[num].isNil.not.if({
+				[\doublebounce, num].postln;
+				noteDebounceRegisterWorkers[num].clear;
+				noteDebounceRegisterWorkers[num]=nil;
+			});
+			noteDebounceRegisterEvents[num] = [val, num, inchan, on, src];
+			noteDebounceRegisterWorkers[num] = TempoClock.new.sched(
+				debounceTime, {
+					var localNum;
+					[\servicebounce, num].postln;
+					localNum = num;
+					this.serviceDebounceQueue(localNum);
+				}
+			);
+		});	
+		noteDebounceRegisterTimes[num]=now;
+	}
+	serviceDebounceQueue { |queueNum|
+		//we don't want notes sounding too often, or badness ensues.
+		var worker, val, num, inchan, on, src;
+		worker = noteDebounceRegisterWorkers[queueNum];
+		#val, num, inchan, on, src = noteDebounceRegisterEvents[queueNum];
+		noteDebounceRegisterEvents[queueNum] = nil;
+		this.noteRespond(val, num, inchan, on, src);
+	}
 	noteRespond  { |val, num, inchan, on, src|
-		var mapped = backNoteMap[num];
+		var mapped;
+		mapped = backNoteMap[num];
 		chan = inchan;
 		//[\cc, val, num, chan, src].postln;
 		mapped.notNil.if({

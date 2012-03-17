@@ -109,7 +109,8 @@ SynthDef(\ps_twinkle_player, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
 //controllerism
 MIDIIn.connectAll;
 ~o=Ohm64.new;
-//~o.initDebugResponders;
+~o.debounceTime=1;
+~o.initDebugResponders;
 ~o.resetLights;
 ~parasites = Array.fill2D(7,8,[false,nil]);
 ~hosts = Array.fill(8,[false,nil]);
@@ -153,4 +154,6 @@ MIDIIn.connectAll;
 		});
 	}
 );
+~parasites[4][1];
+~recBufs[4].plot;
 )
