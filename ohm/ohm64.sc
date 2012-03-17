@@ -25,16 +25,7 @@ Ohm64 {
 	
 	*new {|inPort|
 		inPort = inPort ?? {
-			//I call this magic incantation "the Nausicaa spell", because it causes
-			// SC to listen to the Ohm
-			var inPorts = 16;
-			var outPorts = 16;
-			// explicitly initialize the client for more MIDI ports than we are
-			// likely to need, or it doesn't show up.
-			MIDIClient.init(inPorts,outPorts);
-			inPorts.do({ arg i; 
-				MIDIIn.connect(i, MIDIClient.sources.at(i));
-			});
+			MIDIIn.connectAll;
 			MIDIIn.findPort("Ohm64", "Control Surface");
 		};
 		("Ohm64 listening on" ++ inPort.asString).postln;
@@ -68,12 +59,10 @@ Ohm64 {
 		ccResponderMap = ();
 		noteResponderMap = ();
 		
-		//These responders could probably be set up in a more efficient way by
-		// creating one responder per mapped note. But much more complex to do so.
-		// Pfft. Or this could all be refactored into a less duplicated function.
-		noteonresponder = NoteOnResponder(
-			{ |x, xx, num, val|
+		noteonresponder = MIDIFunc.noteOn(
+			func: { |val, num, chan, src|
 				var mapped = backNoteMap[num];
+				//[\noteon, val, num, chan, src].postln;
 				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
@@ -83,10 +72,11 @@ Ohm64 {
 					});
 				});
 			}, 
-			inPort);
-		noteoffresponder = NoteOffResponder(
-			{ |x, xx, num, val|
+			srcID: inPort.uid);
+		noteoffresponder = MIDIFunc.noteOff(
+			func: { |val, num, chan, src|
 				var mapped = backNoteMap[num];
+				//[\noteoff, val, num, chan, src].postln;
 				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
@@ -96,10 +86,11 @@ Ohm64 {
 					});
 				});
 			}, 
-			inPort);
-		ccresponder = CCResponder(
-			{ |x, xx, num, val|
+			srcID: inPort.uid);
+		ccresponder = MIDIFunc.cc(
+			func: { |val, num, chan, src|
 				var mapped = backCCMap[num];
+				//[\cc, val, num, chan, src].postln;
 				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
@@ -109,7 +100,7 @@ Ohm64 {
 					});
 				});
 			}, 
-			inPort);
+			srcID: inPort.uid);
 	}
 	initMaps {|noteMappings, ccMappings|
 		noteMap = noteMappings;
@@ -142,10 +133,12 @@ Ohm64 {
 		});
 	}
 	setCCResponder {|fn, key|
+		/* look like {|idx, val, name|}*/
 		ccResponderMap[key] = fn;
 	}
 	setNoteResponder {|fn, key|
 		//TODO: handle default/fallback responder.
+		/* look like {|idx, val, name, onoff|}*/
 		noteResponderMap[key] = fn;
 	}
 	sendNote {|controlName, idx, val, onOff|
