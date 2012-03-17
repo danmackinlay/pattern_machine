@@ -134,16 +134,9 @@ SynthDef(\ps_infest_poly_parasite_lfo, {
 	);
 	Out.ar(out, monosig);
 }).add;
-SynthDef(\ps_morph_delay, {}).add;
-SynthDef(\ps_twinkle_listener, {}).add;
-SynthDef(\ps_twinkle_player, {}).add;
-
-)
-(
-//controllerism
-~o=Ohm64.new;
-~o.initDebugResponders;
-
+SynthDef(\ps_morph_delay, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
+SynthDef(\ps_twinkle_listener, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
+SynthDef(\ps_twinkle_player, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
 )
 (
 // uni_ -style
@@ -158,7 +151,7 @@ SynthDef(\ps_twinkle_player, {}).add;
 )
 (
 // poly_ -style
-~recBufs = Buffer.allocConsecutive(numBufs:10, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
+~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
@@ -170,7 +163,7 @@ SynthDef(\ps_twinkle_player, {}).add;
 )
 (
 // poly_ _lfo -style
-~recBufs = Buffer.allocConsecutive(numBufs:10, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
+~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
@@ -180,4 +173,32 @@ SynthDef(\ps_twinkle_player, {}).add;
 ~recBuf.plot;
 ~makeparasite.(~recBuf);
 )
-
+(
+// poly_ _lfo -style, MIDIfied
+~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
+~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~globalOuts = Bus.new(\audio, 0, 1);
+~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
+~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
+//~makeparasite.(~makehost.(0));
+//controllerism
+~o=Ohm64.new;
+//~o.initDebugResponders;
+~states = Array.fill2D(8,8,false);
+~o.setNoteResponder(\grid, 
+	{
+		|id, val, selector, inchan, on|
+		var row, col;
+		#row, col = ~o.gridNote(id);
+		on.if({
+			var state = ~states[row][col];
+			state = state.not;
+			~o.sendGridNote([row,col], state.binaryValue*65);
+			~states[row][col]=state;
+		});
+	}
+);
+~recBuf = ~makehost.(1);
+~recBuf.plot;
+~makeparasite.(~recBuf);
+)

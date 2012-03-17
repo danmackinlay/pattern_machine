@@ -33,7 +33,7 @@ Ohm64 {
 	var <backNoteMap;
 	var <ccResponderMap;
 	var <noteResponderMap;
-	var <chan=0; //assumed the same throughout.
+	var <chan=0; //assumed the same throughout, updated automagically if not 0
 	
 	*new {|inPort|
 		inPort = inPort ?? {
@@ -89,7 +89,7 @@ Ohm64 {
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
 					responder.notNil.if({
-						responder.value(id, val, selector, inchan, \on);
+						responder.value(id, val, selector, inchan, true);
 					});
 				});
 			}, 
@@ -104,7 +104,7 @@ Ohm64 {
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
 					responder.notNil.if({
-						responder.value(id, val, selector, inchan, \off);
+						responder.value(id, val, selector, inchan, false);
 					});
 				});
 			}, 
@@ -144,45 +144,42 @@ Ohm64 {
 	initDebugResponders {
 		noteMap.keysDo({|controlName|
 			this.setNoteResponder(
-				{|idx, val, name, chan, onoff|
-					[name, this.gridNote(idx), val, chan, onoff].postln;},
-				controlName
+				controlName,
+				{|idx, val, name, chan, on|
+					[name, this.gridNote(idx), val, chan, on].postln;}
 			);
 		});
 		ccMap.keysDo({|controlName|
 			this.setCCResponder(
+				controlName,
 				{|idx, val, name, chan|
-					[name, idx, val, chan].postln;},
-				controlName
+					[name, idx, val, chan].postln;}
 			);
 		});
 	}
-	setCCResponder {|fn, key|
+	setCCResponder {|controlName, fn|
 		/* look like {|idx, val, name, chan|}*/
-		ccResponderMap[key] = fn;
+		ccResponderMap[controlName] = fn;
 	}
-	setNoteResponder {|fn, key|
+	setNoteResponder {|controlName, fn|
 		//TODO: handle default/fallback responder.
-		/* look like {|idx, val, name, chan, onoff|}*/
-		noteResponderMap[key] = fn;
+		/* look like {|idx, val, name, chan, on|}*/
+		noteResponderMap[controlName] = fn;
 	}
-	sendNote {|idx, val, outchan, onOff, controlName|
+	sendNote {|idx, val, outchan, on, controlName|
 		var foundNote, foundControl;
 		outchan = outchan ? chan;
 		foundControl = noteMap[controlName];
 		foundControl.isNil.if({("no such controlName" + controlName).throw;});
 		foundNote = foundControl[idx];
 		foundNote.isNil.if({("no such index" +idx.asString + "for control" ++ controlName).throw;});
-		onOff = onOff ?? { (val>0).switch(
-			true, \on,
-			false, \off
-		)};
-		(onOff === \on).if(
+		on = on ? (val>0);
+		on.if(
 			{outPort.noteOn(outchan,foundNote,val); [\noteonout, outchan, foundNote, val].postln;},
 			{outPort.noteOff(outchan,foundNote,val); [\noteoffout, outchan, foundNote, val].postln;}
 		);
 	}
-	sendGridNote {|rowcol, val, outchan, onOff, controlName=\grid|
-		this.sendNote(this.degridNote(rowcol), val, outchan, onOff, controlName);
+	sendGridNote {|rowcol, val, outchan, on, controlName=\grid|
+		this.sendNote(this.degridNote(rowcol), val, outchan, on, controlName);
 	}
 }
