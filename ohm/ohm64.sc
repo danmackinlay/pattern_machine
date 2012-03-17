@@ -81,49 +81,45 @@ Ohm64 {
 		
 		noteonresponder = MIDIFunc.noteOn(
 			func: { |val, num, inchan, src|
-				var mapped = backNoteMap[num];
-				chan = inchan;
-				//[\noteon, val, num, chan, src].postln;
-				mapped.notNil.if({
-					var selector, id, responder;
-					# selector, id = mapped;
-					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
-					responder.notNil.if({
-						responder.value(id, val, selector, inchan, true);
-					});
-				});
+				this.noteRespond(val, num, inchan, true, src);
 			}, 
 			srcID: inPort.uid);
-		noteoffresponder = MIDIFunc.noteOff(
+		noteonresponder = MIDIFunc.noteOn(
 			func: { |val, num, inchan, src|
-				var mapped = backNoteMap[num];
-				chan = inchan;
-				//[\noteoff, val, num, chan, src].postln;
-				mapped.notNil.if({
-					var selector, id, responder;
-					# selector, id = mapped;
-					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
-					responder.notNil.if({
-						responder.value(id, val, selector, inchan, false);
-					});
-				});
+				this.noteRespond(val, num, inchan, false, src);
 			}, 
 			srcID: inPort.uid);
 		ccresponder = MIDIFunc.cc(
 			func: { |val, num, inchan, src|
-				var mapped = backCCMap[num];
-				chan = inchan;
-				//[\cc, val, num, chan, src].postln;
-				mapped.notNil.if({
-					var selector, id, responder;
-					# selector, id = mapped;
-					responder =  ccResponderMap[selector]  ?? { ccResponderMap[\_default]};
-					responder.notNil.if({
-						responder.value(id, val, selector, inchan);
-					});
-				});
+				this.ccRespond(val, num, inchan, src);
 			}, 
 			srcID: inPort.uid);
+	}
+	ccRespond  { |val, num, inchan, src|
+		var mapped = backCCMap[num];
+		chan = inchan;
+		//[\cc, val, num, chan, src].postln;
+		mapped.notNil.if({
+			var selector, id, responder;
+			# selector, id = mapped;
+			responder =  ccResponderMap[selector]  ?? { ccResponderMap[\_default]};
+			responder.notNil.if({
+				responder.value(id, val, selector, inchan);
+			});
+		});
+	}
+	noteRespond  { |val, num, inchan, on, src|
+		var mapped = backNoteMap[num];
+		chan = inchan;
+		//[\cc, val, num, chan, src].postln;
+		mapped.notNil.if({
+			var selector, id, responder;
+			# selector, id = mapped;
+			responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
+			responder.notNil.if({
+				responder.value(id, val, selector, inchan, on);
+			});
+		});
 	}
 	initMaps {|noteMappings, ccMappings|
 		noteMap = noteMappings;
