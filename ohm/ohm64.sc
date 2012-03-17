@@ -175,8 +175,8 @@ Ohm64 {
 		foundNote.isNil.if({("no such index" +idx.asString + "for control" ++ controlName).throw;});
 		on = on ? (val>0);
 		on.if(
-			{outPort.noteOn(outchan,foundNote,val); [\noteonout, outchan, foundNote, val].postln;},
-			{outPort.noteOff(outchan,foundNote,val); [\noteoffout, outchan, foundNote, val].postln;}
+			{outPort.noteOn(outchan,foundNote,val);},
+			{outPort.noteOff(outchan,foundNote,val);}
 		);
 	}
 	resetLights{

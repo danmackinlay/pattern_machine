@@ -1,7 +1,13 @@
+/*
+ * TODO:
+ *
+ * * debounce controller
+ *
+ */
 (
 //initialisation
-//Server.default = s = Server.internal;
-Server.default = s = Server.local;
+Server.default = s = Server.internal;
+//Server.default = s = Server.local;
 s.reboot;
 StartUp.run;
 )
@@ -180,25 +186,51 @@ SynthDef(\ps_twinkle_player, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
-//~makeparasite.(~makehost.(0));
 //controllerism
+MIDIIn.connectAll;
 ~o=Ohm64.new;
 //~o.initDebugResponders;
-~states = Array.fill2D(8,8,false);
+~o.resetLights;
+~parasites = Array.fill2D(7,8,[false,nil]);
+~hosts = Array.fill(8,[false,nil]);
 ~o.setNoteResponder(\grid, 
 	{
 		|id, val, selector, inchan, on|
 		var row, col;
 		#row, col = ~o.gridNote(id);
 		on.if({
-			var state = ~states[row][col];
-			state = state.not;
-			~o.sendGridNote([row,col], state.binaryValue*65);
-			~states[row][col]=state;
+			(row<7).if({
+				//parasite bidness
+				var state, synth;
+				#state, synth = ~parasites[row][col];
+				state = state.not;
+				state.if(
+					{
+						synth = ~makeparasite.(col);
+					},
+					{
+						synth ?? {synth.set(\gate, 0)};
+						synth=nil;
+					}
+				);
+				~o.sendGridNote([row,col], state.binaryValue*65);
+				~parasites[row][col] = [state, synth];
+			}, {
+				var state, buffer;
+				#state, buffer = ~hosts[col];
+				state = state.not;
+				state.if(
+					{
+						buffer = ~makehost.(col);
+					},
+					{
+						buffer = nil;
+					}
+				);
+				~o.sendGridNote([row,col], state.binaryValue*65);
+				~hosts[col] = [state, buffer];
+			});
 		});
 	}
 );
-~recBuf = ~makehost.(1);
-~recBuf.plot;
-~makeparasite.(~recBuf);
 )
