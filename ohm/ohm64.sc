@@ -8,6 +8,17 @@ TODO:
 * handle "states" for buttons- I .e. record which should be on or off, and allow the function keys to pave between them. (this should be a separate MVC-style class)
 * who knows if my Ohm64 in any way approximates factory settings? should check that.
 * Who knows if this works with 2 Ohms? can't check, but I think the output stuff might be dodgy.
+
+Example usage:
+
+~o=Ohm64.new;
+~o.initDebugResponders;
+~o.outPort.uid;
+~o.inPort.uid;
+~o.chan;
+~o.degridNote([2,3]);
+~o.sendGridNote([2,4],1);
+~o.sendGridNote([2,4],0);
 */
 
 Ohm64 {
@@ -22,6 +33,7 @@ Ohm64 {
 	var <backNoteMap;
 	var <ccResponderMap;
 	var <noteResponderMap;
+	var <chan=0; //assumed the same throughout.
 	
 	*new {|inPort|
 		inPort = inPort ?? {
@@ -58,6 +70,9 @@ Ohm64 {
 		var row = (idx/8).floor;
 		^[row, idx-(8*row)];
 	}
+	degridNote {|rowcol|
+		^(rowcol[0]*8) + (rowcol[1]);
+	}
 	init {|noteMappings, ccMappings|
 		outPort = MIDIOut.newByName(inPort.device, inPort.name);
 		this.initMaps(noteMappings, ccMappings);
@@ -65,43 +80,46 @@ Ohm64 {
 		noteResponderMap = ();
 		
 		noteonresponder = MIDIFunc.noteOn(
-			func: { |val, num, chan, src|
+			func: { |val, num, inchan, src|
 				var mapped = backNoteMap[num];
+				chan = inchan;
 				//[\noteon, val, num, chan, src].postln;
 				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
 					responder.notNil.if({
-						responder.value(id, val, selector, \on);
+						responder.value(id, val, selector, inchan, \on);
 					});
 				});
 			}, 
 			srcID: inPort.uid);
 		noteoffresponder = MIDIFunc.noteOff(
-			func: { |val, num, chan, src|
+			func: { |val, num, inchan, src|
 				var mapped = backNoteMap[num];
+				chan = inchan;
 				//[\noteoff, val, num, chan, src].postln;
 				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
 					responder =  noteResponderMap[selector]  ?? { noteResponderMap[\_default]};
 					responder.notNil.if({
-						responder.value(id, val, selector, \off);
+						responder.value(id, val, selector, inchan, \off);
 					});
 				});
 			}, 
 			srcID: inPort.uid);
 		ccresponder = MIDIFunc.cc(
-			func: { |val, num, chan, src|
+			func: { |val, num, inchan, src|
 				var mapped = backCCMap[num];
+				chan = inchan;
 				//[\cc, val, num, chan, src].postln;
 				mapped.notNil.if({
 					var selector, id, responder;
 					# selector, id = mapped;
 					responder =  ccResponderMap[selector]  ?? { ccResponderMap[\_default]};
 					responder.notNil.if({
-						responder.value(id, val, selector);
+						responder.value(id, val, selector, inchan);
 					});
 				});
 			}, 
@@ -126,32 +144,33 @@ Ohm64 {
 	initDebugResponders {
 		noteMap.keysDo({|controlName|
 			this.setNoteResponder(
-				{|idx, val, name, onoff|
-					[name, this.gridNote(idx), val, onoff].postln;},
+				{|idx, val, name, chan, onoff|
+					[name, this.gridNote(idx), val, chan, onoff].postln;},
 				controlName
 			);
 		});
 		ccMap.keysDo({|controlName|
 			this.setCCResponder(
-				{|idx, val, name|
-					[name, idx, val].postln;},
+				{|idx, val, name, chan|
+					[name, idx, val, chan].postln;},
 				controlName
 			);
 		});
 	}
 	setCCResponder {|fn, key|
-		/* look like {|idx, val, name|}*/
+		/* look like {|idx, val, name, chan|}*/
 		ccResponderMap[key] = fn;
 	}
 	setNoteResponder {|fn, key|
 		//TODO: handle default/fallback responder.
-		/* look like {|idx, val, name, onoff|}*/
+		/* look like {|idx, val, name, chan, onoff|}*/
 		noteResponderMap[key] = fn;
 	}
-	sendNote {|controlName, idx, val, onOff|
+	sendNote {|idx, val, outchan, onOff, controlName|
 		var foundNote, foundControl;
+		outchan = outchan ? chan;
 		foundControl = noteMap[controlName];
-		foundControl.isNil.if({("no such controlName" ++ controlName).throw;});
+		foundControl.isNil.if({("no such controlName" + controlName).throw;});
 		foundNote = foundControl[idx];
 		foundNote.isNil.if({("no such index" +idx.asString + "for control" ++ controlName).throw;});
 		onOff = onOff ?? { (val>0).switch(
@@ -159,8 +178,11 @@ Ohm64 {
 			false, \off
 		)};
 		(onOff === \on).if(
-			{outPort.noteOn(0,foundNote,val);},
-			{outPort.noteOff(0,foundNote,val);}
+			{outPort.noteOn(outchan,foundNote,val); [\noteonout, outchan, foundNote, val].postln;},
+			{outPort.noteOff(outchan,foundNote,val); [\noteoffout, outchan, foundNote, val].postln;}
 		);
+	}
+	sendGridNote {|rowcol, val, outchan, onOff, controlName=\grid|
+		this.sendNote(this.degridNote(rowcol), val, outchan, onOff, controlName);
 	}
 }
