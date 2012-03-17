@@ -5,7 +5,6 @@ Server.default = s = Server.internal;
 s.boot;
 s.reboot;
 StartUp.run;
-s.hasShmInterface;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~globalOuts.scope;
 ~voxgroup = Group.new(s);
