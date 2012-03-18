@@ -13,6 +13,17 @@ s.reboot;
 StartUp.run;
 )
 (
+SynthDef(\ps_infest_poly_host, {
+	|in, i_sndbuffer, phaseout|
+	//have a stab at recording some stuff
+	RecordBuf.ar(
+		inputArray: In.ar(in),
+		bufnum: i_sndbuffer,
+		run:1,
+		loop:0,
+		doneAction:2
+	);
+}).add;
 SynthDef(\ps_infest_poly_parasite, {
 	|out, gate=1,
 	i_sndbuffer,
@@ -97,6 +108,18 @@ SynthDef(\ps_twinkle_player, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //~makeparasite.(~makehost.(0));
 ~recBuf = ~makehost.(0);
+~recBuf.plot;
+~makeparasite.(~recBuf);
+)
+(
+// poly_ _lfo -style
+~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
+~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~globalOuts = Bus.new(\audio, 0, 1);
+~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
+~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
+//~makeparasite.(~makehost.(0));
+~recBuf = ~makehost.(1);
 ~recBuf.plot;
 ~makeparasite.(~recBuf);
 )
