@@ -23,6 +23,7 @@ Example usage:
 
 Ohm64 {
 	var <inPort;
+	var <>debounceTime=0.05; //50ms default
 	var <outPort;
 	var <ccresponder;
 	var <noteonresponder;
@@ -37,15 +38,14 @@ Ohm64 {
 	var <noteDebounceRegisterEvents;
 	var <noteDebounceRegisterTimes;
 	var <noteDebounceRegisterWorkers;
-	var <>debounceTime=0.05; //50ms default
 	
-	*new {|inPort|
+	*new {|inPort, debounceTime=0.05|
 		inPort = inPort ?? {
 			MIDIIn.connectAll;
 			MIDIIn.findPort("Ohm64", "Control Surface");
 		};
 		("Ohm64 listening on" ++ inPort.asString).postln;
-		^super.newCopyArgs(inPort).init(this.noteMappings, this.ccMappings);
+		^super.newCopyArgs(inPort, debounceTime).init(this.noteMappings, this.ccMappings);
 	}
 	*noteMappings {
 		//override this to define different notegroups

@@ -3,6 +3,8 @@
  *
  * * types of grains spawned
  * * arpeggiations
+ * * track down stuck notes
+ * * chirping and twanging - server-side, or client-side?
  *
  */
 (
@@ -132,8 +134,7 @@ SynthDef(\ps_twinkle_player, {|in, out, gate| Out.ar(out, In.ar(in)*gate)}).add;
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //controllerism
 MIDIIn.connectAll;
-~o=Ohm64.new;
-~o.debounceTime=1;
+~o=Ohm64.new(debounceTime:0.1);
 ~o.initDebugResponders;
 ~o.resetLights;
 ~parasites = Array.fill2D(7,8,[false,nil]);
