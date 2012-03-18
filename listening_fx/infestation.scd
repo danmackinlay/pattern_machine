@@ -1,7 +1,8 @@
 /*
  * TODO:
  *
- * * debounce controller
+ * * types of grains spawned
+ * * arpeggiations
  *
  */
 (
@@ -155,5 +156,5 @@ MIDIIn.connectAll;
 	}
 );
 ~parasites[4][1];
-~recBufs[4].plot;
+~recBufs[3].plot;
 )
