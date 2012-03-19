@@ -302,7 +302,7 @@ JsonSerializer {
 		^("[" ++ obj.collect(JsonSerializer.encode(_)).join(", ") ++ "]");
 	}
 	*encodeString{|obj|
-		^("\"" ++ obj ++ "\"");
+		^obj.replace("\\", "\\\\").replace("\n", "\\n").replace("\f", "\\f").replace("\n", "\\n").replace("\r", "\\r").replace("\t", "\\t").replace("\"", "\\\"").quote;
 	}
 	*encodeNumber{|obj|
 		^obj.asString;
