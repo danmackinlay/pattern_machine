@@ -2,7 +2,7 @@
 more tests could be shamelessly jacked from, e.g.
  http://code.google.com/p/json-sans-eval/source/browse/trunk/tests/json_sans_eval_test.html */
 
-TestJsonParse : UnitTest {
+TestJson : UnitTest {
 	/*stash exemplars in a class var so they can be re-used
 	in deserialization and (later) serialization tests:*/
 	classvar <>qAndAList;
@@ -30,6 +30,13 @@ TestJsonParse : UnitTest {
 			var jsonStr, nativeObj;
 			# jsonStr, nativeObj = qAndA.value;
 			this.assertEquals(JsonParser.decode(jsonStr), nativeObj);
+		});
+	}
+	test_serialization {
+		qAndAList.do({ arg qAndA ;
+			var jsonStr, nativeObj;
+			# jsonStr, nativeObj = qAndA.value;
+			this.assertEquals(JsonSerializer.encode(nativeObj), jsonStr);
 		});
 	}
 }

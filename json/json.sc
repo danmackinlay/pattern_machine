@@ -8,7 +8,7 @@ JsonParser {
 	longInstDesc: Instantiation takes no arguments; pass the string you want to decode to the <strong>decode</strong> method of an instance. All other methods should be considered private. The parser object is re-usable if you wish to keep it around to decode multiple strings.
 	@*/
 	
-	//credit for the walk-through that helped me write this aprser goes to PAtrick van Bergen - 
+	//credit for the walk-through that helped me write this parser goes to Patrick van Bergen - 
 	//http://techblog.procurios.nl/k/news/view/14605/14863/How-do-I-write-my-own-parser-for-JSON.html
 	//although no actual code of his was used (he writes in c# anyway)
 	
@@ -281,4 +281,36 @@ JsonParser {
 		^numberString.asFloat;
 	}
 }
-
+JsonSerializer {
+	*encode {|obj|
+		^case
+        		{ obj.isKindOf(String) }   {JsonSerializer.encodeString(obj) }
+        		{ obj.isKindOf(Symbol) }   {JsonSerializer.encodeString(obj.asString) }
+        		{ obj.isKindOf(Dictionary) }   {JsonSerializer.encodeDictionary(obj) }
+        		{ obj.isKindOf(Number) }   {JsonSerializer.encodeNumber(obj) }
+        		{ obj.isNil }   {JsonSerializer.encodeNil }
+        		{ obj.isKindOf(Boolean) }   {JsonSerializer.encodeBoolean(obj) }
+			{ true } {JsonSerializer.encodeArray(obj)};//fall back to plain iteration
+	}
+	*encodeDictionary{|obj|
+		var keys = obj.keys.asArray.sort;
+		^("{" ++ keys.collect({|key| 
+			JsonSerializer.encode(key) ++ ": " ++ JsonSerializer.encode(obj[key]);
+		}).join(", ") ++ "}");
+	}
+	*encodeArray{|obj|
+		^("[" ++ obj.collect(JsonSerializer.encode(_)).join(", ") ++ "]");
+	}
+	*encodeString{|obj|
+		^("\"" ++ obj ++ "\"");
+	}
+	*encodeNumber{|obj|
+		^obj.asString;
+	}
+	*encodeNil{|obj|
+		^"null";
+	}
+	*encodeBoolean{|obj|
+		obj.if({^"true";}, {^"false";});
+	}
+}
