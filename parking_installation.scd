@@ -1,6 +1,7 @@
 Server.default = s = ~serverboot.(\local, \internal);
 //Server.default = s = ~serverboot.(\local, \motu);
-//Server.default = s = ~serverboot.(\internal, \motu);
+Server.default = s = ~serverboot.(\internal, \motu);
+Server.default = s = ~serverboot.(\internal, \internal);
 
 ~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
@@ -27,8 +28,10 @@ SynthDef.new(\autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.05, certth
 	RecordBuf.ar(in, run: recordtrig, trigger: recordtrig, loop:0);
 }).add;
 //~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
-~recBuf = Buffer.new(numFrames: s.sampleRate*10.0, numChannels:1);
+~recBuf = Buffer.alloc(numFrames: s.sampleRate*10.0, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+)
+(
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~recorder = Synth.new(\autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
 )
