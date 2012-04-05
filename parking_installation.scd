@@ -25,12 +25,13 @@ SynthDef.new(\ps_autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.1, cert
 	amp.poll(1, \a);
 	recordable = (certainty>certthresh)*(amp>ampthresh);
 	recordable.poll(1, \r);
-	recordable = recordable * LFPulse.kr(freq: duration.reciprocal/2);
 	//refractory period - simple style.
+	recordable = recordable * LFPulse.kr(freq: duration.reciprocal/2);
 	//recordable = recordable * ToggleFF.kr(TDelay.kr(recordable, duration));
 	recordable.poll(1, \r2);
 	recordtrig = Trig1.kr(recordable, dur: duration);
 	recordtrig.poll(1, \rt);
+	SendTrig.kr(in: recordable*LFPulse.kr(freq: 10), value: pitch);
 	RecordBuf.ar(in, run: recordtrig, trigger: recordtrig, loop:0);
 }).add;
 SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
@@ -65,7 +66,7 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
 ~controlrater.free;
 ~tmpBus.free;
 ~controlrate;
-~pitchBuf = Buffer.alloc(numFrames: s.controlRate*10.0, numChannels:1);
+~pitchBuf = Buffer.alloc(numFrames: (~controlrate*10.0).ceil, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 2);
 )
