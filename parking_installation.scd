@@ -31,8 +31,8 @@ SynthDef.new(\ps_autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.1, cert
 	recordable.poll(1, \r2);
 	recordtrig = Trig1.kr(recordable, dur: duration);
 	recordtrig.poll(1, \rt);
-	SendTrig.kr(in: recordable*LFPulse.kr(freq: 10), value: pitch);
 	RecordBuf.ar(in, run: recordtrig, trigger: recordtrig, loop:0);
+	SendTrig.kr(in: recordable*LFPulse.kr(freq: 10), value: pitch);
 }).add;
 SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
 	var paramtrig, graintrig, grainrate, envl, effectiveduration, graindur;
@@ -44,22 +44,25 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
 //	envl.poll(1, \e);
 	Out.ar(out,
 		envl *
-		TGrains.ar(
-			numChannels:2,
-			trigger:graintrig,
-			bufnum:sndbuffer,
-			centerPos:graindur/2, //effectiveduration/2,
-			rate:1,
-			dur: graindur,
-			pan: 0,
-			amp: 0.5,
-			interp: 1
-		)
+		HPF.ar(
+			TGrains.ar(
+				numChannels:2,
+				trigger:graintrig,
+				bufnum:sndbuffer,
+				centerPos:graindur/2, //effectiveduration/2,
+				rate:1,
+				dur: graindur,
+				pan: 0,
+				amp: 0.5,
+				interp: 1
+			)
+		), freq: 80
 	);
 }).add;
+)
 //~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
 ~recBuf = Buffer.alloc(numFrames: s.sampleRate*10.0, numChannels:1);
-~controlrate =5;
+~controlrate = 5;
 ~tmpBus = Bus.control(s, 1);
 ~controlrater = {Out.kr(~tmpBus, ControlRate.ir)}.play;
 ~tmpBus.get({|r| ~controlrate =r;});
@@ -69,12 +72,11 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
 ~pitchBuf = Buffer.alloc(numFrames: (~controlrate*10.0).ceil, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 2);
-)
-(
 ~recorder = Synth.new(\ps_autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
+~recorder.free;
 ~player = Synth.new(\ps_twinker, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
 ~player.release;
-)
+
 
 ~recBuf.plot;
 /*
