@@ -1,5 +1,5 @@
 Server.default = s = ~serverboot.(\local, \internal);
-//Server.default = s = ~serverboot.(\local, \motu);
+Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
 
@@ -10,47 +10,69 @@ Server.default = s = ~serverboot.(\internal, \internal);
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //~makeparasite.(~makehost.(0));
 (
-SynthDef.new(\autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.05, certthresh=0.9, duration=10|
+SynthDef.new(\ps_autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.1, certthresh=0.8, lag=0.6, duration=10|
 	var recordtrig, amp, certainty, recordable, pitch, currsndbuffer, currpitchbuffer, onset;
 	//TODO implement many buffers with Stepper.kr and Latch.kr
 	currsndbuffer = sndbuffer;
 	currpitchbuffer = sndbuffer;
 	in = In.ar(in);
 	# pitch, certainty = Tartini.kr(in);
+	certainty = Lag.kr(certainty, lagTime:lag);
 	certainty.poll(1, \p);
 	//onset = Coyote.kr(in);
 	amp = Amplitude.kr(in);
+	amp = Lag.kr(amp, lagTime:lag);
 	amp.poll(1, \a);
 	recordable = (certainty>certthresh)*(amp>ampthresh);
 	recordable.poll(1, \r);
+	recordable = recordable * LFPulse.kr(freq: duration.reciprocal/2);
+	//refractory period - simple style.
+	//recordable = recordable * ToggleFF.kr(TDelay.kr(recordable, duration));
+	recordable.poll(1, \r2);
 	recordtrig = Trig1.kr(recordable, dur: duration);
 	recordtrig.poll(1, \rt);
 	RecordBuf.ar(in, run: recordtrig, trigger: recordtrig, loop:0);
 }).add;
-SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=.3, attack=0.1, release=1|
-	var paramtrig, graintrig, env;
-	paramtrig = Impulse.kr(paramrate);
-	env = EnvGen.kr(Env.perc(attack, release), gate: gate, doneAction:2);
+SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
+	var paramtrig, graintrig, grainrate, envl, effectiveduration, graindur;
+	effectiveduration = duration-1;
+	grainrate = paramrate;
+	graindur = paramrate.reciprocal * duty;
+	graintrig = Impulse.kr(freq: grainrate)-0.1;
+	envl = EnvGen.kr(Env.cutoff(release, curve: -4), gate: gate, doneAction:2);
+//	envl.poll(1, \e);
 	Out.ar(out,
+		envl *
 		TGrains.ar(
 			numChannels:2,
 			trigger:graintrig,
 			bufnum:sndbuffer,
-			rate:1, centerPos: 0,
-			dur: 0.1,
+			centerPos:graindur/2, //effectiveduration/2,
+			rate:1,
+			dur: graindur,
 			pan: 0,
-			amp = 0.1,
-			interp = 2
+			amp: 0.5,
+			interp: 1
 		)
 	);
 }).add;
 //~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
 ~recBuf = Buffer.alloc(numFrames: s.sampleRate*10.0, numChannels:1);
+~controlrate =5;
+~tmpBus = Bus.control(s, 1);
+~controlrater = {Out.kr(~tmpBus, ControlRate.ir)}.play;
+~tmpBus.get({|r| ~controlrate =r;});
+~controlrater.free;
+~tmpBus.free;
+~controlrate;
+~pitchBuf = Buffer.alloc(numFrames: s.controlRate*10.0, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~globalOuts = Bus.new(\audio, 0, 2);
 )
 (
-~globalOuts = Bus.new(\audio, 0, 1);
-~recorder = Synth.new(\autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
+~recorder = Synth.new(\ps_autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
+~player = Synth.new(\ps_twinker, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
+~player.release;
 )
 
 ~recBuf.plot;
