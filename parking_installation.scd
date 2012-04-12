@@ -59,6 +59,40 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
 		)
 	);
 }).add;
+SynthDef.new(\ps_markov_twinker_constrate, {
+		|out, gate=1,
+		sndbuffer,
+		release=1,
+		duration=10.0,
+		noise=1,
+		stepdur=0.1,
+		duty=2, dutyvar=0,
+		pan=0, panvar=0,
+		pos=0, posvar=0,
+		amp=(-10.0), ampvar=0|
+	var paramtrig, graintrig, grainrate, envl, posmin, posmax, posrange, graindur;
+	posmin = 0.5;
+	posmax = duration - 0.5;
+	posrange = posmax-posmin;
+	graintrig = Impulse.kr(freq: stepdur.reciprocal)-0.1;
+	envl = EnvGen.kr(Env.cutoff(release, curve: -4), gate: gate, doneAction:2);
+	Out.ar(out,
+		envl *
+		HPF.ar(
+			TGrains.ar(
+				numChannels:2,
+				trigger:graintrig,
+				bufnum:sndbuffer,
+				centerPos: Dfsm([0,1], posmin, [0,1], posmin+posvar*posrange, [0,1], posmin),
+				rate:1,
+				dur: Dfsm([0,1], stepdur*duty*(1-dutyvar), [0,1], stepdur*duty*(1+dutyvar), [0,1], stepdur*duty),
+				pan: Dfsm([0,1], (pan-panvar).max(-1), [0,1], (pan+panvar).min(1), [0,1], pan),
+				amp: Dfsm([0,1], (amp+(20*ampvar)).dbamp, [0,1], (amp-(20*ampvar)).dbamp, [0,1], amp.dbamp),
+				interp: 1
+			), freq: 80
+		)
+	);
+}).add;
 )
 //~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
 ~recBuf = Buffer.alloc(numFrames: s.sampleRate*10.0, numChannels:1);
@@ -72,16 +106,18 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
 ~pitchBuf = Buffer.alloc(numFrames: (~controlrate*10.0).ceil, numChannels:1);
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 2);
-~recorder = Synth.new(\ps_autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
-~recorder.trace;
-~recorder.free;
+//~recorder = Synth.new(\ps_autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
+//~recorder.trace;
+//~recorder.free;
 ~recorder = Synth.new(\ps_oneshot_record, [\in, ~in, \sndbuffer,  ~recBuf]);
-~recorder.trace;
-~recorder.free;
+~recBuf.plot;
 ~player = Synth.new(\ps_twinker, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
+~player.trace;
+~player.release;
+~player = Synth.new(\ps_markov_twinker_constrate, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10, \duty, 2, \dutyvar, 0.5, \pan, 0, \panvar, 1, \pos, 0, \posvar, 0, \ampvar, 0.1]);
+~player.trace;
 ~player.release;
 
-~recBuf.plot;
 
 /*
  * TODO: 
@@ -93,24 +129,3 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
  * * other fun instruments
  * * go to Wiimote action
  */
- 
-// demand ugens as inputs
-(
-{
-Ê Ê Ê Ê var trate, dur, z, d;
-Ê Ê Ê Ê trate = MouseX.kr(1, 100, 1);
-Ê Ê Ê Ê d = { Dwhite(0.1, 0.2, 1) };
-Ê Ê Ê Ê z = {
-Ê Ê Ê Ê Ê Ê Ê Ê Drand([Dgeom(0.1, 1 + d.value, Diwhite(20, 40)), Dgeom(1, 1 - d.value, Diwhite(20, 40))])
-Ê Ê Ê Ê };
-Ê Ê Ê Ê TGrains.ar(2,
-Ê Ê Ê Ê Ê Ê Ê Ê Impulse.ar(trate),
-Ê Ê Ê Ê Ê Ê Ê Ê bufnum: 10,
-Ê Ê Ê Ê Ê Ê Ê Ê rate: Dseq([1, 1, z.value, 0.5, 0.5, 0.2, 0.1, 0.1, 0.1, 0.1], inf) * 2 + 1,
-Ê Ê Ê Ê Ê Ê Ê Ê centerPos: Dseq(z.dup(8), inf),
-Ê Ê Ê Ê Ê Ê Ê Ê dur: Dseq([1, d.value, 1, z.value, 0.5, 0.5, 0.1, z.value] * 2, inf) / trate,
-Ê Ê Ê Ê Ê Ê Ê Ê pan: Dseq([1, 1, 1, 0.5, 0.2, 0.1, 0, 0, 0], inf) * 2 - 1,
-Ê Ê Ê Ê Ê Ê Ê Ê amp: Dseq([1, 0, z.value, 0, 2, 1.0, 1, 0.1, 0.1], inf)
-Ê Ê Ê Ê );
-}.scope(zoom: 4);
-)
