@@ -1,4 +1,5 @@
-/* My favourite MIDI controller, Livid Instruments' OHM64, set up just hte way I like it, with pluggable, single-button-per-responder linkages, and note-ons and note-offs handled the same way.
+/* My favourite MIDI controller, Livid Instruments' OHM64, set up just the way I like it.
+Pluggable, single-button-per-responder linkages, and note-ons and note-offs handled the same way.
 
 It also assumes that the led signal to the Ohm 
 
