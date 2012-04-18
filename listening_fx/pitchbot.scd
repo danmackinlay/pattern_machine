@@ -3,14 +3,22 @@ Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
 ~input = Bus.newFrom(s.inputBus,0,1);
-SynthDef(\ps_pitch_extractor, {
-	|in, i_trigid, rate=20, thresh=0.9|
-	var trig, gate, pitch, certainty;
+~pitchbufpos = Bus.control(s, 1);
+~buffer = Buffer.alloc(s, 10000);
+SynthDef(\ps_pitch_writer, {
+	|in, out, buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, buflen=10000|
+	var trig, gate, pitch, certainty, amp, counter, write;
 	in = In.ar(in);
-	trig = Impulse.kr(rate);
 	#pitch, certainty = Tartini.kr(in);
-	gate = certainty>thresh;
-	SendTrig.kr(trig*gate, i_trigid, pitch);
+	amp = Amplitude.kr(in);
+	trig = Impulse.kr(baserate*(1+(amp*ampscale)));
+	gate = (certainty>certthresh)*(amp>ampthresh);
+	trig = trig*gate;
+	counter = Stepper.kr(trig, max:buflen-1);
+	write = Dbufwr(counter, pitch, buffer, counter);
+	Poll.kr(trig, pitch, \p);
+	Poll.kr(trig, counter, \c);
+	Demand.kr(trig, 0, write); // write on trigger
+	Out.kr(out, counter);
 }).add;
-Synth.new(\ps_pitch_extractor, [\in, ~input, \i_trigid, 837]);
-OSCdef.newMatching(\ps_pitch_extractor, func: {|msg,time,addr,recvPort| msg.postln;}, path:"/tr", argTemplate: [nil, 837]);
+Synth.new(\ps_pitch_writer, [\in, ~input, \out, ~pitchbufpos, \buffer, ~buffer]);
