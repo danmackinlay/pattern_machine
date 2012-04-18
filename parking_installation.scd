@@ -83,14 +83,38 @@ SynthDef.new(\ps_markov_twinker_constrate, {
 				numChannels:2,
 				trigger:graintrig,
 				bufnum:sndbuffer,
-				centerPos: Dfsm([0,1], posmin, [0,1], posmin+posvar*posrange, [0,1], posmin),
+				centerPos: Dfsm([0,1], posmin, [0,1], posmin+posvar*posrange, [0,1], posmin, rgen: Dwhite(hi:noise)),
 				rate:1,
-				dur: Dfsm([0,1], stepdur*duty*(1-dutyvar), [0,1], stepdur*duty*(1+dutyvar), [0,1], stepdur*duty),
-				pan: Dfsm([0,1], (pan-panvar).max(-1), [0,1], (pan+panvar).min(1), [0,1], pan),
-				amp: Dfsm([0,1], (amp+(20*ampvar)).dbamp, [0,1], (amp-(20*ampvar)).dbamp, [0,1], amp.dbamp),
+				dur: Dfsm([0,1], stepdur*duty*(1-dutyvar), [0,1], stepdur*duty*(1+dutyvar), [0,1], stepdur*duty, rgen: Dwhite(hi:noise)),
+				pan: Dfsm([0,1], (pan-panvar).max(-1), [0,1], (pan+panvar).min(1), [0,1], pan, rgen: Dwhite(hi:noise)),
+				amp: Dfsm([0,1], (amp+(20*ampvar)).dbamp, [0,1], (amp-(20*ampvar)).dbamp, [0,1], amp.dbamp, rgen: Dwhite(hi:noise)),
 				interp: 1
 			), freq: 80
 		)
+	);
+}).add;
+SynthDef.new(\ps_twinker_drone, {
+		|out, gate=1,
+		sndbuffer,
+		release=1,
+		grainSize=0.1,
+		duty=4,
+		pan=0,
+		pos=0,
+		amp=(-10.0)|
+	envl = EnvGen.kr(Env.cutoff(release, curve: -4), gate: gate, doneAction:2);
+	Out.ar(out,
+		Pan2.ar(envl * HPF.ar(
+			Warp1.ar(
+				numChannels:1,
+				bufnum:sndbuffer,
+				pointer: pos,
+				windowSize: grainSize,
+				amp: Dfsm([0,1], (amp+(20*ampvar)).dbamp, [0,1], (amp-(20*ampvar)).dbamp, [0,1], amp.dbamp, rgen: Dwhite(hi:noise)),
+				interp: 1
+			),
+			freq: 80
+		), pos: pan)
 	);
 }).add;
 )
@@ -113,7 +137,7 @@ SynthDef.new(\ps_markov_twinker_constrate, {
 ~recBuf.plot;
 ~player = Synth.new(\ps_twinker, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
 ~player.trace;
-~player.release;
+	~player.release;
 ~player = Synth.new(\ps_markov_twinker_constrate, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10, \duty, 2, \dutyvar, 0.5, \pan, 0, \panvar, 1, \pos, 0, \posvar, 0, \ampvar, 0.1]);
 ~player.trace;
 ~player.release;
