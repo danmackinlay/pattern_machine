@@ -11,7 +11,7 @@ Server.default = s = ~serverboot.(\internal, \internal);
 SynthDef(\ps_pitch_writer, {
 	|in, bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3|
 	var trig, gate, pitch, certainty, amp, counter, write, buflen;
-	buflen = BufFrames.ir(i_buffer);
+	buflen = BufFrames.ir(i_buffer)-1; //last sample gets filled with crap due to rude phase wrapping
 	in = In.ar(in);
 	#pitch, certainty = Tartini.kr(in);
 	amp = Amplitude.kr(in);
@@ -21,12 +21,11 @@ SynthDef(\ps_pitch_writer, {
 		amp.linlin(ampthresh, 1, 1, 1+ampscale)
 	);
 	trig = trig*gate;
-	counter = Stepper.kr(trig, max:buflen-1);
-	write = Dbufwr(counter, pitch, i_buffer);
-	Poll.kr(trig, pitch, \p);
-	Poll.kr(trig, counter, \c);
-	Dpoll(write, \write, run:1);
-	Demand.kr(trig, 0, write); // write on trigger
+	counter = Stepper.kr(trig, max:buflen);
+	write = BufWr.kr(
+		pitch, bufnum: i_buffer, 
+		phase: (counter*trig) - (trig<1)
+	);
 	Out.kr(bufpointer, counter);
 }).add;
 /*
@@ -44,9 +43,9 @@ SynthDef(\ps_pitch_reader, {
 */
 //Creates a bus full of random transpositions of the input pitches
 SynthDef(\ps_pitch_spray, {
-	|bufpointer, i_buffer, pitchbus, maxdel=50|
+	|bufpointer, i_buffer, out, maxdel=50|
 	var trig, gate, pitch, certainty, buflen;
-	buflen = BufFrames.ir(i_buffer);
+	buflen = BufFrames.ir(i_buffer)-1;
 	bufpointer = In.kr(bufpointer);
 	pitch = BufRd.kr(
 		numChannels:1,
@@ -54,14 +53,17 @@ SynthDef(\ps_pitch_spray, {
 		phase: Wrap.kr(
 			in: (bufpointer-(WhiteNoise.kr(mul:0.5,add:0.5)*maxdel)),
 			lo:0, hi: buflen
-		),
+		).poll(5,\phase),
 		interpolation:1
 	);
-	Out.kr(pitchbus, pitch);
+	pitch = Latch.kr(pitch, pitch); //latch pitches to reduce zero before buffer is full
+	Out.kr(out, pitch.max(0));
 }).add;
 ~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~input, \bufpointer, ~pitchbufpos, \i_buffer, ~buffer]);
 /*Synth.new(\ps_pitch_reader, [\in, ~input, \out, ~pitchbufpos, \buffer, ~buffer]);*/
-~pitchsprayer = Synth.new(\ps_pitch_spray, [\in, ~input, \out, ~pitchbufpos, \i_buffer, ~buffer], target:~pitchwriter, addAction: \addAfter);
+~pitchsprayer.free;
+~pitchsprayer = Synth.new(\ps_pitch_spray, [\bufpointer, ~pitchbufpos, \out, ~pitches, \i_buffer, ~buffer], target:~pitchwriter, addAction: \addAfter);
 ~pitchsprayer.set(\maxdel, 10);
 ~buffer.plot;
-{WhiteNoise.kr(mul:0.5,add:0.5)}.plot(minval:-2, maxval:2);
+~pitches.get(_.postln);
+~pitchbufpos.get(_.postln);
