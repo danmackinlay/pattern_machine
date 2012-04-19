@@ -49,29 +49,27 @@ SynthDef(\ps_pitch_spray, {
 ~choosepitch = {|i_bufpointer, i_buffer, maxdel=50|
 	 LastValue.kr(BufRd.kr(
 		numChannels:1,
-		bufnum: i_buffer.poll(5, \innerbuffer),
+		bufnum: i_buffer,
 		phase: Wrap.kr(
-			in: (In.kr(i_bufpointer).poll(5, \innerpointer)-(Rand(lo:0, hi: maxdel).poll(5, \inneroffset))),
+			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo: 0,
-			hi: (BufFrames.ir(i_buffer)-1).poll(5, \len)
+			hi: (BufFrames.ir(i_buffer)-1)
 		),
 		interpolation:1
-	), inf).max(1).poll(5, \inner);
+	), inf).max(1);
 };
 SynthDef(\ps_flange_transpose, {
 	|in, out, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratio=0.5|
 	var pitch, base, numerator, denominator, delay, sig, env;
 	//Linear envelope, coz it gets squared.
-	base = ~choosepitch.(i_bufpointer, i_buffer, maxdel).poll(5, \base);
-	numerator = ~choosepitch.(i_bufpointer, i_buffer, maxdel).poll(5, \num);
-	denominator = ~choosepitch.(i_bufpointer, i_buffer, maxdel).poll(5, \denom);
+	base = ~choosepitch.(i_bufpointer, i_buffer, maxdel);
+	numerator = ~choosepitch.(i_bufpointer, i_buffer, maxdel);
+	denominator = ~choosepitch.(i_bufpointer, i_buffer, maxdel);
 	pitch = Clip.kr(in: (i_ratio * base * numerator/denominator), lo:100, hi:10000);
-	pitch.poll(5, \pitch);
 	release=release*(pitch>100);
 	attack=attack*(pitch>100);
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
 	in = In.ar(in,2)*env;
-	Amplitude.kr(in).poll(5, \in);
 	sig  = Balance2.ar(in[0], in[1], Rand(lo:-1, hi:1));
 	delay = pitch.reciprocal;
 	sig = CombN.ar(
@@ -81,20 +79,17 @@ SynthDef(\ps_flange_transpose, {
 		decaytime: release,
 		mul:env);
 	sig = sig*env;
-	Amplitude.kr(sig).poll(5, \out);
 	Out.ar(out, sig);
 }).add;
 SynthDef(\ps_flange_grain, {
 	|in, out, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratio=0.5|
 	var pitch, delay, sig, env;
 	//Linear envelope, coz it gets squared.
-	pitch = Clip.kr(in: (i_ratio * ~choosepitch.(i_bufpointer, i_buffer, maxdel).poll(5, \base)), lo:100, hi:10000);
-	pitch.poll(5, \pitch);
+	pitch = Clip.kr(in: (i_ratio * ~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:100, hi:10000);
 	release=release*(pitch>100);
 	attack=attack*(pitch>100);
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
 	in = In.ar(in,2)*env;
-	Amplitude.kr(in).poll(5, \in);
 	sig  = Balance2.ar(in[0], in[1], Rand(lo:-1, hi:1));
 	delay = pitch.reciprocal;
 	sig = CombN.ar(
@@ -104,20 +99,18 @@ SynthDef(\ps_flange_grain, {
 		decaytime: release,
 		mul:env);
 	sig = sig*env;
-	Amplitude.kr(sig).poll(5, \out);
 	Out.ar(out, sig);
 }).add;
 SynthDef(\ps_flange_grain_bp, {
 	|in, out, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratio=2, wideness=1|
 	var pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
 	//Linear envelope, coz it gets squared.
-	pitch = Clip.kr(in: (i_ratio * ~choosepitch.(i_bufpointer, i_buffer, maxdel).poll(5, \base)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(in: (i_ratio * ~choosepitch.(i_bufpointer, i_buffer, maxdel).poll(5, \bbase)), lo:minf, hi:maxf);
+	pitch = Clip.kr(in: (i_ratio * ~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (i_ratio * ~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	release=release*(pitch>minf)*(bpitch>minf);
 	attack=attack*(pitch>minf)*(bpitch>minf);
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
 	in = In.ar(in,2)*env;
-	Amplitude.kr(in).poll(5, \in);
 	sig  = Balance2.ar(in[0], in[1], Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
 		in: sig,
@@ -132,7 +125,6 @@ SynthDef(\ps_flange_grain_bp, {
 		decaytime: release,
 		mul:env);
 	sig = sig*env;
-	Amplitude.kr(sig).poll(5, \out);
 	Out.ar(out, sig);
 }).add;
 SynthDef(\delaylimit, {
