@@ -9,7 +9,7 @@ Server.default = s = ~serverboot.(\internal, \internal);
 
 (
 SynthDef(\ps_pitch_writer, {
-	|in, i_bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, dopoll=1|
+	|in, i_bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, lowerlimit=100, dopoll=1|
 	var trig, gate, pitch, certainty, amp, counter, write, buflen;
 	buflen = BufFrames.ir(i_buffer)-1; //last sample gets filled with crap due to rude phase wrapping
 	in = In.ar(in);
@@ -84,7 +84,7 @@ SynthDef(\ps_flange_grain_del_bp, {
 	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
-	release = release*(pitch>minf)*(bpitch>minf);
+	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
@@ -111,7 +111,7 @@ SynthDef(\ps_flange_grain_del_bp_compand, {
 	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
-	release = release*(pitch>minf)*(bpitch>minf);
+	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
@@ -163,7 +163,6 @@ SynthDef(\delwrite, {|in, buffer, phaseout|
 	Out.kr(phaseout, tapPhase);
 }).add;
 )
-LogFile.logpath
 /*
 ~chooseoffsetpitch = {|i_bufpointer, i_buffer, maxdel=50|
 	 BufRd.kr(
@@ -208,10 +207,10 @@ s.waitForBoot( fork {
 	s.sync;
 	~outputmasterfxgroup = Group.after(~masterfxgroup;);
 	s.sync;
-	~player = ~playFile.(out:~analyseinput, target: ~inputgroup, loop:1);
+	~player = ~playFile.(out:~analyseinput, target: ~inputgroup, loop:1, );
 	~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40, \dopoll, 0], target: ~analysisgroup );
-	~tempotracker = Synth.new(\tempotrack, [\in, ~analyseinput, \tempoout, ~tempobus, \beatout, ~beat, \out, ~output, \vol, 0.2], target: ~analysisgroup );
-	~mastersafetyfx = Synth.new(\antifbdelaylimit, [\out, ~output, \delay, ~beat.asMap, \lookahead, 0.1], target: ~outputmasterfxgroup );
+	~tempotracker = Synth.new(\tempotrack, [\in, ~analyseinput, \tempoout, ~tempobus, \beatout, ~beat, \out, ~output, \vol, 0.0], target: ~analysisgroup );
+	~mastersafetyfx = Synth.new(\antifbdelaylimit, [\out, ~output, \delay, ~beat.asMap, \lookahead, 0.1, \pregain, 3], target: ~outputmasterfxgroup );
 	~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 	//~tee = Synth.new(\tee, [\out, ~output, \out2, ~fboutput], target: ~fbgroup );
 	//~fb = Synth.new(\injectfb, [\in, ~output, \out, ~fxinput], target: ~fxgroup, addAction:\addToHead );
@@ -219,6 +218,7 @@ s.waitForBoot( fork {
 	//~pitchsprayer = Synth.new(\ps_pitch_spray, [\i_bufpointer, ~pitchbufpos, \out, ~pitches, \i_buffer, ~pitchbuffer], target:~pitchwriter, addAction: \addAfter);
 	//~pitchsprayer.set(\maxdel, 10);
 	s.sync;
+	Pdef(\tempo, (~tempo ? 2));
 	~basepatt = Pbind(
 		\out, ~output, 
 		\instrument, \ps_flange_grain_del_bp_compand,
@@ -233,24 +233,26 @@ s.waitForBoot( fork {
 		\ratiod, 2,
 		\ratiof, 2,
 		\wideness, Pexprand(1, 2, inf),
-		\decaytime, Pexprand(0.2, 0.4, inf)
+		\decaytime, Pexprand(0.1, 0.2, inf)
 	);
 	~patt = Pbindf(~basepatt,
-		\dur, (~tempo ? 2).reciprocal/4.max(0.05),
+		\dur, 0.1, // Pdef(\tempo).reciprocal/4.max(0.05),
 		\release, Pkey(\dur)* 2.pow(Prand((1..5), inf)),
 		\ratiod, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1, 1], inf),
 		\ratiof, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1, 1], inf),
-		\ratiodb, 2.pow(Prand((-2..2), inf))*Prand([4/3, 5/4, 1], inf),
-		\bigdelay, ~tempobus.asMap
+		\ratiodb, 2.pow(Prand((-2..2), inf))*Prand([3/4, 4/3, 1], inf),
+		\bigdelay, ~beat.asMap
 	);
 	~ppatt=~patt.play;
 	~tempoupdate=Routine({
 		loop {~tempobus.get({|tempo|
-			tempo ?? {
-				TempoClock.default.tempo = tempo.max(0.1).min(10);
+			(tempo.notNil && (tempo>0)).if {
+				tempo = tempo.max(0.1).min(10);
+				TempoClock.default.tempo = tempo;
 				["tempo is now", tempo].postln;
 				~log.logFlush("tempo", tempo);
-				//Environment.topEnvironment[\tempo]=tempo;
+				~tempo=tempo;
+				Pdef(\tempo, tempo);
 			};
 		});
 		1.yield;}
@@ -259,6 +261,7 @@ s.waitForBoot( fork {
 )
 ~tempobus.get;
 ~beat.get;
+~mastersafetyfx.set(\pregain, 3);
 (
 	~ppatt.stop;
 	~player.free;
