@@ -9,13 +9,13 @@ Server.default = s = ~serverboot.(\internal, \internal);
 
 (
 SynthDef(\ps_pitch_writer, {
-	|in, i_bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, lowerlimit=100, dopoll=1|
+	|in, i_bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, pitchthresh=100, dopoll=1|
 	var trig, gate, pitch, certainty, amp, counter, write, buflen;
 	buflen = BufFrames.ir(i_buffer)-1; //last sample gets filled with crap due to rude phase wrapping
 	in = In.ar(in);
 	#pitch, certainty = Tartini.kr(in);
 	amp = Amplitude.kr(in);
-	gate = (certainty>certthresh)*(amp>ampthresh);
+	gate = (certainty>certthresh)*(amp>ampthresh)*(pitch>pitchthresh);
 	//trigger rate is modulated by the amount by which amp exceeeds threshold
 	trig = Impulse.kr(baserate *
 		amp.linlin(ampthresh, 1, 1, 1+ampscale)
@@ -146,6 +146,19 @@ SynthDef(\antifbdelaylimit, {
 	in = DelayN.ar (in, maxdelaytime: 5, delaytime: Clip.kr((delay-lookahead), mindelay, 5));
 	ReplaceOut.ar(out, in);
 }).add;
+SynthDef(\ducker, {
+	|out, sidechain, threshold=0.4, slopeAbove=0.1, clampTime=0.01, relaxTime=0.3|
+	var in = In.ar(out, 2);
+	sidechain = Mix.new(In.ar(sidechain, 2));
+	in = Compander.ar(in, sidechain, slopeAbove: slopeAbove, clampTime:clampTime, relaxTime:relaxTime);
+	ReplaceOut.ar(out, in);
+}).add;
+SynthDef(\reverb, {
+	|out,mix=1, room=0.9, damp=0.4|
+	var in = In.ar(out, 2);
+	in = FreeVerb2.ar(in[0], in[1]);
+	ReplaceOut.ar(out, in);
+}).add;
 SynthDef(\tee, {
 	|out, out2|
 	var in = In.ar(out, 2);
@@ -179,7 +192,7 @@ SynthDef(\delwrite, {|in, buffer, phaseout|
 //real input version
 (
 s.waitForBoot( fork {
-	~log = LogFile.global;
+	//~log = LogFile.global;
 	//~analyseinput = Bus.newFrom(s.inputBus,0,1);
 	//~analyseinput = Bus.newFrom(s.inputBus,2,1);
 	~analyseinput = Bus.audio(s,2);
@@ -210,7 +223,9 @@ s.waitForBoot( fork {
 	~player = ~playFile.(out:~analyseinput, target: ~inputgroup, loop:1, );
 	~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40, \dopoll, 0], target: ~analysisgroup );
 	~tempotracker = Synth.new(\tempotrack, [\in, ~analyseinput, \tempoout, ~tempobus, \beatout, ~beat, \out, ~output, \vol, 0.0], target: ~analysisgroup );
-	~mastersafetyfx = Synth.new(\antifbdelaylimit, [\out, ~output, \delay, ~beat.asMap, \lookahead, 0.1, \pregain, 3], target: ~outputmasterfxgroup );
+	~mastersafetyfx = Synth.new(\antifbdelaylimit, [\out, ~output, \delay, ~beat.asMap, \lookahead, 0.1, \pregain, 3], target: ~masterfxgroup );
+	~ducker = Synth.new(\ducker,  [\out, ~output, \sidechain, ~fxinput, \threshold, 0.1, \slopeAbove, 0], target: ~outputmasterfxgroup);
+	~reverb = Synth.new(\reverb,  [\out, ~output, 0], target: ~outputmasterfxgroup, addAction: \addToTail);
 	~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 	//~tee = Synth.new(\tee, [\out, ~output, \out2, ~fboutput], target: ~fbgroup );
 	//~fb = Synth.new(\injectfb, [\in, ~output, \out, ~fxinput], target: ~fxgroup, addAction:\addToHead );
@@ -232,7 +247,7 @@ s.waitForBoot( fork {
 		\maxdel, 10,
 		\ratiod, 2,
 		\ratiof, 2,
-		\wideness, Pexprand(1, 2, inf),
+		\wideness, Pexprand(0.25, 2, inf),
 		\decaytime, Pexprand(0.1, 0.2, inf)
 	);
 	~patt = Pbindf(~basepatt,
@@ -250,7 +265,6 @@ s.waitForBoot( fork {
 				tempo = tempo.max(0.1).min(10);
 				TempoClock.default.tempo = tempo;
 				["tempo is now", tempo].postln;
-				~log.logFlush("tempo", tempo);
 				~tempo=tempo;
 				Pdef(\tempo, tempo);
 			};
