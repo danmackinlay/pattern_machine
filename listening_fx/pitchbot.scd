@@ -104,13 +104,16 @@ SynthDef(\ps_flange_grain_del_bp, {
 	sig = sig*env;
 	Out.ar(out, sig);
 }).add;
+//I get very occasional exploding peaks of doom in here, so I aggressively hunt and destroy
 SynthDef(\antifbdelaylimit, {
 	|out, delay=0.5, lookahead=0.05, mindelay=0.2|
 	var in = In.ar(out, 2);
-	in = LeakDC.ar(in);
 	in = Select.ar(CheckBadValues.ar(in, 0, 0), [in, DC.ar(0), DC.ar(0), DC.ar(0)]);
+	in = LeakDC.ar(in);
+	//Limiters are OK, but they don't stop the real nasty explosions
+	in = in * (1-Trig1.kr(((in.abs)>2), 0.1));
 	in = Limiter.ar(in, level: 0.5, dur:lookahead);
-	in = DelayN.ar (in, maxdelaytime: 5, delaytime: (delay-lookahead).max(mindelay));
+	in = DelayN.ar (in, maxdelaytime: 5, delaytime: Clip.kr((delay-lookahead), mindelay, 5);
 	ReplaceOut.ar(out, in);
 }).add;
 SynthDef(\tee, {
