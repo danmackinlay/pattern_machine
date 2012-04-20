@@ -199,8 +199,8 @@ s.waitForBoot( fork {
 		\maxdel, 10,
 		\ratiod, 2,
 		\ratiof, 2,
-		\wideness, Pexprand(1, 2),
-		\decaytime, Pexprand(0.2, 0.8)
+		\wideness, Pexprand(1, 2, inf),
+		\decaytime, Pexprand(0.2, 0.4, inf)
 	);
 	~patt = Pbindf(~basepatt,
 		\dur, 2.pow(Prand((-4..-1), inf)),
