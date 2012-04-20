@@ -39,7 +39,7 @@ SynthDef(\ps_pitch_spray, {
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			in: (i_bufpointer-(WhiteNoise.kr(mul:0.5,add:0.5)*maxdel)),
+			in: (i_bufpointer-(WhiteNoise.kr(mul:0.5, add:0.5)*maxdel)),
 			lo:0, hi: buflen
 		).poll(5,\phase),
 		interpolation:1
@@ -78,7 +78,7 @@ SynthDef(\tempotrack, {|in, out, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0
 	), inf).max(1);
 };
 SynthDef(\ps_flange_grain_del_bp, {
-	|delbuf, phasein, out, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, wideness=1|
+	|delbuf, phasein, out, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, wideness=1, decaytime=1|
 	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
 	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
@@ -99,7 +99,7 @@ SynthDef(\ps_flange_grain_del_bp, {
 		in: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
-		decaytime: release,
+		decaytime: decaytime,
 		mul:env);
 	sig = sig*env;
 	Out.ar(out, sig);
@@ -113,7 +113,7 @@ SynthDef(\antifbdelaylimit, {
 	//Limiters are OK, but they don't stop the real nasty explosions
 	in = in * (1-Trig1.kr(((in.abs)>2), 0.1));
 	in = Limiter.ar(in, level: 0.5, dur:lookahead);
-	in = DelayN.ar (in, maxdelaytime: 5, delaytime: Clip.kr((delay-lookahead), mindelay, 5);
+	in = DelayN.ar (in, maxdelaytime: 5, delaytime: Clip.kr((delay-lookahead), mindelay, 5));
 	ReplaceOut.ar(out, in);
 }).add;
 SynthDef(\tee, {
@@ -199,7 +199,8 @@ s.waitForBoot( fork {
 		\maxdel, 10,
 		\ratiod, 2,
 		\ratiof, 2,
-		\wideness, Pexprand(0.1, 0.3)
+		\wideness, Pexprand(1, 2),
+		\decaytime, Pexprand(0.2, 0.8)
 	);
 	~patt = Pbindf(~basepatt,
 		\dur, 2.pow(Prand((-4..-1), inf)),
