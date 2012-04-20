@@ -59,13 +59,13 @@ SynthDef(\ps_pitch_spray, {
 	), inf).max(1);
 };
 SynthDef(\ps_flange_transpose, {
-	|in, out, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=0.5|
+	|in, out, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5|
 	var pitch, base, numerator, denominator, delay, sig, env;
 	//Linear envelope, coz it gets squared.
 	base = ~choosepitch.(i_bufpointer, i_buffer, maxdel);
 	numerator = ~choosepitch.(i_bufpointer, i_buffer, maxdel);
 	denominator = ~choosepitch.(i_bufpointer, i_buffer, maxdel);
-	pitch = Clip.kr(in: (i_ratiod=0.5, i_ratiof * base * numerator/denominator), lo:100, hi:10000);
+	pitch = Clip.kr(in: (i_ratiod * base * numerator/denominator), lo:100, hi:10000);
 	release=release*(pitch>100);
 	attack=attack*(pitch>100);
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
@@ -127,8 +127,34 @@ SynthDef(\ps_flange_grain_bp, {
 	sig = sig*env;
 	Out.ar(out, sig);
 }).add;
+SynthDef(\ps_flange_grain_del_bp, {
+	|delbuf, phasein, out, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, wideness=1|
+	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
+	//Linear envelope, coz it gets squared.
+	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	release = release*(pitch>minf)*(bpitch>minf);
+	attack = attack*(pitch>minf)*(bpitch>minf);
+	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
+	in = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
+	sig  = Pan2.ar(in, Rand(lo:-1, hi:1));
+	sig = Resonz.ar(
+		in: sig,
+		freq: bpitch*i_ratiof,
+		bwr: wideness
+	);
+	delay = (pitch*i_ratiod).reciprocal;
+	sig = CombN.ar(
+		in: sig,
+		maxdelaytime: 0.1,
+		delaytime: delay,
+		decaytime: release,
+		mul:env);
+	sig = sig*env;
+	Out.ar(out, sig);
+}).add;
 SynthDef(\delaylimit, {
-	|out, delay=1|
+	|out, delay=0.5|
 	var in = In.ar(out, 2);
 	in=LeakDC.ar(in);
 	in = Limiter.ar(in, level: 0.5, dur:0.05);
@@ -138,7 +164,7 @@ SynthDef(\delaylimit, {
 SynthDef(\tee, {
 	|out, out2|
 	var in = In.ar(out, 2);
-	ReplaceOut.ar(out, in);
+	//ReplaceOut.ar(out, in);
 	Out.ar(out2, in);
 }).add;
 SynthDef(\injectfb, {
@@ -146,6 +172,12 @@ SynthDef(\injectfb, {
 	in = InFeedback.ar(in, 2);
 	Out.ar(out, in*gain);
 }).add;
+SynthDef(\delwrite, {|in, buffer, phaseout|
+	var tapPhase;
+	tapPhase = DelTapWr.ar(buffer, Mix.new(In.ar(in,2)));
+	Out.kr(phaseout, tapPhase);
+}).add;
+
 /*
 ~chooseoffsetpitch = {|i_bufpointer, i_buffer, maxdel=50|
 	 BufRd.kr(
@@ -160,35 +192,43 @@ SynthDef(\injectfb, {
 	).max(1);
 };*/
 //~analyseinput = Bus.newFrom(s.inputBus,0,1);
-~analyseinput = Bus.newFrom(s.inputBus,2,1);
+//~analyseinput = Bus.newFrom(s.inputBus,2,1);
+~analyseinput = Bus.audio(s,2);
 //~fxinput = Bus.newFrom(s.inputBus,0,2);
 ~fxinput = Bus.newFrom(s.inputBus,0,2);
 ~output = Bus.newFrom(s.outputBus,0,2);
 ~fboutput = Bus.audio(s,2);
 ~pitchbufpos = Bus.control(s, 1);
+~delbufpos = Bus.control(s, 1);
 //~pitches = Bus.control(s, 1);
-~buffer = Buffer.alloc(s, 1000);
+~pitchbuffer = Buffer.alloc(s, 1000);
+~delbuffer = Buffer.alloc(s, 200000, 1);
 ~analysisgroup = Group.new(s);
 ~fxgroup = Group.after(~analysisgroup);
 ~fbgroup = Group.after(~fxgroup);
+~inputgroup = Group.before(~analysisgroup);
 ~masterfxgroup = Group.after(~fbgroup;);
-~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~buffer, \ampthresh, 0.01, \baserate, 40], target: ~analysisgroup );
+~player = ~playFile.(out:~analyseinput, target: ~inputgroup);
+~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40], target: ~analysisgroup );
 //~pitchwriter.free;
 ~masterfx = Synth.new(\delaylimit, [\out, ~output], target: ~masterfxgroup );
+~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 ~tee = Synth.new(\tee, [\out, ~output, \out2, ~fboutput], target: ~fbgroup );
 ~fb = Synth.new(\injectfb, [\in, ~output, \out, ~fxinput], target: ~fxgroup, addAction:\addToHead );
-~fb.set(\gain, 20);
-//~pitchsprayer = Synth.new(\ps_pitch_spray, [\i_bufpointer, ~pitchbufpos, \out, ~pitches, \i_buffer, ~buffer], target:~pitchwriter, addAction: \addAfter);
+~fb.set(\gain, 0.5);
+//~pitchsprayer = Synth.new(\ps_pitch_spray, [\i_bufpointer, ~pitchbufpos, \out, ~pitches, \i_buffer, ~pitchbuffer], target:~pitchwriter, addAction: \addAfter);
 //~pitchsprayer.set(\maxdel, 10);
-//Synth.new(\ps_flange_grain, [\in, ~fxinput, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~buffer, \release, 5, \maxdel, 10], target:~fxgroup);
+//Synth.new(\ps_flange_grain, [\in, ~fxinput, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \release, 5, \maxdel, 10], target:~fxgroup);
 TempoClock.default.tempo = 1;
 ~basepatt = Pbind(
-	\instrument, \ps_flange_grain_bp,
+	\out, ~output, 
+	\instrument, \ps_flange_grain_del_bp,
 	\group, ~fxgroup,
-	\in, ~fxinput,
-	\out, ~output,
+	\delbuf, ~delbuffer,
+	\phasein, ~delbufpos,
 	\bufpointer, ~pitchbufpos,
-	\buffer, ~buffer,
+	\buffer, ~pitchbuffer,
+	\delbuffer, ~delbuffer,
 	\release, 5,
 	\maxdel, 10,
 	\ratiod, 2,
@@ -203,7 +243,31 @@ TempoClock.default.tempo = 1;
 );
 ~ppatt=~patt.play;
 ~ppatt.stop;
-10.do({Synth.new(\ps_flange_grain_bp, [\in, ~fxinput, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~buffer, \release, 5, \maxdel, 10], target:~fxgroup);});
-~buffer.plot;
+Synth.new(\ps_flange_grain_del_bp, [\delbuf, ~delbuffer, \phasein, ~delbufpos, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \release, 25, \maxdel, 10], target:~fxgroup);
+10.do({Synth.new(\ps_flange_grain_del_bp,  [\delbuf, ~delbuffer, \phasein, ~delbufpos, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \release, 25, \maxdel, 10], target:~fxgroup);});
+
+~basepatt = Pbind(
+	\instrument, \ps_flange_grain_bp,
+	\group, ~fxgroup,
+	\in, ~fxinput,
+	\out, ~output,
+	\bufpointer, ~pitchbufpos,
+	\buffer, ~pitchbuffer,
+	\release, 5,
+	\maxdel, 10,
+	\ratiod, 2,
+	\ratiof, 2,
+	\wideness, Pexprand(0.1, 2.0)
+);
+~patt = Pbindf(~basepatt,
+	\dur, Pexprand(0.02, 0.2),
+	\release, Pkey(\dur)*5,
+	\ratiod, 2.pow(Prand([-1, 0, 1], inf)),
+	\ratiof, 2.pow(Prand([-1, 0, 1], inf))
+);
+~ppatt=~patt.play;
+~ppatt.stop;
+10.do({Synth.new(\ps_flange_grain_bp, [\in, ~fxinput, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \release, 5, \maxdel, 10], target:~fxgroup);});
+~pitchbuffer.plot;
 ~pitchbufpos.get(_.postln);
 ~pitchbufpos;
