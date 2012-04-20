@@ -147,9 +147,8 @@ s.waitForBoot( fork {
 	s.sync;
 	~masterfxgroup = Group.after(~fbgroup;);
 	s.sync;
-	~player = ~playFile.(out:~analyseinput, target: ~inputgroup);
+	~player = ~playFile.(out:~analyseinput, target: ~inputgroup, loop:1);
 	~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40, \dopoll, 0], target: ~analysisgroup );
-	//~pitchwriter.free;
 	~masterfx = Synth.new(\delaylimit, [\out, ~output], target: ~masterfxgroup );
 	~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 	//~tee = Synth.new(\tee, [\out, ~output, \out2, ~fboutput], target: ~fbgroup );
@@ -157,7 +156,40 @@ s.waitForBoot( fork {
 	//~fb.set(\gain, 0.5);
 	//~pitchsprayer = Synth.new(\ps_pitch_spray, [\i_bufpointer, ~pitchbufpos, \out, ~pitches, \i_buffer, ~pitchbuffer], target:~pitchwriter, addAction: \addAfter);
 	//~pitchsprayer.set(\maxdel, 10);
+	s.sync;
+	~basepatt = Pbind(
+		\out, ~output, 
+		\instrument, \ps_flange_grain_del_bp,
+		\group, ~fxgroup,
+		\delbuf, ~delbuffer,
+		\phasein, ~delbufpos,
+		\bufpointer, ~pitchbufpos,
+		\buffer, ~pitchbuffer,
+		\delbuffer, ~delbuffer,
+		\release, 5,
+		\maxdel, 10,
+		\ratiod, 2,
+		\ratiof, 2,
+		\wideness, Pexprand(0.1, 2.0)
+	);
+	~patt = Pbindf(~basepatt,
+		\dur, Pexprand(0.02, 0.2),
+		\release, Pkey(\dur)*5,
+		\ratiod, 2.pow(Prand([-1, 0, 1], inf)),
+		\ratiof, 2.pow(Prand([-1, 0, 1], inf)),
+		\bigdelay, Pexprand(0.02, 0.2)
+	);
+	~ppatt=~patt.play;
 });
+)
+(
+	~ppatt.stop;
+	~player.free;
+	~pitchwriter.free;
+	~masterfx.free;
+	~delayin.free;
+	~tee.free;
+	~fb.free;
 )
 Synth.new(\ps_flange_grain_del_bp, [\delbuf, ~delbuffer, \phasein, ~delbufpos, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \release, 25, \maxdel, 10], target:~fxgroup).trace;
 10.do({Synth.new(\ps_flange_grain_del_bp, [\delbuf, ~delbuffer, \phasein, ~delbufpos, \out, ~output, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \release, 25, \maxdel, 10, \bigdelay, {0.1.rrand(1);}], target:~fxgroup);});
@@ -165,29 +197,6 @@ Synth.new(\ps_flange_grain_del_bp, [\delbuf, ~delbuffer, \phasein, ~delbufpos, \
 ~pitchwriter.trace;
 ~delbufpos.get;
 TempoClock.default.tempo = 1;
-~basepatt = Pbind(
-	\out, ~output, 
-	\instrument, \ps_flange_grain_del_bp,
-	\group, ~fxgroup,
-	\delbuf, ~delbuffer,
-	\phasein, ~delbufpos,
-	\bufpointer, ~pitchbufpos,
-	\buffer, ~pitchbuffer,
-	\delbuffer, ~delbuffer,
-	\release, 5,
-	\maxdel, 10,
-	\ratiod, 2,
-	\ratiof, 2,
-	\wideness, Pexprand(0.1, 2.0)
-);
-~patt = Pbindf(~basepatt,
-	\dur, Pexprand(0.02, 0.2),
-	\release, Pkey(\dur)*5,
-	\ratiod, 2.pow(Prand([-1, 0, 1], inf)),
-	\ratiof, 2.pow(Prand([-1, 0, 1], inf)),
-	\bigdelay, Pexprand(0.02, 0.2)
-);
-~ppatt=~patt.play;
 ~ppatt.stop;
 ~pitchbuffer.plot;
 ~pitchbufpos.get(_.postln);
