@@ -196,13 +196,13 @@ s.waitForBoot( fork {
 		\maxdel, 10,
 		\ratiod, 2,
 		\ratiof, 2,
-		\wideness, Pexprand(0.1, 2.0)
+		\wideness, Pexprand(0.1, 0.3)
 	);
 	~patt = Pbindf(~basepatt,
 		\dur, 2.pow(Prand((-4..-1), inf)),
 		\release, Pkey(\dur)*2.pow(Prand((1..4), inf)),
-		\ratiod, 2.pow(Prand((-2..1), inf)),
-		\ratiof, 2.pow(Prand((-2..1), inf)),
+		\ratiod, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1], inf),
+		\ratiof, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1], inf),
 		\bigdelay, ~tempo.asMap
 	);
 	~ppatt=~patt.play;
