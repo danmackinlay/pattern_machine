@@ -2,6 +2,7 @@ Server.default = s = ~serverboot.(\local, \internal);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
+
 //Todo:
 // extend this to keep a bag of amplitudes to hand as well.
 // Write a ring buffer of pitch guesses weighted by strength
@@ -78,11 +79,11 @@ SynthDef(\tempotrack, {|in, out, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0
 	), inf).max(1);
 };
 SynthDef(\ps_flange_grain_del_bp, {
-	|delbuf, phasein, out, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, wideness=1, decaytime=1|
+	|delbuf, phasein, out, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1|
 	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
 	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bigdelay = LastValue.kr(bigdelay, inf);
+	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = release*(pitch>minf)*(bpitch>minf);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
@@ -104,12 +105,41 @@ SynthDef(\ps_flange_grain_del_bp, {
 	sig = sig*env;
 	Out.ar(out, sig);
 }).add;
+SynthDef(\ps_flange_grain_del_bp_compand, {
+	|delbuf, phasein, out, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1, thresh=0.001, slopeAbove=0.1|
+	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
+	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
+	release = release*(pitch>minf)*(bpitch>minf);
+	attack = attack*(pitch>minf)*(bpitch>minf);
+	//Linear envelope, coz it gets squared.
+	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
+	in = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
+	sig  = Pan2.ar(in, Rand(lo:-1, hi:1));
+	sig = Resonz.ar(
+		in: sig,
+		freq: bpitch*i_ratiof,
+		bwr: wideness
+	);
+	delay = (pitch*i_ratiod).reciprocal;
+	sig = CombN.ar(
+		in: sig,
+		maxdelaytime: 0.1,
+		delaytime: delay,
+		decaytime: decaytime,
+		mul:env);
+	sig = Compander.ar(sig, sig, thresh: thresh, slopeAbove:slopeAbove, mul: (thresh+((1-thresh)*slopeAbove)).reciprocal);
+
+	sig = sig*env;
+	Out.ar(out, sig);
+}).add;
 //I get very occasional exploding peaks of doom in here, so I aggressively hunt and destroy
 SynthDef(\antifbdelaylimit, {
-	|out, delay=0.5, lookahead=0.05, mindelay=0.2|
+	|out, pregain=1.0, delay=0.5, lookahead=0.05, mindelay=0.2|
 	var in = In.ar(out, 2);
 	in = Select.ar(CheckBadValues.ar(in, 0, 0), [in, DC.ar(0), DC.ar(0), DC.ar(0)]);
-	in = LeakDC.ar(in);
+	in = LeakDC.ar(in, mul:pregain);
 	//Limiters are OK, but they don't stop the real nasty explosions
 	in = in * (1-Trig1.kr(((in.abs)>2), 0.1));
 	in = Limiter.ar(in, level: 0.5, dur:lookahead);
@@ -133,6 +163,7 @@ SynthDef(\delwrite, {|in, buffer, phaseout|
 	Out.kr(phaseout, tapPhase);
 }).add;
 )
+LogFile.logpath
 /*
 ~chooseoffsetpitch = {|i_bufpointer, i_buffer, maxdel=50|
 	 BufRd.kr(
@@ -149,6 +180,7 @@ SynthDef(\delwrite, {|in, buffer, phaseout|
 //real input version
 (
 s.waitForBoot( fork {
+	~log = LogFile.global;
 	//~analyseinput = Bus.newFrom(s.inputBus,0,1);
 	//~analyseinput = Bus.newFrom(s.inputBus,2,1);
 	~analyseinput = Bus.audio(s,2);
@@ -158,7 +190,8 @@ s.waitForBoot( fork {
 	~fboutput = Bus.audio(s,2);
 	~pitchbufpos = Bus.control(s, 1);
 	~delbufpos = Bus.control(s, 1);
-	~tempo = Bus.control(s, 1);
+	~tempobus = Bus.control(s, 1);
+	~tempo = 2;
 	~beat = Bus.control(s, 1);
 	//~pitches = Bus.control(s, 1);
 	~pitchbuffer = Buffer.alloc(s, 1000);
@@ -177,7 +210,7 @@ s.waitForBoot( fork {
 	s.sync;
 	~player = ~playFile.(out:~analyseinput, target: ~inputgroup, loop:1);
 	~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40, \dopoll, 0], target: ~analysisgroup );
-	~tempotracker = Synth.new(\tempotrack, [\in, ~analyseinput, \tempoout, ~tempo, \beatout, ~beat, \out, ~output, \vol, 0.2], target: ~analysisgroup );
+	~tempotracker = Synth.new(\tempotrack, [\in, ~analyseinput, \tempoout, ~tempobus, \beatout, ~beat, \out, ~output, \vol, 0.2], target: ~analysisgroup );
 	~mastersafetyfx = Synth.new(\antifbdelaylimit, [\out, ~output, \delay, ~beat.asMap, \lookahead, 0.1], target: ~outputmasterfxgroup );
 	~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 	//~tee = Synth.new(\tee, [\out, ~output, \out2, ~fboutput], target: ~fbgroup );
@@ -188,7 +221,7 @@ s.waitForBoot( fork {
 	s.sync;
 	~basepatt = Pbind(
 		\out, ~output, 
-		\instrument, \ps_flange_grain_del_bp,
+		\instrument, \ps_flange_grain_del_bp_compand,
 		\group, ~fxgroup,
 		\delbuf, ~delbuffer,
 		\phasein, ~delbufpos,
@@ -203,23 +236,28 @@ s.waitForBoot( fork {
 		\decaytime, Pexprand(0.2, 0.4, inf)
 	);
 	~patt = Pbindf(~basepatt,
-		\dur, 2.pow(Prand((-4..-1), inf)),
-		\release, Pkey(\dur)*2.pow(Prand((1..4), inf)),
-		\ratiod, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1], inf),
-		\ratiof, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1], inf),
-		\bigdelay, ~tempo.asMap
+		\dur, (~tempo ? 2).reciprocal/4.max(0.05),
+		\release, Pkey(\dur)* 2.pow(Prand((1..5), inf)),
+		\ratiod, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1, 1], inf),
+		\ratiof, 2.pow(Prand((-2..1), inf))*Prand([4/3, 5/4, 1, 1], inf),
+		\ratiodb, 2.pow(Prand((-2..2), inf))*Prand([4/3, 5/4, 1], inf),
+		\bigdelay, ~tempobus.asMap
 	);
 	~ppatt=~patt.play;
 	~tempoupdate=Routine({
-		loop {~tempo.get({|tempo|
-			TempoClock.default.tempo = tempo.max(0.1);
-			["tempo is now", tempo].postln;
+		loop {~tempobus.get({|tempo|
+			tempo ?? {
+				TempoClock.default.tempo = tempo.max(0.1).min(10);
+				["tempo is now", tempo].postln;
+				~log.logFlush("tempo", tempo);
+				//Environment.topEnvironment[\tempo]=tempo;
+			};
 		});
 		1.yield;}
 	}).play(TempoClock.new);
 });
 )
-~tempo.get;
+~tempobus.get;
 ~beat.get;
 (
 	~ppatt.stop;
