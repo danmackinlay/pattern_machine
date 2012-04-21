@@ -3,6 +3,7 @@ Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
 
+
 //Todo:
 // extend this to keep a bag of amplitudes to hand as well.
 // Write a ring buffer of pitch guesses weighted by strength
@@ -30,24 +31,6 @@ SynthDef(\ps_pitch_writer, {
 	Poll.kr(trig*dopoll, pitch, \pitchfound);
 	Out.kr(i_bufpointer, counter);
 }).add;
-//Creates a bus full of random transpositions of the input pitches
-SynthDef(\ps_pitch_spray, {
-	|i_bufpointer, i_buffer, maxdel=50, out|
-	var trig, gate, pitch, certainty, buflen;
-	buflen = BufFrames.ir(i_buffer)-1;
-	i_bufpointer = In.kr(i_bufpointer);
-	pitch = BufRd.kr(
-		numChannels:1,
-		bufnum: i_buffer,
-		phase: Wrap.kr(
-			in: (i_bufpointer-(WhiteNoise.kr(mul:0.5, add:0.5)*maxdel)),
-			lo:0, hi: buflen
-		).poll(5,\phase),
-		interpolation:1
-	);
-	pitch = Latch.kr(pitch, pitch); //latch pitches to reduce zeros before buffer is full
-	Out.kr(out, pitch.max(0));
-}).add;
 SynthDef(\tempotrack, {|in, out, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0.0, lock=0|
 	var fft, resample, fftbuffer;
 	var trackb,trackh,trackq,tempo;
@@ -66,6 +49,7 @@ SynthDef(\tempotrack, {|in, out, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0
 	Out.kr(beatout, tempo.reciprocal);
 	Out.ar(out, Pan2.ar((vol*in)+(beepvol*beep), 0.0));
 }).add;
+
 ~choosepitch = {|i_bufpointer, i_buffer, maxdel=50|
 	 LastValue.kr(BufRd.kr(
 		numChannels:1,
@@ -197,7 +181,8 @@ s.waitForBoot( fork {
 	//~analyseinput = Bus.newFrom(s.inputBus,2,1);
 	~analyseinput = Bus.audio(s,2);
 	//~fxinput = Bus.newFrom(s.inputBus,0,2);
-	~fxinput = Bus.newFrom(s.inputBus,0,1);
+	//~fxinput = Bus.newFrom(s.inputBus,0,1);
+	~fxinput = Bus.newFrom(s.inputBus,8,2);
 	~output = Bus.newFrom(s.outputBus,0,2);
 	~fboutput = Bus.audio(s,2);
 	~pitchbufpos = Bus.control(s, 1);
@@ -276,6 +261,8 @@ s.waitForBoot( fork {
 ~tempobus.get;
 ~beat.get;
 ~mastersafetyfx.set(\pregain, 3);
+~spdifinput = Bus.newFrom(s.inputBus,8,2);
+{Out.ar(0, In.ar(Bus.newFrom(s.inputBus,8,2),2));}.play;
 (
 	~ppatt.stop;
 	~player.free;
