@@ -6,7 +6,6 @@ Server.default = s = ~serverboot.(\internal, \internal);
 
 //Todo:
 // extend this to keep a bag of amplitudes to hand as well.
-// Write a ring buffer of pitch guesses weighted by strength
 
 (
 SynthDef(\ps_pitch_writer, {
