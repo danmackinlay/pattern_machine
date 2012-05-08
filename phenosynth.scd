@@ -1,13 +1,15 @@
-(
 //initialisation
-Server.default = s = Server.internal;
-//Server.default = s = Server.local;
-s.boot;
-s.reboot;
+Server.default = s = ~serverboot.(\local, \internal);
+Server.default = s = ~serverboot.(\local, \motu);
+Server.default = s = ~serverboot.(\internal, \motu);
+Server.default = s = ~serverboot.(\internal, \internal);
 StartUp.run;
+(
+fork {
 ~globalOuts = Bus.new(\audio, 0, 2);
-~globalOuts.scope;
+{~globalOuts.scope;}.defer;
 ~voxgroup = Group.new(s);
+s.sync;
 ~outgroup = Group.after(~voxgroup);
 /*******************/
 /* Do either THIS: */
@@ -16,30 +18,35 @@ StartUp.run;
 /* or THIS */
 /*******************/
 ~globalIns = Bus.audio(s, 1);
-{|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore)
+{|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore);
 /*******************/
 //~globalIns.scope;
 //limiter, to avoid little accidents
-~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
+SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+s.sync;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5)
+~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5);
 //~control.listenSynth = \_ga_judge_pitchampmatch;
 ~control.listenSynth = \_ga_judge_fftmatch;
 ~control.leakCoef;
 ~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
+s.sync;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5));
 ~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
 ~island.play(~control);
+s.sync;
 //add in the perfect one and see how it survives:
 ~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 0.002]));
-~island.plotFitness(raw:true);
+{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
+};
+)
 //listen for a while.
 //when you are bored, do a
 ~island.free;
@@ -47,16 +54,16 @@ s.volume.volume= -20;
 ~island.rawFitnesses.values.postln;
 ~island.rawFitnesses.keys.asArray[1].hash.asHexString
 //testing that things are going OK:
-~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
-~island.population - (~island.rawFitnesses.keys)).size;
-~island.population - (~island.cookedFitnesses.keys)).size;
+(~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
+(~island.population - (~island.rawFitnesses.keys)).size;
+(~island.population - (~island.cookedFitnesses.keys)).size;
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
 best = ranked[0];
 worst = ranked[ranked.size-1];
-[~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
-[~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
+[\best, ~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
+[\worst, ~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
 ~ind = ~island.rankedPopulation[0].chromosomeAsSynthArgs;
@@ -175,16 +182,15 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 /**************************
  * Debugging bits
  **************************/
-(
 //initialisation
-Server.default = s = Server.internal;
-//Server.default = s = Server.local;
-s.boot;
 StartUp.run;
+(
+fork {
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~matchOut = Bus.control(s, 1);
-~globalOuts.scope;
+{~globalOuts.scope;}.defer;
 ~voxgroup = Group.new(s);
+s.sync;
 ~outgroup = Group.after(~voxgroup);
 ~globalIns = Bus.audio(s, 1);
 ~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(target: ~voxgroup, outbus: ~globalIns, addAction: \addToHead, args: [\freq, 600]);
@@ -194,16 +200,16 @@ Routine.new({
 	while( true, {~matchOut.get(_.postln);
 	1.yield;})
 }).play;
-FreqScope.new(busNum:~globalIns);
+{FreqScope.new(busNum:~globalIns);}.defer;
+s.sync;
 ~candidate.set(\pitch, 600);
 ~candidate.set(\ffreq, 600);
 ~candidate.set(\rq, 0.001);
 ~candidate.set(\gain, 1);
-
-~candidate.autogui;
+{~candidate.autogui;}.defer;
+}
 )
 
-)
 (
 ~island = PSIsland.new((\initialChromosomeSize: 4));
 ~island.params;
@@ -289,12 +295,18 @@ s.volume.volume= -20;
 )
 (
 //test listeners
+fork {
 ~playbus = Bus.audio(s, 1);
 ~fitbus = Bus.control(s, 1);
-~eighthundredsource = {|freq=500| SinOsc.ar(freq); }.play(s, outbus: ~playbus)
+s.sync;
+~eighthundredsource = {|freq=500| SinOsc.ar(freq); }.play(s, outbus: ~playbus);
+s.sync;
 Synth.after(~eighthundredsource, \ps_conv_eight_hundred, [\in, ~playbus, \out, ~fitbus, \i_leakcoef, 0.5]);
 ~fitbus.get(_.postln);
+s.sync;
 ~eighthundredsource.set(\freq, 400);
+s.sync;
+}
 )
 (
 ~playGroup = Group.new(s);
