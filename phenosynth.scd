@@ -108,6 +108,8 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     to facilite responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
+  * Stipulate that this allows both genetic algorithsm and evolutionary
+    strategies (in fact, at the moment, only the latter)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
   
@@ -184,32 +186,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************/
 //initialisation
 StartUp.run;
-(
-fork {
-~globalOuts = Bus.new(\audio, 0, 2);
-~matchOut = Bus.control(s, 1);
-{~globalOuts.scope;}.defer;
-~voxgroup = Group.new(s);
-s.sync;
-~outgroup = Group.after(~voxgroup);
-~globalIns = Bus.audio(s, 1);
-~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(target: ~voxgroup, outbus: ~globalIns, addAction: \addToHead, args: [\freq, 600]);
-~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-~comparer = Synth.new(\_ga_judge_fftmatch, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-Routine.new({
-	while( true, {~matchOut.get(_.postln);
-	1.yield;})
-}).play;
-{FreqScope.new(busNum:~globalIns);}.defer;
-s.sync;
-~candidate.set(\pitch, 600);
-~candidate.set(\ffreq, 600);
-~candidate.set(\rq, 0.001);
-~candidate.set(\gain, 1);
-{~candidate.autogui;}.defer;
-}
-)
-
+//Check basic convergence on a toy problem
 (
 ~island = PSIsland.new((\initialChromosomeSize: 4));
 ~island.params;
@@ -229,6 +206,36 @@ s.sync;
 (a*b*pi).cos;
 (c*d*pi*3/2).sin;
 )
+//Check sanity on DSP-based comparers
+(
+fork {
+~globalOuts = Bus.new(\audio, 0, 2);
+~matchOut = Bus.control(s, 1);
+~voxgroup = Group.new(s);
+s.sync;
+{~globalOuts.scope;}.defer;
+~outgroup = Group.after(~voxgroup);
+~globalIns = Bus.audio(s, 1);
+~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(target: ~voxgroup, outbus: ~globalIns, addAction: \addToHead, args: [\freq, 600]);
+~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
+~comparer = Synth.new(\_ga_judge_fftmatch, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+Routine.new({
+	while( true, {~matchOut.get(_.postln);
+	1.yield;})
+}).play;
+{FreqScope.new(busNum:~globalIns);}.defer;
+s.sync;
+~candidate.set(\pitch, 500);
+~candidate.set(\ffreq, 500);
+~candidate.set(\rq, 0.001);
+~candidate.set(\rq, 0.1);
+~candidate.set(\gain, 0.3);
+{~candidate.autogui;}.defer;
+s.sync;
+~candidate.trace;
+~comparer.trace;
+}
+)
 (
 //How the listening controller works, nuts-and-bolts
 s=Server.default;
@@ -246,52 +253,6 @@ s=Server.default;
 ~control.all.collect({|indDict, key| [indDict, key]});
 ~control.all.values.collect({|indDict| indDict.phenotype.fitness});
 ~control.free;
-)
-(
-//initialisation
-s=Server.default;
-~globalOuts = Bus.new(\audio, 0, 2);
-~globalOuts.scope;
-~globalIns = Bus.audio(s, 1)
-~voxgroup = Group.new(s);
-~outgroup = Group.after(~voxgroup);
-//limiter, to avoid little accidents
-~limidef = SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).send;
-~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
-//s.volume.gui;
-s.volume.volume= -20;
-//actual real work now: first choose the controller that will manage the synths
-~control = PSListenSynthController(s, ~globalOuts);
-//now set up the "island" that will control their evolution
-~island = PSControllerIsland.new((\population: 100, \mutationProb: 0.1, \mutationSize: 0.7), controller:~control);
-~island.play;
-~island.params;
-~island.population;
-//listen for a while.
-//when you are bored, do a
-~island.free;
-~control.all;
-~control.all.size;
-~control.freedNodes;
-~control.allocatedNodes;
-
-//testing that things are going OK:
-~island.population.collect(_.fitness);
-~island.rawFitnesses;
-~island.rawFitnesses.mean;
-~island.population;
-~island.population.select(_.wallClockAge>0)
-~island.population.collect({|i| i.wallClockAge}).mean;
-~island.population.collect({|i| i.logicalAge}).mean;
-//these should only ever differ momentarily
-~island.population.size;
-~island.population[0];
-
-~island.population[0].chromosomeAsSynthArgs;
-~island.population[0].chromosome;
-~island.population[0].synth;
-~island.controller.all[~island.population[0].identityHash].playBus.scope
-~globalOuts.scope
 )
 (
 //test listeners
