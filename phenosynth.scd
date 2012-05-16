@@ -94,7 +94,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   
   * at least, my synth output is broken. /actually/ similar sounds score poorly.
   * manual polyploidy?
-  * fucntion inlining problems? - http://danielnouri.org/docs/SuperColliderHelp/Language/Understanding-Errors.html
+  * function inlining problems? - http://danielnouri.org/docs/SuperColliderHelp/Language/Understanding-Errors.html
   * fitness bus is all wrong? (not control, nor not right controlbus?)
 
 * infrastructure
@@ -207,26 +207,43 @@ StartUp.run;
 (c*d*pi*3/2).sin;
 )
 //Check sanity on DSP-based comparers
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//It's all happening here at the moment
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+//MFCC next?
 (
 fork {
-~globalOuts = Bus.new(\audio, 0, 2);
+~globalOuts = Bus.new(\audio, 0, 1);
 ~matchOut = Bus.control(s, 1);
 ~voxgroup = Group.new(s);
+~globalIns = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
 s.sync;
+[~globalOuts, ~matchOut, ~voxgroup, ~globalIns].postln;
 {~globalOuts.scope;}.defer;
 ~outgroup = Group.after(~voxgroup);
-~globalIns = Bus.audio(s, 1);
-~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(target: ~voxgroup, outbus: ~globalIns, addAction: \addToHead, args: [\freq, 600]);
+1.wait;
+~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(
+	target: ~voxgroup,
+	outbus: ~globalIns,
+	addAction: \addToHead,
+	args: [\freq, 600]);
 ~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-~comparer = Synth.new(\_ga_judge_fftmatch, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
 Routine.new({
 	while( true, {~matchOut.get(_.postln);
 	1.yield;})
 }).play;
 {FreqScope.new(busNum:~globalIns);}.defer;
 s.sync;
-~candidate.set(\pitch, 500);
-~candidate.set(\ffreq, 500);
+~candidate.set(\ffreq, 500, \pitch, 500);
+~candidate.set(\ffreq, 800, \pitch, 800);
+~candidate.set(\ffreq, 600, \pitch, 600);
+//~candidate.set(\ffreq, 235, \pitch, 235);
+//~candidate.set(\ffreq, 135, \pitch, 135);
+//~candidate.set(\ffreq, 10, \pitch, 10);
+~template.set(\freq, 500);
 ~candidate.set(\rq, 0.001);
 ~candidate.set(\rq, 0.1);
 ~candidate.set(\gain, 0.3);

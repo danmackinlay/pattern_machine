@@ -22,7 +22,7 @@ PSBasicCompareSynths {
 		// First, a utility synth:
 		
 		// Really simple SynthDef to play a buffer when triggered
-		SynthDef.new(\_ga_just_playbuf, {		|bufnum, out=0, t_trig=0|
+		SynthDef.new(\_ga_just_playbuf, {|bufnum, out=0, t_trig=0|
 			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 		});
 			
@@ -78,8 +78,8 @@ PSBasicCompareSynths {
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
 		NB - this uses a CUSTOM UGEN, available in the SC3-plugins project 
-		This appears to evaluate to 0 for unmatched signals, and 1 for identical ones
-		(i.e. not zero_peak style as per other MCLD ones.)*/
+		This appears to evaluate to, e.g. 0.002, for unmatched signals, and 0 for identical ones
+		That is, it reports difference in magnitude as the name implies,*/
 		this.makeComparer(\_ga_judge_fftmatch, {
 			|testsig, othersig|
 			var sigfft, offt, bfr1, bfr2;
