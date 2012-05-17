@@ -230,7 +230,10 @@ s.sync;
 	addAction: \addToHead,
 	args: [\freq, 600]);
 ~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_convolution, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+~comparer = Synth.new(\_ga_judge_mfccmatch, [\testbus, ~globalOuts, \templatebus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+
 Routine.new({
 	while( true, {~matchOut.get(_.postln);
 	1.yield;})
