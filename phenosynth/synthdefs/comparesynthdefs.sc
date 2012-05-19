@@ -129,17 +129,26 @@ PSBasicCompareSynths {
 			FFTDiffMags.kr(targetfft, offt);
 		});
 
-		/*Convolution-based comparison
-		this should be smarter about comparative amplitudes, which will require me to know FFT delay,
-		but is probably the best thing in my armoury.*/
-		this.makeComparer(\_ga_judge_convolution, {
+		/*Convolution-based comparison. Amplitude-blind.*/
+		this.makeComparer(\_ga_judge_convolution_norm, {
 			|targetsig, observedsig|
-			var targetfft, offt, bfr1, bfr2;
-			
 			targetsig = Normalizer.ar(targetsig);
 			observedsig = Normalizer.ar(observedsig);
 			
 			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512));
+		});
+		/*Convolution-based comparison that attempts to match amplitudes*/
+		this.makeComparer(\_ga_judge_convolution, {
+			|targetsig, observedsig|
+			var amptarget, ampobs, amplo, amphi, obsHigher;
+			amptarget = Amplitude.kr(targetsig);
+			ampobs = Amplitude.kr(observedsig);
+			obsHigher = ampobs>amptarget;
+			amplo = Select.kr(obsHigher, [ampobs, amptarget]);
+			amphi = Select.kr(obsHigher, [amptarget, ampobs]);
+			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) * (
+				amphi/amplo
+			);
 		});
 		/*MFCC-based comparison
 		assumes 44.1/48Khz. Should check that, eh?
