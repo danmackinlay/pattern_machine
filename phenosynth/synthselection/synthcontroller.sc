@@ -261,7 +261,7 @@ PSCompareSynthController : PSListenSynthController {
 	}
 	getListenSynthArgs{|indDict|
 		^super.getListenSynthArgs(indDict).addAll([
-			\templatebus, indDict.templateBus
+			\targetbus, indDict.templateBus
 		]);
 	}
 	decorateIndividualDict {|indDict|

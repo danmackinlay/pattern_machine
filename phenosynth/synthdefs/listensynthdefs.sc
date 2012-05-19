@@ -71,10 +71,10 @@ PSBasicListenSynths {
 				Out.kr(out, integral);
 			}
 		).add;
-		SynthDef.new(\_ga_judge_targetpitch, { |testbus, out=0, active=0, t_reset=0, targetpitch=660|
+		SynthDef.new(\_ga_judge_targetpitch, { |observedbus, out=0, active=0, t_reset=0, targetpitch=660|
 			var testsig, comparison, integral, freq, hasFreq;
 			
-			testsig = LeakDC.ar(In.ar(testbus, 1));
+			testsig = LeakDC.ar(In.ar(observedbus, 1));
 			
 			# freq, hasFreq = Pitch.kr(testsig);
 			
@@ -91,10 +91,10 @@ PSBasicListenSynths {
 		
 		// This judge aims for the fundamental pitch to vary as much as possible.
 		// You may find that this tends towards white noise or similar...
-		SynthDef.new(\_ga_judge_movingpitch, { |testbus, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_movingpitch, { |observedbus, out=0, active=0, t_reset=0|
 			var testsig, comparison, integral, freq, hasFreq;
 			
-			testsig = LeakDC.ar(In.ar(testbus, 1));
+			testsig = LeakDC.ar(In.ar(observedbus, 1));
 			
 			freq = A2K.kr(ZeroCrossing.ar(testsig));
 			
@@ -116,10 +116,10 @@ PSBasicListenSynths {
 		
 		// Match a specific not-quite-trivial amplitude envelope
 		// Env.new([0.001, 1, 0.3, 0.8, 0.001],[0.2,0.3,0.1,0.4],'welch').test.plot
-		SynthDef.new(\_ga_judge_ampenv, { |testbus, out=0, active=0, t_reset=0|
+		SynthDef.new(\_ga_judge_ampenv, { |observedbus, out=0, active=0, t_reset=0|
 			var testsig, comparison, integral, env;
 			
-			testsig = LeakDC.ar(In.ar(testbus, 1));
+			testsig = LeakDC.ar(In.ar(observedbus, 1));
 			
 			// Alter this envelope to the one you're aiming for...
 			env = EnvGen.kr(Env.new([0.001, 1, 0.3, 0.8, 0.001],[0.2,0.3,0.1,0.4],'welch'), t_reset);
