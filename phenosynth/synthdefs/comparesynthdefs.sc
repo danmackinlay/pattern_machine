@@ -150,6 +150,50 @@ PSBasicCompareSynths {
 				amphi/amplo
 			);
 		});
+		/*Cepstral-based comparison that attempts to match amplitudes*/
+		this.makeComparer(\_ga_judge_cepstralmatch, {
+			|targetsig, observedsig|
+			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
+			
+			ffbfr1 = LocalBuf.new(2048,1);
+			ffbfr2 = LocalBuf.new(2048,1);
+			cepbfr1 = LocalBuf.new(1024,1);
+			cepbfr2 = LocalBuf.new(1024,1);
+
+			targetfft = FFT(ffbfr1, targetsig);
+			offt =   FFT(ffbfr2, observedsig);
+			targetcep = Cepstrum(cepbfr1, targetfft);
+			ocep =   Cepstrum(cepbfr2, offt);
+			
+			// // Smear the FFT a little to avoid being trapped in bins
+			// targetcep = PV_MagSmear(targetcep, 5);
+			//   ocep = PV_MagSmear(  ocep, 5);
+			
+			FFTDiffMags.kr(targetcep, ocep);
+		});
+		this.makeComparer(\_ga_judge_cepstralmatch_norm, {
+			|targetsig, observedsig|
+			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
+			
+			ffbfr1 = LocalBuf.new(2048,1);
+			ffbfr2 = LocalBuf.new(2048,1);
+			cepbfr1 = LocalBuf.new(1024,1);
+			cepbfr2 = LocalBuf.new(1024,1);
+			
+			targetsig = Normalizer.ar(targetsig);
+			observedsig = Normalizer.ar(observedsig);
+
+			targetfft = FFT(ffbfr1, targetsig);
+			offt =   FFT(ffbfr2, observedsig);
+			targetcep = Cepstrum(cepbfr1, targetfft);
+			ocep =   Cepstrum(cepbfr2, offt);
+			
+			// // Smear the FFT a little to avoid being trapped in bins
+			// targetcep = PV_MagSmear(targetcep, 5);
+			//   ocep = PV_MagSmear(  ocep, 5);
+			
+			FFTDiffMags.kr(targetcep, ocep);
+		});
 		/*MFCC-based comparison
 		assumes 44.1/48Khz. Should check that, eh?
 		This gives you rough timbral similarities, but is a crap pitch tracker.
