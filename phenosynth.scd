@@ -31,13 +31,15 @@ s.volume.volume= -20;
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
 ~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5);
 //~control.listenSynth = \_ga_judge_pitchampmatch;
-~control.listenSynth = \_ga_judge_fftmatch;
+//~control.listenSynth = \_ga_judge_fftmatch;
+~control.listenSynth = \_ga_judge_cepstralmatch;
 ~control.leakCoef;
 ~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
 s.sync;
 //now set up the "island" that will control their evolution
-~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.7, \initialChromosomeSize: 4, \pollPeriod: 5));
-~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
+~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5));
+//~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
+~island.fitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
 ~island.play(~control);
 s.sync;
 //add in the perfect one and see how it survives:

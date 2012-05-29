@@ -57,41 +57,58 @@ PSOperators {
 				).abs);
 			};
 		);
-		/* Fitness processors take the fitnesses of the entire population and postprocess it*/
+		
+		/* Fitness processors take the fitnesses of the entire population
+		and massage it it*/
+		/* This first one does the trivial thing, passing them unchanged. */
 		Library.put(\phenosynth, \fitness_cookers, \raw,
 			{|params, rawFitnesses|
 				rawFitnesses;
 			};
 		);
+		/*return the fitnesses as (descending) ranks- that is, select by ordinality
+		Doesn't work yet! */
 		Library.put(\phenosynth, \fitness_cookers, \ranked,
 			{|params, rawFitnesses|
-				//return the fitnesses as (descending) ranks- that is, select by ordinality
-				//Doesn't work yet!
 				rawFitnesses;
 			};
 		);
+		/* if fitness approaches zero for a good result, use this
+		It incidentally rescales everything to be in the range 0-1,
+		where fitnesss is reported as 1 when it's closest to 1
+		and 0 when it's farthest.*/
 		Library.put(\phenosynth, \fitness_cookers, \zero_peak,
 			{|params, rawFitnesses|
-				// if fitness approaches zero for a good result....
 				var cookedFitnesses, fitnessVals, range;
 				cookedFitnesses = IdentityDictionary.new;
 				
-				fitnessVals = rawFitnesses.values.asArray;
-				fitnessVals.notEmpty.if({ 
-					range = [fitnessVals.maxItem.abs, fitnessVals.minItem.abs, 0.01].maxItem;
+				fitnessVals = rawFitnesses.values.asArray.abs;
+				fitnessVals.notEmpty.if({
+					var fmax, fmin;
+					fmax = fitnessVals.maxItem;
+					fmin = fitnessVals.minItem;
+					range = [fmax-fmin, 0.001].maxItem;
 					rawFitnesses.keysValuesDo({|key,val|
-						cookedFitnesses[key] = range-val;
+						cookedFitnesses[key] = (range-(val.abs-fmin))/range;
 					});
 				});
 				cookedFitnesses;
 			};
 		);
-		/*termination conditions tell us when to stop - when we are "close enough" or have run too long*/
+		
+		/*
+		Termination conditions tell us when to stop -
+		when we are "close enough" or have run too long
+		*/
 		Library.put(\phenosynth, \termination_conds, \basic,
 			{|params, population, iterations|
 				iterations > params.stopIterations;
 			}
 		);
+		
+		/*
+		Death selectors select which agents to cull.
+		*/
 		Library.put(\phenosynth, \death_selectors, \byRoulettePerRate,
 			{|params, fitnesses|
 				//choose enough doomed to meet the death rate on average, by fitness-
@@ -169,7 +186,7 @@ PSOperators {
 				rate = params.mutationProb * (chromosome.size.reciprocal);
 				chromosome.do({|val, index|
 					(rate.coin).if ({
-						//exponentially distributed mutations to mimic flipping bits in 
+						//exponentially distributed mutations to mimic flipping bits in
 						//32 bit binary floats. lazy, inefficient, effective.
 						chromosome[index] = (val + 
 							(2.0 ** (32.0.rand.neg)) *
@@ -190,7 +207,7 @@ PSOperators {
 		);
 		Library.put(\phenosynth, \crossovers, \meanCrossover,
 			{|params, chromosomes|
-				//Useful for small problems with short float-based chromosomes - 
+				//Useful for small problems with short float-based chromosomes -
 				// chooses either number or a mean of two adjacent ones (diploid-lite)
 				var size = (chromosomes.size*2+1);
 				chromosomes.flop.collect(_.blendAt(size.rand/2));
