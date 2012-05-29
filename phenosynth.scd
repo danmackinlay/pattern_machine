@@ -141,7 +141,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   
   * better fitness metrics for listening
   
-  	* Direct cepstral comparison, instead of MFCC (woudl need sum of FFT bins, Ceptrum helpfile might help there)\
   	* time-delayed correlation?
   	* amplitude-weighted convolution
   	* some fancy wavelet shit?
@@ -296,7 +295,7 @@ s.sync;
 {~globalOuts.scope;}.defer;
 ~outgroup = Group.after(~voxgroup);
 1.wait;
-~template = {|freq=500| SinOsc.ar(freq, 0, 0.3); }.play(
+~template = {|freq=500| Saw.ar(freq: freq, mul:0.3); }.play(
 	target: ~voxgroup,
 	outbus: ~globalIns,
 	addAction: \addToHead,
@@ -304,7 +303,8 @@ s.sync;
 ~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
 //~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
 //~comparer = Synth.new(\_ga_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-~comparer = Synth.new(\_ga_judge_mfccmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_mfccmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+~comparer = Synth.new(\_ga_judge_cepstralmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
 
 Routine.new({
 	while( true, {~matchOut.get(_.postln);
