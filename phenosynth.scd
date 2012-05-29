@@ -209,7 +209,7 @@ The answer turns out to be non-simple:
 [ delay for, 1024, is, 468 ]
 [ delay for, 2048, is, 1472 ]
 [ delay for, 4096, is, 1537 ]
-So - framesize-64 up to 512,  3/4 framesize-64 for 1024.
+So - framesize-64 up to 512,  3/4 framesize-64 for 2048.
 1024 and 4096 are just a mystery.
 Convolution source inspection is probably necessary.
 */
@@ -321,6 +321,7 @@ s.sync;
 ~template.set(\freq, 500);
 ~candidate.set(\rq, 0.001);
 ~candidate.set(\rq, 0.1);
+~candidate.set(\rq, 1.0);
 ~candidate.set(\gain, 0.3);
 //{~candidate.autogui;}.defer;
 s.sync;
