@@ -238,10 +238,11 @@ PSListenSynthController : PSSynthController {
 	updateFitnesses {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
+				var localIndDict = indDict;
 				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.listenBus.getSynchronous].postln;
-				[\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val].postln;
-				island.setFitness(indDict.phenotype, val);
-				indDict.phenotype.incAge;
+				//[\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus ].postln;
+				island.setFitness(localIndDict.phenotype, val);
+				localIndDict.phenotype.incAge;
 			};
 			indDict.listenBus.get(updater);
 		});

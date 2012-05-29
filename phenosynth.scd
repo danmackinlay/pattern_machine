@@ -1,6 +1,6 @@
 //initialisation
-Server.default = s = ~serverboot.(\local, \internal);
 Server.default = s = ~serverboot.(\local, \motu);
+Server.default = s = ~serverboot.(\local, \internal);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
 StartUp.run;
