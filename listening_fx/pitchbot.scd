@@ -240,7 +240,7 @@ SynthDef(\delwrite, {|in, buffer, phaseout|
 //chorister version
 (
 s.waitForBoot( fork {
-	//~log = LogFile.global;
+	//~log = FileLogger.global;
 	//~analyseinput = Bus.newFrom(s.inputBus,0,1);
 	//~analyseinput = Bus.newFrom(s.inputBus,2,1);
 	~analyseinput = Bus.audio(s,2);

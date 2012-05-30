@@ -9,6 +9,8 @@ fork {
 ~globalOuts = Bus.new(\audio, 0, 2);
 {~globalOuts.scope;}.defer;
 ~voxgroup = Group.new(s);
+~log = PostLogger.global;
+//~log = FileLogger.global;
 s.sync;
 ~outgroup = Group.after(~voxgroup);
 /*******************/

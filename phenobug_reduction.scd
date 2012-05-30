@@ -1,5 +1,5 @@
 (
-~log = LogFile.global;
+~log = FileLogger.global;
 ~iterations = 0;
 ~list = LinkedList.new;
 ~term = {|list, iterations| 

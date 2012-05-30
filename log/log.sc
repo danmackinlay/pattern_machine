@@ -34,8 +34,8 @@ NullLogger {
 		^this.log(*msgargs);
 	}
 }
-LogFile : NullLogger {
-	/* writes pipe-separated log messages */
+FileLogger : NullLogger {
+	/* writes pipe-separated log messages to a file */
 	classvar global;
 	classvar default;
 	classvar <>logpath = "~/Logs/Supercollider";
@@ -85,5 +85,23 @@ LogFile : NullLogger {
 		var formatted = this.log(*msgargs);
 		file.flush;
 		^formatted;
+	}
+}
+PostLogger : NullLogger {
+	/* writes pipe-separated log messages to a the standard post window */
+	classvar global;
+
+	*global {
+		/* a shared, appendable log that all local supercolldier procs 
+		can write to. */
+		global.isNil.if({global = this.new("_global")});
+		^global;
+	}
+	*default {
+		/* a fresh, time-stamped logfile for your ease of logging */
+		^this.global;
+	}
+	log {|...msgargs|
+		^super.log(*msgargs).post;
 	}
 }
