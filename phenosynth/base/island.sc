@@ -24,6 +24,7 @@ PSIsland {
 	//generic function parameters can be passed to mutators, and they may
 	//be modified at run-time without defining new functions
 	var <>params;
+	var <>log;
 	
 	//These are the main state variable
 	var <population;
@@ -51,7 +52,6 @@ PSIsland {
 	var <fitnessEvaluator;
 	var <fitnessCooker;
 	var <terminationCondition;
-	
 	//var <fitnessPlotWindow;
 
 	// default values for that parameter thing
@@ -70,10 +70,13 @@ PSIsland {
 			\stopIterations: 1000
 		);
 	}
-	*new {|params|
-		^super.newCopyArgs(
-			this.defaultParams.updatedFrom(params ? Event.new);
+	*new {|params, log|
+		var thisNew = super.newCopyArgs(
+			this.defaultParams.updatedFrom(params ? Event.new),
+			log ? NullLogger.new
 		).init;
+		
+		^thisNew;
 	}
 	deathSelector_ {|fn|
 		deathSelector = this.loadFunction(fn);
@@ -267,12 +270,12 @@ PSRealTimeIsland : PSIsland {
 		defParams.populationSize = 100;
 		^defParams;
 	}	
-	*new {|params|
+	*new {|params, log|
 		params.pollPeriod ?? {
 			params = params.copy;
 			params.pollPeriod = 1;
 		}
-		^super.new(params).init;
+		^super.new(params, log).init;
 	}
 	init {
 		^super.init;

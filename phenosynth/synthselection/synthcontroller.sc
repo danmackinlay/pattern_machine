@@ -37,14 +37,16 @@ PSSynthController {
 	var <freedNodes;
 	var <playing = false;
 	var <island;
+	var <log;
 	
-	*new {|numChannels=1|
-		^super.newCopyArgs(numChannels).init;
+	*new {|numChannels=1, log|
+		^super.newCopyArgs(numChannels).init(log);
 	}
-	init {
+	init {|thisLog|
 		allocatedNodes = IdentityDictionary.new;
 		freedNodes = List.new;
 		all = IdentityDictionary.new;
+		log = thisLog ? NullLogger.new;
 	}
 	play {|serverOrGroup, outBus|
 		serverOrGroup.isKindOf(Group).if(
@@ -175,8 +177,8 @@ PSListenSynthController : PSSynthController {
 	//Toy example synth
 	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
 	
-	*new {|numChannels=1, fitnessPollInterval=1, listenSynth, leakCoef=0.5|
-		var noob = super.new(numChannels);
+	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynth, leakCoef=0.5|
+		var noob = super.new(numChannels, log);
 		noob.fitnessPollInterval = fitnessPollInterval;
 		noob.listenSynth = listenSynth ? defaultListenSynth;
 		noob.leakCoef = leakCoef;
@@ -240,7 +242,7 @@ PSListenSynthController : PSSynthController {
 			var updater = {|val|
 				var localIndDict = indDict;
 				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.listenBus.getSynchronous].postln;
-				//[\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus ].postln;
+				log.log(\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus );
 				island.setFitness(localIndDict.phenotype, val);
 				localIndDict.phenotype.incAge;
 			};

@@ -14,13 +14,7 @@ PSControllerIsland : PSRealTimeIsland {
 		defParams.populationSize = 50;
 		^defParams;
 	}
-	*new {|params|
-		params.pollPeriod ?? {
-			params = params.copy;
-		}
-		^super.new(params).init;
-	}
-	init {|newController|
+	init {
 		^super.init;
 	}
 	add {|phenotype|
@@ -34,7 +28,7 @@ PSControllerIsland : PSRealTimeIsland {
 	play {|controller|
 		//pass the controller a reference to me so it can push notifications
 		//A pub-sub solution would scale better to future multi-server parallelism
-		["playing with island", this.postln];
+		log.log(nil,"playing with island", this);
 		this.controller = controller;
 		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
 		controller.connect(this);

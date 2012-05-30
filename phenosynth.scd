@@ -31,7 +31,8 @@ s.sync;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5);
+~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5, log:~log);
+~control.log.log(nil, \spoo);
 //~control.listenSynth = \_ga_judge_pitchampmatch;
 //~control.listenSynth = \_ga_judge_fftmatch;
 ~control.listenSynth = \_ga_judge_cepstralmatch;
@@ -39,14 +40,16 @@ s.volume.volume= -20;
 ~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
 s.sync;
 //now set up the "island" that will control their evolution
-~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5));
+~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
 //~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
 ~island.fitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
 ~island.play(~control);
+~island.log;
+~island.controller;
 s.sync;
-//add in the perfect one and see how it survives:
-~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 0.002]));
-{~island.plotFitness(raw:true);}.defer;
+//add in a good one and see how it survives:
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
+//{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
 };
