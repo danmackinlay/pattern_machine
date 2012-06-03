@@ -1,27 +1,32 @@
 Allocator {
 	/*Manage a bunch of resources using a FIFO */
-	var nResources;
-	var queue;
-	*new{|nResources|
+	var <nResources;
+	var <toAlloc;
+	var <toFree;
+	*new{|nResources=16|
 		^super.newCopyArgs(nResources).init;
 	}
 	init {
-		queue = LinkedList.new;
-		nResources.do({|i| queue.add(i)});
+		toAlloc = LinkedList.new;
+		toFree = IdentitySet.new;
+		nResources.do({|i| toAlloc.add(i)});
 	}
 	alloc {
-		^queue.popFirst;
+		var next = toAlloc.popFirst;
+		toFree.add(next);
+		^next;
 	}
 	dealloc {|i|
-		queue.add(i);
+		toAlloc.add(i);
+		toFree.remove(i);
 	}
 }
 
 BusAllocator : Allocator {
 	/*Manage a list of multichannel buses*/
-	var nChans;
-	var server;
-	var busArray;
+	var <nChans;
+	var <server;
+	var <busArray;
 	
 	play {|serverOrBusArray, numChannels, busRate=\audio|
 		nChans = numChannels;
