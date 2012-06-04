@@ -49,6 +49,11 @@ PSSynthController {
 		log.isNil.if(log = NullLogger.new);
 	}
 	play {|serverOrGroup, outBus|
+		//defer init stuff to a routine so we can wait on server sync
+		fork {this.playWorker(serverOrGroup, outBus);}
+	}
+	playWorker {|serverOrGroup, outBus|
+		//his gets called in a Routine so server.sync may be used.
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
@@ -62,7 +67,6 @@ PSSynthController {
 		//This sets a flag to allow playing of synths, so that we don't end
 		//up with concurrency problems with playing/freeing
 		playing = true;
-		// also, we set an island to report back to about synth business
 	}
 	connect {|newIsland|
 		//couple to an island
@@ -201,12 +205,24 @@ PSListenSynthController : PSSynthController {
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
-		super.play(serverOrGroup, outBus);
+		fork {this.playWorker(serverOrGroup, outBus, listenGroup);};
+		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
+		worker = worker ?? {
+			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
+		};
+	}
+	playWorker {|serverOrGroup, outBus, listenGroup|
+		//set server and group using the parent method
+		super.playWorker(serverOrGroup, outBus);
+		//un-setting the playing flag is probably too flakey to work
+		playing = false;
+		server.sync;
 		this.listenGroup = listenGroup ?? { Group.after(playGroup);};
 		playBusses = Bus.alloc(rate:\audio, server:server, numChannels: maxPop*numChannels);
 		fitnessBusses = Bus.alloc(rate:\control, server:server, numChannels: maxPop);
 		//re-route some output to the master input
 		// could do this with less synths i think
+		server.sync;
 		jackNodes = maxPop.collect({|offset|
 			Synth.new(
 				PSMCCore.n(numChannels),
@@ -217,10 +233,7 @@ PSListenSynthController : PSSynthController {
 				listenGroup
 			);
 		});
-		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
-		worker = worker ?? {
-			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
-		};
+		playing = true;
 	}
 	free {
 		super.free;
