@@ -173,7 +173,12 @@ PSListenSynthController : PSSynthController {
 	var <>clock;
 	var <>listenSynth;
 	var <>leakCoef;
+	var <busAllocator;
 	var <maxPop;
+
+	var <fitnessBusses;
+	var <playBusses;
+	var <jackNodes;
 	
 	//Toy example synth
 	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
@@ -191,12 +196,26 @@ PSListenSynthController : PSSynthController {
 		listenSynth = newListenSynth;
 		leakCoef = newLeakCoef;
 		maxPop = newMaxPop;
-		this;
+		busAllocator = Allocator.new(nResources:maxPop);
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
 		super.play(serverOrGroup, outBus);
 		this.listenGroup = listenGroup ?? { Group.after(playGroup);};
+		playBusses = Bus.alloc(rate:\audio, server:server, numChannels: maxPop*numChannels);
+		fitnessBusses = Bus.alloc(rate:\control, server:server, numChannels: maxPop);
+		//re-route some output to the master input
+		// could do this with less synths i think
+		jackNodes = maxPop.collect({|offset|
+			Synth.new(
+				PSMCCore.n(numChannels),
+				[
+					\in, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
+					\out, outBus
+				],
+				listenGroup
+			);
+		});
 		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
 		worker = worker ?? {
 			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
@@ -206,32 +225,33 @@ PSListenSynthController : PSSynthController {
 		super.free;
 		//listenGroup.free;
 		//listenGroup = nil;
+		//could free the parent group instead.
+		jackNodes.do({|node| node.free;});
 		clock.stop;
 		clock = nil;
 		worker = nil;
 	}
 	decorateIndividualDict {|indDict|
-		indDict.playBus = Bus.audio(server, numChannels);
-		indDict.listenBus = Bus.control(server, 1);
+		var offset = busAllocator.alloc;
+		indDict.busOffset = offset;
+		indDict.playBus = Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels);
+		indDict.fitnessBus = Bus.newFrom(fitnessBusses, offset: offset);
 		^indDict;
 	}
 	actuallyPlayIndividual {|indDict|
 		//play the synth to which we wish to listen
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
+		//we do this dynamically because listensynths can be expensive
 		indDict.listenNode = Synth.new(this.listenSynth,
 			this.getListenSynthArgs(indDict),
 			listenGroup);
 		indDict.phenotype.clockOn;
-		//re-route some output to the master input
-		indDict.jackNode = Synth.new(PSMCCore.n(numChannels),
-			[\in, indDict.playBus, \out, outBus],
-			listenGroup);
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
 		listenArgs = [\in, indDict.playBus,
-			\out, indDict.listenBus,
+			\out, indDict.fitnessBus,
 			\active, 1,
 			\i_leak, leakCoef];
 		^listenArgs;
@@ -240,9 +260,7 @@ PSListenSynthController : PSSynthController {
 		var freed = super.freeIndividual(phenotype);
 		freed.notNil.if({
 			freed.listenNode.free;
-			freed.playBus.free;
-			freed.listenBus.free;
-			freed.jackNode.free;
+			busAllocator.dealloc(freed.busOffset);
 		});
 		^freed;
 	}
@@ -250,12 +268,12 @@ PSListenSynthController : PSSynthController {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
 				var localIndDict = indDict;
-				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.listenBus.getSynchronous].postln;
-				log.log(\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus );
+				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.fitnessBus.getSynchronous].postln;
+				log.log(\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.fitnessBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.fitnessBus );
 				island.setFitness(localIndDict.phenotype, val);
 				localIndDict.phenotype.incAge;
 			};
-			indDict.listenBus.get(updater);
+			indDict.fitnessBus.get(updater);
 		});
 	}
 }

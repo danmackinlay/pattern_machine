@@ -267,7 +267,7 @@ PSRealTimeIsland : PSIsland {
 
 	*defaultParams {
 		var defParams = super.defaultParams;
-		defParams.populationSize = 100;
+		defParams.populationSize = 40;
 		^defParams;
 	}	
 	*new {|params, log|
