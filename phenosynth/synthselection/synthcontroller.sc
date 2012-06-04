@@ -173,16 +173,25 @@ PSListenSynthController : PSSynthController {
 	var <>clock;
 	var <>listenSynth;
 	var <>leakCoef;
+	var <maxPop;
 	
 	//Toy example synth
 	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
 	
-	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynth, leakCoef=0.5|
-		var noob = super.new(numChannels, log);
-		noob.fitnessPollInterval = fitnessPollInterval;
-		noob.listenSynth = listenSynth ? defaultListenSynth;
-		noob.leakCoef = leakCoef;
-		^noob;
+	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynth, leakCoef=0.5, maxPop=40|
+		^super.new(numChannels, log).init(
+			newFitnessPollInterval: fitnessPollInterval,
+			newListenSynth: listenSynth ? defaultListenSynth,
+			newLeakCoef:leakCoef,
+			newMaxPop: maxPop
+		);
+	}
+	init {|newFitnessPollInterval, newListenSynth, newLeakCoef, newMaxPop|
+		fitnessPollInterval = newFitnessPollInterval;
+		listenSynth = newListenSynth;
+		leakCoef = newLeakCoef;
+		maxPop = newMaxPop;
+		this;
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
