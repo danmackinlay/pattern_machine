@@ -97,7 +97,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
 
 * make sure gate is set right.
-* use Conditions to make sure Controller is synced with the server OK
+* use Server.bind or SErver.makeBundle to make sure the setup is executed synchronously
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
   

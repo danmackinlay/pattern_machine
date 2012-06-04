@@ -48,12 +48,8 @@ PSSynthController {
 		all = IdentityDictionary.new;
 		log.isNil.if(log = NullLogger.new);
 	}
-	play {|serverOrGroup, outBus|
-		//defer init stuff to a routine so we can wait on server sync
-		fork {this.playWorker(serverOrGroup, outBus);}
-	}
-	playWorker {|serverOrGroup, outBus|
-		//his gets called in a Routine so server.sync may be used.
+	play {|serverOrGroup, outBus ... argz|
+		var setupBundle;
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
@@ -63,10 +59,12 @@ PSSynthController {
 				playGroup = Group.head(server);
 			}
 		);
-		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
-		//This sets a flag to allow playing of synths, so that we don't end
-		//up with concurrency problems with playing/freeing
+		setupBundle = this.playBundle(serverOrGroup, outBus, *argz);
+		server.listSendBundle(0.0, setupBundle);
 		playing = true;
+	}
+	playBundle {|serverOrGroup, outBus|
+		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
 	}
 	connect {|newIsland|
 		//couple to an island
@@ -205,24 +203,20 @@ PSListenSynthController : PSSynthController {
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
-		fork {this.playWorker(serverOrGroup, outBus, listenGroup);};
+		super.play(serverOrGroup, outBus, listenGroup);
 		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
 		worker = worker ?? {
 			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
 		};
 	}
-	playWorker {|serverOrGroup, outBus, listenGroup|
+	playBundle {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
-		super.playWorker(serverOrGroup, outBus);
-		//un-setting the playing flag is probably too flakey to work
-		playing = false;
-		server.sync;
+		super.playBundle(serverOrGroup, outBus);
 		this.listenGroup = listenGroup ?? { Group.after(playGroup);};
 		playBusses = Bus.alloc(rate:\audio, server:server, numChannels: maxPop*numChannels);
 		fitnessBusses = Bus.alloc(rate:\control, server:server, numChannels: maxPop);
 		//re-route some output to the master input
 		// could do this with less synths i think
-		server.sync;
 		jackNodes = maxPop.collect({|offset|
 			Synth.new(
 				PSMCCore.n(numChannels),
@@ -233,7 +227,6 @@ PSListenSynthController : PSSynthController {
 				listenGroup
 			);
 		});
-		playing = true;
 	}
 	free {
 		super.free;
@@ -300,8 +293,8 @@ PSCompareSynthController : PSListenSynthController {
 	var <>templateBus;
 	
 	play {|serverOrGroup, outBus, listenGroup, templateBus|
-		super.play(serverOrGroup, outBus, listenGroup);
 		this.templateBus = templateBus;
+		super.play(serverOrGroup, outBus, listenGroup);
 	}
 	getListenSynthArgs{|indDict|
 		^super.getListenSynthArgs(indDict).addAll([
