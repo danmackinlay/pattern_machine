@@ -172,7 +172,7 @@ PSListenSynthController : PSSynthController {
 	var <>listenGroup;
 	var <>worker;
 	var <>clock;
-	var <>listenSynth;
+	var <>listenSynthDef;
 	var <>leakCoef;
 	var <busAllocator;
 	var <maxPop;
@@ -182,12 +182,12 @@ PSListenSynthController : PSSynthController {
 	var <jackNodes;
 	
 	//Toy example synth
-	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
+	classvar <>defaultListenSynthDef = \ps_listen_eight_hundred;
 	
-	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynth, leakCoef=0.5, maxPop=40|
+	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynthDef, leakCoef=0.5, maxPop=40|
 		^super.new(numChannels, log).init(
 			newFitnessPollInterval: fitnessPollInterval,
-			newListenSynth: listenSynth ? defaultListenSynth,
+			newListenSynth: listenSynthDef ? defaultListenSynthDef,
 			newLeakCoef:leakCoef,
 			newMaxPop: maxPop
 		);
@@ -195,7 +195,7 @@ PSListenSynthController : PSSynthController {
 	init {|newFitnessPollInterval, newListenSynth, newLeakCoef, newMaxPop|
 		super.init;
 		fitnessPollInterval = newFitnessPollInterval;
-		listenSynth = newListenSynth;
+		listenSynthDef = newListenSynth;
 		leakCoef = newLeakCoef;
 		maxPop = newMaxPop;
 		busAllocator = Allocator.new(nResources:maxPop);
@@ -253,7 +253,7 @@ PSListenSynthController : PSSynthController {
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		//we do this dynamically because listensynths can be expensive
-		indDict.listenNode = Synth.new(this.listenSynth,
+		indDict.listenNode = Synth.new(this.listenSynthDef,
 			this.getListenSynthArgs(indDict),
 			listenGroup);
 		indDict.phenotype.clockOn;
@@ -292,7 +292,7 @@ PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	
-	classvar <>defaultListenSynth = \_ga_judge_fftmatch;
+	classvar <>defaultListenSynthDef = \_ga_judge_fftmatch;
 	var <>templateBus;
 	
 	play {|serverOrGroup, outBus, listenGroup, templateBus|
