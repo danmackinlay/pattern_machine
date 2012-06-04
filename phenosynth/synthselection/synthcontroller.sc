@@ -29,6 +29,7 @@ PSSynthController {
 	/*Instance vars are all public to aid debugging, but not much use to look 
 	at unless you *are* debugging.*/
 	var <numChannels;
+	var <log;
 	var <>outBus;
 	var <server;
 	var <all;
@@ -37,16 +38,15 @@ PSSynthController {
 	var <freedNodes;
 	var <playing = false;
 	var <island;
-	var <log;
 	
 	*new {|numChannels=1, log|
-		^super.newCopyArgs(numChannels).init(log);
+		^super.newCopyArgs(numChannels, log).init;
 	}
-	init {|thisLog|
+	init {
 		allocatedNodes = IdentityDictionary.new;
 		freedNodes = List.new;
 		all = IdentityDictionary.new;
-		log = thisLog ? NullLogger.new;
+		log.isNil.if(log = NullLogger.new);
 	}
 	play {|serverOrGroup, outBus|
 		serverOrGroup.isKindOf(Group).if(
@@ -178,11 +178,17 @@ PSListenSynthController : PSSynthController {
 	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
 	
 	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynth, leakCoef=0.5|
-		var noob = super.new(numChannels, log);
-		noob.fitnessPollInterval = fitnessPollInterval;
-		noob.listenSynth = listenSynth ? defaultListenSynth;
-		noob.leakCoef = leakCoef;
-		^noob;
+		^super.new(numChannels, log).init(
+			newFitnessPollInterval: fitnessPollInterval,
+			newListenSynth: listenSynth ? defaultListenSynth,
+			newLeakCoef:leakCoef
+		);
+	}
+	init {|newFitnessPollInterval, newListenSynth, newLeakCoef|
+		super.init;
+		fitnessPollInterval = newFitnessPollInterval;
+		listenSynth = newListenSynth;
+		leakCoef = newLeakCoef;
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
