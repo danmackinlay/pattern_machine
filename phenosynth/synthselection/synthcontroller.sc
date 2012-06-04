@@ -29,6 +29,7 @@ PSSynthController {
 	/*Instance vars are all public to aid debugging, but not much use to look 
 	at unless you *are* debugging.*/
 	var <numChannels;
+	var <log;
 	var <>outBus;
 	var <server;
 	var <all;
@@ -37,16 +38,15 @@ PSSynthController {
 	var <freedNodes;
 	var <playing = false;
 	var <island;
-	var <log;
 	
 	*new {|numChannels=1, log|
-		^super.newCopyArgs(numChannels).init(log);
+		^super.newCopyArgs(numChannels, log).init;
 	}
-	init {|thisLog|
+	init {
 		allocatedNodes = IdentityDictionary.new;
 		freedNodes = List.new;
 		all = IdentityDictionary.new;
-		log = thisLog ? NullLogger.new;
+		log.isNil.if(log = NullLogger.new);
 	}
 	play {|serverOrGroup, outBus|
 		serverOrGroup.isKindOf(Group).if(
@@ -192,6 +192,7 @@ PSListenSynthController : PSSynthController {
 		);
 	}
 	init {|newFitnessPollInterval, newListenSynth, newLeakCoef, newMaxPop|
+		super.init;
 		fitnessPollInterval = newFitnessPollInterval;
 		listenSynth = newListenSynth;
 		leakCoef = newLeakCoef;

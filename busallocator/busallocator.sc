@@ -23,7 +23,7 @@ Allocator {
 }
 
 BusAllocator : Allocator {
-	/*Manage a list of multichannel buses*/
+	/*Manage a list of multichannel buses using a FIFO*/
 	var <nChans;
 	var <server;
 	var <busArray;
