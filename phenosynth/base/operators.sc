@@ -66,11 +66,33 @@ PSOperators {
 				rawFitnesses;
 			};
 		);
-		/*return the fitnesses as (descending) ranks- that is, select by ordinality
-		Doesn't work yet! */
+		/*return the fitnesses as ordinal ranks.
+		Higher raw fitness is higher rank.
+		Surprisingly tricky to do this, no?*/
 		Library.put(\phenosynth, \fitness_cookers, \ranked,
 			{|params, rawFitnesses|
-				rawFitnesses;
+				var newFitnesses, size;
+				size = rawFitnesses.size;
+				newFitnesses = 0!size;
+				((rawFitnesses.order) +++ Array.series(size,0,1)).do(
+					{|i|
+						newFitnesses[i[0]] = i[1];
+				});
+				newFitnesses;
+			};
+		);
+		/*return the fitnesses as ordinal ranks.
+		Higher raw fitness is lower rank. */
+		Library.put(\phenosynth, \fitness_cookers, \reverse_ranked,
+			{|params, rawFitnesses|
+				var newFitnesses, size;
+				size = rawFitnesses.size;
+				newFitnesses = 0!size;
+				((rawFitnesses.order) +++  Array.series(size,0,1)).do(
+					{|i|
+						newFitnesses[i[0]] = i[1];
+				});
+				size - newFitnesses - 1;
 			};
 		);
 		/* if fitness approaches zero for a good result, use this
