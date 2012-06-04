@@ -278,8 +278,8 @@ PSListenSynthController : PSSynthController {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
 				var localIndDict = indDict;
-				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.fitnessBus.getSynchronous].postln;
-				log.log(\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.fitnessBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.fitnessBus );
+				log.log(\updating, localIndDict.phenotype.chromosomeAsSynthArgs, \to, val );
+				// log.log(\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus );
 				island.setFitness(localIndDict.phenotype, val);
 				localIndDict.phenotype.incAge;
 			};
