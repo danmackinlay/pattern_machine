@@ -38,6 +38,9 @@ s.volume.volume= -20;
 //~control.listenSynth = \_ga_judge_fftmatch;
 ~control.listenSynth = \_ga_judge_cepstralmatch;
 ~control.leakCoef;
+~control.playBusses;
+~control.fitnessBusses;
+~control.jackNodes;
 ~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
 s.sync;
 //now set up the "island" that will control their evolution
@@ -46,6 +49,7 @@ s.sync;
 ~island.fitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
 ~island.play(~control);
 ~island.log;
+~control.log;
 ~island.controller;
 s.sync;
 //add in a good one and see how it survives:
@@ -97,7 +101,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
 
 * make sure gate is set right.
-* use Server.bind or SErver.makeBundle to make sure the setup is executed synchronously
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
   

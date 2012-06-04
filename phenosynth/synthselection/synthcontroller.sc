@@ -40,13 +40,12 @@ PSSynthController {
 	var <island;
 	
 	*new {|numChannels=1, log|
-		^super.newCopyArgs(numChannels, log).init;
+		^super.newCopyArgs(numChannels, log ?? NullLogger.new).init;
 	}
 	init {
 		allocatedNodes = IdentityDictionary.new;
 		freedNodes = List.new;
 		all = IdentityDictionary.new;
-		log.isNil.if(log = NullLogger.new);
 	}
 	play {|serverOrGroup, outBus ... argz|
 		var setupBundle;
@@ -206,7 +205,11 @@ PSListenSynthController : PSSynthController {
 		super.play(serverOrGroup, outBus, listenGroup);
 		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
 		worker = worker ?? {
-			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
+			Routine.new({loop {
+				this.updateFitnesses;
+				1.wait;
+				log.log(nil, "updating fitnesses");
+			}}).play(clock);
 		};
 	}
 	playBundle {|serverOrGroup, outBus, listenGroup|
