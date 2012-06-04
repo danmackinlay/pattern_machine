@@ -7,7 +7,7 @@ StartUp.run;
 (
 fork {
 ~globalOuts = Bus.new(\audio, 0, 2);
-{~globalOuts.scope;}.defer;
+//{~globalOuts.scope;}.defer;
 ~voxgroup = Group.new(s);
 ~log = PostLogger.global;
 //~log = FileLogger.global;
@@ -31,8 +31,9 @@ s.sync;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5, log:~log);
+~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:5, leakCoef:0.5, maxPop:40);
 ~control.log.log(nil, \spoo);
+~control.all.postcs;
 //~control.listenSynth = \_ga_judge_pitchampmatch;
 //~control.listenSynth = \_ga_judge_fftmatch;
 ~control.listenSynth = \_ga_judge_cepstralmatch;
