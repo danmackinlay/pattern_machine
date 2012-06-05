@@ -43,8 +43,8 @@ s.volume.volume= -20;
 s.sync;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
-//~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
-~island.fitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
+//~island.scoreCooker = #[phenosynth, score_cookers, raw];
+~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 ~island.play(~control);
 s.sync;
 };
@@ -68,24 +68,24 @@ s.sync;
 //when you are bored, do a
 ~island.free;
 ~island.cookedFitnesses.values.postln;
-~island.rawFitnesses.values.postln;
-~island.rawFitnesses.keys.asArray[1].hash.asHexString
+~island.rawScores.values.postln;
+~island.rawScores.keys.asArray[1].hash.asHexString
 //testing that things are going OK:
-(~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
-(~island.population - (~island.rawFitnesses.keys)).size;
+(~island.cookedFitnesses.keys - (~island.rawScores.keys)).size;
+(~island.population - (~island.rawScores.keys)).size;
 (~island.population - (~island.cookedFitnesses.keys)).size;
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
 best = ranked[0];
 worst = ranked[ranked.size-1];
-[\best, ~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
-[\worst, ~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
+[\best, ~island.rawScores[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
+[\worst, ~island.rawScores[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
 ~ind = ~island.rankedPopulation[0].chromosomeAsSynthArgs;
 ~ind
-[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawFitnesses.size];
+[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawScores.size];
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
 //these should only ever differ momentarily
 ~island.population.select(_.wallClockAge>0)
@@ -283,14 +283,14 @@ StartUp.run;
 ~island = PSIsland.new((\initialChromosomeSize: 4));
 ~island.params;
 // Solve sin(3wx\pi/2) = cos(yz\pi)
-~island.fitnessEvaluator = [\phenosynth, \fitness_evals, \trigonometry];
-~island.fitnessCooker = [\phenosynth, \fitness_cookers, \zero_peak];
+~island.scoreEvaluator = [\phenosynth, \score_evals, \trigonometry];
+~island.scoreCooker = [\phenosynth, \score_cookers, \zero_peak];
 ~island.play;
 ~island.population;
 ~arbitrary = ~island.population.asArray[0];
 //~island.init;
-~island.rawFitnesses;
-~island.rawFitnesses[~arbitrary];
+~island.rawScores;
+~island.rawScores[~arbitrary];
 ~island.cookedFitnesses[~arbitrary];
 ~island.cookedFitnesses.values;
 ~arbitrary.chromosome;
