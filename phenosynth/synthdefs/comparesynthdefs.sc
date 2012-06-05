@@ -54,8 +54,8 @@ PSBasicCompareSynths {
 			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 		});
 			
-		// Try and match amplitude envelope against a template signal
-		this.makeComparer(\_ga_judge_ampmatch, {
+		// Try and match amplitude envelope against a target signal
+		this.makeComparer(\_ga_judge_amp_distance, {
 			|targetsig, observedsig|
 			var targetamp, oamp;
 			
@@ -66,7 +66,7 @@ PSBasicCompareSynths {
 		});
 
 		// Try and match pitch envelope against a template signal
-		this.makeComparer(\_ga_judge_pitchmatch, {
+		this.makeComparer(\_ga_judge_pitch_distance, {
 			|targetsig, observedsig|
 			var targetpitch, targethaspitch, opitch, ohaspitch;
 			
@@ -76,7 +76,7 @@ PSBasicCompareSynths {
 			(100 - ((targetpitch - opitch).abs * 0.1)).max(0);
 		});
 		// Try and match pitch and amplitude envelope against a template signal
-		this.makeComparer(\_ga_judge_pitchampmatch, {
+		this.makeComparer(\_ga_judge_pitchamp_distance, {
 			|targetsig, observedsig|
 			var targetpitch, targethaspitch, targetamp, opitch, ohaspitch, oamp, nanfitness, nanness;
 			var eps = 0.00001;
@@ -92,7 +92,7 @@ PSBasicCompareSynths {
 		});
 		/* Try and match pitch envelope against a template signal - but using
 		 ZeroCrossing*/
-		this.makeComparer(\_ga_judge_pitchmatch_zc, {
+		this.makeComparer(\_ga_judge_pitch_distance_zc, {
 			|targetsig, observedsig|
 			var targetpitch, opitch;
 			
@@ -105,7 +105,7 @@ PSBasicCompareSynths {
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
 		NB - this uses a CUSTOM UGEN, available in the SC3-plugins project 
-		This appears to evaluate to, e.g. 0.002, for unmatched signals, and 0 for identical ones
+		This appears to evaluate to, e.g. 0.002, for non-matched signals, and 0 for identical ones
 		That is, it reports difference in magnitude as the name implies.
 		For most purposes it is too fragile a comparison to be useful.*/
 		this.makeComparer(\_ga_judge_fftmatch, {

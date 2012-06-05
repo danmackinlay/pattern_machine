@@ -34,10 +34,10 @@ s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
 ~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:5, leakCoef:0.5, maxPop:40);
-//~control.listenSynthDef = \_ga_judge_pitchampmatch;
-//~control.listenSynthDef = \_ga_judge_fftmatch;
-~control.listenSynthDef = \_ga_judge_cepstralmatch;
-//~control.listenSynthDef = \_ga_judge_mfccmatch;
+//~control.listenSynthDef = \_ga_judge_pitchamp_distance;
+~control.listenSynthDef = \_ga_judge_fft_distance;
+//~control.listenSynthDef = \_ga_judge_cepstral_distance;
+//~control.listenSynthDef = \_ga_judge_mfcc_distance;
 ~control.leakCoef;
 ~control.play(s, outBus: ~globalOuts, targetBus: ~targetBus);
 s.sync;
@@ -318,10 +318,10 @@ s.sync;
 	addAction: \addToHead,
 	args: [\freq, 600]);
 ~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-//~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_fft_distance_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
 //~comparer = Synth.new(\_ga_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\_ga_judge_mfccmatch, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
-~comparer = Synth.new(\_ga_judge_cepstralmatch, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_mfcc_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+~comparer = Synth.new(\_ga_judge_cepstral_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
 
 Routine.new({
 	while( true, {~matchOut.get(_.postln);
