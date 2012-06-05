@@ -260,7 +260,7 @@ PSListenSynthController : PSSynthController {
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
-		listenArgs = [\in, indDict.playBus,
+		listenArgs = [\observedbus, indDict.playBus,
 			\out, indDict.fitnessBus,
 			\active, 1,
 			\i_leak, leakCoef];
@@ -293,20 +293,20 @@ PSCompareSynthController : PSListenSynthController {
 	(external?) signal and allocates fitness accordingly. */
 	
 	classvar <>defaultListenSynthDef = \_ga_judge_fftmatch;
-	var <>templateBus;
+	var <>targetBus;
 	
-	play {|serverOrGroup, outBus, listenGroup, templateBus|
-		this.templateBus = templateBus;
+	play {|serverOrGroup, outBus, listenGroup, targetBus|
+		this.targetBus = targetBus;
 		super.play(serverOrGroup, outBus, listenGroup);
 	}
 	getListenSynthArgs{|indDict|
 		^super.getListenSynthArgs(indDict).addAll([
-			\targetbus, indDict.templateBus
+			\targetbus, indDict.targetBus
 		]);
 	}
 	decorateIndividualDict {|indDict|
 		super.decorateIndividualDict(indDict);
-		indDict.templateBus = templateBus;
+		indDict.targetBus = targetBus;
 		^indDict;
 	}
 }
