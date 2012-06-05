@@ -16,50 +16,55 @@ s.sync;
 /*******************/
 /* Do either THIS: */
 //better way to get first audio in?
-//~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+//~targetBus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 /* or THIS */
 /*******************/
-~globalIns = Bus.audio(s, 1);
-{|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore);
+~targetBus = Bus.audio(s, 1);
+s.sync;
+~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~voxgroup,  addAction:\addBefore);
+~target.trace;
 /*******************/
-//~globalIns.scope;
+//~targetBus.scope;
 //limiter, to avoid little accidents
-SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
 s.sync;
 ~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-//~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
+//~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
 ~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:5, leakCoef:0.5, maxPop:40);
-~control.log.log(nil, \spoo);
-~control.all.postcs;
 //~control.listenSynthDef = \_ga_judge_pitchampmatch;
 //~control.listenSynthDef = \_ga_judge_fftmatch;
 ~control.listenSynthDef = \_ga_judge_cepstralmatch;
+//~control.listenSynthDef = \_ga_judge_mfccmatch;
 ~control.leakCoef;
-~control.playBusses;
-~control.fitnessBusses;
-~control.jackNodes;
-~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
+~control.play(s, outBus: ~globalOuts, targetBus: ~targetBus);
 s.sync;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
 //~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
 ~island.fitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
 ~island.play(~control);
-~island.log;
-~control.log;
-~island.controller;
 s.sync;
+};
+)
+//listen for a while.
+//experiment
+~island.controller;
+~control.outBus;
+~control.playBusses;
+~control.fitnessBusses;
+~control.jackNodes;
+//~control.jackNodes[3].trace;
+~control.all.keys.asArray[0];
+~control.all.asArray[0];
 //add in a good one and see how it survives:
 ~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
-};
-)
-//listen for a while.
+~island.population.asArray[0];
 //when you are bored, do a
 ~island.free;
 ~island.cookedFitnesses.values.postln;
@@ -86,8 +91,8 @@ nil;
 ~island.population.select(_.wallClockAge>0)
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
-FreqScope.new(busNum:~globalIns);
-~globalIns
+FreqScope.new(busNum:~targetBus);
+~targetBus
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
@@ -300,28 +305,28 @@ fork {
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~matchOut = Bus.control(s, 1);
 ~voxgroup = Group.new(s);
-~globalIns = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
+~targetBus = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
 s.sync;
-[~globalOuts, ~matchOut, ~voxgroup, ~globalIns].postln;
+[~globalOuts, ~matchOut, ~voxgroup, ~targetBus].postln;
 {~globalOuts.scope;}.defer;
 ~outgroup = Group.after(~voxgroup);
 1.wait;
 ~template = {|freq=500| Saw.ar(freq: freq, mul:0.3); }.play(
 	target: ~voxgroup,
-	outbus: ~globalIns,
+	outbus: ~targetBus,
 	addAction: \addToHead,
 	args: [\freq, 600]);
 ~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-//~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\_ga_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\_ga_judge_mfccmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-~comparer = Synth.new(\_ga_judge_cepstralmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_mfccmatch, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+~comparer = Synth.new(\_ga_judge_cepstralmatch, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
 
 Routine.new({
 	while( true, {~matchOut.get(_.postln);
 	1.yield;})
 }).play;
-{FreqScope.new(busNum:~globalIns);}.defer;
+{FreqScope.new(busNum:~targetBus);}.defer;
 s.sync;
 ~candidate.set(\ffreq, 500, \pitch, 500);
 //~candidate.set(\ffreq, 800, \pitch, 800);
