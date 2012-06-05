@@ -43,9 +43,9 @@ PSSynthController {
 		^super.newCopyArgs(numChannels, log ?? NullLogger.new).init;
 	}
 	init {
-		allocatedNodes = IdentityDictionary.new;
+		allocatedNodes = IdentityDictionary.new(1000);
 		freedNodes = List.new;
-		all = IdentityDictionary.new;
+		all = IdentityDictionary.new(1000);
 	}
 	play {|serverOrGroup, outBus ... argz|
 		var setupBundle;

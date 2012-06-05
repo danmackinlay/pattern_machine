@@ -106,9 +106,9 @@ PSIsland {
 		terminationCondition = this.loadFunction(fn);
 	}
 	init {
-		population = IdentitySet.new;
-		rawFitnesses = IdentityDictionary.new;
-		cookedFitnesses = IdentityDictionary.new;
+		population = IdentitySet.new(1000);
+		rawFitnesses = IdentityDictionary.new(1000);
+		cookedFitnesses = IdentityDictionary.new(1000);
 		this.initOperators;
 	}
 	initOperators {
