@@ -44,7 +44,8 @@ s.sync;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
 //~island.scoreCooker = #[phenosynth, score_cookers, raw];
-~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 ~island.play(~control);
 s.sync;
 };

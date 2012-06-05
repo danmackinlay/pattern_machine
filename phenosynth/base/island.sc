@@ -28,7 +28,7 @@ PSIsland {
 	
 	//These are the main state variable
 	var <population;
-	var <rawFitnesses;
+	var <rawScores;
 	var <cookedFitnesses;
 	
 	/* this is another state variable. If I got one nore small var like this I'd make it
@@ -107,7 +107,7 @@ PSIsland {
 	}
 	init {
 		population = IdentitySet.new(1000);
-		rawFitnesses = IdentityDictionary.new(1000);
+		rawScores = IdentityDictionary.new(1000);
 		cookedFitnesses = IdentityDictionary.new(1000);
 		this.initOperators;
 	}
@@ -151,7 +151,7 @@ PSIsland {
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
-		rawFitnesses.removeAt(phenotype);
+		rawScores.removeAt(phenotype);
 		cookedFitnesses.removeAt(phenotype);
 	}
 	populate {
@@ -164,10 +164,10 @@ PSIsland {
 			this.setFitness(phenotype, scoreEvaluator.value(params, phenotype));
 			phenotype.incAge;
 		});
-		cookedFitnesses = scoreCooker.value(params, rawFitnesses);
+		cookedFitnesses = scoreCooker.value(params, rawScores);
 	}
 	setFitness {|phenotype, value|
-		rawFitnesses[phenotype] = value;
+		rawScores[phenotype] = value;
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -246,7 +246,7 @@ PSIsland {
 		orderedPopulation.sort({ arg a, b; a.hash < b.hash });
 		raw.if(
 			{
-				orderedFitnesses = orderedPopulation.collect({|i| rawFitnesses[i]}).select(_.notNil);
+				orderedFitnesses = orderedPopulation.collect({|i| rawScores[i]}).select(_.notNil);
 			}, {
 				orderedFitnesses = orderedPopulation.collect({|i| cookedFitnesses[i]}).select(_.notNil);
 			}
@@ -283,7 +283,7 @@ PSRealTimeIsland : PSIsland {
 	evaluate {
 		//No individual fitness updating; (they are updated for us)
 		// but allow group fitness alterations
-		cookedFitnesses = scoreCooker.value(params, rawFitnesses);
+		cookedFitnesses = scoreCooker.value(params, rawScores);
 	}
 	play {
 		/*note this does not call parent. */
