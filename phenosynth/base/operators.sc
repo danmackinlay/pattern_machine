@@ -67,36 +67,49 @@ PSOperators {
 			};
 		);
 		/*return the scores as ordinal fitness ranks.
-		Higher raw score is higher rank fitness.
+		Lower raw score is higher rank fitness.
 		Surprisingly tricky to do this, no?*/
-		Library.put(\phenosynth, \score_cookers, \ranked,
-			{|params, rawScores|
-				var fitnesses, size;
-				size = rawScores.size;
-				fitnesses = 0!size;
-				((rawScores.order) +++ Array.series(size,0,1)).do(
-					{|i|
-						fitnesses[i[0]] = i[1];
-				});
-				fitnesses;
-			};
-		);
-		/*return the scores as ordinal fitness ranks.
-		Lower raw score is higher rank. */
 		Library.put(\phenosynth, \score_cookers, \reverse_ranked,
 			{|params, rawScores|
-				var fitnesses, size;
+				var fitnessOrder, size, cookedFitnesses;
+				cookedFitnesses = IdentityDictionary.new;
 				size = rawScores.size;
-				fitnesses = 0!size;
-				((rawScores.order) +++  Array.series(size,0,1)).do(
-					{|i|
-						fitnesses[i[0]] = i[1];
+				(size>0).if({
+					fitnessOrder = Array.newClear(size);
+					rawScores.keysValuesDo({|key, val, i|
+						fitnessOrder[i] = (id:key, fitness:val);
+					});
+					fitnessOrder.sortBy(\fitness);
+					fitnessOrder.do({|elem, i|
+						cookedFitnesses[elem[\id]] = size-i;
+					});
 				});
-				size - fitnesses - 1;
+				cookedFitnesses;
+			};
+		);
+
+		/*return the scores as ordinal fitness ranks.
+		Higher raw score is higher rank. */
+		Library.put(\phenosynth, \score_cookers, \ranked,
+			{|params, rawScores|
+				var fitnessOrder, size, cookedFitnesses;
+				cookedFitnesses = IdentityDictionary.new;
+				size = rawScores.size;
+				(size>0).if({
+					fitnessOrder = Array.newClear(size);
+					rawScores.keysValuesDo({|key, val, i|
+						fitnessOrder[i] = (id:key, fitness:val);
+					});
+					fitnessOrder.sortBy(\fitness);
+					fitnessOrder.do({|elem, i|
+						cookedFitnesses[elem[\id]] = i;
+					});
+				});
+				cookedFitnesses;
 			};
 		);
 		/* if score approaches zero for a good result (e.g. a
-		matching metric), use this.
+		distance metric for some matching process), use this.
 		It incidentally rescales everything to be in the range 0-1,
 		where fitnesss is reported as 1 when it's closest to 1
 		and 0 when it's farthest.*/
