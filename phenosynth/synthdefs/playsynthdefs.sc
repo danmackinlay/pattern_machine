@@ -10,6 +10,13 @@ PSBasicPlaySynths {
 		this.loadSynthDefs;
 	}
 	*loadSynthDefs{
+			// First, a utility synth:
+		
+			// Really simple SynthDef to play a buffer when triggered
+			SynthDef.new(\_ga_just_playbuf, {|bufnum, out=0, t_trig=0|
+				Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
+			});
+		
 			SynthDef.new(
 				\ps_reson_saw,
 				{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0|
