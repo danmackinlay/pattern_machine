@@ -140,7 +140,7 @@ PSBasicCompareSynths {
 			amplo = Select.kr(obsHigher, [ampobs, amptarget]);
 			amphi = Select.kr(obsHigher, [amptarget, ampobs]);
 			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) * (
-				amphi/amplo
+				amphi/(amplo+0.0000001)
 			);
 		});
 		/*Cepstral-based comparison that attempts to match amplitudes*/
