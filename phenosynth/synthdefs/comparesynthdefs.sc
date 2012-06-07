@@ -108,7 +108,7 @@ PSBasicCompareSynths {
 		This appears to evaluate to, e.g. 0.002, for non-matched signals, and 0 for identical ones
 		That is, it reports difference in magnitude as the name implies.
 		For most purposes it is too fragile a comparison to be useful.*/
-		this.makeComparer(\_ga_judge_fftmatch, {
+		this.makeComparer(\_ga_judge_fft_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
 			
@@ -151,7 +151,7 @@ PSBasicCompareSynths {
 			);
 		});
 		/*Cepstral-based comparison that attempts to match amplitudes*/
-		this.makeComparer(\_ga_judge_cepstralmatch, {
+		this.makeComparer(\_ga_judge_cepstral_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 			
@@ -171,7 +171,7 @@ PSBasicCompareSynths {
 			
 			FFTDiffMags.kr(targetcep, ocep);
 		});
-		this.makeComparer(\_ga_judge_cepstralmatch_norm, {
+		this.makeComparer(\_ga_judge_cepstral_distance_norm, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 			
@@ -198,7 +198,7 @@ PSBasicCompareSynths {
 		assumes 44.1/48Khz. Should check that, eh?
 		This gives you rough timbral similarities, but is a crap pitch tracker.
 		It will, e.g., prefer signals with similar bandwidths over signals with similar pitches.*/
-		this.makeComparer(\_ga_judge_mfccmatch, {
+		this.makeComparer(\_ga_judge_mfcc_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, sigcepstrum, ocepstrum, bfr1, bfr2;
 			
