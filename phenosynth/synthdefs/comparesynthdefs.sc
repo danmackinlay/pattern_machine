@@ -24,8 +24,8 @@ PSBasicCompareSynths {
 		SynthDef.new(name, {
 			|observedbus, targetbus=0, out=0, active=1, t_reset=0, i_leak=0.5|
 			var observedsig, targetsig, comparison, integral;
-			targetsig  = LeakDC.ar(In.ar(observedbus, 1));
-			observedsig = LeakDC.ar(In.ar(targetbus, 1));
+			targetsig  = LeakDC.ar(In.ar(targetbus, 1));
+			observedsig = LeakDC.ar(In.ar(observedbus, 1));
 
 			/*Calculate a leak coefficient to discount fitness over time,
 			 presuming the supplied value is a decay rate _per_second_. (Half
