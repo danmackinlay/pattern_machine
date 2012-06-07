@@ -58,7 +58,11 @@ PSSynthController {
 				playGroup = Group.head(server);
 			}
 		);
-		setupBundle = this.playBundle(serverOrGroup, outBus, *argz);
+		setupBundle = server.makeBundle(
+			nil,
+			{this.playBundle(server, outBus, *argz);}
+	 	);
+		log.log(nil, \setupBundle, setupBundle);
 		server.listSendBundle(0.0, setupBundle);
 		playing = true;
 	}
