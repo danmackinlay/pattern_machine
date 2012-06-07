@@ -21,7 +21,7 @@ s.sync;
 /*******************/
 ~targetBus = Bus.audio(s, 1);
 s.sync;
-~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~voxgroup,  addAction:\addBefore);
+~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~voxgroup, addAction:\addBefore);
 ~target.trace;
 /*******************/
 //~targetBus.scope;
