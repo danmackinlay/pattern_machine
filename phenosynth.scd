@@ -22,6 +22,9 @@ s.sync;
 ~targetBus = Bus.audio(s, 1);
 s.sync;
 ~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~voxgroup, addAction:\addBefore);
+~spy=SpyBus.new.play(~target, ~targetBus);
+s.sync;
+//~spy.moveAfter(~target);
 ~target.trace;
 /*******************/
 //~targetBus.scope;
