@@ -1,7 +1,7 @@
 /* originally based on MCLD's example MCLD_Genetic tests, though the
 resemblance is rapidly diminishing.
 
-Here I keep listensynthdefs with only one signal in, ie.e. that look for one
+Here I keep listensynthdefs with only one signal observedbus, ie.e. that look for one
 particular signal quality rather than comapring wit with an external signal.
 
 */
@@ -20,10 +20,10 @@ PSBasicListenSynths {
 	*loadSynthDefs {
 		// This judge is one of the simplest I can think of (for demo purposes) 
 		// - evaluates closeness of pitch to a reference value (800 Hz).
-		SynthDef.new(\ps_listen_eight_hundred, { |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
+		SynthDef.new(\ps_listen_eight_hundred, { |observedbus, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 			var testsig, comparison, integral, freq, hasFreq, logtargetpitch, realleakcoef;
 			logtargetpitch = i_targetpitch.log;
-			testsig = LeakDC.ar(Mix.new(In.ar(in, 1)));
+			testsig = LeakDC.ar(Mix.new(In.ar(observedbus, 1)));
 			# freq, hasFreq = Pitch.kr(testsig);
 			comparison = hasFreq.if(
 				(7 - ((freq.log) - logtargetpitch).abs).max(0),
@@ -43,9 +43,9 @@ PSBasicListenSynths {
 			Out.kr(out, integral);
 		}).add;
 		SynthDef.new(\ps_conv_eight_hundred,
-			{ |in, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
+			{ |observedbus, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 				var testsig, comparison, integral, realleakcoef;
-				testsig = LeakDC.ar(Mix.new(In.ar(in, 1)));
+				testsig = LeakDC.ar(Mix.new(In.ar(observedbus, 1)));
 				comparison = (
 					A2K.kr(
 						Lag.ar(
