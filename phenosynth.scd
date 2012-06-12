@@ -41,17 +41,19 @@ s.volume.volume= -20;
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
 ~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:5, leakCoef:0.5, maxPop:40);
 //~control.listenSynthDef = \_ga_judge_pitchamp_distance;
-~control.listenSynthDef = \_ga_judge_fft_distance;
+//~control.listenSynthDef = \_ga_judge_fft_distance;
+~control.listenSynthDef = \_ga_judge_convolution;
 //~control.listenSynthDef = \_ga_judge_cepstral_distance;
 //~control.listenSynthDef = \_ga_judge_mfcc_distance;
 ~control.leakCoef;
 ~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 s.sync;
+1.wait;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
-//~island.scoreCooker = #[phenosynth, score_cookers, raw];
+~island.scoreCooker = #[phenosynth, score_cookers, raw];
 //~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+//~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 ~island.play(~control);
 s.sync;
 [\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
@@ -64,10 +66,11 @@ s.queryAllNodes;
 ~control.outBus;
 ~control.playBusses;
 ~control.fitnessBusses;
-~control.jackNodes;
+~control.jackNodes[5].trace;
 //~control.jackNodes[3].trace;
 ~control.all.keys.asArray[0];
-~control.all.asArray[0];
+~control.all.asArray.dump;
+~control.listenGroup;
 //add in a good one and see how it survives:
 ~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
 //{~island.plotFitness(raw:true);}.defer;
@@ -76,9 +79,17 @@ s.queryAllNodes;
 ~island.population.asArray[0];
 //when you are bored, do a
 ~island.free;
+~island.cookedFitnesses;
 ~island.cookedFitnesses.values.postln;
+~island.cookedFitnesses.size;
 ~island.rawScores.values.postln;
+~island.rawScores.size;
 ~island.rawScores.keys.asArray[1].hash.asHexString
+Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~island.rawScores);
+Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~island.rawScores);
+~island.scoreCooker.value(nil, ~island.rawScores);
+~island.cookedFitnesses;
+~cooker.value(nil, ~island.rawScores);
 //testing that things are going OK:
 (~island.cookedFitnesses.keys - (~island.rawScores.keys)).size;
 (~island.population - (~island.rawScores.keys)).size;
