@@ -24,7 +24,7 @@ PSOperators {
 			}
 		);
 		//not practical, just a sanity check - return the mean of the chromosome
-		Library.put(\phenosynth, \fitness_evals, \chromosomemean,
+		Library.put(\phenosynth, \score_evals, \chromosomemean,
 			{|params, phenotype|
 				phenotype.chromosome.mean;
 			}
@@ -32,7 +32,7 @@ PSOperators {
 		//another test one - solve some trigonometry for fun
 		// specifically, sin(3wx\pi/2) = cos(yz\pi)
 		// The 2-foo term is about making the term be >0 without a cooker
-		Library.put(\phenosynth, \fitness_evals, \scaled_trigonometry,
+		Library.put(\phenosynth, \score_evals, \scaled_trigonometry,
 			{|params, phenotype|
 				var a0, a1, a2, a3;
 				# a0, a1, a2, a3 = phenotype.chromosome;
@@ -47,7 +47,7 @@ PSOperators {
 		//another test one - solve some trigonometry for fun
 		// specifically, sin(3wx\pi/2) = cos(yz\pi)
 		// this needs to be re-scaled
-		Library.put(\phenosynth, \fitness_evals, \trigonometry,
+		Library.put(\phenosynth, \score_evals, \trigonometry,
 			{|params, phenotype|
 				var a0, a1, a2, a3;
 				# a0, a1, a2, a3 = phenotype.chromosome;
@@ -58,37 +58,73 @@ PSOperators {
 			};
 		);
 		
-		/* Fitness processors take the fitnesses of the entire population
-		and massage it it*/
+		/* Score cookers take the scores of the entire population
+		and massage them into fitnesses */
 		/* This first one does the trivial thing, passing them unchanged. */
-		Library.put(\phenosynth, \fitness_cookers, \raw,
-			{|params, rawFitnesses|
-				rawFitnesses;
+		Library.put(\phenosynth, \score_cookers, \raw,
+			{|params, rawScores|
+				rawScores;
 			};
 		);
-		/*return the fitnesses as (descending) ranks- that is, select by ordinality
-		Doesn't work yet! */
-		Library.put(\phenosynth, \fitness_cookers, \ranked,
-			{|params, rawFitnesses|
-				rawFitnesses;
+		/*return the scores as ordinal fitness ranks.
+		Lower raw score is higher rank fitness.
+		Surprisingly tricky to do this, no?*/
+		Library.put(\phenosynth, \score_cookers, \reverse_ranked,
+			{|params, rawScores|
+				var fitnessOrder, size, cookedFitnesses;
+				cookedFitnesses = IdentityDictionary.new;
+				size = rawScores.size;
+				(size>0).if({
+					fitnessOrder = Array.newClear(size);
+					rawScores.keysValuesDo({|key, val, i|
+						fitnessOrder[i] = (id:key, fitness:val);
+					});
+					fitnessOrder.sortBy(\fitness);
+					fitnessOrder.do({|elem, i|
+						cookedFitnesses[elem[\id]] = size-i;
+					});
+				});
+				cookedFitnesses;
 			};
 		);
-		/* if fitness approaches zero for a good result, use this
+
+		/*return the scores as ordinal fitness ranks.
+		Higher raw score is higher rank. */
+		Library.put(\phenosynth, \score_cookers, \ranked,
+			{|params, rawScores|
+				var fitnessOrder, size, cookedFitnesses;
+				cookedFitnesses = IdentityDictionary.new;
+				size = rawScores.size;
+				(size>0).if({
+					fitnessOrder = Array.newClear(size);
+					rawScores.keysValuesDo({|key, val, i|
+						fitnessOrder[i] = (id:key, fitness:val);
+					});
+					fitnessOrder.sortBy(\fitness);
+					fitnessOrder.do({|elem, i|
+						cookedFitnesses[elem[\id]] = i;
+					});
+				});
+				cookedFitnesses;
+			};
+		);
+		/* if score approaches zero for a good result (e.g. a
+		distance metric for some matching process), use this.
 		It incidentally rescales everything to be in the range 0-1,
 		where fitnesss is reported as 1 when it's closest to 1
 		and 0 when it's farthest.*/
-		Library.put(\phenosynth, \fitness_cookers, \zero_peak,
-			{|params, rawFitnesses|
-				var cookedFitnesses, fitnessVals, range;
+		Library.put(\phenosynth, \score_cookers, \zero_peak,
+			{|params, rawScores|
+				var cookedFitnesses, normedScores, range;
 				cookedFitnesses = IdentityDictionary.new;
 				
-				fitnessVals = rawFitnesses.values.asArray.abs;
-				fitnessVals.notEmpty.if({
+				normedScores = rawScores.values.asArray.abs;
+				normedScores.notEmpty.if({
 					var fmax, fmin;
-					fmax = fitnessVals.maxItem;
-					fmin = fitnessVals.minItem;
+					fmax = normedScores.maxItem;
+					fmin = normedScores.minItem;
 					range = [fmax-fmin, 0.001].maxItem;
-					rawFitnesses.keysValuesDo({|key,val|
+					rawScores.keysValuesDo({|key,val|
 						cookedFitnesses[key] = (range-(val.abs-fmin))/range;
 					});
 				});

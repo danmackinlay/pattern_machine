@@ -4,85 +4,115 @@ Server.default = s = ~serverboot.(\local, \internal);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
 StartUp.run;
+s.queryAllNodes;
 (
 fork {
 ~globalOuts = Bus.new(\audio, 0, 2);
-{~globalOuts.scope;}.defer;
-~voxgroup = Group.new(s);
+//{~globalOuts.scope;}.defer;
+~phenogroup = Group.new(s);
+s.sync;
+~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
+~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
 ~log = PostLogger.global;
 //~log = FileLogger.global;
 s.sync;
-~outgroup = Group.after(~voxgroup);
 /*******************/
 /* Do either THIS: */
 //better way to get first audio in?
-//~globalIns = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+//~targetBus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 /* or THIS */
 /*******************/
-~globalIns = Bus.audio(s, 1);
-{|freq=500| SinOsc.ar(freq, 0, 0.3) }.play(target: ~voxgroup, outbus: ~globalIns, addAction:\addBefore);
-/*******************/
-//~globalIns.scope;
-//limiter, to avoid little accidents
-SynthDef.new(\limi,{|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+~targetBus = Bus.audio(s, 1);
 s.sync;
-~limi = Synth.tail(~outGroup, \limi, [~globalOuts]);
+~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+~spy=SpyBus.new.play(~target, ~targetBus);
+s.sync;
+//~spy.moveAfter(~target);
+~target.trace;
+/*******************/
+//~targetBus.scope;
+//limiter, to avoid little accidents
+SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+s.sync;
+~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-//~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, templateBus: ~globalIns);
-~control = PSCompareSynthController.new(numChannels:1, fitnessPollInterval:5, leakCoef:0.5, log:~log);
-~control.log.log(nil, \spoo);
-//~control.listenSynth = \_ga_judge_pitchampmatch;
-//~control.listenSynth = \_ga_judge_fftmatch;
-~control.listenSynth = \_ga_judge_cepstralmatch;
+//~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
+~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:5, leakCoef:0.5, maxPop:40);
+//~control.listenSynthDef = \_ga_judge_pitchamp_distance;
+//~control.listenSynthDef = \_ga_judge_fft_distance;
+~control.listenSynthDef = \_ga_judge_convolution;
+//~control.listenSynthDef = \_ga_judge_cepstral_distance;
+//~control.listenSynthDef = \_ga_judge_mfcc_distance;
 ~control.leakCoef;
-~control.play(s, outBus: ~globalOuts, templateBus: ~globalIns);
+~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 s.sync;
+1.wait;
 //now set up the "island" that will control their evolution
 ~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
-//~island.fitnessCooker = #[phenosynth, fitness_cookers, raw];
-~island.fitnessCooker = #[phenosynth, fitness_cookers, zero_peak];
+~island.scoreCooker = #[phenosynth, score_cookers, raw];
+//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+//~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 ~island.play(~control);
-~island.log;
-~island.controller;
 s.sync;
+[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
+};
+)
+//listen for a while.
+//experiment
+s.queryAllNodes;
+~island.controller;
+~control.outBus;
+~control.playBusses;
+~control.fitnessBusses;
+~control.jackNodes[5].trace;
+//~control.jackNodes[3].trace;
+~control.all.keys.asArray[0];
+~control.all.asArray.dump;
+~control.listenGroup;
 //add in a good one and see how it survives:
 ~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
-};
-)
-//listen for a while.
+~island.population.asArray[0];
 //when you are bored, do a
 ~island.free;
+~island.cookedFitnesses;
 ~island.cookedFitnesses.values.postln;
-~island.rawFitnesses.values.postln;
-~island.rawFitnesses.keys.asArray[1].hash.asHexString
+~island.cookedFitnesses.size;
+~island.rawScores.values.postln;
+~island.rawScores.size;
+~island.rawScores.keys.asArray[1].hash.asHexString
+Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~island.rawScores);
+Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~island.rawScores);
+~island.scoreCooker.value(nil, ~island.rawScores);
+~island.cookedFitnesses;
+~cooker.value(nil, ~island.rawScores);
 //testing that things are going OK:
-(~island.cookedFitnesses.keys - (~island.rawFitnesses.keys)).size;
-(~island.population - (~island.rawFitnesses.keys)).size;
+(~island.cookedFitnesses.keys - (~island.rawScores.keys)).size;
+(~island.population - (~island.rawScores.keys)).size;
 (~island.population - (~island.cookedFitnesses.keys)).size;
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
 best = ranked[0];
 worst = ranked[ranked.size-1];
-[\best, ~island.rawFitnesses[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
-[\worst, ~island.rawFitnesses[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
+[\best, ~island.rawScores[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
+[\worst, ~island.rawScores[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
 ~ind = ~island.rankedPopulation[0].chromosomeAsSynthArgs;
 ~ind
-[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawFitnesses.size];
+[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawScores.size];
 ~island.rankedPopulation[0].chromosomeAsSynthArgs;
 //these should only ever differ momentarily
 ~island.population.select(_.wallClockAge>0)
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
-FreqScope.new(busNum:~globalIns);
-~globalIns
+FreqScope.new(busNum:~targetBus);
+~targetBus
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
@@ -125,7 +155,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
       Anyway, as Bill Tozier points, out, 'tis better to use scatter plots or
       similar rich displays for GAs
   
-  * create own bus allocator, so ouput may be multitrack recorded easily
   * Fix leaks  
   
     * ensure Groups are also freed.
@@ -274,14 +303,14 @@ StartUp.run;
 ~island = PSIsland.new((\initialChromosomeSize: 4));
 ~island.params;
 // Solve sin(3wx\pi/2) = cos(yz\pi)
-~island.fitnessEvaluator = [\phenosynth, \fitness_evals, \trigonometry];
-~island.fitnessCooker = [\phenosynth, \fitness_cookers, \zero_peak];
+~island.scoreEvaluator = [\phenosynth, \score_evals, \trigonometry];
+~island.scoreCooker = [\phenosynth, \score_cookers, \zero_peak];
 ~island.play;
 ~island.population;
 ~arbitrary = ~island.population.asArray[0];
 //~island.init;
-~island.rawFitnesses;
-~island.rawFitnesses[~arbitrary];
+~island.rawScores;
+~island.rawScores[~arbitrary];
 ~island.cookedFitnesses[~arbitrary];
 ~island.cookedFitnesses.values;
 ~arbitrary.chromosome;
@@ -296,28 +325,28 @@ fork {
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~matchOut = Bus.control(s, 1);
 ~voxgroup = Group.new(s);
-~globalIns = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
+~targetBus = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
 s.sync;
-[~globalOuts, ~matchOut, ~voxgroup, ~globalIns].postln;
+[~globalOuts, ~matchOut, ~voxgroup, ~targetBus].postln;
 {~globalOuts.scope;}.defer;
 ~outgroup = Group.after(~voxgroup);
 1.wait;
 ~template = {|freq=500| Saw.ar(freq: freq, mul:0.3); }.play(
 	target: ~voxgroup,
-	outbus: ~globalIns,
+	outbus: ~targetBus,
 	addAction: \addToHead,
 	args: [\freq, 600]);
 ~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-//~comparer = Synth.new(\_ga_judge_fftmatch_norm, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\_ga_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\_ga_judge_mfccmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
-~comparer = Synth.new(\_ga_judge_cepstralmatch, [\observedbus, ~globalOuts, \targetbus, ~globalIns, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_fft_distance_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+//~comparer = Synth.new(\_ga_judge_mfcc_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
+~comparer = Synth.new(\_ga_judge_cepstral_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
 
 Routine.new({
 	while( true, {~matchOut.get(_.postln);
 	1.yield;})
 }).play;
-{FreqScope.new(busNum:~globalIns);}.defer;
+{FreqScope.new(busNum:~targetBus);}.defer;
 s.sync;
 ~candidate.set(\ffreq, 500, \pitch, 500);
 //~candidate.set(\ffreq, 800, \pitch, 800);
@@ -371,12 +400,12 @@ s.sync;
 )
 (
 ~playGroup = Group.new(s);
-~listenGroup = Group.after(~playGroup);
+~outgroup = Group.after(~playGroup);
 ~audioBus = Bus.audio(s, 1);
 ~fitBus = Bus.control(s,1);
 SynthDef.new(\sawy, {|out, freq=200, ffreq=300, rq=0.3| Out.ar(out, BPF.ar(Saw.ar(freq), ffreq, rq));}).add;
 ~play = Synth.new(\sawy, [\out, ~audioBus, \freq, 300], ~playGroup);
-~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~listenGroup);
+~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~outgroup);
 ~play.set(\freq, 850);
 Routine.new({true.while({ 1.yield; ~fitBus.get(_.postln);});}).play;
 ~play.autogui(specs:(

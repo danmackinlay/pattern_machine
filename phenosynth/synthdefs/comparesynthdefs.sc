@@ -24,8 +24,11 @@ PSBasicCompareSynths {
 		SynthDef.new(name, {
 			|observedbus, targetbus=0, out=0, active=1, t_reset=0, i_leak=0.5|
 			var observedsig, targetsig, comparison, integral;
-			targetsig  = LeakDC.ar(In.ar(observedbus, 1));
-			observedsig = LeakDC.ar(In.ar(targetbus, 1));
+			targetsig  = LeakDC.ar(In.ar(targetbus, 1));
+			observedsig = LeakDC.ar(In.ar(observedbus, 1));
+			
+			//targetbus.poll(0.1, \targetbus);
+			//observedbus.poll(0.1, \observedbus);
 
 			/*Calculate a leak coefficient to discount fitness over time,
 			 presuming the supplied value is a decay rate _per_second_. (Half
@@ -47,15 +50,8 @@ PSBasicCompareSynths {
 		}).add;
 	}
 	*loadSynthDefs {
-		// First, a utility synth:
-		
-		// Really simple SynthDef to play a buffer when triggered
-		SynthDef.new(\_ga_just_playbuf, {|bufnum, out=0, t_trig=0|
-			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
-		});
-			
-		// Try and match amplitude envelope against a template signal
-		this.makeComparer(\_ga_judge_ampmatch, {
+		// Try and match amplitude envelope against a target signal
+		this.makeComparer(\_ga_judge_amp_distance, {
 			|targetsig, observedsig|
 			var targetamp, oamp;
 			
@@ -66,7 +62,7 @@ PSBasicCompareSynths {
 		});
 
 		// Try and match pitch envelope against a template signal
-		this.makeComparer(\_ga_judge_pitchmatch, {
+		this.makeComparer(\_ga_judge_pitch_distance, {
 			|targetsig, observedsig|
 			var targetpitch, targethaspitch, opitch, ohaspitch;
 			
@@ -76,7 +72,7 @@ PSBasicCompareSynths {
 			(100 - ((targetpitch - opitch).abs * 0.1)).max(0);
 		});
 		// Try and match pitch and amplitude envelope against a template signal
-		this.makeComparer(\_ga_judge_pitchampmatch, {
+		this.makeComparer(\_ga_judge_pitchamp_distance, {
 			|targetsig, observedsig|
 			var targetpitch, targethaspitch, targetamp, opitch, ohaspitch, oamp, nanfitness, nanness;
 			var eps = 0.00001;
@@ -92,7 +88,7 @@ PSBasicCompareSynths {
 		});
 		/* Try and match pitch envelope against a template signal - but using
 		 ZeroCrossing*/
-		this.makeComparer(\_ga_judge_pitchmatch_zc, {
+		this.makeComparer(\_ga_judge_pitch_distance_zc, {
 			|targetsig, observedsig|
 			var targetpitch, opitch;
 			
@@ -105,10 +101,10 @@ PSBasicCompareSynths {
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
 		NB - this uses a CUSTOM UGEN, available in the SC3-plugins project 
-		This appears to evaluate to, e.g. 0.002, for unmatched signals, and 0 for identical ones
+		This appears to evaluate to, e.g. 0.002, for non-matched signals, and 0 for identical ones
 		That is, it reports difference in magnitude as the name implies.
 		For most purposes it is too fragile a comparison to be useful.*/
-		this.makeComparer(\_ga_judge_fftmatch, {
+		this.makeComparer(\_ga_judge_fft_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
 			
@@ -143,15 +139,20 @@ PSBasicCompareSynths {
 			var amptarget, ampobs, amplo, amphi, obsHigher;
 			amptarget = Amplitude.kr(targetsig);
 			ampobs = Amplitude.kr(observedsig);
-			obsHigher = ampobs>amptarget;
+			obsHigher = (ampobs>amptarget);
 			amplo = Select.kr(obsHigher, [ampobs, amptarget]);
 			amphi = Select.kr(obsHigher, [amptarget, ampobs]);
+			/*amptarget.poll(0.1, \ampta);
+			ampobs.poll(0.1, \ampob);
+			obsHigher.poll(0.1, \obsHi);
+			amplo.poll(0.1, \amplo);
+			amphi.poll(0.1, \amphi);*/
 			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) * (
-				amphi/amplo
+				amphi/(amplo+0.0000001)
 			);
 		});
 		/*Cepstral-based comparison that attempts to match amplitudes*/
-		this.makeComparer(\_ga_judge_cepstralmatch, {
+		this.makeComparer(\_ga_judge_cepstral_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 			
@@ -171,7 +172,7 @@ PSBasicCompareSynths {
 			
 			FFTDiffMags.kr(targetcep, ocep);
 		});
-		this.makeComparer(\_ga_judge_cepstralmatch_norm, {
+		this.makeComparer(\_ga_judge_cepstral_distance_norm, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 			
@@ -198,7 +199,7 @@ PSBasicCompareSynths {
 		assumes 44.1/48Khz. Should check that, eh?
 		This gives you rough timbral similarities, but is a crap pitch tracker.
 		It will, e.g., prefer signals with similar bandwidths over signals with similar pitches.*/
-		this.makeComparer(\_ga_judge_mfccmatch, {
+		this.makeComparer(\_ga_judge_mfcc_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, sigcepstrum, ocepstrum, bfr1, bfr2;
 			

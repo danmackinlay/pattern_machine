@@ -13,8 +13,8 @@ PSIsland {
 	
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
-	classvar <defaultFitnessEvaluator = #[phenosynth, fitness_evals, chromosomemean];
-	classvar <defaultFitnessCooker = #[phenosynth, fitness_cookers, raw];
+	classvar <defaultScoreEvaluator = #[phenosynth, score_evals, chromosomemean];
+	classvar <defaultScoreCooker = #[phenosynth, score_cookers, raw];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRate];
 	classvar <defaultBirthSelector = #[phenosynth, birth_selectors, byRoulettePerTotal];
@@ -28,7 +28,7 @@ PSIsland {
 	
 	//These are the main state variable
 	var <population;
-	var <rawFitnesses;
+	var <rawScores;
 	var <cookedFitnesses;
 	
 	/* this is another state variable. If I got one nore small var like this I'd make it
@@ -49,8 +49,8 @@ PSIsland {
 	var <crossover;
 	var <initialChromosomeFactory;
 	var <individualFactory;
-	var <fitnessEvaluator;
-	var <fitnessCooker;
+	var <scoreEvaluator;
+	var <scoreCooker;
 	var <terminationCondition;
 	//var <fitnessPlotWindow;
 
@@ -96,19 +96,19 @@ PSIsland {
 	individualFactory_ {|fn|
 		individualFactory = this.loadFunction(fn);
 	}
-	fitnessEvaluator_ {|fn|
-		fitnessEvaluator = this.loadFunction(fn);
+	scoreEvaluator_ {|fn|
+		scoreEvaluator = this.loadFunction(fn);
 	}
-	fitnessCooker_ {|fn|
-		fitnessCooker = this.loadFunction(fn);
+	scoreCooker_ {|fn|
+		scoreCooker = this.loadFunction(fn);
 	}
 	terminationCondition_ {|fn|
 		terminationCondition = this.loadFunction(fn);
 	}
 	init {
-		population = IdentitySet.new;
-		rawFitnesses = IdentityDictionary.new;
-		cookedFitnesses = IdentityDictionary.new;
+		population = IdentitySet.new(1000);
+		rawScores = IdentityDictionary.new(1000);
+		cookedFitnesses = IdentityDictionary.new(1000);
 		this.initOperators;
 	}
 	initOperators {
@@ -118,8 +118,8 @@ PSIsland {
 		this.crossover = this.class.defaultCrossover;
 		this.initialChromosomeFactory = this.class.defaultInitialChromosomeFactory;
 		this.individualFactory = this.class.defaultIndividualFactory;
-		this.fitnessEvaluator = this.class.defaultFitnessEvaluator;
-		this.fitnessCooker = this.class.defaultFitnessCooker;
+		this.scoreEvaluator = this.class.defaultScoreEvaluator;
+		this.scoreCooker = this.class.defaultScoreCooker;
 		this.terminationCondition = this.class.defaultTerminationCondition;
 	}
 	loadFunction {|nameOrFunction|
@@ -151,7 +151,7 @@ PSIsland {
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
-		rawFitnesses.removeAt(phenotype);
+		rawScores.removeAt(phenotype);
 		cookedFitnesses.removeAt(phenotype);
 	}
 	populate {
@@ -161,13 +161,13 @@ PSIsland {
 	}
 	evaluate {
 		population.do({|phenotype|
-			this.setFitness(phenotype, fitnessEvaluator.value(params, phenotype));
+			this.setFitness(phenotype, scoreEvaluator.value(params, phenotype));
 			phenotype.incAge;
 		});
-		cookedFitnesses = fitnessCooker.value(params, rawFitnesses);
+		cookedFitnesses = scoreCooker.value(params, rawScores);
 	}
 	setFitness {|phenotype, value|
-		rawFitnesses[phenotype] = value;
+		rawScores[phenotype] = value;
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -200,11 +200,11 @@ PSIsland {
 		var beforeFitness, afterFitness;
 		this.evaluate;
 		toCull = deathSelector.value(params, cookedFitnesses);
-		//[\culling, toCull].postln;
-		//beforeFitness = cookedFitnesses.values.asArray.mean;
+		log.log(nil, \culling, toCull);
+		beforeFitness = cookedFitnesses.values.asArray.mean;
 		this.cull(toCull);
-		//afterFitness = cookedFitnesses.values.asArray.mean;
-		//[\fitness_delta, afterFitness - beforeFitness].postln;
+		afterFitness = cookedFitnesses.values.asArray.mean;
+		log.log(\fitness_delta, afterFitness - beforeFitness);
 		toBreed = birthSelector.value(params, cookedFitnesses);
 		//[\parents, toBreed].postln;
 		this.breed(toBreed);
@@ -246,7 +246,7 @@ PSIsland {
 		orderedPopulation.sort({ arg a, b; a.hash < b.hash });
 		raw.if(
 			{
-				orderedFitnesses = orderedPopulation.collect({|i| rawFitnesses[i]}).select(_.notNil);
+				orderedFitnesses = orderedPopulation.collect({|i| rawScores[i]}).select(_.notNil);
 			}, {
 				orderedFitnesses = orderedPopulation.collect({|i| cookedFitnesses[i]}).select(_.notNil);
 			}
@@ -262,12 +262,12 @@ PSRealTimeIsland : PSIsland {
 	var <worker;
 	var clock;
 	
-	classvar <defaultFitnessEvaluator = #[phenosynth, nulloperator];
+	classvar <defaultScoreEvaluator = #[phenosynth, nulloperator];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 
 	*defaultParams {
 		var defParams = super.defaultParams;
-		defParams.populationSize = 100;
+		defParams.populationSize = 40;
 		^defParams;
 	}	
 	*new {|params, log|
@@ -283,7 +283,7 @@ PSRealTimeIsland : PSIsland {
 	evaluate {
 		//No individual fitness updating; (they are updated for us)
 		// but allow group fitness alterations
-		cookedFitnesses = fitnessCooker.value(params, rawFitnesses);
+		cookedFitnesses = scoreCooker.value(params, rawScores);
 	}
 	play {
 		/*note this does not call parent. */

@@ -40,15 +40,15 @@ PSSynthController {
 	var <island;
 	
 	*new {|numChannels=1, log|
-		^super.newCopyArgs(numChannels, log).init;
+		^super.newCopyArgs(numChannels, log ?? NullLogger.new).init;
 	}
 	init {
-		allocatedNodes = IdentityDictionary.new;
+		allocatedNodes = IdentityDictionary.new(1000);
 		freedNodes = List.new;
-		all = IdentityDictionary.new;
-		log.isNil.if(log = NullLogger.new);
+		all = IdentityDictionary.new(1000);
 	}
-	play {|serverOrGroup, outBus|
+	play {|serverOrGroup, outBus ... argz|
+		var setupBundle;
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
@@ -58,11 +58,16 @@ PSSynthController {
 				playGroup = Group.head(server);
 			}
 		);
-		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
-		//This sets a flag to allow playing of synths, so that we don't end
-		//up with concurrency problems with playing/freeing
+		setupBundle = server.makeBundle(
+			false,
+			{this.playBundle(server, outBus, *argz);}
+		);
+		log.log(nil, \setupBundle, setupBundle);
+		server.listSendBundle(nil, setupBundle);
 		playing = true;
-		// also, we set an island to report back to about synth business
+	}
+	playBundle {|serverOrGroup, outBus|
+		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
 	}
 	connect {|newIsland|
 		//couple to an island
@@ -74,14 +79,8 @@ PSSynthController {
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
 		this.decorateIndividualDict(indDict);
-		this.loadIndividualDict(
-			indDict
-		);
 		this.actuallyPlayIndividual(indDict);
 		{this.trackSynths(indDict);}.defer(0.5);
-	}
-	loadIndividualDict{|indDict|
-		//pass
 	}
 	decorateIndividualDict {|indDict|
 		indDict.playBus = outBus;
@@ -93,9 +92,11 @@ PSSynthController {
 	}
 	actuallyPlayIndividual {|indDict|
 		//private
+		var synthArgs = this.getSynthArgs(indDict);
+		log.log(\synthargs, *synthArgs);
 		indDict.playNode = Synth.new(
 			indDict.phenotype.synthDef,
-			this.getSynthArgs(indDict),
+			synthArgs,
 			target: playGroup
 		);
 		indDict.phenotype.clockOn;
@@ -171,64 +172,102 @@ PSListenSynthController : PSSynthController {
 	var <>listenGroup;
 	var <>worker;
 	var <>clock;
-	var <>listenSynth;
+	var <>listenSynthDef;
 	var <>leakCoef;
+	var <busAllocator;
+	var <maxPop;
+
+	var <fitnessBusses;
+	var <playBusses;
+	var <jackNodes;
 	
 	//Toy example synth
-	classvar <>defaultListenSynth = \ps_listen_eight_hundred;
+	classvar <>defaultListenSynthDef = \ps_listen_eight_hundred;
 	
-	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynth, leakCoef=0.5|
+	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynthDef, leakCoef=0.5, maxPop=40|
 		^super.new(numChannels, log).init(
 			newFitnessPollInterval: fitnessPollInterval,
-			newListenSynth: listenSynth ? defaultListenSynth,
-			newLeakCoef:leakCoef
+			newListenSynth: listenSynthDef ? defaultListenSynthDef,
+			newLeakCoef:leakCoef,
+			newMaxPop: maxPop
 		);
 	}
-	init {|newFitnessPollInterval, newListenSynth, newLeakCoef|
+	init {|newFitnessPollInterval, newListenSynth, newLeakCoef, newMaxPop|
 		super.init;
 		fitnessPollInterval = newFitnessPollInterval;
-		listenSynth = newListenSynth;
+		listenSynthDef = newListenSynth;
 		leakCoef = newLeakCoef;
+		maxPop = newMaxPop;
+		busAllocator = Allocator.new(nResources:maxPop);
 	}
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
-		super.play(serverOrGroup, outBus);
-		this.listenGroup = listenGroup ?? { Group.after(playGroup);};
+		super.play(serverOrGroup, outBus, listenGroup);
 		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
 		worker = worker ?? {
-			Routine.new({loop {this.updateFitnesses; 1.wait;}}).play(clock);
+			Routine.new({loop {
+				this.updateFitnesses;
+				1.wait;
+				log.log(nil, "updating fitnesses");
+			}}).play(clock);
 		};
+	}
+	playBundle {|serverOrGroup, outBus, listenGroup|
+		//set server and group using the parent method
+		super.playBundle(serverOrGroup, outBus);
+		listenGroup = listenGroup ?? { Group.after(playGroup);};
+		this.listenGroup = listenGroup;
+		//these next 2 don't seem to get executed, but that might still be OK
+		playBusses = Bus.alloc(rate:\audio, server:server, numChannels: maxPop*numChannels);
+		fitnessBusses = Bus.alloc(rate:\control, server:server, numChannels: maxPop);
+		//re-route some output to the master input
+		// could do this with less synths i think
+		jackNodes = maxPop.collect({|offset|
+			Synth.new(
+				PSMCCore.n(numChannels),
+				[
+					\in, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
+					\out, outBus
+				],
+				target: listenGroup
+			);
+		});
 	}
 	free {
 		super.free;
 		//listenGroup.free;
 		//listenGroup = nil;
+		//could free the parent group instead.
+		jackNodes.do({|node| node.free;});
 		clock.stop;
 		clock = nil;
 		worker = nil;
 	}
 	decorateIndividualDict {|indDict|
-		indDict.playBus = Bus.audio(server, numChannels);
-		indDict.listenBus = Bus.control(server, 1);
+		var offset = busAllocator.alloc;
+		indDict.busOffset = offset;
+		indDict.playBus = Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels);
+		indDict.fitnessBus = Bus.newFrom(fitnessBusses, offset: offset);
 		^indDict;
 	}
 	actuallyPlayIndividual {|indDict|
+		var listenSynthArgs;
+		listenSynthArgs = this.getListenSynthArgs(indDict);
+		log.log(\listensynthargs, *listenSynthArgs);
 		//play the synth to which we wish to listen
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
-		indDict.listenNode = Synth.new(this.listenSynth,
-			this.getListenSynthArgs(indDict),
-			listenGroup);
+		//we do this dynamically because listensynths can be expensive
+		indDict.listenNode = Synth.new(
+			this.listenSynthDef,
+			listenSynthArgs,
+			target: listenGroup);
 		indDict.phenotype.clockOn;
-		//re-route some output to the master input
-		indDict.jackNode = Synth.new(PSMCCore.n(numChannels),
-			[\in, indDict.playBus, \out, outBus],
-			listenGroup);
 	}
 	getListenSynthArgs{|indDict|
 		var listenArgs;
-		listenArgs = [\in, indDict.playBus,
-			\out, indDict.listenBus,
+		listenArgs = [\observedbus, indDict.playBus,
+			\out, indDict.fitnessBus,
 			\active, 1,
 			\i_leak, leakCoef];
 		^listenArgs;
@@ -237,9 +276,7 @@ PSListenSynthController : PSSynthController {
 		var freed = super.freeIndividual(phenotype);
 		freed.notNil.if({
 			freed.listenNode.free;
-			freed.playBus.free;
-			freed.listenBus.free;
-			freed.jackNode.free;
+			busAllocator.dealloc(freed.busOffset);
 		});
 		^freed;
 	}
@@ -247,12 +284,12 @@ PSListenSynthController : PSSynthController {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
 				var localIndDict = indDict;
-				// [\updating, indDict.phenotype.chromosomeAsSynthArgs, \to, val, \insteadof, indDict.listenBus.getSynchronous].postln;
-				log.log(\updating, indDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus, \to, val, \insteadof, localIndDict.phenotype.chromosomeAsSynthArgs, localIndDict.listenBus );
+				log.log(\updating, localIndDict.phenotype.chromosomeAsSynthArgs, \to, val );
+				// log.log(\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus );
 				island.setFitness(localIndDict.phenotype, val);
 				localIndDict.phenotype.incAge;
 			};
-			indDict.listenBus.get(updater);
+			indDict.fitnessBus.get(updater);
 		});
 	}
 }
@@ -261,21 +298,21 @@ PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	
-	classvar <>defaultListenSynth = \_ga_judge_fftmatch;
-	var <>templateBus;
+	classvar <>defaultListenSynthDef = \_ga_judge_fftmatch;
+	var <>targetBus;
 	
-	play {|serverOrGroup, outBus, listenGroup, templateBus|
+	play {|serverOrGroup, outBus, listenGroup, targetBus|
+		this.targetBus = targetBus;
 		super.play(serverOrGroup, outBus, listenGroup);
-		this.templateBus = templateBus;
 	}
 	getListenSynthArgs{|indDict|
 		^super.getListenSynthArgs(indDict).addAll([
-			\targetbus, indDict.templateBus
+			\targetbus, indDict.targetBus
 		]);
 	}
 	decorateIndividualDict {|indDict|
 		super.decorateIndividualDict(indDict);
-		indDict.templateBus = templateBus;
+		indDict.targetBus = targetBus;
 		^indDict;
 	}
 }
