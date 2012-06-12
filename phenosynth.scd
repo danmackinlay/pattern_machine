@@ -8,7 +8,7 @@ StartUp.run;
 fork {
 ~globalOuts = Bus.new(\audio, 0, 2);
 //{~globalOuts.scope;}.defer;
-~voxgroup = Group.new(s);
+~voxgroup = Group.new(s, addAction: \addBefore);
 ~log = PostLogger.global;
 //~log = FileLogger.global;
 s.sync;
@@ -55,6 +55,7 @@ s.sync;
 )
 //listen for a while.
 //experiment
+s.queryAllNodes;
 ~island.controller;
 ~control.outBus;
 ~control.playBusses;
@@ -384,12 +385,12 @@ s.sync;
 )
 (
 ~playGroup = Group.new(s);
-~listenGroup = Group.after(~playGroup);
+~outgroup = Group.after(~playGroup);
 ~audioBus = Bus.audio(s, 1);
 ~fitBus = Bus.control(s,1);
 SynthDef.new(\sawy, {|out, freq=200, ffreq=300, rq=0.3| Out.ar(out, BPF.ar(Saw.ar(freq), ffreq, rq));}).add;
 ~play = Synth.new(\sawy, [\out, ~audioBus, \freq, 300], ~playGroup);
-~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~listenGroup);
+~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~outgroup);
 ~play.set(\freq, 850);
 Routine.new({true.while({ 1.yield; ~fitBus.get(_.postln);});}).play;
 ~play.autogui(specs:(

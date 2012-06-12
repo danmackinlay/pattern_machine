@@ -59,11 +59,11 @@ PSSynthController {
 			}
 		);
 		setupBundle = server.makeBundle(
-			nil,
+			false,
 			{this.playBundle(server, outBus, *argz);}
-	 	);
+		);
 		log.log(nil, \setupBundle, setupBundle);
-		server.listSendBundle(0.0, setupBundle);
+		server.listSendBundle(nil, setupBundle);
 		playing = true;
 	}
 	playBundle {|serverOrGroup, outBus|
@@ -219,7 +219,9 @@ PSListenSynthController : PSSynthController {
 	playBundle {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
 		super.playBundle(serverOrGroup, outBus);
-		this.listenGroup = listenGroup ?? { Group.after(playGroup);};
+		listenGroup = listenGroup ?? { Group.after(playGroup);};
+		this.listenGroup = listenGroup;
+		//these next 2 don't seem to get executed, but that might still be OK
 		playBusses = Bus.alloc(rate:\audio, server:server, numChannels: maxPop*numChannels);
 		fitnessBusses = Bus.alloc(rate:\control, server:server, numChannels: maxPop);
 		//re-route some output to the master input
@@ -231,7 +233,7 @@ PSListenSynthController : PSSynthController {
 					\in, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
 					\out, outBus
 				],
-				listenGroup
+				target: listenGroup
 			);
 		});
 	}
@@ -257,9 +259,10 @@ PSListenSynthController : PSSynthController {
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		//we do this dynamically because listensynths can be expensive
-		indDict.listenNode = Synth.new(this.listenSynthDef,
+		indDict.listenNode = Synth.new(
+			this.listenSynthDef,
 			this.getListenSynthArgs(indDict),
-			listenGroup);
+			target: listenGroup);
 		indDict.phenotype.clockOn;
 	}
 	getListenSynthArgs{|indDict|
