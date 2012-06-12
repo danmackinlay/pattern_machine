@@ -79,14 +79,8 @@ PSSynthController {
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
 		this.decorateIndividualDict(indDict);
-		this.loadIndividualDict(
-			indDict
-		);
 		this.actuallyPlayIndividual(indDict);
 		{this.trackSynths(indDict);}.defer(0.5);
-	}
-	loadIndividualDict{|indDict|
-		//pass
 	}
 	decorateIndividualDict {|indDict|
 		indDict.playBus = outBus;
