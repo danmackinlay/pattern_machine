@@ -26,6 +26,9 @@ PSBasicCompareSynths {
 			var observedsig, targetsig, comparison, integral;
 			targetsig  = LeakDC.ar(In.ar(targetbus, 1));
 			observedsig = LeakDC.ar(In.ar(observedbus, 1));
+			
+			//targetbus.poll(0.1, \targetbus);
+			//observedbus.poll(0.1, \observedbus);
 
 			/*Calculate a leak coefficient to discount fitness over time,
 			 presuming the supplied value is a decay rate _per_second_. (Half
@@ -136,9 +139,14 @@ PSBasicCompareSynths {
 			var amptarget, ampobs, amplo, amphi, obsHigher;
 			amptarget = Amplitude.kr(targetsig);
 			ampobs = Amplitude.kr(observedsig);
-			obsHigher = ampobs>amptarget;
+			obsHigher = (ampobs>amptarget);
 			amplo = Select.kr(obsHigher, [ampobs, amptarget]);
 			amphi = Select.kr(obsHigher, [amptarget, ampobs]);
+			/*amptarget.poll(0.1, \ampta);
+			ampobs.poll(0.1, \ampob);
+			obsHigher.poll(0.1, \obsHi);
+			amplo.poll(0.1, \amplo);
+			amphi.poll(0.1, \amphi);*/
 			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) * (
 				amphi/(amplo+0.0000001)
 			);

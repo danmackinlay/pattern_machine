@@ -92,9 +92,11 @@ PSSynthController {
 	}
 	actuallyPlayIndividual {|indDict|
 		//private
+		var synthArgs = this.getSynthArgs(indDict);
+		log.log(\synthargs, *synthArgs);
 		indDict.playNode = Synth.new(
 			indDict.phenotype.synthDef,
-			this.getSynthArgs(indDict),
+			synthArgs,
 			target: playGroup
 		);
 		indDict.phenotype.clockOn;
@@ -249,13 +251,16 @@ PSListenSynthController : PSSynthController {
 		^indDict;
 	}
 	actuallyPlayIndividual {|indDict|
+		var listenSynthArgs;
+		listenSynthArgs = this.getListenSynthArgs(indDict);
+		log.log(\listensynthargs, *listenSynthArgs);
 		//play the synth to which we wish to listen
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		//we do this dynamically because listensynths can be expensive
 		indDict.listenNode = Synth.new(
 			this.listenSynthDef,
-			this.getListenSynthArgs(indDict),
+			listenSynthArgs,
 			target: listenGroup);
 		indDict.phenotype.clockOn;
 	}
