@@ -298,7 +298,7 @@ PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
 	
-	classvar <>defaultListenSynthDef = \_ga_judge_fftmatch;
+	classvar <>defaultListenSynthDef = \ps_judge_fftmatch;
 	var <>targetBus;
 	
 	play {|serverOrGroup, outBus, listenGroup, targetBus|

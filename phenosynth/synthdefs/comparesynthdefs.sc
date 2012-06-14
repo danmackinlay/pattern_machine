@@ -51,7 +51,7 @@ PSBasicCompareSynths {
 	}
 	*loadSynthDefs {
 		// Try and match amplitude envelope against a target signal
-		this.makeComparer(\_ga_judge_amp_distance, {
+		this.makeComparer(\ps_judge_amp_distance, {
 			|targetsig, observedsig|
 			var targetamp, oamp;
 			
@@ -62,7 +62,7 @@ PSBasicCompareSynths {
 		});
 
 		// Try and match pitch envelope against a template signal
-		this.makeComparer(\_ga_judge_pitch_distance, {
+		this.makeComparer(\ps_judge_pitch_distance, {
 			|targetsig, observedsig|
 			var targetpitch, targethaspitch, opitch, ohaspitch;
 			
@@ -72,7 +72,7 @@ PSBasicCompareSynths {
 			(100 - ((targetpitch - opitch).abs * 0.1)).max(0);
 		});
 		// Try and match pitch and amplitude envelope against a template signal
-		this.makeComparer(\_ga_judge_pitchamp_distance, {
+		this.makeComparer(\ps_judge_pitchamp_distance, {
 			|targetsig, observedsig|
 			var targetpitch, targethaspitch, targetamp, opitch, ohaspitch, oamp, nanfitness, nanness;
 			var eps = 0.00001;
@@ -88,7 +88,7 @@ PSBasicCompareSynths {
 		});
 		/* Try and match pitch envelope against a template signal - but using
 		 ZeroCrossing*/
-		this.makeComparer(\_ga_judge_pitch_distance_zc, {
+		this.makeComparer(\ps_judge_pitch_distance_zc, {
 			|targetsig, observedsig|
 			var targetpitch, opitch;
 			
@@ -104,7 +104,7 @@ PSBasicCompareSynths {
 		This appears to evaluate to, e.g. 0.002, for non-matched signals, and 0 for identical ones
 		That is, it reports difference in magnitude as the name implies.
 		For most purposes it is too fragile a comparison to be useful.*/
-		this.makeComparer(\_ga_judge_fft_distance, {
+		this.makeComparer(\ps_judge_fft_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
 			
@@ -126,7 +126,7 @@ PSBasicCompareSynths {
 		});
 
 		/*Convolution-based comparison. Amplitude-blind.*/
-		this.makeComparer(\_ga_judge_convolution_norm, {
+		this.makeComparer(\ps_judge_convolution_norm, {
 			|targetsig, observedsig|
 			targetsig = Normalizer.ar(targetsig);
 			observedsig = Normalizer.ar(observedsig);
@@ -134,7 +134,7 @@ PSBasicCompareSynths {
 			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512));
 		});
 		/*Convolution-based comparison that attempts to match amplitudes*/
-		this.makeComparer(\_ga_judge_convolution, {
+		this.makeComparer(\ps_judge_convolution, {
 			|targetsig, observedsig|
 			var amptarget, ampobs, amplo, amphi, obsHigher;
 			amptarget = Amplitude.kr(targetsig);
@@ -152,7 +152,7 @@ PSBasicCompareSynths {
 			);
 		});
 		/*Cepstral-based comparison that attempts to match amplitudes*/
-		this.makeComparer(\_ga_judge_cepstral_distance, {
+		this.makeComparer(\ps_judge_cepstral_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 			
@@ -172,7 +172,7 @@ PSBasicCompareSynths {
 			
 			FFTDiffMags.kr(targetcep, ocep);
 		});
-		this.makeComparer(\_ga_judge_cepstral_distance_norm, {
+		this.makeComparer(\ps_judge_cepstral_distance_norm, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 			
@@ -199,7 +199,7 @@ PSBasicCompareSynths {
 		assumes 44.1/48Khz. Should check that, eh?
 		This gives you rough timbral similarities, but is a crap pitch tracker.
 		It will, e.g., prefer signals with similar bandwidths over signals with similar pitches.*/
-		this.makeComparer(\_ga_judge_mfcc_distance, {
+		this.makeComparer(\ps_judge_mfcc_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, sigcepstrum, ocepstrum, bfr1, bfr2;
 			
