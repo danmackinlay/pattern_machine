@@ -24,7 +24,8 @@ s.sync;
 /*******************/
 ~targetBus = Bus.audio(s, 1);
 s.sync;
-~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+//~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 ~spy=SpyBus.new.play(~target, ~targetBus);
 s.sync;
 //~spy.moveAfter(~target);
@@ -39,10 +40,10 @@ s.sync;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
-~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:5, leakCoef:0.5, maxPop:40);
-//~control.listenSynthDef = \_ga_judge_pitchamp_distance;
+~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+~control.listenSynthDef = \_ga_judge_pitchamp_distance;
 //~control.listenSynthDef = \_ga_judge_fft_distance;
-~control.listenSynthDef = \_ga_judge_convolution;
+//~control.listenSynthDef = \_ga_judge_convolution;
 //~control.listenSynthDef = \_ga_judge_cepstral_distance;
 //~control.listenSynthDef = \_ga_judge_mfcc_distance;
 ~control.leakCoef;
@@ -50,9 +51,9 @@ s.volume.volume= -20;
 s.sync;
 1.wait;
 //now set up the "island" that will control their evolution
-~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 5), log: ~log);
-~island.scoreCooker = #[phenosynth, score_cookers, raw];
-//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1), log: ~log);
+//~island.scoreCooker = #[phenosynth, score_cookers, raw];
+~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 //~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 ~island.play(~control);
 s.sync;
