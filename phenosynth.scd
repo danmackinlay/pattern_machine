@@ -27,11 +27,11 @@ s.sync;
 //~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
 ~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 ~spy=SpyBus.new.play(~target, ~targetBus);
+//~target.set(\pitch, 500);
 s.sync;
 //~spy.moveAfter(~target);
-~target.trace;
+//~target.trace;
 /*******************/
-//~targetBus.scope;
 //limiter, to avoid little accidents
 SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
 s.sync;
@@ -41,7 +41,8 @@ s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
 //~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
 ~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
-~control.listenSynthDef = \ps_judge_pitchamp_distance;
+//~control.listenSynthDef = \ps_judge_pitchamp_distance;
+~control.listenSynthDef = \ps_judge_pitch_distance;
 //~control.listenSynthDef = \ps_judge_fft_distance;
 //~control.listenSynthDef = \ps_judge_convolution;
 //~control.listenSynthDef = \ps_judge_cepstral_distance;
