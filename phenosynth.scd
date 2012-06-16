@@ -1,9 +1,11 @@
 //initialisation
 Server.default = s = ~serverboot.(\local, \motu);
-Server.default = s = ~serverboot.(\local, \internal);
+Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
-Server.default = s = ~serverboot.(\internal, \internal);
+Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
+//ServerTreeGui.makeWindow;
+s.getQueryTree;
 s.queryAllNodes;
 (
 fork {
@@ -250,10 +252,10 @@ So - framesize-64 up to 512,  3/4 framesize-64 for 2048.
 1024 and 4096 are just a mystery.
 Convolution source inspection is probably necessary.
 */
-Server.default = s = ~serverboot.(\internal, \internal);
+Server.default = s = ~serverboot.(\internal, \builtin);
 (
 fork {
-~size=4096;
+	~size=4096;
 	~rec = Buffer.alloc(s,~size,2);
 	~localrec = nil;
 	~indexbus=Bus.control(s,1);
@@ -369,16 +371,18 @@ s.sync;
 )
 (
 //How the listening controller works, nuts-and-bolts
-s=Server.default;
+//Server.default = s = ~serverboot.(\local, \builtin);
+Server.default = s = ~serverboot.(\internal, \builtin);
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(s, ~globalOuts);
-~ind = PSSynthPhenotype.newRandom;
-~control.playIndividual(~ind);
-~control.freeIndividual(~ind);
-~ind.mappedArgs;
-~ind.identityHash;
-~ind.chromosome;
-10.do({~control.playIndividual(PSSynthPhenotype.newRandom)});
+~control = PSListenSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+~control.play(s, outBus: ~globalOuts);
+//~ind = PSSynthPhenotype.newRandom(4);
+//~control.playIndividual(~ind);
+//~control.freeIndividual(~ind);
+//~ind.chromosomeAsSynthArgs;
+//~ind.identityHash;
+//~ind.chromosome;
+10.do({~control.playIndividual(PSSynthPhenotype.newRandom(4))});
 ~control.all.do({|a,b| [a,b].postln;});
 ~control.updateFitnesses;
 ~control.all.collect({|indDict, key| [indDict, key]});

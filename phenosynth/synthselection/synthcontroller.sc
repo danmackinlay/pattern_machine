@@ -49,6 +49,7 @@ PSSynthController {
 	}
 	play {|serverOrGroup, outBus ... argz|
 		var setupBundle;
+		serverOrGroup.isNil.if({"need a target".throw;});
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
@@ -286,7 +287,7 @@ PSListenSynthController : PSSynthController {
 				var localIndDict = indDict;
 				log.log(\updating, localIndDict.phenotype.chromosomeAsSynthArgs, \to, val );
 				// log.log(\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus );
-				island.setFitness(localIndDict.phenotype, val);
+				island.notNil.if({island.setFitness(localIndDict.phenotype, val);});
 				localIndDict.phenotype.incAge;
 			};
 			indDict.fitnessBus.get(updater);
