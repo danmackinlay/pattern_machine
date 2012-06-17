@@ -18,8 +18,13 @@ PSControllerIsland : PSRealTimeIsland {
 		^super.init;
 	}
 	add {|phenotype|
-		super.add(phenotype);
-		controller.playIndividual(phenotype);
+		var res;
+		res = controller.playIndividual(phenotype);
+		res.notNil.if({
+			super.add(phenotype);
+		}, {
+			log.log(nil, \resource_exhausted, "Could not add phenotype", phenotype);
+		});
 	}
 	remove {|phenotype|
 		super.remove(phenotype);

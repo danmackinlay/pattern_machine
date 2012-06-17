@@ -79,9 +79,21 @@ PSSynthController {
 		playing.not.if({"Controller is not playing!".throw});
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
-		this.decorateIndividualDict(indDict);
+		try {
+			this.decorateIndividualDict(indDict);
+			log.log(nil, "successfully generated", indDict)
+		} { |error|
+			switch(error.species.name)
+			 	{ 'OutOfResources' } {
+					log.log(nil, error.errorString);
+					^nil;
+				}
+			 	// default condition: unhandled exception, rethrow
+			 	{ error.throw }
+		};
 		this.actuallyPlayIndividual(indDict);
 		{this.trackSynths(indDict);}.defer(0.5);
+		^indDict;
 	}
 	decorateIndividualDict {|indDict|
 		indDict.playBus = outBus;
@@ -245,7 +257,11 @@ PSListenSynthController : PSSynthController {
 		worker = nil;
 	}
 	decorateIndividualDict {|indDict|
-		var offset = busAllocator.alloc;
+		var offset;
+		offset = busAllocator.alloc;
+		offset.isNil.if({
+			OutOfResources.new("out of busses"+ busAllocator).throw;
+		});
 		indDict.busOffset = offset;
 		indDict.playBus = Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels);
 		indDict.fitnessBus = Bus.newFrom(fitnessBusses, offset: offset);

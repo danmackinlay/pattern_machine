@@ -139,6 +139,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
 * infrastructure
 
+  * offset occasionally ends up nil in decorateIndividualDict, causing alloc to choke
   * augment all operator protocols to pass in the PSIsand instance, or some other global
     state
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date

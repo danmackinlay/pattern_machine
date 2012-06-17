@@ -13,13 +13,20 @@ Allocator {
 	}
 	alloc {
 		var next = toAlloc.popFirst;
-		toFree.add(next);
+		next.notNil.if({
+			//should I throw an exception in this case?
+			toFree.add(next);
+		});
 		^next;
 	}
 	dealloc {|i|
 		toAlloc.add(i);
 		toFree.remove(i);
 	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(nResources:" << nResources.asString << ", available:" << toAlloc.asString << ")";
+	}
+	
 }
 
 BusAllocator : Allocator {
