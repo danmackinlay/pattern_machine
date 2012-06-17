@@ -149,8 +149,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     to facilite responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
-  * Stipulate that this allows both genetic algorithsm and evolutionary
-    strategies (in fact, at the moment, only the latter)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
   
@@ -184,13 +182,8 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   	* time-delayed correlation?
   	* amplitude-weighted convolution
   	* some fancy wavelet shit?
-  	
   
   * support geographical separation of populations to aid speciation
-  * use wrapping infrastructure to simplify the listensynth definitions.
-  
-    * support multi-channel listeners (In.ar is hardcoded to 1 channel atm) 
-
   * sort out the interactions of all these different tick rates and periods.
   * Handle "free controls", values that are passed in live by the user, or
     external LFOs or data in general. (esp for triggers)
@@ -222,7 +215,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * support creatures which vocalise only sporadically (saving CPU, or at
       least saving earspace)
 
-  * give lifespans using the exponential distribution \lambda \e ^-\lambda \e
+  * give lifespans using the exponential distribution \lambda \e ^{-\lambda \e}
   * doesn't apply ATM but might with different regimes:
   
     * scale birthRate and deathRate so that they fit eventual fitness
