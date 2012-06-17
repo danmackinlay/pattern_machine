@@ -112,7 +112,7 @@ PSOperators {
 		distance metric for some matching process), use this.
 		It incidentally rescales everything to be in the range 0-1,
 		where fitnesss is reported as 1 when it's closest to 1
-		and 0 when it's farthest.*/
+		and 0 when farthest.*/
 		Library.put(\phenosynth, \score_cookers, \zero_peak,
 			{|params, rawScores|
 				var cookedFitnesses, normedScores, range;

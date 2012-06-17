@@ -135,26 +135,24 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   
   * at least, my synth output is broken. /actually/ similar sounds score poorly.
   * manual polyploidy?
-  * function inlining problems? - http://danielnouri.org/docs/SuperColliderHelp/Language/Understanding-Errors.html
   * fitness bus is all wrong? (not control, nor not right controlbus?)
 
 * infrastructure
 
-  * augment all operator protocols to pass in the PSIsand instance, or some global
-    state, or both
-  * track fitness in a logarithmic domain?
+  * augment all operator protocols to pass in the PSIsand instance, or some other global
+    state
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date
   * better locking around tending processes,  or better trapping for nils
-  * for non-realtime use, optionally conduct evolution in a Routine which yields from time to time 
-    to facilite responsiveness
+  * for non-realtime use, optionally conduct evolution in a Routine which yields from
+    time to time to facilitate responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
   
     * updated to use Till's ScatterView class rather than SC's lame native plot
-      method (which does not support parent args to re-use the GUI or scale)
-      Anyway, as Bill Tozier points, out, 'tis better to use scatter plots or
+      method (which does not support parent args to re-use the GUI or scale). As
+       Bill Tozier points, out, 'tis better to use scatter plots or
       similar rich displays for GAs
   
   * Fix leaks  
@@ -182,6 +180,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   	* time-delayed correlation?
   	* amplitude-weighted convolution
   	* some fancy wavelet shit?
+  	* FFT comparison is broken at the moment, returns universally 0.
   
   * support geographical separation of populations to aid speciation
   * sort out the interactions of all these different tick rates and periods.

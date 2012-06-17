@@ -101,9 +101,7 @@ PSBasicCompareSynths {
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
 		NB - this uses a CUSTOM UGEN, available in the SC3-plugins project 
-		This appears to evaluate to, e.g. 0.002, for non-matched signals, and 0 for identical ones
-		That is, it reports difference in magnitude as the name implies.
-		For most purposes it is too fragile a comparison to be useful.*/
+		This is currently broken, for some reason.*/
 		this.makeComparer(\ps_judge_fft_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
