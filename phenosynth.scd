@@ -238,6 +238,91 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 //It's all happening here at the moment
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
+//initialisation
+StartUp.run;
+
+//Check sanity on DSP-based comparers
+Server.default = s = ~serverboot.(\internal, \internal);
+(
+fork {
+	~globalOuts = Bus.new(\audio, 0, 1);
+	~matchOut = Bus.control(s, 1);
+	~voxgroup = Group.new(s);
+	~targetBus = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
+	s.sync;
+	[~globalOuts, ~matchOut, ~voxgroup, ~targetBus].postln;
+	{~globalOuts.scope;}.defer;
+	~outgroup = Group.after(~voxgroup);
+	s.sync;
+	0.1.wait;
+	~template = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5], target: ~voxgroup);
+	~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 0.5], target: ~voxgroup);
+	//~comparer = Synth.new(\ps_judge_fft_distance_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	
+	Routine.new({
+		while( true, {~matchOut.get(_.postln);
+		1.yield;})
+	}).play;
+	{FreqScope.new(busNum:~targetBus);}.defer;
+	s.sync;
+	~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
+	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
+	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
+	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
+	//{~candidate.autogui;}.defer;
+	s.sync;
+	~candidate.trace;
+	~comparer.trace;
+}
+/*~candidate.autogui(specs:(
+	\freq: [20, 20000, \exp, 1, 440],
+	\ffreq: [100, 10000, \exp, 1, 440],	
+	\rq: [0.01, 1, \exp, 1, 0.3]
+)*/
+)
+(
+//How the listening controller works, nuts-and-bolts
+//Server.default = s = ~serverboot.(\local, \builtin);
+Server.default = s = ~serverboot.(\internal, \builtin);
+~globalOuts = Bus.new(\audio, 0, 2);
+~control = PSListenSynthController.new(numChannels:1, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+~control.play(s, outBus: ~globalOuts);
+//~ind = PSSynthPhenotype.newRandom(4);
+//~control.playIndividual(~ind);
+//~control.freeIndividual(~ind);
+//~ind.chromosomeAsSynthArgs;
+//~ind.identityHash;
+//~ind.chromosome;
+10.do({~control.playIndividual(PSSynthPhenotype.newRandom(4))});
+~control.all.do({|a,b| [a,b].postln;});
+~control.updateFitnesses;
+~control.all.collect({|indDict, key| [indDict, key]});
+~control.all.values.collect({|indDict| indDict.phenotype.fitness});
+~control.free;
+)
+//Check basic convergence on a toy problem
+(
+	~island = PSIsland.new((\initialChromosomeSize: 4));
+	~island.params;
+	// Solve sin(3wx\pi/2) = cos(yz\pi)
+	~island.scoreEvaluator = [\phenosynth, \score_evals, \trigonometry];
+	~island.scoreCooker = [\phenosynth, \score_cookers, \zero_peak];
+	~island.play;
+	~island.population;
+	~arbitrary = ~island.population.asArray[0];
+	//~island.init;
+	~island.rawScores;
+	~island.rawScores[~arbitrary];
+	~island.cookedFitnesses[~arbitrary];
+	~island.cookedFitnesses.values;
+	~arbitrary.chromosome;
+	# a, b, c, d = ~arbitrary.chromosome;
+	(a*b*pi).cos;
+	(c*d*pi*3/2).sin;
+)
 //calculating the delay in a convolution of a given window size, using impulses.
 /*
 The answer turns out to be non-simple:
@@ -300,122 +385,3 @@ fork {
 	});
 };
 2048/3)
-//initialisation
-StartUp.run;
-//Check basic convergence on a toy problem
-(
-~island = PSIsland.new((\initialChromosomeSize: 4));
-~island.params;
-// Solve sin(3wx\pi/2) = cos(yz\pi)
-~island.scoreEvaluator = [\phenosynth, \score_evals, \trigonometry];
-~island.scoreCooker = [\phenosynth, \score_cookers, \zero_peak];
-~island.play;
-~island.population;
-~arbitrary = ~island.population.asArray[0];
-//~island.init;
-~island.rawScores;
-~island.rawScores[~arbitrary];
-~island.cookedFitnesses[~arbitrary];
-~island.cookedFitnesses.values;
-~arbitrary.chromosome;
-# a, b, c, d = ~arbitrary.chromosome;
-(a*b*pi).cos;
-(c*d*pi*3/2).sin;
-)
-//Check sanity on DSP-based comparers
-Server.default = s = ~serverboot.(\internal, \internal);
-(
-fork {
-~globalOuts = Bus.new(\audio, 0, 1);
-~matchOut = Bus.control(s, 1);
-~voxgroup = Group.new(s);
-~targetBus = Bus.new(\audio, 1, 1);//Bus.audio(s, 1);
-s.sync;
-[~globalOuts, ~matchOut, ~voxgroup, ~targetBus].postln;
-{~globalOuts.scope;}.defer;
-~outgroup = Group.after(~voxgroup);
-1.wait;
-~template = {|freq=500| Saw.ar(freq: freq, mul:0.3); }.play(
-	target: ~voxgroup,
-	outbus: ~targetBus,
-	addAction: \addToHead,
-	args: [\freq, 600]);
-~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 1.0], target: ~voxgroup);
-//~comparer = Synth.new(\ps_judge_fft_distance_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
-//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
-~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut], target: ~outgroup);
-
-Routine.new({
-	while( true, {~matchOut.get(_.postln);
-	1.yield;})
-}).play;
-{FreqScope.new(busNum:~targetBus);}.defer;
-s.sync;
-~candidate.set(\ffreq, 500, \pitch, 500);
-//~candidate.set(\ffreq, 800, \pitch, 800);
-~candidate.set(\ffreq, 600, \pitch, 600);
-//~candidate.set(\ffreq, 235, \pitch, 235);
-//~candidate.set(\ffreq, 135, \pitch, 135);
-//~candidate.set(\ffreq, 10, \pitch, 10);
-~template.set(\freq, 500);
-~candidate.set(\rq, 0.001);
-~candidate.set(\rq, 0.1);
-~candidate.set(\rq, 1.0);
-~candidate.set(\gain, 0.3);
-//{~candidate.autogui;}.defer;
-s.sync;
-~candidate.trace;
-~comparer.trace;
-}
-)
-(
-//How the listening controller works, nuts-and-bolts
-//Server.default = s = ~serverboot.(\local, \builtin);
-Server.default = s = ~serverboot.(\internal, \builtin);
-~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
-~control.play(s, outBus: ~globalOuts);
-//~ind = PSSynthPhenotype.newRandom(4);
-//~control.playIndividual(~ind);
-//~control.freeIndividual(~ind);
-//~ind.chromosomeAsSynthArgs;
-//~ind.identityHash;
-//~ind.chromosome;
-10.do({~control.playIndividual(PSSynthPhenotype.newRandom(4))});
-~control.all.do({|a,b| [a,b].postln;});
-~control.updateFitnesses;
-~control.all.collect({|indDict, key| [indDict, key]});
-~control.all.values.collect({|indDict| indDict.phenotype.fitness});
-~control.free;
-)
-(
-//test listeners
-fork {
-~playbus = Bus.audio(s, 1);
-~fitbus = Bus.control(s, 1);
-s.sync;
-~eighthundredsource = {|freq=500| SinOsc.ar(freq); }.play(s, outbus: ~playbus);
-s.sync;
-Synth.after(~eighthundredsource, \ps_conv_eight_hundred, [\in, ~playbus, \out, ~fitbus, \i_leakcoef, 0.5]);
-~fitbus.get(_.postln);
-s.sync;
-~eighthundredsource.set(\freq, 400);
-s.sync;
-}
-)
-(
-~playGroup = Group.new(s);
-~outgroup = Group.after(~playGroup);
-~audioBus = Bus.audio(s, 1);
-~fitBus = Bus.control(s,1);
-SynthDef.new(\sawy, {|out, freq=200, ffreq=300, rq=0.3| Out.ar(out, BPF.ar(Saw.ar(freq), ffreq, rq));}).add;
-~play = Synth.new(\sawy, [\out, ~audioBus, \freq, 300], ~playGroup);
-~judge = Synth.new(\ps_conv_eight_hundred, [\in, ~audioBus, \out, ~fitBus, \i_leakcoef, 0.5], ~outgroup);
-~play.set(\freq, 850);
-Routine.new({true.while({ 1.yield; ~fitBus.get(_.postln);});}).play;
-~play.autogui(specs:(
-	\freq: [20, 20000, \exp, 1, 440],
-	\ffreq: [100, 10000, \exp, 1, 440],	
-	\rq: [0.01, 1, \exp, 1, 0.3]
-));
