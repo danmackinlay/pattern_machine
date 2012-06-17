@@ -17,6 +17,12 @@ PSBasicPlaySynths {
 				Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 			});
 			SynthDef.new(
+				\ps_dc,
+				{ |out=0, gate=0, t_reset=0, pitch=800, gain=1.0|
+					Out.ar(out, DC.ar(gain));
+				}
+			).add;		
+			SynthDef.new(
 				\ps_sine,
 				{ |out=0, gate=0, t_reset=0, pitch=800, gain=1.0|
 					var env, time = 1;

@@ -139,6 +139,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
 * infrastructure
 
+  * create a factory class for phenotypes to avoid need for subclassing
   * offset occasionally ends up nil in decorateIndividualDict, causing alloc to choke
   * augment all operator protocols to pass in the PSIsand instance, or some other global
     state
@@ -231,11 +232,10 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 //It's all happening here at the moment
 //////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////
-//initialisation
-StartUp.run;
 
 //Check sanity on DSP-based comparers
-Server.default = s = ~serverboot.(\internal, \internal);
+Server.default = s = ~serverboot.(\internal, \builtin);
+StartUp.run;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1);
@@ -377,4 +377,56 @@ fork {
 		s.sync;
 	});
 };
-2048/3)
+)
+(
+fork {
+	~globalOuts = Bus.new(\audio, 0, 2);
+	//{~globalOuts.scope;}.defer;
+	~phenogroup = Group.new(s);
+	s.sync;
+	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
+	~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
+	~log = NullLogger.global;
+	//~log = PostLogger.global;
+	//~log = FileLogger.global;
+	s.sync;
+	/*******************/
+	//limiter, to avoid little accidents
+	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+	s.sync;
+	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
+	s.volume.volume= -20;
+	//actual real work now: first choose the controller that will manage the synths
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+	~control.listenSynthDef = \ps_judge_return_observed;
+	~control.leakCoef;
+	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
+	s.sync;
+	//now set up the "island" that will control their evolution
+	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1), log: ~log);
+	~island.scoreCooker = #[phenosynth, score_cookers, raw];
+	~island.play(~control);
+	s.sync;
+	[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
+};
+)
+(
+~island.controller;
+~control.outBus;
+~control.playBusses;
+~control.fitnessBusses;
+~control.all.keys.asArray[0];
+~control.all.asArray.dump;
+~control.listenGroup;
+//add in a good one and see how it survives:
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
+//{~island.plotFitness(raw:true);}.defer;
+~island.params;
+~island.population.size;
+~island.cookedFitnesses;
+~island.cookedFitnesses.values.postln;
+~island.cookedFitnesses.size;
+~island.rawScores.values.postln;
+~island.rawScores.size;
+~island.rawScores.keys.asArray[1].hash.asHexString
+)

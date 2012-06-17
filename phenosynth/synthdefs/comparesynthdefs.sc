@@ -24,8 +24,11 @@ PSBasicCompareSynths {
 		SynthDef.new(name, {
 			|observedbus, targetbus=0, out=0, active=1, t_reset=0, i_leak=0.5|
 			var observedsig, targetsig, comparison, integral;
-			targetsig  = LeakDC.ar(In.ar(targetbus, 1));
-			observedsig = LeakDC.ar(In.ar(observedbus, 1));
+			
+			// targetsig  = LeakDC.ar(In.ar(targetbus, 1));
+			// observedsig = LeakDC.ar(In.ar(observedbus, 1));
+			targetsig  = In.ar(targetbus, 1);
+			observedsig = In.ar(observedbus, 1);
 			
 			//targetbus.poll(0.1, \targetbus);
 			//observedbus.poll(0.1, \observedbus);
@@ -35,7 +38,7 @@ PSBasicCompareSynths {
 			 life is less convenient, since it doesn't admit infinity easily) */
 			i_leak = i_leak**(ControlRate.ir.reciprocal);
 			//sanity check that.
-			//Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
+			// Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
 			
 			comparison = SynthDef.wrap(func, lags, [targetsig, observedsig]);
 			
@@ -213,6 +216,12 @@ PSBasicCompareSynths {
 			ocepstrum = MFCC.kr(offt, numcoeff:42);
 			
 			(sigcepstrum - ocepstrum).squared.sum;
+		});
+		/*For debugging, we sometimes wish to return the input.
+		This makes no sense as an actual fitness function, however.*/
+		this.makeComparer(\ps_judge_return_observed, {
+			|targetsig, observedsig|
+			A2K.kr(observedsig);
 		});		
 	}
 }
