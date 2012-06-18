@@ -15,6 +15,7 @@ fork {
 s.sync;
 ~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
 ~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
+//~log = NullLogger.global;
 ~log = PostLogger.global;
 //~log = FileLogger.global;
 s.sync;
@@ -26,8 +27,8 @@ s.sync;
 /*******************/
 ~targetBus = Bus.audio(s, 1);
 s.sync;
-//~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
+~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 ~spy=SpyBus.new.play(~target, ~targetBus);
 //~target.set(\pitch, 500);
 s.sync;
@@ -41,13 +42,12 @@ s.sync;
 //s.volume.gui;
 s.volume.volume= -20;
 //actual real work now: first choose the controller that will manage the synths
-//~control = PSCompareSynthController.new(s, bus:~globalOuts, numChannels:1, fitnessPollInterval:1, targetBus: ~targetBus);
-~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:40);
 //~control.listenSynthDef = \ps_judge_pitchamp_distance;
-~control.listenSynthDef = \ps_judge_pitch_distance;
+//~control.listenSynthDef = \ps_judge_pitch_distance;
 //~control.listenSynthDef = \ps_judge_fft_distance;
 //~control.listenSynthDef = \ps_judge_convolution;
-//~control.listenSynthDef = \ps_judge_cepstral_distance;
+~control.listenSynthDef = \ps_judge_cepstral_distance;
 //~control.listenSynthDef = \ps_judge_mfcc_distance;
 ~control.leakCoef;
 ~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
@@ -251,20 +251,24 @@ fork {
 	~template = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5], target: ~voxgroup);
 	~candidate = Synth.new(\ps_reson_saw, [\out, ~globalOuts, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 0.5], target: ~voxgroup);
 	//~comparer = Synth.new(\ps_judge_fft_distance_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
-	~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_convolution_norm, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
+	~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~globalOuts, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.01], target: ~outgroup);
 	
 	Routine.new({
 		while( true, {~matchOut.get(_.postln);
 		1.yield;})
 	}).play;
-	{FreqScope.new(busNum:~targetBus);}.defer;
+	{
+		FreqScope.new(busNum:~targetBus);
+		FreqScope.new(busNum:~globalOuts);
+	}.defer;
 	s.sync;
-	~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
-	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
-	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
-	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain 0.5);
+	//~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.01, \gain, 0.5);
+	~candidate.set(\pitch, 800, \ffreq, 800, \rq, 0.3, \gain, 0.5);
+	//~candidate.set(\pitch, 300, \ffreq, 200, \rq, 0.8, \gain, 0.5);
+	//~candidate.set(\pitch, 600, \ffreq, 600, \rq, 0.3, \gain, 0.5);
 	//{~candidate.autogui;}.defer;
 	s.sync;
 	~candidate.trace;
