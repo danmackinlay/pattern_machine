@@ -15,12 +15,12 @@ PSOperators {
 		);
 		Library.put(\phenosynth, \chromosome_fact, \basic,
 			{|params|
-				params.individualClass.newRandom(params.initialChromosomeSize);
+				params.individualFactory.newRandom(params.initialChromosomeSize);
 			}
 		);
 		Library.put(\phenosynth, \individual_fact, \basic,
 			{|params, chromosome|
-				params.individualClass.new(chromosome);
+				params.individualFactory.new(chromosome);
 			}
 		);
 		//not practical, just a sanity check - return the mean of the chromosome

@@ -378,9 +378,11 @@ fork {
 	});
 };
 )
+//ultra-simple debugging synths.
+Server.default = s = ~serverboot.(\internal, \builtin);
 (
 fork {
-	~globalOuts = Bus.new(\audio, 0, 2);
+	~globalOuts = Bus.audio(s, 1);
 	//{~globalOuts.scope;}.defer;
 	~phenogroup = Group.new(s);
 	s.sync;
@@ -390,20 +392,15 @@ fork {
 	//~log = PostLogger.global;
 	//~log = FileLogger.global;
 	s.sync;
-	/*******************/
-	//limiter, to avoid little accidents
-	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
-	s.sync;
-	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
-	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
 	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
 	~control.listenSynthDef = \ps_judge_return_observed;
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
 	s.sync;
+	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1), log: ~log);
+	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory), log: ~log);
 	~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	~island.play(~control);
 	s.sync;

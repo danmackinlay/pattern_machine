@@ -64,7 +64,7 @@ PSIsland {
 			\numParents: 2,
 			\initialChromosomeSize: 1,
 			\crossoverProb: 1,
-			\individualClass: PSPhenotype,
+			\individualFactory: PSPhenotype,
 			\mutationProb: 0.1,
 			\mutationSize: 0.1,
 			\stopIterations: 1000

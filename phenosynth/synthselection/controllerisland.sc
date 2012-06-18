@@ -8,7 +8,7 @@ PSControllerIsland : PSRealTimeIsland {
 	
 	*defaultParams {
 		var defParams = super.defaultParams;
-		defParams.individualClass = PSSynthPhenotype;
+		defParams.individualFactory = PSSynthPhenotype;
 		//These are kinda CPU-heavy
 		defParams.populationSize = 40;
 		^defParams;

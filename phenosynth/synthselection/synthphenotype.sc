@@ -2,17 +2,19 @@ PSSynthDefPhenotype : PSPhenotype {
 	//A phenotype connecting a chromosome to the inputs of a SynthDef
 	classvar <defaultSynthDef = \ps_reson_saw;
 	classvar <defaultSynthArgMap;
-	
+
 	var <>synthDef;
 	var <>synthArgMap;
 	
 	*new {|chromosome, synthDef, synthArgMap|
 		//default to class's synthDef and synthArgMap to make trivial subclasses easy.
+		//although if you are subclassing you might not want to use a Factory
 		var noob = super.new(chromosome);
 		noob.synthDef = synthDef ? defaultSynthDef;
 		noob.synthArgMap = synthArgMap ? defaultSynthArgMap;
 		^noob;
 	}
+	
 	*newFromSynthArgs {|synthArgs, synthDef, synthArgMap|
 		var chromosome;
 		synthDef = synthDef ? defaultSynthDef;
@@ -20,29 +22,18 @@ PSSynthDefPhenotype : PSPhenotype {
 		chromosome = this.synthArgsAsChromosome(synthArgs, synthArgMap);
 		^this.new(chromosome, synthDef, synthArgMap)
 	}
+	
 	*initClass {
 		StartUp.add {
-			this.setUpSynthDefs;
+			defaultSynthArgMap = (
+				\pitch: \midfreq.asSpec,
+				\ffreq: \midfreq.asSpec,
+				\rq: \rq.asSpec,
+				\gain: \unipolar.asSpec
+			);
 		};
-		StartUp.add {
-			this.setUpMappingToSynthDef;
-		};
 	}
-	*setUpSynthDefs {
-		/*Nothing to do here;  I just use the generic \ps_reson_saw in the
-		playsynthdefs file. Subclasses might do otherwise.*/
-	}
-	*setUpMappingToSynthDef {
-		//defaultSynthArgMap as befits defaultSynth
-		//feels like it should be declared in the class proper, but needs to
-		//wait until init time.
-		defaultSynthArgMap = (
-			\pitch: \midfreq.asSpec,
-			\ffreq: \midfreq.asSpec,
-			\rq: \rq.asSpec,
-			\gain: \unipolar.asSpec
-		);
-	}
+	
 	*chromosomeAsSynthArgs {|chrom, synthArgMap|
 		/*Zip together the key, synthArgMap spec and value lists into one, then
 		iterate over this, returning synthArgMapped values associated with their
@@ -90,5 +81,47 @@ PSSynthPhenotype : PSSynthDefPhenotype {
 	
 	stop {|synth|
 		synth.set(\gate, 0);
+	}
+}
+
+PSSynthDefPhenotypeFactory {
+	/*
+	A handy class that you can pass in as the individualFactory parameter to allow 
+	class-free synth phenotype implementation.
+	
+	You shouldn't have to subclass things just to override a trivial parameter or two.
+	*/
+	classvar <>defaultPhenotypeClass;
+
+	var <synthDef;
+	var <synthArgMap;
+	var <phenotypeClass;
+	
+	*new {|synthDef, synthArgMap, phenotypeClass|
+		^super.newCopyArgs(
+			synthDef ? PSSynthDefPhenotype.defaultSynthDef,
+			synthArgMap ? PSSynthDefPhenotype.defaultSynthArgMap,
+			phenotypeClass ? defaultPhenotypeClass
+		);
+	}
+		
+	*initClass {
+		StartUp.add {
+			defaultPhenotypeClass = PSSynthDefPhenotype;
+		};
+	}
+		
+	new {|chromosome|
+		^phenotypeClass.new(chromosome, synthDef, synthArgMap);
+	}
+	
+	newRandom {|initialChromosomeSize|
+		^this.new(phenotypeClass.randomChromosome(initialChromosomeSize));
+	}
+	
+	newFromSynthArgs {|synthArgs|
+		var chromosome;
+		chromosome = phenotypeClass.synthArgsAsChromosome(synthArgs, synthArgMap);
+		^this.new(chromosome);
 	}
 }

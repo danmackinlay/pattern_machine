@@ -10,8 +10,10 @@ PSPhenotype {
 		^noob
 	}
 	*newRandom {|initialChromosomeSize|
-		var newChromosome = {1.0.rand;}.dup(initialChromosomeSize);
-		^this.new(newChromosome);
+		^this.new(this.randomChromosome(initialChromosomeSize));
+	}
+	*randomChromosome{|initialChromosomeSize|
+		^{1.0.rand;}.dup(initialChromosomeSize);
 	}
 	chromosome_ {|newChromosome|
 		//don't just copy a ref- each phenotype gets its own copy.
