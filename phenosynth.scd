@@ -431,3 +431,9 @@ fork {
 ~island.rawScores.size;
 ~island.rawScores.keys.asArray[1].hash.asHexString
 )
+(
+~log = PostLogger.global;
+~log.basicLog(\foo);
+~log.log([\foo], \function, 1);
+~log.log([\foo], \function, -101);
+)

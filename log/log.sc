@@ -10,7 +10,9 @@ TODO: have instances with different default tags but stil central master control
 
 NullLogger {
 	/* this parent class provdes a black hole logger so that you can stop
-	 logging without changing code. */
+	 logging without changing code, but also ia a semi-abstract superclass. */
+	 var <>minPriority = -1;
+	
 	formatMsg {|msgchunks, tag=\default, priority=0, time=true|
 		var stamp;
 		time.if({
@@ -32,8 +34,13 @@ NullLogger {
 	*default {
 		^this.new;
 	}
+	acceptMsg {|priority|
+		^(priority>minPriority);
+	}
 	log {|msgchunks, tag=\default, priority=0, time=true|
-		^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
+		this.acceptMsg(priority).if {
+			^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
+		}
 	}
 	basicLog {|...msgargs|
 		^this.log(msgchunks: msgargs);
@@ -82,10 +89,12 @@ FileLogger : NullLogger {
 		^default;
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true, flush=true|
-		var formatted = this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
-		file.write(formatted);
-		flush.if({file.flush;});
-		^formatted;
+		this.acceptMsg(priority).if {
+			var formatted = this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
+			file.write(formatted);
+			flush.if({file.flush;});
+			^formatted;
+		}
 	}
 }
 PostLogger : NullLogger {
@@ -99,10 +108,11 @@ PostLogger : NullLogger {
 		^global;
 	}
 	*default {
-		/* a fresh, time-stamped logfile for your ease of logging */
 		^this.global;
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true|
-		^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;
+		this.acceptMsg(priority).if {
+			^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;
+		}
 	}
 }
