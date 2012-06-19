@@ -98,18 +98,7 @@ FileLogger : NullLogger {
 	}
 }
 PostLogger : NullLogger {
-	/* writes pipe-separated log messages to a the standard post window */
-	classvar global;
-
-	*global {
-		/* a shared, appendable log that all local supercolldier procs 
-		can write to. */
-		global.isNil.if({global = this.new("_global")});
-		^global;
-	}
-	*default {
-		^this.global;
-	}
+	/* writes pipe-separated log messages to the standard post window */
 	log {|msgchunks, tag=\default, priority=0, time=true|
 		this.acceptMsg(priority).if {
 			^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;

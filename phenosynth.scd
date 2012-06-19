@@ -392,12 +392,12 @@ fork {
 	s.sync;
 	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
 	~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
-	~log = NullLogger.global;
-	//~log = PostLogger.global;
+	//~log = NullLogger.global;
+	~log = PostLogger.global;
 	//~log = FileLogger.global;
 	s.sync;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.0, maxPop:40);
 	~control.listenSynthDef = \ps_judge_return_observed;
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
