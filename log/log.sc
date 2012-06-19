@@ -18,7 +18,7 @@ NullLogger {
 		}, {
 			stamp = [tag, priority];
 		});
-		^"|||"+(stamp ++ msgchunks).join("|")++"\n";
+		^">>>"+(stamp ++ msgchunks).join("|")++"\n";
 	}
 	*new {|fileName|
 		^super.new;
