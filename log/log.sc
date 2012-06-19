@@ -38,9 +38,7 @@ NullLogger {
 		^(priority>minPriority);
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true|
-		this.acceptMsg(priority).if {
-			^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
-		}
+		//See subclasses for example implementations
 	}
 	basicLog {|...msgargs|
 		^this.log(msgchunks: msgargs);
@@ -93,7 +91,6 @@ FileLogger : NullLogger {
 			var formatted = this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
 			file.write(formatted);
 			flush.if({file.flush;});
-			^formatted;
 		}
 	}
 }
@@ -101,7 +98,7 @@ PostLogger : NullLogger {
 	/* writes pipe-separated log messages to the standard post window */
 	log {|msgchunks, tag=\default, priority=0, time=true|
 		this.acceptMsg(priority).if {
-			^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;
+			this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;
 		}
 	}
 }
