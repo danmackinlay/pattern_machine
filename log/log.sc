@@ -11,8 +11,17 @@ TODO: have instances with different default tags but stil central master control
 NullLogger {
 	/* this parent class provdes a black hole logger so that you can stop
 	 logging without changing code, but also ia a semi-abstract superclass. */
-	 var <>minPriority = -1;
-	
+	var <>minPriority = -1;
+	var <rejSet;
+	init {
+		rejSet = rejSet ?? {Set[]};
+	}
+	reject {|tag|
+		rejSet.add(tag);
+	}
+	accept {|tag|
+		rejSet.remove(tag);
+	}
 	formatMsg {|msgchunks, tag=\default, priority=0, time=true|
 		var stamp;
 		time.if({
@@ -22,11 +31,8 @@ NullLogger {
 		});
 		^">>>"+(stamp ++ msgchunks).join("|")++"\n";
 	}
-	*new {|fileName|
-		^super.new;
-	}
-	*newFromDate {|prefix|
-		^this.new;
+	*new {
+		^super.new.init;
 	}
 	*global {
 		^this.new;
@@ -34,8 +40,8 @@ NullLogger {
 	*default {
 		^this.new;
 	}
-	acceptMsg {|priority|
-		^(priority>minPriority);
+	acceptMsg {|priority, tag|
+		^(priority>minPriority).and(rejSet.includes(tag).not);
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true|
 		//See subclasses for example implementations
@@ -65,7 +71,7 @@ FileLogger : NullLogger {
 		
 		fileName = (thisLogPath +/+ fileName).fullPath;
 		file = File.open(fileName, "a");
-		^super.newCopyArgs(file, fileName);
+		^super.newCopyArgs(nil, file, fileName).init;
 	}
 	*newFromDate {|prefix|
 		var fileName;
@@ -87,7 +93,7 @@ FileLogger : NullLogger {
 		^default;
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true, flush=true|
-		this.acceptMsg(priority).if {
+		this.acceptMsg(priority, tag).if {
 			var formatted = this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
 			file.write(formatted);
 			flush.if({file.flush;});
@@ -97,7 +103,7 @@ FileLogger : NullLogger {
 PostLogger : NullLogger {
 	/* writes pipe-separated log messages to the standard post window */
 	log {|msgchunks, tag=\default, priority=0, time=true|
-		this.acceptMsg(priority).if {
+		this.acceptMsg(priority, tag).if {
 			this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;
 		}
 	}
