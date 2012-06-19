@@ -1,19 +1,24 @@
 /*
-File-based loggers, because logging to a GUI window is no good when
-SuperCollider does its segfault thing.
+flexible loggers, because
+
+1 logging to a GUI window is no good when SuperCollider does its segfault thing.
+2 turning logging streams on and off is necessary
+3 supercollider ain't acquiring a real interactive debugger any time soon
+
+TODO: have instances with different default tags but stil central master control of filtering
 */
 
 NullLogger {
 	/* this parent class provdes a black hole logger so that you can stop
 	 logging without changing code. */
-	formatMsg {|msgs|
-		var stampedMsgs = msgs;
-		//A nil in the first msg argument will be replaced by a datestamp
-		msgs[0].isNil.if({
-			stampedMsgs = msgs.copy;
-			stampedMsgs[0] = Date.gmtime.stamp;
+	formatMsg {|msgchunks, tag=\default, priority=0, time=true|
+		var stamp;
+		time.if({
+			stamp =  [tag, priority, Date.gmtime.stamp];
+		}, {
+			stamp = [tag, priority];
 		});
-		^"|||"+stampedMsgs.join("|")++"\n";
+		^"|||"+(stamp ++ msgchunks).join("|")++"\n";
 	}
 	*new {|fileName|
 		^super.new;
@@ -27,11 +32,11 @@ NullLogger {
 	*default {
 		^this.new;
 	}
-	log {|...msgargs|
-		^this.formatMsg(msgargs);
+	log {|msgchunks, tag=\default, priority=0, time=true|
+		^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
 	}
-	logFlush {|...msgargs|
-		^this.log(*msgargs);
+	basicLog {|...msgargs|
+		^this.log(msgchunks: msgargs);
 	}
 }
 FileLogger : NullLogger {
@@ -76,14 +81,10 @@ FileLogger : NullLogger {
 		default.isNil.if({default = this.newFromDate});
 		^default;
 	}
-	log {|...msgargs|
-		var formatted = this.formatMsg(msgargs);
+	log {|msgchunks, tag=\default, priority=0, time=true, flush=true|
+		var formatted = this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time);
 		file.write(formatted);
-		^formatted;
-	}
-	logFlush {|...msgargs|
-		var formatted = this.log(*msgargs);
-		file.flush;
+		flush.if({file.flush;});
 		^formatted;
 	}
 }
@@ -101,7 +102,7 @@ PostLogger : NullLogger {
 		/* a fresh, time-stamped logfile for your ease of logging */
 		^this.global;
 	}
-	log {|...msgargs|
-		^super.log(*msgargs).post;
+	log {|msgchunks, tag=\default, priority=0, time=true|
+		^this.formatMsg(tag:tag, priority:priority, msgchunks: msgchunks, time: time).post;
 	}
 }

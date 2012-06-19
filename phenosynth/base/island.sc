@@ -200,11 +200,11 @@ PSIsland {
 		var beforeFitness, afterFitness;
 		this.evaluate;
 		toCull = deathSelector.value(params, cookedFitnesses);
-		log.log(nil, \culling, toCull);
+		log.basicLog( \culling, toCull);
 		beforeFitness = cookedFitnesses.values.asArray.mean;
 		this.cull(toCull);
 		afterFitness = cookedFitnesses.values.asArray.mean;
-		log.log(\fitness_delta, afterFitness - beforeFitness);
+		log.basicLog(\fitness_delta, afterFitness - beforeFitness);
 		toBreed = birthSelector.value(params, cookedFitnesses);
 		//[\parents, toBreed].postln;
 		this.breed(toBreed);

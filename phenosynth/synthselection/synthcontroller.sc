@@ -63,7 +63,7 @@ PSSynthController {
 			false,
 			{this.playBundle(server, outBus, *argz);}
 		);
-		log.log(nil, \setupBundle, setupBundle);
+		log.basicLog( \setupBundle, setupBundle);
 		server.listSendBundle(nil, setupBundle);
 		playing = true;
 	}
@@ -81,11 +81,11 @@ PSSynthController {
 		all.put(indDict.phenotype.identityHash, indDict);
 		try {
 			this.decorateIndividualDict(indDict);
-			log.log(nil, "successfully generated", indDict)
+			log.basicLog( "successfully generated", indDict)
 		} { |error|
 			switch(error.species.name)
 			 	{ 'OutOfResources' } {
-					log.log(nil, error.errorString);
+					log.basicLog( error.errorString);
 					^nil;
 				}
 			 	// default condition: unhandled exception, rethrow
@@ -106,7 +106,7 @@ PSSynthController {
 	actuallyPlayIndividual {|indDict|
 		//private
 		var synthArgs = this.getSynthArgs(indDict);
-		log.log(\synthargs, *synthArgs);
+		log.basicLog(\synthargs, *synthArgs);
 		indDict.playNode = Synth.new(
 			indDict.phenotype.synthDef,
 			synthArgs,
@@ -221,7 +221,7 @@ PSListenSynthController : PSSynthController {
 			Routine.new({loop {
 				this.updateFitnesses;
 				1.wait;
-				log.log(nil, "updating fitnesses");
+				log.basicLog( "updating fitnesses");
 			}}).play(clock);
 		};
 	}
@@ -270,7 +270,7 @@ PSListenSynthController : PSSynthController {
 	actuallyPlayIndividual {|indDict|
 		var listenSynthArgs;
 		listenSynthArgs = this.getListenSynthArgs(indDict);
-		log.log(\listensynthargs, *listenSynthArgs);
+		log.basicLog(\listensynthargs, *listenSynthArgs);
 		//play the synth to which we wish to listen
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
@@ -301,8 +301,8 @@ PSListenSynthController : PSSynthController {
 		all.keysValuesDo({|key, indDict|
 			var updater = {|val|
 				var localIndDict = indDict;
-				log.log(\updating, localIndDict.phenotype.chromosomeAsSynthArgs, \to, val );
-				// log.log(\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus );
+				log.basicLog(\updating, localIndDict.phenotype.chromosomeAsSynthArgs, \to, val );
+				// log.basicLog(\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus );
 				island.notNil.if({island.setFitness(localIndDict.phenotype, val);});
 				localIndDict.phenotype.incAge;
 			};
