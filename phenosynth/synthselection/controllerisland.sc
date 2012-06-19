@@ -22,7 +22,7 @@ PSControllerIsland : PSRealTimeIsland {
 		res.notNil.if({
 			super.add(phenotype);
 		}, {
-			log.basicLog( \resource_exhausted, "Could not add phenotype", phenotype);
+			log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
 		});
 	}
 	remove {|phenotype|
@@ -32,7 +32,6 @@ PSControllerIsland : PSRealTimeIsland {
 	play {|controller|
 		//pass the controller a reference to me so it can push notifications
 		//A pub-sub solution would scale better to future multi-server parallelism
-		log.basicLog("playing with island", this);
 		this.controller = controller;
 		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
 		controller.connect(this);

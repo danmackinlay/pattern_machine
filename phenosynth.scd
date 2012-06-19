@@ -397,14 +397,14 @@ fork {
 	//~log = FileLogger.global;
 	s.sync;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.0, maxPop:40);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.0, maxPop:6);
 	~control.listenSynthDef = \ps_judge_return_observed;
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
 	s.sync;
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory), log: ~log);
+	~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory), log: ~log);
 	~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	~island.play(~control);
 	s.sync;
@@ -412,6 +412,9 @@ fork {
 };
 )
 (
+s.getQueryTree;
+s.queryAllNodes;
+~log.minPriority=0;
 ~island.controller;
 ~control.outBus;
 ~control.playBusses;
