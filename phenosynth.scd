@@ -418,7 +418,10 @@ s.queryAllNodes;
 ~island.controller;
 ~control.outBus;
 ~control.playBusses;
+~control.playBusses.get;
 ~control.fitnessBusses;
+~control.fitnessBusses.get;
+~control.fitnessBusses.getnSynchronous(6);
 ~control.all.keys.asArray[0];
 ~control.all.asArray.dump;
 ~control.listenGroup;
@@ -434,9 +437,22 @@ s.queryAllNodes;
 ~island.rawScores.size;
 ~island.rawScores.keys.asArray[1].hash.asHexString
 )
+//simpler again. Sanity check individual fitness thingies.
+Server.default = s = ~serverboot.(\internal, \builtin);
 (
-~log = PostLogger.global;
-~log.basicLog(\foo);
-~log.log([\foo], \function, 1);
-~log.log([\foo], \function, -101);
+fork {
+	~observedBus = Bus.audio(s, 1);
+	~dummyBus = Bus.audio(s, 1);
+	~fitnessBus = Bus.control(s, 1);
+	s.sync;
+	~observed = Synth.new(\ps_dc, [\gain, 0.63, \out, ~observedBus, \gate, 1], target: s);
+	s.sync;
+	~comparer = Synth.new(\ps_judge_return_observed, [\observedbus, ~observedBus, \targetbus, ~dummyBus, \out, ~fitnessBus, \active, 1, \t_reset, 0, \i_leak, 0.0], target:~observed, addAction:\addAfter);
+	s.sync;
+	~fitnessBus.get;
+};
+)
+(
+~fitnessBus.getSynchronous;
+~observed.
 )

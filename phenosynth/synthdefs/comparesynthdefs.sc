@@ -36,17 +36,15 @@ PSBasicCompareSynths {
 			/*Calculate a leak coefficient to discount fitness over time,
 			 presuming the supplied value is a decay rate _per_second_. (Half
 			 life is less convenient, since it doesn't admit infinity easily) */
-			i_leak = i_leak**(ControlRate.ir.reciprocal);
-			//sanity check that.
-			// Poll.kr(Impulse.kr(10), DC.kr(i_leak), \leak);
+			i_leak = (i_leak**(ControlRate.ir.reciprocal)*(i_leak>0));//.poll(0.1, \leak);
 			
 			comparison = SynthDef.wrap(func, lags, [targetsig, observedsig]);
-			
-			// Divide by the server's control rate to scale the output nicely
-			comparison = comparison / ControlRate.ir;
 
-			/* Default coefficient of i_leak = no leak. When t_reset briefly hits
-			 nonzero, the integrator drains.*/
+			/* 
+			A 1 pole filter with decay rate per second given by i_leak.
+			When t_reset briefly hits nonzero, the integrator drains. That 
+			functionality is not actually used here.
+			*/
 			integral = Integrator.kr(comparison * active * (1-i_leak), if(t_reset>0, 0, i_leak));
 
 			Out.kr(out, integral);

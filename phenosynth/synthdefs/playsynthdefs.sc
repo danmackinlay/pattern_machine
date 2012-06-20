@@ -18,7 +18,7 @@ PSBasicPlaySynths {
 			});
 			SynthDef.new(
 				\ps_dc,
-				{ |out=0, gate=0, t_reset=0, pitch=800, gain=1.0|
+				{ |out=0, gate=0, gain=1.0|
 					Out.ar(out, DC.ar(gain));
 				}
 			).add;		
