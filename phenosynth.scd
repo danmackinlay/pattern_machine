@@ -120,8 +120,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
   * rescale fitness to be nicer. When I have lots of things with similar fitness they should
     be proactively separated
-  * rank selection
-  * fitness seems to more usually go down that up in the current way of things.
+  * work out the stats for proper birth/death processes, fitness-weighted
 
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
@@ -385,6 +384,8 @@ fork {
 	~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
 	//~log = NullLogger.global;
 	~log = PostLogger.global;
+	~log.minPriority=(-2);
+	~log.reject(\controlling);
 	//~log = FileLogger.global;
 	s.sync;
 	//actual real work now: first choose the controller that will manage the synths
@@ -400,14 +401,11 @@ fork {
 	~island.scoreCooker = #[phenosynth, score_cookers, ranked];
 	~island.play(~control);
 	s.sync;
-	[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
 (
 s.getQueryTree;
 s.queryAllNodes;
-~log.minPriority=-2;
-~log.reject(\controlling);
 ~island.controller;
 ~control.outBus;
 ~control.playBusses;

@@ -132,7 +132,7 @@ PSOperators {
 			};
 		);
 		/*
-		Not sure the fitness range in advance and don't like ranking? 
+		Not sure the fitness range in advance and don't like ranking?
 		Rescale!
 		*/
 		Library.put(\phenosynth, \score_cookers, \rescale,
@@ -180,11 +180,12 @@ PSOperators {
 					//the maths here is slighly flakey. Given a set death rate, and a fitness-weighted rate
 					//how do we make this fly properly? Hot Poisson/exp distro action.
 					//anyway, for low rates they all converge.
+					// not that the 2-x term below mean the prob is not guaranteed positive.
 					localPopulation = fitnessMap.keys;
 					rate = params.deathRate;
 					meanFitness = localFitnesses.mean;
 					hitList = localPopulation.select({|p|
-						(1-((fitnessMap[p]/meanFitness)*rate)).coin.not;
+						((2-((fitnessMap[p]/meanFitness)))*rate).coin;
 					});
 					hitList;
 				});
@@ -206,8 +207,8 @@ PSOperators {
 					rate = params.deathRate;
 					meanFitness = localFitnesses.mean;
 					hitList = localPopulation.select({|p|
-						params.log.log(msgchunks: [\localinvrate, (1-((fitnessMap[p]/meanFitness)*rate))], tag: \selection, priority: -1);
-						(1-((fitnessMap[p]/meanFitness)*rate)).coin.not;
+						params.log.log(msgchunks: [\localinvrate, (2-((fitnessMap[p]/meanFitness)))*rate], tag: \selection, priority: -1);
+						((2-((fitnessMap[p]/meanFitness)))*rate).coin;
 					});
 					params.log.log(msgchunks: [\selectionbidnez, rate, meanFitness] ++ localFitnesses, tag: \selection, priority: -1);
 					hitList;
