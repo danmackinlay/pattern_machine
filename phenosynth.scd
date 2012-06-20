@@ -54,7 +54,7 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1), log: ~log);
+	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 	//~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
@@ -404,7 +404,7 @@ fork {
 	s.sync;
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory), log: ~log);
+	~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory, \log: ~log));
 	~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	~island.play(~control);
 	s.sync;

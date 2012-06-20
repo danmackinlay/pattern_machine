@@ -21,7 +21,7 @@ PSControllerIsland : PSRealTimeIsland {
 		res.notNil.if({
 			super.add(phenotype);
 		}, {
-			log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
+			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
 		});
 	}
 	remove {|phenotype|

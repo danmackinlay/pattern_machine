@@ -67,15 +67,14 @@ PSIsland {
 			\individualFactory: PSPhenotype,
 			\mutationProb: 0.1,
 			\mutationSize: 0.1,
-			\stopIterations: 1000
+			\stopIterations: 1000,
+			\log: NullLogger.new
 		);
 	}
 	*new {|params, log|
 		var thisNew = super.newCopyArgs(
-			this.defaultParams.updatedFrom(params ? Event.new),
-			log ? NullLogger.new
+			this.defaultParams.updatedFrom(params ? Event.new)
 		).init;
-		
 		^thisNew;
 	}
 	deathSelector_ {|fn|
@@ -200,11 +199,11 @@ PSIsland {
 		var beforeFitness, afterFitness;
 		this.evaluate;
 		toCull = deathSelector.value(params, cookedFitnesses);
-		log.log(msgchunks: [\culling] ++ toCull, tag: \selection);
+		params.log.log(msgchunks: [\culling] ++ toCull, tag: \selection);
 		beforeFitness = cookedFitnesses.values.asArray.mean;
 		this.cull(toCull);
 		afterFitness = cookedFitnesses.values.asArray.mean;
-		log.log(msgchunks: [\fitness_delta, afterFitness - beforeFitness], tag: \selection);
+		params.log.log(msgchunks: [\fitness_delta, afterFitness - beforeFitness], tag: \selection);
 		toBreed = birthSelector.value(params, cookedFitnesses);
 		//[\parents, toBreed].postln;
 		this.breed(toBreed);
