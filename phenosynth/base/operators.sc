@@ -123,7 +123,7 @@ PSOperators {
 					var fmax, fmin;
 					fmax = normedScores.maxItem;
 					fmin = normedScores.minItem;
-					range = [fmax-fmin, 0.001].maxItem;
+					range = [fmax-fmin, 0.000001].maxItem;
 					rawScoreMap.keysValuesDo({|key,val|
 						cookedFitnessMap[key] = (range-(val.abs-fmin))/range;
 					});
@@ -131,6 +131,29 @@ PSOperators {
 				cookedFitnessMap;
 			};
 		);
+		/*
+		Not sure the fitness range in advance and don't like ranking? 
+		Rescale!
+		*/
+		Library.put(\phenosynth, \score_cookers, \rescale,
+			{|params, rawScoreMap|
+				var cookedFitnessMap, normedScores, range;
+				cookedFitnessMap = IdentityDictionary.new;
+				
+				normedScores = rawScoreMap.values.asArray;
+				normedScores.notEmpty.if({
+					var fmax, fmin;
+					fmax = normedScores.maxItem;
+					fmin = normedScores.minItem;
+					range = [fmax-fmin, 0.000001].maxItem;
+					rawScoreMap.keysValuesDo({|key,val|
+						cookedFitnessMap[key] = (val-fmin)/range;
+					});
+				});
+				cookedFitnessMap;
+			};
+		);
+		
 		/*
 		Termination conditions tell us when to stop -
 		when we are "close enough" or have run too long
