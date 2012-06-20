@@ -9,58 +9,58 @@ s.getQueryTree;
 s.queryAllNodes;
 (
 fork {
-~globalOuts = Bus.new(\audio, 0, 2);
-//{~globalOuts.scope;}.defer;
-~phenogroup = Group.new(s);
-s.sync;
-~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
-~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
-//~log = NullLogger.global;
-~log = PostLogger.global;
-//~log = FileLogger.global;
-s.sync;
-/*******************/
-/* Do either THIS: */
-//better way to get first audio in?
-//~targetBus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
-/* or THIS */
-/*******************/
-~targetBus = Bus.audio(s, 1);
-s.sync;
-~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
-~spy=SpyBus.new.play(~target, ~targetBus);
-//~target.set(\pitch, 500);
-s.sync;
-//~spy.moveAfter(~target);
-//~target.trace;
-/*******************/
-//limiter, to avoid little accidents
-SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
-s.sync;
-~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
-//s.volume.gui;
-s.volume.volume= -20;
-//actual real work now: first choose the controller that will manage the synths
-~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:40);
-//~control.listenSynthDef = \ps_judge_pitchamp_distance;
-//~control.listenSynthDef = \ps_judge_pitch_distance;
-//~control.listenSynthDef = \ps_judge_fft_distance;
-//~control.listenSynthDef = \ps_judge_convolution;
-~control.listenSynthDef = \ps_judge_cepstral_distance;
-//~control.listenSynthDef = \ps_judge_mfcc_distance;
-~control.leakCoef;
-~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
-s.sync;
-1.wait;
-//now set up the "island" that will control their evolution
-~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1), log: ~log);
-//~island.scoreCooker = #[phenosynth, score_cookers, raw];
-~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-//~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
-~island.play(~control);
-s.sync;
-[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
+	~globalOuts = Bus.new(\audio, 0, 2);
+	//{~globalOuts.scope;}.defer;
+	~phenogroup = Group.new(s);
+	s.sync;
+	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
+	~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
+	//~log = NullLogger.global;
+	~log = PostLogger.global;
+	//~log = FileLogger.global;
+	s.sync;
+	/*******************/
+	/* Do either THIS: */
+	//better way to get first audio in?
+	//~targetBus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+	/* or THIS */
+	/*******************/
+	~targetBus = Bus.audio(s, 1);
+	s.sync;
+	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
+	~spy=SpyBus.new.play(~target, ~targetBus);
+	//~target.set(\pitch, 500);
+	s.sync;
+	//~spy.moveAfter(~target);
+	//~target.trace;
+	/*******************/
+	//limiter, to avoid little accidents
+	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+	s.sync;
+	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
+	//s.volume.gui;
+	s.volume.volume= -20;
+	//actual real work now: first choose the controller that will manage the synths
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:40);
+	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
+	//~control.listenSynthDef = \ps_judge_pitch_distance;
+	//~control.listenSynthDef = \ps_judge_fft_distance;
+	//~control.listenSynthDef = \ps_judge_convolution;
+	~control.listenSynthDef = \ps_judge_cepstral_distance;
+	//~control.listenSynthDef = \ps_judge_mfcc_distance;
+	~control.leakCoef;
+	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
+	s.sync;
+	1.wait;
+	//now set up the "island" that will control their evolution
+	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1), log: ~log);
+	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
+	~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	//~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+	~island.play(~control);
+	s.sync;
+	[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
 //listen for a while.
@@ -435,7 +435,8 @@ s.queryAllNodes;
 ~island.cookedFitnesses.size;
 ~island.rawScores.values.postln;
 ~island.rawScores.size;
-~island.rawScores.keys.asArray[1].hash.asHexString
+~island.rawScores.keys.asArray[1].hash.asHexString;
+~island.free;
 )
 //simpler again. Sanity check individual fitness thingies.
 Server.default = s = ~serverboot.(\internal, \builtin);
