@@ -18,7 +18,7 @@ PSIsland {
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRate];
 	classvar <defaultBirthSelector = #[phenosynth, birth_selectors, byRoulettePerTotal];
-	classvar <defaultMutator = #[phenosynth, mutators, floatPointMutation];
+	classvar <defaultMutator = #[phenosynth, mutators, gaussianPerturb];
 	classvar <defaultCrossover = #[phenosynth, crossovers, uniformCrossover];
 	//we keep instance settings in a mutable Environment so that
 	//generic function parameters can be passed to mutators, and they may

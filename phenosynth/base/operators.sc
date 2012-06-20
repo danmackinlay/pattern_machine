@@ -215,19 +215,33 @@ PSOperators {
 				});
 			}
 		);
-		Library.put(\phenosynth, \mutators, \floatPointMutation,
+		/* simulate a bit-vector mutation in a flaoting point variable.
+		This ignore mutation amplitude and uses only the rate to determine how many
+		bits to flip. 0 or one bits flipped per float, out of laziness.*/
+		Library.put(\phenosynth, \mutators, \pseudoFloatBitflip,
 			{|params, chromosome|
-				var rate;
-				var amp = params.mutationSize;
-				rate = params.mutationProb * (chromosome.size.reciprocal);
+				var rate = params.mutationProb;
 				chromosome.do({|val, index|
 					(rate.coin).if ({
 						//exponentially distributed mutations to mimic flipping bits in
-						//32 bit binary floats. lazy, inefficient, effective.
-						chromosome[index] = (val + 
-							(2.0 ** (32.0.rand.neg)) *
+						//24-bit-mantissa binary floats. lazy, inefficient, effective.
+						chromosome[index] = (val +
+							(2.0 ** (24.0.rand.neg)) *
 							(2.rand*2-1)
 						).wrap(0, 1);
+					});
+				});
+				chromosome;
+			}
+		);
+		/* Classic evolution-strategy-style Gaussian mutation */
+		Library.put(\phenosynth, \mutators, \gaussianPerturb,
+			{|params, chromosome|
+				var rate = params.mutationProb;
+				var amp = params.mutationSize;
+				chromosome.do({|val, index|
+					(rate.coin).if ({
+						chromosome[index] = (val.gauss(amp)).wrap(0, 1);
 					});
 				});
 				chromosome;
