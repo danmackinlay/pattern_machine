@@ -28,8 +28,8 @@ PSIsland {
 	
 	//These are the main state variable
 	var <population;
-	var <rawScores;
-	var <cookedFitnesses;
+	var <rawScoreMap;
+	var <cookedFitnessMap;
 	
 	/* this is another state variable. If I got one nore small var like this I'd make it
 	a state *dictionary* */
@@ -106,8 +106,8 @@ PSIsland {
 	}
 	init {
 		population = IdentitySet.new(1000);
-		rawScores = IdentityDictionary.new(1000);
-		cookedFitnesses = IdentityDictionary.new(1000);
+		rawScoreMap = IdentityDictionary.new(1000);
+		cookedFitnessMap = IdentityDictionary.new(1000);
 		this.initOperators;
 	}
 	initOperators {
@@ -150,8 +150,8 @@ PSIsland {
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
-		rawScores.removeAt(phenotype);
-		cookedFitnesses.removeAt(phenotype);
+		rawScoreMap.removeAt(phenotype);
+		cookedFitnessMap.removeAt(phenotype);
 	}
 	populate {
 		params.populationSize.do({
@@ -163,10 +163,10 @@ PSIsland {
 			this.setFitness(phenotype, scoreEvaluator.value(params, phenotype));
 			phenotype.incAge;
 		});
-		cookedFitnesses = scoreCooker.value(params, rawScores);
+		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
 	}
 	setFitness {|phenotype, value|
-		rawScores[phenotype] = value;
+		rawScoreMap[phenotype] = value;
 	}
 	breed {|parentLists|
 		parentLists.do({|parents|
@@ -198,13 +198,13 @@ PSIsland {
 		var toCull, toBreed;
 		var beforeFitness, afterFitness;
 		this.evaluate;
-		toCull = deathSelector.value(params, cookedFitnesses);
+		toCull = deathSelector.value(params, cookedFitnessMap);
 		params.log.log(msgchunks: [\culling] ++ toCull, tag: \selection);
-		beforeFitness = cookedFitnesses.values.asArray.mean;
+		beforeFitness = cookedFitnessMap.values.asArray.mean;
 		this.cull(toCull);
-		afterFitness = cookedFitnesses.values.asArray.mean;
+		afterFitness = cookedFitnessMap.values.asArray.mean;
 		params.log.log(msgchunks: [\fitness_delta, afterFitness - beforeFitness], tag: \selection);
-		toBreed = birthSelector.value(params, cookedFitnesses);
+		toBreed = birthSelector.value(params, cookedFitnessMap);
 		//[\parents, toBreed].postln;
 		this.breed(toBreed);
 		iterations = iterations + 1;
@@ -236,8 +236,8 @@ PSIsland {
 		//return all population that have a fitness, ranked in descending order thereof.
 		//Individuals that do not yet have a fitness are not returned
 		^population.selectAs(
-			{|i| cookedFitnesses[i].notNil}, Array
-		).sort({|a, b| cookedFitnesses[a] > cookedFitnesses[b] });
+			{|i| cookedFitnessMap[i].notNil}, Array
+		).sort({|a, b| cookedFitnessMap[a] > cookedFitnessMap[b] });
 	}
 	plotFitness {|parent, raw=false|
 		var orderedFitnesses, orderedPopulation;
@@ -245,9 +245,9 @@ PSIsland {
 		orderedPopulation.sort({ arg a, b; a.hash < b.hash });
 		raw.if(
 			{
-				orderedFitnesses = orderedPopulation.collect({|i| rawScores[i]}).select(_.notNil);
+				orderedFitnesses = orderedPopulation.collect({|i| rawScoreMap[i]}).select(_.notNil);
 			}, {
-				orderedFitnesses = orderedPopulation.collect({|i| cookedFitnesses[i]}).select(_.notNil);
+				orderedFitnesses = orderedPopulation.collect({|i| cookedFitnessMap[i]}).select(_.notNil);
 			}
 		);
 		//fitnessPlotWindow = orderedFitnesses.plot(parent:parent ? fitnessPlotWindow).parent;
@@ -282,7 +282,7 @@ PSRealTimeIsland : PSIsland {
 	evaluate {
 		//No individual fitness updating; (they are updated for us)
 		// but allow group fitness alterations
-		cookedFitnesses = scoreCooker.value(params, rawScores);
+		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
 	}
 	play {
 		/*note this does not call parent. */

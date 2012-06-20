@@ -81,23 +81,23 @@ s.queryAllNodes;
 //when you are bored, do a
 ~island.free;
 
-~island.cookedFitnesses;
-~island.cookedFitnesses.values.postln;
-~island.rawScores.values.postln;
-~island.rawScores.keys.asArray[1].hash.asHexString
-Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~island.rawScores);
-Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~island.rawScores);
+~island.cookedFitnessMap;
+~island.cookedFitnessMap.values.postln;
+~island.rawScoreMap.values.postln;
+~island.rawScoreMap.keys.asArray[1].hash.asHexString
+Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~island.rawScoreMap);
+Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~island.rawScoreMap);
 //testing that things are going OK:
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
 best = ranked[0];
 worst = ranked[ranked.size-1];
-[\best, ~island.rawScores[best],~island.cookedFitnesses[best], best.chromosomeAsSynthArgs].postln;
-[\worst, ~island.rawScores[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
+[\best, ~island.rawScoreMap[best],~island.cookedFitnessMap[best], best.chromosomeAsSynthArgs].postln;
+[\worst, ~island.rawScoreMap[worst],~island.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
-[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawScores.size];
+[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnessMap.size, ~island.rawScoreMap.size];
 //these should only ever differ momentarily
 ~island.population.select(_.wallClockAge>0)
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
@@ -302,10 +302,10 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	~island.population;
 	~arbitrary = ~island.population.asArray[0];
 	//~island.init;
-	~island.rawScores;
-	~island.rawScores[~arbitrary];
-	~island.cookedFitnesses[~arbitrary];
-	~island.cookedFitnesses.values;
+	~island.rawScoreMap;
+	~island.rawScoreMap[~arbitrary];
+	~island.cookedFitnessMap[~arbitrary];
+	~island.cookedFitnessMap.values;
 	~arbitrary.chromosome;
 	# a, b, c, d = ~arbitrary.chromosome;
 	(a*b*pi).cos;
@@ -423,11 +423,11 @@ s.queryAllNodes;
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
-~island.cookedFitnesses;
-~island.cookedFitnesses.values.postln;
-~island.rawScores.values.postln;
-~island.rawScores.size;
-~island.rawScores.keys.asArray[1].hash.asHexString;
+~island.cookedFitnessMap;
+~island.cookedFitnessMap.values.postln;
+~island.rawScoreMap.values.postln;
+~island.rawScoreMap.size;
+~island.rawScoreMap.keys.asArray[1].hash.asHexString;
 ~island.free;
 )
 //simpler again. Sanity check individual fitness thingies.

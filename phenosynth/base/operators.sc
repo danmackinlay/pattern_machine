@@ -62,50 +62,50 @@ PSOperators {
 		and massage them into fitnesses */
 		/* This first one does the trivial thing, passing them unchanged. */
 		Library.put(\phenosynth, \score_cookers, \raw,
-			{|params, rawScores|
-				rawScores;
+			{|params, rawScoreMap|
+				rawScoreMap;
 			};
 		);
 		/*return the scores as ordinal fitness ranks.
 		Lower raw score is higher rank fitness.
 		Surprisingly tricky to do this, no?*/
 		Library.put(\phenosynth, \score_cookers, \reverse_ranked,
-			{|params, rawScores|
-				var fitnessOrder, size, cookedFitnesses;
-				cookedFitnesses = IdentityDictionary.new;
-				size = rawScores.size;
+			{|params, rawScoreMap|
+				var fitnessOrder, size, cookedFitnessMap;
+				cookedFitnessMap = IdentityDictionary.new;
+				size = rawScoreMap.size;
 				(size>0).if({
 					fitnessOrder = Array.newClear(size);
-					rawScores.keysValuesDo({|key, val, i|
+					rawScoreMap.keysValuesDo({|key, val, i|
 						fitnessOrder[i] = (id:key, fitness:val);
 					});
 					fitnessOrder.sortBy(\fitness);
 					fitnessOrder.do({|elem, i|
-						cookedFitnesses[elem[\id]] = size-i;
+						cookedFitnessMap[elem[\id]] = size-i;
 					});
 				});
-				cookedFitnesses;
+				cookedFitnessMap;
 			};
 		);
 
-		/*return the scores as ordinal fitness ranks.
-		Higher raw score is higher rank. */
+		/*Return the scores as ordinal fitness ranks.
+		Higher raw score is higher rank fitness. */
 		Library.put(\phenosynth, \score_cookers, \ranked,
-			{|params, rawScores|
-				var fitnessOrder, size, cookedFitnesses;
-				cookedFitnesses = IdentityDictionary.new;
-				size = rawScores.size;
+			{|params, rawScoreMap|
+				var fitnessOrder, size, cookedFitnessMap;
+				cookedFitnessMap = IdentityDictionary.new;
+				size = rawScoreMap.size;
 				(size>0).if({
 					fitnessOrder = Array.newClear(size);
-					rawScores.keysValuesDo({|key, val, i|
+					rawScoreMap.keysValuesDo({|key, val, i|
 						fitnessOrder[i] = (id:key, fitness:val);
 					});
 					fitnessOrder.sortBy(\fitness);
 					fitnessOrder.do({|elem, i|
-						cookedFitnesses[elem[\id]] = i;
+						cookedFitnessMap[elem[\id]] = i;
 					});
 				});
-				cookedFitnesses;
+				cookedFitnessMap;
 			};
 		);
 		/* if score approaches zero for a good result (e.g. a
@@ -114,24 +114,23 @@ PSOperators {
 		where fitnesss is reported as 1 when it's closest to 1
 		and 0 when farthest.*/
 		Library.put(\phenosynth, \score_cookers, \zero_peak,
-			{|params, rawScores|
-				var cookedFitnesses, normedScores, range;
-				cookedFitnesses = IdentityDictionary.new;
+			{|params, rawScoreMap|
+				var cookedFitnessMap, normedScores, range;
+				cookedFitnessMap = IdentityDictionary.new;
 				
-				normedScores = rawScores.values.asArray.abs;
+				normedScores = rawScoreMap.values.asArray.abs;
 				normedScores.notEmpty.if({
 					var fmax, fmin;
 					fmax = normedScores.maxItem;
 					fmin = normedScores.minItem;
 					range = [fmax-fmin, 0.001].maxItem;
-					rawScores.keysValuesDo({|key,val|
-						cookedFitnesses[key] = (range-(val.abs-fmin))/range;
+					rawScoreMap.keysValuesDo({|key,val|
+						cookedFitnessMap[key] = (range-(val.abs-fmin))/range;
 					});
 				});
-				cookedFitnesses;
+				cookedFitnessMap;
 			};
 		);
-		
 		/*
 		Termination conditions tell us when to stop -
 		when we are "close enough" or have run too long
@@ -218,7 +217,7 @@ PSOperators {
 				});
 			}
 		);
-		/* simulate a bit-vector mutation in a flaoting point variable.
+		/* simulate a bit-vector mutation in a floating point variable.
 		This ignore mutation amplitude and uses only the rate to determine how many
 		bits to flip. 0 or one bits flipped per float, out of laziness.*/
 		Library.put(\phenosynth, \mutators, \pseudoFloatBitflip,

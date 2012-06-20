@@ -1,20 +1,21 @@
 ~scorez = (a:0.1, b: 0.01, c: 1.0, d:0.5);
 ~scorez.size;
-~cooker = {|params, rawScores|
-	var fitnessOrder, size, cookedFitnesses;
-	cookedFitnesses = IdentityDictionary.new;	size = rawScores.size; 
+~cooker = {|params, rawScoreMap|
+	var fitnessOrder, size, cookedFitnessMap;
+	cookedFitnessMap = IdentityDictionary.new;
+	size = rawScoreMap.size;
 	(size>0).if({
 		fitnessOrder = Array.newClear(size);
-		rawScores.keysValuesDo({|key, val, i|
+		rawScoreMap.keysValuesDo({|key, val, i|
 			[\i, i].postln;
 			fitnessOrder[i] = (id:key, fitness:val);
 		});
 		fitnessOrder.sortBy(\fitness);
 		fitnessOrder.do({|elem, i|
-		cookedFitnesses[elem[\id]] = i;
+		cookedFitnessMap[elem[\id]] = i;
 		});
 	});
-	cookedFitnesses;
+	cookedFitnessMap;
 };
 ~cooker.(nil, ~scorez);
 ~a=Array.new(4);
