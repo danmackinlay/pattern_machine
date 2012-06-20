@@ -2,8 +2,7 @@ PSControllerIsland : PSRealTimeIsland {
 	/* PSIsland that plays agents through a (presumably server?) controller
 	 * abstraction */
 	var <>controller;
- 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
-	//Because I sometime re-use MCLD's listensynths, and they approach zero when signals match:
+	//Because I oft-times re-use MCLD's listensynths, and they approach zero when signals match:
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, zero_peak];
 	
 	*defaultParams {

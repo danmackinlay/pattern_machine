@@ -146,35 +146,35 @@ PSOperators {
 		Death selectors select which agents to cull.
 		*/
 		Library.put(\phenosynth, \death_selectors, \byRoulettePerRate,
-			{|params, fitnesses|
+			{|params, fitnessMap|
 				//choose enough doomed to meet the death rate on average, by fitness-
 				// weighted roulette
 				var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, rate;
-				(fitnesses.size == 0).if({
+				(fitnessMap.size == 0).if({
 					"Warning: empty population; no death for now".postln;
 					[];
 				}, {
 					rate = params.deathRate;
-					localFitnesses = fitnesses.values.asArray;
+					localFitnesses = fitnessMap.values.asArray;
 					maxFitness = localFitnesses.maxItem;
 					negFitnesses = maxFitness - localFitnesses;
 					meanFitness = negFitnesses.mean;
-					hitList = fitnesses.keys.select({|p|
-						((((maxFitness - fitnesses[p])/meanFitness)*rate).coin)
+					hitList = fitnessMap.keys.select({|p|
+						((((maxFitness - fitnessMap[p])/meanFitness)*rate).coin)
 					});
 					hitList;
 				});
 			}
 		);
 		Library.put(\phenosynth, \death_selectors, \byRoulettePerRateAdultsOnly,
-			{|params, fitnesses|
+			{|params, fitnessMap|
 				//choose enough doomed to meet the death rate on average, by fitness-
 				// weighted roulette, in sufficiently old agents
 				var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, localPopulation, rate;
 				rate = params.deathRate;
-				localPopulation = fitnesses.keys.asArray.select(_.logicalAge>1);
-				localFitnesses = localPopulation.collect({|i| fitnesses[i];});
-				//[\localPopulation, localPopulation.size, localPopulation, fitnesses].postln;
+				localPopulation = fitnessMap.keys.asArray.select(_.logicalAge>1);
+				localFitnesses = localPopulation.collect({|i| fitnessMap[i];});
+				//[\localPopulation, localPopulation.size, localPopulation, fitnessMap].postln;
 				(localPopulation.size == 0).if({
 					"Warning: no valid candidates; no death for now".postln;
 					[];
@@ -183,7 +183,7 @@ PSOperators {
 					negFitnesses = maxFitness - localFitnesses;
 					meanFitness = negFitnesses.mean;
 					hitList = localPopulation.select({|p|
-						((((maxFitness - fitnesses[p])/meanFitness)*rate).coin)
+						((((maxFitness - fitnessMap[p])/meanFitness)*rate).coin)
 					});
 					hitList;
 				});
@@ -192,18 +192,18 @@ PSOperators {
 		//birth selector protocol:
 		//return an array of arrays of parents
 		Library.put(\phenosynth, \birth_selectors, \byRoulettePerTotal,
-			{|params, fitnesses|
+			{|params, fitnessMap|
 				// choose enough proud parents to keep the population constant, by
 				// fitness-weighted roulette
 				var localPopulation, parentList, localFitnesses, meanFitness, targetBirths;
-				(fitnesses.size == 0).if({
+				(fitnessMap.size == 0).if({
 					"Warning: empty population; no breeding for now".postln;
-					[\emptiness, fitnesses].postln;
+					[\emptiness, fitnessMap].postln;
 					[];
 				}, {
-					targetBirths = (params.populationSize) - fitnesses.size;
-					localPopulation = fitnesses.keys.asArray;
-					localFitnesses = localPopulation.collect({|i| fitnesses[i];});
+					targetBirths = (params.populationSize) - fitnessMap.size;
+					localPopulation = fitnessMap.keys.asArray;
+					localFitnesses = localPopulation.collect({|i| fitnessMap[i];});
 					meanFitness = localFitnesses.mean;
 					localFitnesses = localFitnesses / (localFitnesses.sum);
 					parentList = targetBirths.collect(
