@@ -130,6 +130,12 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
 
 * make sure gate is set right.
+* fitness improvements
+
+  * rescale fitness to be nicer. When I have lots of things with similar fitness they should
+    be proactively separated
+  * rank selection
+
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
@@ -139,8 +145,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
 * infrastructure
 
-  * create a factory class for phenotypes to avoid need for subclassing
-  * offset occasionally ends up nil in decorateIndividualDict, causing alloc to choke
   * augment all operator protocols to pass in the PSIsand instance, or some other global
     state
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date

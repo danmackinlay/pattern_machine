@@ -149,18 +149,20 @@ PSOperators {
 			{|params, fitnessMap|
 				//choose enough doomed to meet the death rate on average, by fitness-
 				// weighted roulette
-				var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, rate;
+				var hitList, localFitnesses, localPopulation, meanFitness, rate;
 				(fitnessMap.size == 0).if({
 					"Warning: empty population; no death for now".postln;
 					[];
 				}, {
+					//notice we do our rate calculations based on chance of survival
+					//the maths here is slighly flakey. Given a set death rate, and a fitness-weighted rate
+					//how do we make this fly properly? Hot Poisson/exp distro action.
+					//anyway, for low rates they all converge.
+					localPopulation = fitnessMap.keys;
 					rate = params.deathRate;
-					localFitnesses = fitnessMap.values.asArray;
-					maxFitness = localFitnesses.maxItem;
-					negFitnesses = maxFitness - localFitnesses;
-					meanFitness = negFitnesses.mean;
-					hitList = fitnessMap.keys.select({|p|
-						((((maxFitness - fitnessMap[p])/meanFitness)*rate).coin)
+					meanFitness = localFitnesses.mean;
+					hitList = localPopulation.select({|p|
+						(1-((fitnessMap[p]/meanFitness)*rate)).coin.not;
 					});
 					hitList;
 				});
@@ -170,8 +172,7 @@ PSOperators {
 			{|params, fitnessMap|
 				//choose enough doomed to meet the death rate on average, by fitness-
 				// weighted roulette, in sufficiently old agents
-				var hitList, localFitnesses, maxFitness, negFitnesses, meanFitness, localPopulation, rate;
-				rate = params.deathRate;
+				var hitList, localFitnesses, meanFitness, localPopulation, rate;
 				localPopulation = fitnessMap.keys.asArray.select(_.logicalAge>1);
 				localFitnesses = localPopulation.collect({|i| fitnessMap[i];});
 				//[\localPopulation, localPopulation.size, localPopulation, fitnessMap].postln;
@@ -179,12 +180,14 @@ PSOperators {
 					"Warning: no valid candidates; no death for now".postln;
 					[];
 				}, {
-					maxFitness = localFitnesses.maxItem;
-					negFitnesses = maxFitness - localFitnesses;
-					meanFitness = negFitnesses.mean;
+					//see comments at #[phenosynth, death_selectors, byRoulettePerRate]
+					rate = params.deathRate;
+					meanFitness = localFitnesses.mean;
 					hitList = localPopulation.select({|p|
-						((((maxFitness - fitnessMap[p])/meanFitness)*rate).coin)
+						params.log.log(msgchunks: [\localinvrate, (1-((fitnessMap[p]/meanFitness)*rate))], tag: \selection, priority: -1);
+						(1-((fitnessMap[p]/meanFitness)*rate)).coin.not;
 					});
+					params.log.log(msgchunks: [\selectionbidnez, rate, meanFitness] ++ localFitnesses, tag: \selection, priority: -1);
 					hitList;
 				});
 			}
