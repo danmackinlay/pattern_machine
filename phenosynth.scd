@@ -70,11 +70,8 @@ s.queryAllNodes;
 ~control.outBus;
 ~control.playBusses;
 ~control.fitnessBusses;
-~control.jackNodes[5].trace;
-//~control.jackNodes[3].trace;
 ~control.all.keys.asArray[0];
 ~control.all.asArray.dump;
-~control.listenGroup;
 //add in a good one and see how it survives:
 ~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
 //{~island.plotFitness(raw:true);}.defer;
@@ -83,21 +80,14 @@ s.queryAllNodes;
 ~island.population.asArray[0];
 //when you are bored, do a
 ~island.free;
+
 ~island.cookedFitnesses;
 ~island.cookedFitnesses.values.postln;
-~island.cookedFitnesses.size;
 ~island.rawScores.values.postln;
-~island.rawScores.size;
 ~island.rawScores.keys.asArray[1].hash.asHexString
 Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~island.rawScores);
 Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~island.rawScores);
-~island.scoreCooker.value(nil, ~island.rawScores);
-~island.cookedFitnesses;
-~cooker.value(nil, ~island.rawScores);
 //testing that things are going OK:
-(~island.cookedFitnesses.keys - (~island.rawScores.keys)).size;
-(~island.population - (~island.rawScores.keys)).size;
-(~island.population - (~island.cookedFitnesses.keys)).size;
 (
 var best, worst, ranked;
 ranked = ~island.rankedPopulation;
@@ -107,16 +97,12 @@ worst = ranked[ranked.size-1];
 [\worst, ~island.rawScores[worst],~island.cookedFitnesses[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
-~ind = ~island.rankedPopulation[0].chromosomeAsSynthArgs;
-~ind
 [~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnesses.size, ~island.rawScores.size];
-~island.rankedPopulation[0].chromosomeAsSynthArgs;
 //these should only ever differ momentarily
 ~island.population.select(_.wallClockAge>0)
 ~island.controller.all[~island.population[0].identityHash].playBus.scope;
 FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
 FreqScope.new(busNum:~targetBus);
-~targetBus
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
@@ -135,6 +121,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   * rescale fitness to be nicer. When I have lots of things with similar fitness they should
     be proactively separated
   * rank selection
+  * fitness seems to more usually go down that up in the current way of things.
 
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
@@ -409,7 +396,8 @@ fork {
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
 	~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory, \log: ~log));
-	~island.scoreCooker = #[phenosynth, score_cookers, raw];
+	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
+	~island.scoreCooker = #[phenosynth, score_cookers, ranked];
 	~island.play(~control);
 	s.sync;
 	[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
@@ -418,7 +406,8 @@ fork {
 (
 s.getQueryTree;
 s.queryAllNodes;
-~log.minPriority=0;
+~log.minPriority=-2;
+~log.reject(\controlling);
 ~island.controller;
 ~control.outBus;
 ~control.playBusses;
@@ -436,7 +425,6 @@ s.queryAllNodes;
 ~island.population.size;
 ~island.cookedFitnesses;
 ~island.cookedFitnesses.values.postln;
-~island.cookedFitnesses.size;
 ~island.rawScores.values.postln;
 ~island.rawScores.size;
 ~island.rawScores.keys.asArray[1].hash.asHexString;
