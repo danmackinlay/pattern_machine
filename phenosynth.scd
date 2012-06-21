@@ -9,7 +9,7 @@ s.getQueryTree;
 s.queryAllNodes;
 (
 fork {
-	~globalOuts = Bus.new(\audio, 0, 2);
+	~globalOuts = Bus.new(\audio, 0, 1, s);
 	//{~globalOuts.scope;}.defer;
 	~phenogroup = Group.new(s);
 	s.sync;
@@ -25,7 +25,7 @@ fork {
 	//~targetBus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 	/* or THIS */
 	/*******************/
-	~targetBus = Bus.audio(s, 1);
+	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
 	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
@@ -56,8 +56,8 @@ fork {
 	//now set up the "island" that will control their evolution
 	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
-	~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-	//~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+	//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~island.play(~control);
 	s.sync;
 	[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
@@ -389,16 +389,17 @@ fork {
 	//~log = FileLogger.global;
 	s.sync;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.0, maxPop:6);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.0, maxPop:60);
 	~control.listenSynthDef = \ps_judge_return_observed;
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
 	s.sync;
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 5, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory, \log: ~log));
+	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
-	~island.scoreCooker = #[phenosynth, score_cookers, ranked];
+	~island.scoreCooker = #[phenosynth, score_cookers, rescale];
+	//~island.scoreCooker = #[phenosynth, score_cookers, ranked];
 	~island.play(~control);
 	s.sync;
 };
