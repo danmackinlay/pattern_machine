@@ -18,6 +18,9 @@ fork {
 	//~log = NullLogger.global;
 	~log = PostLogger.global;
 	//~log = FileLogger.global;
+	~log.reject(\selection);
+	~log.accept(\controlling);
+	~log.minPriority = 0;
 	s.sync;
 	/*******************/
 	/* Do either THIS: */
@@ -42,7 +45,7 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:40);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance;
@@ -73,14 +76,16 @@ s.queryAllNodes;
 ~control.all.keys.asArray[0];
 ~control.all.asArray.dump;
 //add in a good one and see how it survives:
-~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
 ~island.population.asArray[0];
 //when you are bored, do a
 ~island.free;
-
+~target.free;
+~targetBus.free;
 ~island.cookedFitnessMap;
 ~island.cookedFitnessMap.values.postln;
 ~island.rawScoreMap.values.postln;
@@ -118,15 +123,12 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * make sure gate is set right.
 * fitness improvements
 
-  * rescale fitness to be nicer. When I have lots of things with similar fitness they should
-    be proactively separated
   * work out the stats for proper birth/death processes, fitness-weighted
 
 * right now the test script doesn't especially converge to 500 Hz, even over
   large timescales. Is Synth selection horribly broken?
   
   * at least, my synth output is broken. /actually/ similar sounds score poorly.
-  * manual polyploidy?
   * fitness bus is all wrong? (not control, nor not right controlbus?)
 
 * infrastructure
@@ -134,7 +136,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   * augment all operator protocols to pass in the PSIsand instance, or some other global
     state
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date
-  * better locking around tending processes,  or better trapping for nils
+  * optionally recycle listeners, since deleting and creating them is CPU-heavy
   * for non-realtime use, optionally conduct evolution in a Routine which yields from
     time to time to facilitate responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation
@@ -146,6 +148,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
       method (which does not support parent args to re-use the GUI or scale). As
        Bill Tozier points, out, 'tis better to use scatter plots or
       similar rich displays for GAs
+    * send data over OSC to some noparametric estimator somewhere.
   
   * Fix leaks  
   

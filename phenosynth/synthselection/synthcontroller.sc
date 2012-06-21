@@ -81,7 +81,7 @@ PSSynthController {
 		all.put(indDict.phenotype.identityHash, indDict);
 		try {
 			this.decorateIndividualDict(indDict);
-			log.log(msgchunks: [\ind, indDict], tag: \controlling);
+			log.log(msgchunks: [\ind, indDict], tag: \controlling, priority: -1);
 		} { |error|
 			switch(error.species.name)
 			 	{ 'OutOfResources' } {
@@ -269,7 +269,7 @@ PSListenSynthController : PSSynthController {
 	actuallyPlayIndividual {|indDict|
 		var listenSynthArgs;
 		listenSynthArgs = this.getListenSynthArgs(indDict);
-		log.log(msgchunks: [\listenSynthArgs] ++ listenSynthArgs, tag: \controlling);
+		log.log(msgchunks: [\listenSynthArgs] ++ listenSynthArgs, tag: \controlling, priority: -1);
 		//play the synth to which we wish to listen
 		super.actuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
