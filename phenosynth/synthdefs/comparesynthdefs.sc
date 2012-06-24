@@ -101,25 +101,45 @@ PSBasicCompareSynths {
 		
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
-		NB - this uses a CUSTOM UGEN, available in the SC3-plugins project 
-		This is currently broken, for some reason.*/
-		this.makeComparer(\ps_judge_fft_distance, {
+		NB - this uses a  CUSTOM MCLD UGEN, available in the SC3-plugins project
+		*/
+		this.makeComparer(\ps_judge_fft_distance_wide, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
+			/* Take a wideband FFT of the signals since we're interested in
+			 time-domain features rather than freq precision
+			*/
 			
 			bfr1 = LocalBuf.new(128,1);
 			bfr2 = LocalBuf.new(128,1);
 
-			/* Take a wideband FFT of the signals since we're interested in
-			 time-domain features rather than freq precision
-			 (use buffers of ~64 or 128 size - NB 32 is too small - kills the
-				 server) */
 			targetfft = FFT(bfr1, targetsig);
-			offt =   FFT(bfr2, observedsig);
+			offt = FFT(bfr2, observedsig);
+			
+			// Smear the FFT a little to avoid being trapped in bins
+			// targetfft = PV_MagSmear(targetfft, 5);
+			// offt = PV_MagSmear(offt, 5);
+			
+			FFTDiffMags.kr(targetfft, offt);
+		});
+		/* Try and match the FFT of the individual against some "template" signal
+		- typically an audio sample.
+		NB - this uses a CUSTOM MCLD UGEN, available in the SC3-plugins project.
+		*/
+		this.makeComparer(\ps_judge_fft_distance_narrow, {
+			|targetsig, observedsig|
+			var targetfft, offt, bfr1, bfr2;
+		   /* Take a narrowband FFT and match timbre precisely*/
+			
+			bfr1 = LocalBuf.new(512,1);
+			bfr2 = LocalBuf.new(512,1);
+
+			targetfft = FFT(bfr1, targetsig);
+			offt = FFT(bfr2, observedsig);
 			
 			// Smear the FFT a little to avoid being trapped in bins
 			targetfft = PV_MagSmear(targetfft, 5);
-			  offt = PV_MagSmear(  offt, 5);
+			offt = PV_MagSmear(offt, 5);
 			
 			FFTDiffMags.kr(targetfft, offt);
 		});
