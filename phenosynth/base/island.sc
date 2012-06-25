@@ -59,7 +59,7 @@ PSIsland {
 	// because overriding is way awkward this way.
 	*defaultParams {
 		^(
-			\deathRate: 0.1,
+			\deathRate: 0.3,
 			\populationSize: 100,
 			\numParents: 2,
 			\initialChromosomeSize: 1,
