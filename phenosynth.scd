@@ -144,10 +144,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   * Fix leaks  
   
     * ensure Groups are also freed.
-    * remove debugging cruft when this all works - specifically,
-      allocatedNodes and freedNodes member vars on the controller.
-    * They seemed to have magically fixed themselves in SC 3.5 beta 2. Remove
-      debug code?  
     * use Synth doneActions and per-listener groups to free all resources on
       demand
       

@@ -34,8 +34,6 @@ PSSynthController {
 	var <server;
 	var <all;
 	var <playGroup;
-	var <allocatedNodes;
-	var <freedNodes;
 	var <playing = false;
 	var <island;
 	
@@ -43,8 +41,6 @@ PSSynthController {
 		^super.newCopyArgs(numChannels, log ?? NullLogger.new).init;
 	}
 	init {
-		allocatedNodes = IdentityDictionary.new(1000);
-		freedNodes = List.new;
 		all = IdentityDictionary.new(1000);
 	}
 	play {|serverOrGroup, outBus ... argz|
@@ -92,7 +88,6 @@ PSSynthController {
 			 	{ error.throw }
 		};
 		this.actuallyPlayIndividual(indDict);
-		{this.trackSynths(indDict);}.defer(0.5);
 		^indDict;
 	}
 	decorateIndividualDict {|indDict|
@@ -114,23 +109,9 @@ PSSynthController {
 		);
 		indDict.phenotype.clockOn;
 	}
-	trackSynths {|indDict|
-		/*
-		for debugging, associate each synth with a server node so I can see if
-		anything is leaking.
-		
-		Note that this will, of course, eventually cause leaks of its own.
-		*/
-		indDict.values.do({|indDictEntry|
-			indDictEntry.isKindOf(Synth).if({
-				allocatedNodes[indDictEntry.nodeID] = indDictEntry.defName;
-			});
-		});
-	}
 	freeIndividual {|phenotype|
 		var freed;
 		freed = all.removeAt(phenotype.identityHash);
-		freedNodes.add(freed);
 		freed.notNil.if({
 			// These should be separated, or the second eliminated by the first.
 			freed.phenotype.stop(freed.playNode);//closes envelope
