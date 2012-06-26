@@ -120,16 +120,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  * TODO
  **************************
 
-* make sure gate is set right.
-* fitness improvements
-
-  * work out the stats for proper birth/death processes, fitness-weighted
-
-* right now the test script doesn't especially converge to 500 Hz, even over
-  large timescales. Is Synth selection horribly broken?
-  
-  * at least, my synth output is broken. /actually/ similar sounds score poorly.
-
 * infrastructure
 
   * augment all operator protocols to pass in the PSIsand instance, or some other global
@@ -147,7 +137,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   
     * updated to use Till's ScatterView class rather than SC's lame native plot
       method (which does not support parent args to re-use the GUI or scale). As
-       Bill Tozier points, out, 'tis better to use scatter plots or
+      Bill Tozier points, out, 'tis better to use scatter plots or
       similar rich displays for GAs
     * send data over OSC to some noparametric estimator somewhere.
   
@@ -157,33 +147,26 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * remove debugging cruft when this all works - specifically,
       allocatedNodes and freedNodes member vars on the controller.
     * They seemed to have magically fixed themselves in SC 3.5 beta 2. Remove
-      debug code?
-      
-  * allow tagging - speciation based on acquiring the right "tag" variable.
-  * envelope synth deletion
-  
+      debug code?  
     * use Synth doneActions and per-listener groups to free all resources on
       demand
-    
-  * allow a seed-bank supporting far more genomes than can be simultaneously
-    simulated in DSP. (I.e. keep a much larger population, but only simulate a part
-    of them at once)
-  
+      
+  * fitness improvements
+
+    * work out the stats for proper birth/death hazard processes, fitness-weighted
+      
   * better fitness metrics for listening
   
-  	* time-delayed correlation?
-  	* amplitude-weighted convolution
-  	* some fancy wavelet shit?
-  	* FFT_wide is not very good. If one signal is low frequency the entire thing
-  	  has a low distance, lower even than a perfect match. (Why?)
+    * time-delayed correlation?
+    * amplitude-weighted convolution
+    * some fancy wavelet shit?
+    * FFT_wide is not very good. If one signal is low frequency the entire thing
+      has a low distance, lower even than a perfect match. (Why?) Even the narrowband
+      FFT weights rates low-frequency signals implausibly similar.
   
-  * support geographical separation of populations to aid speciation
   * sort out the interactions of all these different tick rates and periods.
   * Handle "free controls", values that are passed in live by the user, or
     external LFOs or data in general. (esp for triggers)
-  * alter chromosome if Specs are changed through UI or any other means, using
-    all that Dependent business
-  * examples of using this to do vanilla non-accumulating, genotype-style selection
   * serialize phenotypes to disk so evolution can be resumed.
   * chromosome management
   
@@ -192,12 +175,26 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * or just create handy new classes to cast as needed. (UnsignedUnitFloat,
       and a Genome class.)
     
-  * provide a "migration phase" in which to check for extinction and restock.
+  * Check for extinction and restock.
 
 * Give the faintest of indications that I do care about tests
 * document classes
 * provide examples
-* go to generalised Feynman-Kac particle filtering methods http://www.math.u-bordeaux1.fr/~delmoral/simulinks.html
+
+  * examples of using this to do vanilla non-accumulating, genotype-style selection
+
+* Crazy schemes happening no time soon.
+	
+    * support geographical separation of populations to aid speciation
+    * Have GUI for phenotypes
+    * allow tagging - speciation based on acquiring the right "tag" variable.
+    * go to generalised Feynman-Kac particle filtering methods
+	  http://www.math.u-bordeaux1.fr/~delmoral/simulinks.html
+    * allow a seed-bank supporting far more genomes than can be simultaneously
+      simulated in DSP. (I.e. keep a much larger population, but only simulate a part
+      of them at once)
+
+
 * multi-server controllers
 * my earswarm
 
