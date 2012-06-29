@@ -9,20 +9,22 @@ UnitFloat.intFromFloat(UnitFloat.floatFromInt(5633));
 UnitFloat.intFromBits(UnitFloat.bitsFromInt(27689));
 */
 UnitFloat {
+	classvar <nbits=24;
+	classvar <maxInt=16777216;
 	*floatFromBits { |bitArray|
 		^this.floatFromInt(this.intFromBits(bitArray));
 	}
 	*floatFromInt { |int|
-		^int/16777216;
+		^int/maxInt;
 	}
 	*bitsFromFloat{ |float|
 		^this.bitsFromInt(this.intFromFloat(float));
 	}
 	*bitsFromInt{ |int|
-		^int.asDigits(2, 24);
+		^int.asDigits(2, nbits);
 	}
 	*intFromFloat {|float|
-		^((float*16777216)+0.5).floor.asInt;
+		^((float*2)+0.5).floor.asInt;
 	}
 	*intFromBits {|bitArray|
 		^bitArray.convertDigits(2);
