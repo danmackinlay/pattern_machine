@@ -1,10 +1,12 @@
+GUI.qt;
+ServerTreeGui.makeWindow(s);
+Quarks.gui;
 //initialisation
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
-//ServerTreeGui.makeWindow;
 s.getQueryTree;
 s.queryAllNodes;
 (
@@ -122,30 +124,28 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
 * infrastructure
 
-  * augment all operator protocols to pass in the PSIsand instance, or some other global
-    state
   * Make the fitness cooker API simpler to develop for and test. Plain lists, rather
     than maps, would be better.
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date
   * optionally recycle listeners, since deleting and creating them is CPU-heavy
-  * for non-realtime use, optionally conduct evolution in a Routine which yields from
-    time to time to facilitate responsiveness
   * fix operation when numChannels>1 (at the moment there are bus allocation
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
   
-    * updated to use Till's ScatterView class rather than SC's lame native plot
+    * update to use GNUPlot class for data rather than SC's lame native plot
       method (which does not support parent args to re-use the GUI or scale). As
       Bill Tozier points, out, 'tis better to use scatter plots or
-      similar rich displays for GAs
-    * send data over OSC to some noparametric estimator somewhere.
+      similar rich displays for GAs. (Sadly, Till's ScatterView  doesn't seem
+      to work in SC 3.5)
+    * send data over OSC to some nonparametric estimator somewhere and plot that.
   
   * Fix leaks  
   
     * ensure Groups are also freed.
     * use Synth doneActions and per-listener groups to free all resources on
       demand
+    * remove rebugging loggers
       
   * fitness improvements
 
@@ -156,6 +156,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * time-delayed correlation?
     * amplitude-weighted convolution
     * some fancy wavelet shit?
+    * optimise out the spectral-domain transforms of the amster signal in the fitness business
     * FFT_wide is not very good. If one signal is low frequency the entire thing
       has a low distance, lower even than a perfect match. (Why?) Even the narrowband
       FFT weights rates low-frequency signals implausibly similar.
@@ -166,10 +167,8 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   * serialize phenotypes to disk so evolution can be resumed.
   * chromosome management
   
-    * go to all-binary chromosomes for increased happiness and elegance.
-    * although increased difficulty in doing gradient ascent.
-    * or just create handy new classes to cast as needed. (UnsignedUnitFloat,
-      and a Genome class.)
+    * create handy new classes to cast as needed between int, bits, float. (UnitFloat,
+      and a Chromosome class.)
     
   * Check for extinction and restock.
 
@@ -182,6 +181,10 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * Crazy schemes happening no time soon.
 	
     * support geographical separation of populations to aid speciation
+    * augment all operator protocols to pass in the PSIsland instance, or some other global
+      state
+    * for non-realtime use, optionally conduct evolution in a Routine which yields from
+      time to time to facilitate responsiveness
     * Have GUI for phenotypes
     * allow tagging - speciation based on acquiring the right "tag" variable.
     * go to generalised Feynman-Kac particle filtering methods
@@ -197,6 +200,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   * normalise fitness gain w/respect to energy expenditure (i.e. amplitude)
   * evolve a map between input and output to teach creatures to produce maximally
     versatile responses to diverse signals
+  * sampling, playback
   * LFOs
   
     * support creatures which vocalise only sporadically (saving CPU, or at
