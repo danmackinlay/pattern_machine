@@ -1,4 +1,4 @@
-/* utility to convert between 24 bit strings, and floats normed to [0,1).
+/* utility to convert between n-bit strings (ndefaults to 24), and floats normed to [0,1).
 These values are chosen to be lossless though all SC3's auto-cooerced number types.
 */
 
@@ -11,6 +11,7 @@ UnitFloat.intFromBits(UnitFloat.bitsFromInt(27689));
 UnitFloat {
 	classvar <nbits=24;
 	classvar <maxInt=16777216;
+	
 	*floatFromBits { |bitArray|
 		^this.floatFromInt(this.intFromBits(bitArray));
 	}
@@ -24,7 +25,7 @@ UnitFloat {
 		^int.asDigits(2, nbits);
 	}
 	*intFromFloat {|float|
-		^((float*2)+0.5).floor.asInt;
+		^((float*maxInt)+0.5).floor.asInt;
 	}
 	*intFromBits {|bitArray|
 		^bitArray.convertDigits(2);
