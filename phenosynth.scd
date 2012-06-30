@@ -156,7 +156,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * time-delayed correlation?
     * amplitude-weighted convolution
     * some fancy wavelet shit?
-    * optimise out the spectral-domain transforms of the amster signal in the fitness business
+    * optimise out the spectral-domain transforms of the master signal in the fitness business
     * FFT_wide is not very good. If one signal is low frequency the entire thing
       has a low distance, lower even than a perfect match. (Why?) Even the narrowband
       FFT weights rates low-frequency signals implausibly similar.

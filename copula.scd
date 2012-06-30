@@ -5,7 +5,8 @@ or, for exmpirical copulae, http://www.mathworks.com.au/products/statistics/exam
 This turns out to be easiest for Gaussian, t-copulae and Marshall-Olkin, and
 only somewhat easy for some Archimedeans - specifically, Frank, Gumbel and Clayton.
 However, Archimedean copulae have a single coupling parameter, which is the whole
-reason I'm interested in this technique, so I'd rather them.
+reason I'm interested in this technique, so I'd rather them. OTOH, for bivariate
+coupling, it's not too crazy.
  */
 
 ///////////////////////////

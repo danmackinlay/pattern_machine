@@ -15,7 +15,7 @@ s=Server.default;
 )
 */
 PSSynthController {
-	/*pass all server instructions through this guy to allow the instructions
+	/*pass all server instructions through this guy to allow them
 	to be delivered in the right order and the boring bus/server allocation
 	details to be abstracted away, and to track resources needing freeing.
 	
