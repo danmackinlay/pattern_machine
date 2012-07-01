@@ -1,3 +1,7 @@
+/* TODO:
+ * Checkout ObjectGui helpfile to make autogui action easy.
+ */
+
 GUI.qt;
 Server.default = s = ~serverboot.(\local, \builtin);
 (
