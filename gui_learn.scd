@@ -1,33 +1,45 @@
 /* TODO:
- * Checkout ObjectGui helpfile to make autogui action easy.
+ * Check out ObjectGui helpfile to make autogui action easy.
  */
 
 GUI.qt;
 Server.default = s = ~serverboot.(\local, \builtin);
 (
-var window, slider, guiupdater, model, level, numberbox, modelSetter, oscfunc;
+var window, slider, guiupdater, model, level, suppressionwidget, activationwidget, modelSetter, oscfunc;
 //model
-model = (stateValue1: 1);
+model = (suppressions: [1,0,0,0.5,1,0.5,0,0.5,0,1,0,0], activations: 0.dup(12));
 
 //view
-window = Window("window!", Rect(100,10,288,80));
-numberbox = NumberBox(window, Rect(20,20,44,20))
-	.value_(model[\stateValue1])
+window = FlowView(bounds:300@300, windowTitle: "window!").front;
+
+suppressionwidget = MultiSliderView(window, 
+		Point(window.bounds.width*0.9, 100))
+	.size_(model[\suppressions])
+	.value_(model[\suppressions])
+	.elasticMode_(1)
+	.drawRects_(true)
+	.isFilled_(true)
 	.action_({|view|
-		modelSetter.value(\stateValue1, view.value);
+		modelSetter.value(\suppressions, view.value);
 	});
-slider = Slider(window, Rect(68,20,200,20))
-	.value_(model[\stateValue1])
+window.startRow;
+activationwidget = MultiSliderView(window,
+		Point(window.bounds.width*0.9, 100))
+	.size_(model[\activations])
+	.value_(model[\activations])
+	.elasticMode_(1)
+	.drawRects_(true)
+	.isFilled_(true)
 	.action_({|view|
-		modelSetter.value(\stateValue1, view.value);});
-level = LevelIndicator(window, Rect(272,20,5,20))
-	.warning_(0.8)
-	.critical_(1.0);
-window.front;
+		modelSetter.value(\activations, view.value);
+	});
+window.startRow;
+
 window.onClose_({
 	model.removeDependant(guiupdater);
 	oscfunc.remove;});
 CmdPeriod.doOnce({window.close});
+
 //controller
 modelSetter = {|statekey, stateval|
 	model[statekey] = stateval;
@@ -35,30 +47,21 @@ modelSetter = {|statekey, stateval|
 };
 guiupdater = {|theChanger, what, val|
 	{
-		if(what == \stateValue1, {
-			numberbox.value_(val);
-			level.value_(val);
-			slider.value_(val);
-		});
+		what.switch(
+			\suppressions, { suppressionwidget.value_(val);},
+			\activations, { activationwidget.value_(val);}
+		);
 	}.defer;
 };
 model.addDependant(guiupdater);
 
-//Another input
-SynthDef("responsey", {
-	SendTrig.kr(Dust.kr(2.0), 0, LFNoise1.kr(1, 0.5, 0.5));
-}).play(s);
-oscfunc = OSCFunc.newMatching(
-	{|msg, time, addr, recvPort|
-		modelSetter.value(\stateValue1, msg[3]);
-	}, '/tr', s.addr
-);
 ~bits = (
 	\model: model,
 	\window: window,
 	\oscfunc: oscfunc,
-	\numberbox: numberbox,
+	\suppressionwidget: suppressionwidget,
 	\slider: slider,
 	\level: level
 );
 )
+~bits.window.bounds.width
