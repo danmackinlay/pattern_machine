@@ -1,4 +1,19 @@
 //Todo: do everything with RawArray subtypes. Int8Array for bits, maybe?
+/*
+a={2.rand}.dup(48);
+b={1.0.rand}.dup(5);
+c=PSChromosome.newBits({2.rand}.dup(48));
+c=PSChromosome.newFloats({1.0.rand}.dup(5));
+c.floats(b);
+UnitFloat.bitsFromFloat(0.3);
+UnitFloat.intFromFloat(0.3);
+c.bits_(a);
+c.bits
+c.ints;
+{2.rand}.dup(10).join
+UnitFloat.intsFromBits(a)
+UnitFloat.bitsFromFloat([0.6, 0.5])
+*/
 PSChromosome {
 	var <bits;  //cache bit array for manual parsing
 	var <counter = 0;
