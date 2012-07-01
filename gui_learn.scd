@@ -13,7 +13,7 @@ numberbox = NumberBox(window, Rect(20,20,44,20))
 		modelSetter.value(\stateValue1, view.value);
 	});
 slider = Slider(window, Rect(68,20,200,20))
-	.value_(model[\stateValue1]);
+	.value_(model[\stateValue1])
 	.action_({|view|
 		modelSetter.value(\stateValue1, view.value);});
 level = LevelIndicator(window, Rect(272,20,5,20))
@@ -23,7 +23,7 @@ window.front;
 window.onClose_({
 	model.removeDependant(guiupdater);
 	oscfunc.remove;});
-
+CmdPeriod.doOnce({window.close});
 //controller
 modelSetter = {|statekey, stateval|
 	model[statekey] = stateval;
