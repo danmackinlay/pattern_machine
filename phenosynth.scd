@@ -50,11 +50,11 @@ fork {
 	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
-	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
+	~control.listenSynthDef = \ps_judge_fft_distance_wide;
 	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
-	~control.listenSynthDef = \ps_judge_mfcc_distance;
+	//~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 	s.sync;
@@ -159,7 +159,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * optimise out the spectral-domain transforms of the master signal in the fitness business
     * FFT_wide is not very good. If one signal is low frequency the entire thing
       has a low distance, lower even than a perfect match. (Why?) Even the narrowband
-      FFT weights rates low-frequency signals implausibly similar.
+      FFT weights rates low-frequency signals implausibly similar. (try wintype:1?)
   
   * sort out the interactions of all these different tick rates and periods.
   * Handle "free controls", values that are passed in live by the user, or
@@ -242,10 +242,10 @@ fork {
 	~template = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5], target: ~voxgroup);
 	~candidate = Synth.new(\ps_reson_saw, [\out, ~observedBus, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 0.5], target: ~voxgroup);
 	//~comparer = Synth.new(\ps_judge_fft_distance_narrow, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_fft_distance_wide, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
+	~comparer = Synth.new(\ps_judge_fft_distance_wide, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_convolution_norm, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
-	~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	
 	Routine.new({

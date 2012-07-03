@@ -70,5 +70,31 @@ PSBasicPlaySynths {
 					) * env * gain);
 				}
 			).add;
+			SynthDef.new(
+				\ps_sample_grain,
+				{ |out=0, gate=0, t_reset=0,
+						buffer, pitch=1, ffreq=500,
+						rq=0.5, gain=1.0, pointer=0.5,
+						windowSize=0.1, windowRandRatio=0.5|
+					var env;
+					var time = 1;
+					env = EnvGen.kr(
+						Env.asr(time/2, 1, time/2, 'linear'),
+						gate: gate,
+						doneAction: 0
+					);
+					Out.ar(out, Resonz.ar(
+						Warp1.ar(
+							bufnum: buffer,
+							pitch: pitch,
+							mul: env,
+							pointer: pointer,
+							windowSize: windowSize,
+							windowRandRatio: windowRandRatio),
+						ffreq,	 //cutoff
+						rq			 //inverse bandwidth
+					) * env * gain);
+				}
+			).add;
 	}
 }

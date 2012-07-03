@@ -45,6 +45,7 @@ PSSynthDefPhenotype : PSPhenotype {
 		var synthArgMapArray;
 		synthArgMap = (synthArgMap ? defaultSynthArgMap);
 		synthArgMapArray = synthArgMap.asSortedArray;
+
 		^synthArgMapArray.size.collect({|i|
 			[synthArgMapArray[i][0], 
 			  synthArgMapArray[i][1].map(chrom.at(i))
