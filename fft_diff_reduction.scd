@@ -32,18 +32,23 @@ fork {
 	
 	SynthDef.new(
 		\fft_dist_test_synth,
-		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0|
-			Out.ar(out, Resonz.ar(
-				Saw.ar(pitch, gain),
-				ffreq,
-				rq
-			));
+		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, delay=0.0|
+			Out.ar(out, 
+				DelayN.ar(
+					Resonz.ar(
+						Saw.ar(pitch, gain),
+						ffreq,
+						rq
+					),
+					delaytime: delay
+				)
+			);
 		}
 	).add;
 
 	s.sync;
-	template = Synth.new(\ps_reson_saw, [\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5], target: s, addAction: \addToHead);
-	candidate = Synth.new(\ps_reson_saw, [\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5], target: s, addAction: \addToHead);
+	template = Synth.new(\ps_reson_saw, [\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay: 0.00212], target: s, addAction: \addToHead);
+	candidate = Synth.new(\ps_reson_saw, [\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0], target: s, addAction: \addToHead);
 
 	Routine.new({
 		while( true, {matchOut.get(_.postln);
