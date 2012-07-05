@@ -55,20 +55,20 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	
 	template = Synth.new(
 		\fft_dist_test_synth,
-		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0.0321207],
+		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0],
 		target: s,
 		addAction: \addToHead
 	);
 	candidate = Synth.new(
 		\fft_dist_test_synth,
-		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0],
+		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0.0321207],
 		target: s,
 		addAction: \addToHead
 	);
 
 	Routine.new({
 		while( true, {matchOut.get(_.postln);
-		1.yield;})
+		10.yield;})
 	}).play;
 	~bothSignals = bothSignals;
 	~template = template;
