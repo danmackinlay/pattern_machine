@@ -1,6 +1,5 @@
 Server.default = s = ~serverboot.(\internal, \builtin);
-(
-fork {
+(fork {
 	var	observedFftBuffer,targetFftBuffer, bothSignals,
 		observedBus, targetBus, matchOut,
 		template, comparer, candidate;
@@ -52,8 +51,18 @@ fork {
 	).add;
 
 	s.sync;
-	template = Synth.new(\ps_reson_saw, [\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay: 0.0321207], target: s, addAction: \addToHead);
-	candidate = Synth.new(\ps_reson_saw, [\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0], target: s, addAction: \addToHead);
+	template = Synth.new(
+		\ps_reson_saw,
+		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0.0321207],
+		target: s,
+		addAction: \addToHead
+	);
+	candidate = Synth.new(
+		\ps_reson_saw,
+		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0],
+		target: s,
+		addAction: \addToHead
+	);
 
 	Routine.new({
 		while( true, {matchOut.get(_.postln);
