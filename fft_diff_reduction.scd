@@ -47,24 +47,26 @@ fork {
 	).add;
 
 	s.sync;
-	template = Synth.new(\ps_reson_saw, [\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay: 0.00212], target: s, addAction: \addToHead);
+	template = Synth.new(\ps_reson_saw, [\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay: 0.0321207], target: s, addAction: \addToHead);
 	candidate = Synth.new(\ps_reson_saw, [\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0], target: s, addAction: \addToHead);
 
 	Routine.new({
 		while( true, {matchOut.get(_.postln);
 		1.yield;})
 	}).play;
- 	{
-		bothSignals.scope;
-		FreqScope.new(busNum:observedBus);
-		observedFftBuffer.plot;
-		targetFftBuffer.plot;
-	}.defer(2.0);
+	~bothSignals = bothSignals;
+	~observedBus = observedBus;
 	~observedFftBuffer = observedFftBuffer;
 	~targetFftBuffer = targetFftBuffer;
 	~candidate = candidate;
+	{
+		~bothSignals.scope;
+		FreqScope.new(busNum: ~observedBus);
+		~observedFftBuffer.plot;
+		~targetFftBuffer.plot;
+	}.defer(2.0);
 })
-~observedFftBuffer.loadToFloatArray(addAction: { arg array; a = array; {a.plot;}.defer;});
+~observedFftBuffer.loadToFloatArray(action: { arg array; a = array; {a.plot;}.defer;});
 targetFftBuffer.plot;
 
 ~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
