@@ -86,7 +86,7 @@ PSBasicPlaySynths {
 					Out.ar(out, Resonz.ar(
 						Warp1.ar(
 							bufnum: buffer,
-							pitch: pitch,
+							freqScale: pitch,
 							mul: env,
 							pointer: pointer,
 							windowSize: windowSize,
