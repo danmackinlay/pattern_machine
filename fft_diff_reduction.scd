@@ -66,8 +66,10 @@ fork {
 		~targetFftBuffer.plot;
 	}.defer(2.0);
 })
-~observedFftBuffer.loadToFloatArray(action: { arg array; a = array; {a.plot;}.defer;});
-targetFftBuffer.plot;
 
+~observedFftBuffer.loadToFloatArray(action: { |array| ~obsfftbufasarray = array; { var thisguy = array; thisguy.plot; }.defer;});
+~targetFftBuffer.loadToFloatArray(action: { |array| ~targetfftbufasarray = array; { var thisguy = array; thisguy.plot; }.defer;});
+~targetfftbufasarray;
+~obsfftbufasarray;
 ~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
 ~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \gain, 0.5);
