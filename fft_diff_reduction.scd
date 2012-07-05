@@ -12,19 +12,24 @@ fork {
 	matchOut = Bus.control(s, 1);
 	s.sync;
 	comparer = {|leak=0.1|
-		var targetfftchain, obsfftchain, target, observed;
+		var targetfftchain, obsfftchain, target, observed, localTargetFftBuffer, localObservedFftBuffer;
+		
 		target  = In.ar(targetBus, 1);
 		observed = In.ar(observedBus, 1);
 
-		// targetFftBuffer = LocalBuf.new(128,1);
-		// observedFftBuffer = LocalBuf.new(128,1);
+		// localTargetFftBuffer = LocalBuf.new(128,1);
+		// localObservedFftBuffer = LocalBuf.new(128,1);
+		
+		localTargetFftBuffer = targetFftBuffer;
+		localObservedFftBuffer = observedFftBuffer;
 
-		targetfftchain = FFT(observedFftBuffer, target);
-		obsfftchain = FFT(targetFftBuffer, observed);
+		targetfftchain = FFT(localTargetFftBuffer, target);
+		obsfftchain = FFT(localObservedFftBuffer, observed);
 
 		// Smear the FFT a little to avoid being trapped in bins
 		// targetfftchain = PV_MagSmear(targetfftchain, 5);
 		// obsfftchain = PV_MagSmear(obsfftchain, 5);
+		
 		leak = (leak**(ControlRate.ir.reciprocal));
 		//replace me with a straight 1-pole:
 		Integrator.kr(FFTDiffMags.kr(targetfftchain, obsfftchain) * (1-leak),  leak);
