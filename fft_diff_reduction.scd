@@ -81,20 +81,36 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	{
 		~bothSignals.scope;
 		FreqScope.new(busNum: ~observedBus);
-		~observedFftBuffer.plot;
-		~targetFftBuffer.plot;
-	}.defer(2.0);
+	}.defer;
 })
+(
+	~observedFftBuffer.plot;
+	~targetFftBuffer.plot;
+)
+(
+//From the FFT Overview Help file, the best way of getting magnitudes
+// (should the buffer *happen* to have complex contents)
+~bufToComplex = {arg buf;
+Ê Ê var z, x;
+Ê Ê z = buf.clump(2).flop;
+Ê Ê z = [Signal.newFrom(z[0]), Signal.newFrom(z[1])];
+Ê Ê Complex(z[0], z[1]);
+};
 
 ~observedFftBuffer.loadToFloatArray(action: { |array|
-	~obsfftbufasarray = array; { var thisguy = array; ~obsfftbufplot = thisguy.plot; }.defer;}
-);
-~targetFftBuffer.loadToFloatArray(action: { |array|
-	~targetfftbufasarray = array; { var thisguy = array; ~targetfftbufplot = thisguy.plot; }.defer;});
-~targetfftbufasarray;
-~examplesynthdef.insp;
-~candidate.insp;
-~candidate.trace;
-~obsfftbufasarray;
+	~obsfftbufasarray = array;
+	~obsfftbufascomplex = ~bufToComplex.value(array);
+});
+~targetFftBuffer.loadToFloatArray(action: { |array| 
+	~targetfftbufasarray = array;
+	~obsfftbufascomplex = ~bufToComplex.value(array);
+});
+)
+(
+//~obsfftbufplot = ~obsfftbufasarray.plot("raw obs");
+~obsfftbufplotcomplex = ~obsfftbufascomplex.magnitude.plot("obs magnitude");
+//~targetfftbufplot = ~targetfftbufasarray.plot("raw target");
+~targetfftbufplotcomplex = ~targetfftbufascomplex.magnitude.plot("target magnitude");
+)
 ~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
 ~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \gain, 0.5);
