@@ -88,29 +88,64 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	~targetFftBuffer.plot;
 )
 (
-//From the FFT Overview Help file, the best way of getting magnitudes
-// (should the buffer *happen* to have complex contents)
-~bufToComplex = {arg buf;
-Ê Ê var z, x;
-Ê Ê z = buf.clump(2).flop;
-Ê Ê z = [Signal.newFrom(z[0]), Signal.newFrom(z[1])];
-Ê Ê Complex(z[0], z[1]);
-};
+	//From the FFT Overview Help file, the best way of getting magnitudes
+	// (should the buffer *happen* to have complex contents)
+	~bufToComplex = {arg buf;
+	Ê Ê var z, x;
+	Ê Ê z = buf.clump(2).flop;
+	Ê Ê z = [Signal.newFrom(z[0]), Signal.newFrom(z[1])];
+	Ê Ê Complex(z[0], z[1]);
+	};
+)
+//Now let's see how this goes with the two signals set to the same params
+//Mags should be similar, but phases different.
+(
+~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
+)
 
-~observedFftBuffer.loadToFloatArray(action: { |array|
-	~obsfftbufasarray = array;
-	~obsfftbufascomplex = ~bufToComplex.value(array);
-});
-~targetFftBuffer.loadToFloatArray(action: { |array| 
-	~targetfftbufasarray = array;
-	~obsfftbufascomplex = ~bufToComplex.value(array);
-});
+//wait, then run
+(
+	~observedFftBufferSame.loadToFloatArray(action: { |array|
+		~obsfftbufasarraySame = array;
+		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+	});
+	~targetFftBufferSame.loadToFloatArray(action: { |array| 
+		~targetfftbufasarraySame = array;
+		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+	});
+)
+//Now plot
+(
+	//~obsfftbufplotSame = ~obsfftbufasarraySame.plot("raw obs");
+	~obsfftbufplotcomplexSame = ~obsfftbufascomplexSame.magnitude.plot("obs magnitude - signals the same");
+	//~targetfftbufplot = ~targetfftbufasarraySame.plot("raw target - signals the same");
+	~targetfftbufplotcomplexSame = ~targetfftbufascomplexSame.magnitude.plot("target magnitude - signals the same");
+	~diffmagbufplotSame = (~targetfftbufascomplexSame.magnitude-~obsfftbufascomplexSame.magnitude).abs.plot("diffmag - signals the same");
 )
 (
-//~obsfftbufplot = ~obsfftbufasarray.plot("raw obs");
-~obsfftbufplotcomplex = ~obsfftbufascomplex.magnitude.plot("obs magnitude");
-//~targetfftbufplot = ~targetfftbufasarray.plot("raw target");
-~targetfftbufplotcomplex = ~targetfftbufascomplex.magnitude.plot("target magnitude");
+	(~targetfftbufascomplexSame.magnitude- ~obsfftbufascomplexSame.magnitude).abs.mean;
+	(~targetfftbufascomplexSame-~obsfftbufascomplexSame).abs.mean;
+	(~obsfftbufasarraySame-~targetfftbufasarraySame).abs.mean;
 )
-~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
+//Rinse and repeat, but now set the observered signal to have very different phases *and* mags
+(
 ~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \gain, 0.5);
+)
+(
+	~observedFftBufferSame.loadToFloatArray(action: { |array|
+		~obsfftbufasarraySame = array;
+		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+	});
+	~targetFftBufferSame.loadToFloatArray(action: { |array| 
+		~targetfftbufasarraySame = array;
+		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+	});
+)
+//Now plot
+(
+	//~obsfftbufplotSame = ~obsfftbufasarraySame.plot("raw obs");
+	~obsfftbufplotcomplexSame = ~obsfftbufascomplexSame.magnitude.plot("obs magnitude - signals different");
+	//~targetfftbufplot = ~targetfftbufasarraySame.plot("raw target - signals different");
+	~targetfftbufplotcomplexSame = ~targetfftbufascomplexSame.magnitude.plot("target magnitude - signals different");
+	~diffmagbufplotSame = (~targetfftbufascomplexSame.magnitude-~obsfftbufascomplexSame.magnitude).abs.plot("diffmag - signals different");
+)
