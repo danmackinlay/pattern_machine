@@ -38,7 +38,7 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
 		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, delay=0.0|
-			Out.ar(out, 
+			Out.ar(out,
 				DelayN.ar(
 					Resonz.ar(
 						Saw.ar(pitch, gain),
