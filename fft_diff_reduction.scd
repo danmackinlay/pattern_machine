@@ -1,7 +1,8 @@
+GUI.qt;
 Server.default = s = ~serverboot.(\internal, \builtin);
 (fork {
 	var	observedFftBuffer,targetFftBuffer, bothSignals,
-		observedBus, targetBus, matchOut,
+		observedBus, targetBus, matchOut, examplesynthdef,
 		template, comparer, candidate;
 	observedFftBuffer = Buffer.alloc(s, 128);
 	targetFftBuffer = Buffer.alloc(s, 128);
@@ -34,7 +35,7 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 		Integrator.kr(FFTDiffMags.kr(targetfftchain, obsfftchain) * (1-leak),  leak);
 	}.play(target:s, addAction: \addToTail, outbus: matchOut);
 	
-	SynthDef.new(
+	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
 		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, delay=0.0|
 			Out.ar(out, 
@@ -51,14 +52,15 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	).add;
 
 	s.sync;
+	
 	template = Synth.new(
-		\ps_reson_saw,
+		\fft_dist_test_synth,
 		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0.0321207],
 		target: s,
 		addAction: \addToHead
 	);
 	candidate = Synth.new(
-		\ps_reson_saw,
+		\fft_dist_test_synth,
 		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0],
 		target: s,
 		addAction: \addToHead
@@ -69,10 +71,13 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 		1.yield;})
 	}).play;
 	~bothSignals = bothSignals;
+	~template = template;
+	~candidate = candidate;
 	~observedBus = observedBus;
 	~observedFftBuffer = observedFftBuffer;
 	~targetFftBuffer = targetFftBuffer;
 	~candidate = candidate;
+	~examplesynthdef = examplesynthdef;
 	{
 		~bothSignals.scope;
 		FreqScope.new(busNum: ~observedBus);
@@ -81,9 +86,15 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	}.defer(2.0);
 })
 
-~observedFftBuffer.loadToFloatArray(action: { |array| ~obsfftbufasarray = array; { var thisguy = array; thisguy.plot; }.defer;});
-~targetFftBuffer.loadToFloatArray(action: { |array| ~targetfftbufasarray = array; { var thisguy = array; thisguy.plot; }.defer;});
+~observedFftBuffer.loadToFloatArray(action: { |array|
+	~obsfftbufasarray = array; { var thisguy = array; ~obsfftbufplot = thisguy.plot; }.defer;}
+);
+~targetFftBuffer.loadToFloatArray(action: { |array|
+	~targetfftbufasarray = array; { var thisguy = array; ~targetfftbufplot = thisguy.plot; }.defer;});
 ~targetfftbufasarray;
+~examplesynthdef.insp;
+~candidate.insp;
+~candidate.trace;
 ~obsfftbufasarray;
 ~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
 ~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \gain, 0.5);
