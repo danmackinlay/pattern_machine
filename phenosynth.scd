@@ -1,19 +1,21 @@
-GUI.qt;
 ServerTreeGui.makeWindow(s);
-Quarks.gui;
+
+////////////
+// Making a sampler fitnessy thing.
+////////////
+
 //initialisation
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
-s.getQueryTree;
-s.queryAllNodes;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
 	//{~globalOuts.scope;}.defer;
 	~phenogroup = Group.new(s);
+	~sampleBuf = Buffer.read(server, 44100*10);
 	s.sync;
 	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
 	~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
@@ -126,6 +128,8 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
   * Make the fitness cooker API simpler to develop for and test. Plain lists, rather
     than maps, would be better.
+  * cause fitness thingies to automatically report fitness, without waiting for /get
+    messages
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date
   * optionally recycle listeners, since deleting and creating them is CPU-heavy
   * fix operation when numChannels>1 (at the moment there are bus allocation

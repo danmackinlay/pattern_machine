@@ -8,10 +8,10 @@ PSSynthDefPhenotype : PSPhenotype {
 	
 	*new {|chromosome, synthDef, synthArgMap|
 		//default to class's synthDef and synthArgMap to make trivial subclasses easy.
-		//although if you are subclassing you might not want to use a Factory
+		//although if you are subclassing you might want to use a Factory
 		var noob = super.new(chromosome);
 		noob.synthDef = synthDef ? defaultSynthDef;
-		noob.synthArgMap = synthArgMap ? defaultSynthArgMap;
+		noob.synthArgMap = synthArgMap ? PSBasicPlaySynths.synthArgMaps[noob.synthDef];
 		^noob;
 	}
 	
@@ -99,9 +99,10 @@ PSSynthDefPhenotypeFactory {
 	var <phenotypeClass;
 	
 	*new {|synthDef, synthArgMap, phenotypeClass|
+		synthDef = synthDef ? PSSynthDefPhenotype.defaultSynthDef;
 		^super.newCopyArgs(
-			synthDef ? PSSynthDefPhenotype.defaultSynthDef,
-			synthArgMap ? PSSynthDefPhenotype.defaultSynthArgMap,
+			synthDef,
+			synthArgMap ? PSBasicPlaySynths.synthArgMaps[synthDef],
 			phenotypeClass ? defaultPhenotypeClass
 		);
 	}

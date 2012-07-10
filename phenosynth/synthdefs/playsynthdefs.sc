@@ -1,4 +1,6 @@
 PSBasicPlaySynths {
+	classvar <synthArgMaps;
+	
 	*initClass{
 		StartUp.add({
 			this.classInit;
@@ -10,18 +12,19 @@ PSBasicPlaySynths {
 		this.loadSynthDefs;
 	}
 	*loadSynthDefs{
-			// First, a utility synth:
-		
+			synthArgMaps = ();
 			// Really simple SynthDef to play a buffer when triggered
 			SynthDef.new(\ps_just_playbuf, {|bufnum, out=0, t_trig=0|
 				Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 			});
+			synthArgMaps[\ps_just_playbuf] = ();
 			SynthDef.new(
 				\ps_dc,
 				{ |out=0, gate=0, gain=1.0|
 					Out.ar(out, DC.ar(gain));
 				}
-			).add;		
+			).add;
+			synthArgMaps[\ps_dc] = (\gain: \unipolar.asSpec);		
 			SynthDef.new(
 				\ps_sine,
 				{ |out=0, gate=0, t_reset=0, pitch=800, gain=1.0|
@@ -51,6 +54,13 @@ PSBasicPlaySynths {
 					) * env * gain);
 				}
 			).add;
+			synthArgMaps[\ps_reson_saw] = (
+				\pitch: \midfreq.asSpec,
+				\ffreq: \midfreq.asSpec,
+				\rq: \rq.asSpec,
+				\gain: \unipolar.asSpec
+			);
+			
 			SynthDef.new(
 				\ps_reson_saw_2pan,
 				{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, pan=0|
@@ -65,7 +75,7 @@ PSBasicPlaySynths {
 						Resonz.ar(
 							Saw.ar(pitch, env),
 							ffreq,	//cutoff
-							rq			//inverse bandwidth
+							rq		//inverse bandwidth
 						)
 					) * env * gain);
 				}
@@ -92,9 +102,18 @@ PSBasicPlaySynths {
 							windowSize: windowSize,
 							windowRandRatio: windowRandRatio),
 						ffreq,	 //cutoff
-						rq			 //inverse bandwidth
+						rq		 //inverse bandwidth
 					) * env * gain);
 				}
 			).add;
+			synthArgMaps[\ps_sample_grain] = (
+				\pitch: ControlSpec.new(minval: 4.reciprocal, maxval: 4, warp: 'exp', default:1),
+				\ffreq: \midfreq.asSpec,
+				\pointer: \unipolar.asSpec,
+				\windowRandRatio: \unipolar.asSpec,
+				\windowSize: ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp'),
+				\rq: \rq.asSpec,
+				\gain: \unipolar.asSpec
+			);
 	}
 }
