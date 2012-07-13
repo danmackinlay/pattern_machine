@@ -1,15 +1,37 @@
 /*
-Quarks.gui
+Server.default = s = ~serverboot.(\internal, \builtin);
+
+//This is the API I want to approximate:
+
+rules = StochLRules.new;
+rules.add(\a, 1, [\b, \a]);
+rules.add(\a, 9, [\c, \a]);
+rules.add(\a, 10, [\c, \a], [\c, \d]); //not yet - is this how branching should go? Or should it be
+rules.add(\a, 10, [\[, \c, \a, \], \c, \d); // is this how branching should go? Or 
+rules.add(\a, 10, [\c, [\a, \d]]); //I do like that one.
+
+//rules.chomp([\a]); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
+rules.next(\a); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
+
+mapping = StochMapping.new;
+//operator mapping
+mapping[\a] = PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})
+//atom mapping
+mapping[\a] = Pbind(\pitch, 23, dur, 1)
+
+// These operators and atoms will be composed by <>?
+
+
 String.rewrite/Plsys
 Prewrite
 Quarks.gui
 redUniverse LSystem
-http://www.digipedia.pl/usenet/thread/11165/26516/
-file://localhost/Users/dan/Library/Application%20Support/SuperCollider.35/quarks/NatureToolkit/LSys/Help/LSys.html
-PpatRewrite  http://www.dewdrop-world.net/words/blog5.php/2011/05/01/neo-complexity-rhythm-generator file://localhost/Users/dan/Library/Application%20Support/SuperCollider.35/quarks/dewdrop_lib/ddwPatterns/Help/PpatRewrite.html
-http://www.digipedia.pl/usenet/thread/11165/26516/
-http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/A-question-abour-LazyLindenmayer-from-MathLib-td3718965.html
-http://www.fredrikolofsson.com/f0blog/?q=node/388
+	http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/A-question-abour-LazyLindenmayer-from-MathLib-http://www.fredrikolofsson.com/f0blog/?q=node/388
+		file://localhost/Users/dan/Library/Application%20Support/SuperCollider/quarks/NatureToolkit/LSys/Help/LSys.html
+PpatRewrite:
+	http://www.dewdrop-world.net/words/blog5.php/2011/05/01/neo-complexity-rhythm-generator
+	file://localhost/Users/dan/Library/Application%20Support/SuperCollider/quarks/dewdrop_lib/ddwPatterns/Help/PpatRewrite.html
+	only appears to rewrite values, not whole events
 
 Plambda versus Penvir
 Probably PlazyEnvir does what we , although Some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
@@ -19,12 +41,68 @@ PG_06g_Data_Sharing
 PG_06d_Parallel_Patterns
 PG_06b_Time_Based_Patterns
 Event types
+WeighBag in MathLib
 PG_Ref01_Pattern_Internals (c.f. EventStreamCleanup)
 Understanding Streams, Patterns and Events - Part 6 (PStretch and FilterPAttern)
 PG_08_Event_Types_and_Parameters
 recursive_phrasing
+Once the parallel pattern starts, there is no way to add more streams to it. To keep adding streams, use Pspawner and Pspawn
+*/
 
 ////////// recursion learning examples
+
+//native pspawn
+
+/*This example uses Pspawner to trigger overlapping scale segments at different speeds.
+Unlike Ppar, which could handle a fixed number before stopping, Pspawner can keep going indefinitely.*/
+
+
+
+(
+p = Pspawner({ |sp| Ê Ê// sp = the Spawner object
+Ê Ê loop {
+Ê Ê Ê Ê Ê Ê // run a new pattern in parallel
+Ê Ê Ê Ê Ê Ê // the pattern is finite
+Ê Ê Ê Ê Ê Ê // after a few events, it stops and the Pspawner forgets about it
+Ê Ê Ê Ê sp.par(Pbind(
+Ê Ê Ê Ê Ê Ê \degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
+Ê Ê Ê Ê Ê Ê \pan, rrand(-1.0, 1.0),
+Ê Ê Ê Ê Ê Ê \dur, rrand(0.1, 0.3) Ê Ê// duration is chosen once for each pattern
+Ê Ê Ê Ê ));
+Ê Ê Ê Ê Ê Ê // tell the Spawner to wait a bit before the next pattern goes
+Ê Ê Ê Ê Ê Ê // DO NOT use numBeats.wait for this!
+Ê Ê Ê Ê Ê Ê // Everything must go through the Spawner
+Ê Ê Ê Ê sp.wait(rrand(1, 4) * 0.25);
+Ê Ê }
+}).play;
+)
+
+p.stop;
+The same, written using Pspawn :
+(
+p = Pspawn(Pbind(
+Ê Ê \method, \par, Ê Ê Ê Ê// embed patterns in parallel
+Ê Ê Ê Ê // generate the subpattern in a Pfunc (so there's a new pattern each time)
+Ê Ê Ê Ê // Pfunc returns the pattern without rendering the stream
+Ê Ê Ê Ê // -- important for Pspawn
+Ê Ê Ê Ê // See the Pspawn helpfile for other ways to embed patterns
+Ê Ê \pattern, Pfunc {
+Ê Ê Ê Ê Pbind(
+Ê Ê Ê Ê Ê Ê \degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
+Ê Ê Ê Ê Ê Ê \pan, rrand(-1.0, 1.0),
+Ê Ê Ê Ê Ê Ê \dur, rrand(0.1, 0.3) Ê Ê// duration is chosen once for each pattern
+Ê Ê Ê Ê )
+Ê Ê },
+Ê Ê Ê Ê // The \delta key is used automatically for the spawner.wait() call
+Ê Ê \delta, Pwhite(1, 4, inf) * 0.25
+)).play;
+)
+
+p.stop;
+
+
+//dewdrop
+(
 p = Ppar(
     { |i|
         Pbind(
@@ -51,7 +129,7 @@ p = Ppar(
         )
     } ! 2
 ).play(quant: 1);
-
+)
 
 
 (
