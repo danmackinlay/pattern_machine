@@ -15,10 +15,12 @@ rules.next(\a); //returns [\b, \a] with probability 0.1, [\c, \a] with probabili
 
 mapping = StochMapping.new;
 //operator mapping
-mapping[\a] = PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})
+mapping[\c] = [\operator, Pbindf(_, \pitch, Pkey(\pitch) +2)]
+mapping[\c] = [\operator, Padd(\pitch, 2, _)]
+//mapping[\c] = [\operator, PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})]
 //atom mapping
-mapping[\a] = Pbind(\pitch, 23, dur, 1)
-
+mapping[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
+//mapping[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no mapping so not a terminal? or may we have things be both?
 // These operators and atoms will be composed by <>?
 
 
@@ -34,20 +36,31 @@ PpatRewrite:
 	only appears to rewrite values, not whole events
 
 Plambda versus Penvir
-Probably PlazyEnvir does what we , although Some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
+Probably PlazyEnvir does what we , although some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
 PG_Cookbook07_Rhythmic_Variations
 PG_Cookbook06_Phrase_Network
 PG_06g_Data_Sharing
 PG_06d_Parallel_Patterns
-PG_06b_Time_Based_Patterns
+PG_06c_Composition_of_Patterns
 Event types
 WeighBag in MathLib
 PG_Ref01_Pattern_Internals (c.f. EventStreamCleanup)
-Understanding Streams, Patterns and Events - Part 6 (PStretch and FilterPAttern)
+Understanding Streams, Patterns and Events - Part 6
+ - (PStretch and FilterPAttern)
 PG_08_Event_Types_and_Parameters
+Pdef
 recursive_phrasing
+
 Once the parallel pattern starts, there is no way to add more streams to it. To keep adding streams, use Pspawner and Pspawn
+
+These patterns remain in the library mainly for reasons of backward compatibility, since their behavior can be replicated easily using Pbindf.
+Pset(name, value, pattern)	Pbindf(pattern, name, value)
+Padd(name, value, pattern)	Pbindf(pattern, name, Pkey(name) + value)
+Pmul(name, value, pattern)	Pbindf(pattern, name, Pkey(name) * value)
+The patterns Psetpre, Paddpre, and Pmulpre reverse the order of evaluation. Pchain is able to duplicate this functionality.
 */
+
+
 
 ////////// recursion learning examples
 
