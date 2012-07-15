@@ -33,11 +33,13 @@ PSContext : IdentityDictionary {
 			*/
 			var transformedContext = that.class.newFrom(that);
 			transformedContext.keysValuesChange({|key, value|
+				var out;
 				this.at(key).isNil.if({
-					value
+					out = value;
 				}, {
-					this.at(key).value(value)
+					out = this.at(key).value(value);
 				});
+				out;
 			});
 			^transformedContext;
 		}, {

@@ -1,5 +1,5 @@
 TestPSContext : UnitTest {
-	test_ContextContextCompose {
+	test_ContextContextApply {
 		var left,right,target,combined,testnums;
 		left = PSContext.newFrom((
 			a: _*3,
@@ -24,6 +24,29 @@ TestPSContext : UnitTest {
 					//"failure of Context-Context composition at key:\n\t" + key + "\nwith test input:\n\t"+n
 				);
 			});
+		});
+	}
+	test_ContextEventApply {
+		var left,right,target,combined;
+		left = PSContext.newFrom((
+			a: _*3,
+			b: _+2
+		));
+		right = (
+			b: 2.5,
+			c: 3.25
+		);
+		combined = left.applyTo(right);
+		target = PSContext.newFrom((
+			b: 4.5,
+			c: 3.25
+		));
+		[\a,\b,\c].do({|key|
+			this.assertEquals(
+				combined.at(key),
+				target.at(key),
+				//"failure of Context-Event composition at key:\n\t" + key + "\nwith test input:\n\t"+n
+			);
 		});
 	}
 }
