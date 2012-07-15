@@ -1,6 +1,6 @@
 /*
 Server.default = s = ~serverboot.(\internal, \builtin);
-
+Quarks.gui
 //This is the API I want to approximate:
 
 productions = PSProductions.new;
@@ -22,28 +22,38 @@ coding[\c] = [\operator, Padd(\pitch, 2, _)]
 coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
 //coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal? or may we have things be both?
 												// Let's not and say we did. But who knows about terminality? productions or codings?
-												// both. A terminal is anything without a rewrite rule.
+												// both. A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 
 productions.words
 Set(\a)
 
-dispatcher = PSRuleDispatcher.new(productions);
-dispatcher
+context = PSEventContext.new(coding);
+context.apply(productions.next(\a));
 
+productionplayer = PSProductionPlayer.new();
+
+
+//We will also need affine transform objects to hold the current transform context.
+// These are basically curried functions. maybe I can
+//get away with those for now and build somethign optimised for affine transforms as needed.
+a=2*_+1
+a.(2)
+nil*2
 // These operators and atoms will be composed by something like <>?
 // There is an asymmetry here - the (time)shift operator. Since all productions need to schedule themselves
 // (that is, i'd like them to) they need to have an idea of setting a note length
 // Since time passes, that "state" is tracked for us automatically.
 
 // we would like state more generally to collapse for us into polite flat context dictionaries.
-// the context should be enought o know which note to play on next, and what default params to be working with.
+// the context should be enough to know which note to play on next, and what default params to be working with.
 // we can't really keep stacks of the fucking things lying about.
 // although we prolly could if we ditched tail recursion.
 // This will need a StatefulEvent, which should emit a PLazyEnvirN that transforms patterns appropriately.
-// or a PeventMod. A pity, because otherwise Environment has great stack push/pop methods that would be
+// or a PeventMod.
+
+// A pity, because otherwise Environment has great stack push/pop methods that would be
 // easy to work with. Maybe we still could?
 
-// Also, what PS acronym can we use? PatternState? ProductionSystems?
 
 
 String.rewrite/Plsys
