@@ -25,20 +25,26 @@ coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
 												// both. A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 
 productions.words
-Set(\a)
 
 context = PSEventContext.new(coding);
 context.apply(productions.next(\a));
 
 productionplayer = PSProductionPlayer.new();
-
-
+Event
+a=_*3; b= _+2;
+c=a<>b;
+c.(3)
 //We will also need affine transform objects to hold the current transform context.
 // These are basically curried functions. maybe I can
 //get away with those for now and build somethign optimised for affine transforms as needed.
+//This is surprisingly fiddly, beacuse Events have default values. see also Pstretch
+//TODO: create a Function subclass, AffineTransform that automatically collapses 
+//simple transforms and also prints a better diagnostic with printOn
+PSContext.test;
 a=2*_+1
 a.(2)
-nil*2
+
+
 // These operators and atoms will be composed by something like <>?
 // There is an asymmetry here - the (time)shift operator. Since all productions need to schedule themselves
 // (that is, i'd like them to) they need to have an idea of setting a note length
@@ -53,7 +59,6 @@ nil*2
 
 // A pity, because otherwise Environment has great stack push/pop methods that would be
 // easy to work with. Maybe we still could?
-
 
 
 String.rewrite/Plsys
