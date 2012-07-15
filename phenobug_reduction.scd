@@ -2,13 +2,13 @@
 ~log = FileLogger.global;
 ~iterations = 0;
 ~list = LinkedList.new;
-~term = {|list, iterations| 
+~term = {|list, iterations|
 	var aliens;
 	~log.logFlush("term").postln;
 	aliens = list.detect({|i, idx| i.class!=Event;} );
 	aliens.notNil || iterations>10; };
 ~birth = { (\a: 5.rand, \b: 10.rand, \birthday: ~iterations);};
-~tend = {|list| 
+~tend = {|list|
 	var doomed, deathCount;
 	~log.logFlush("tend").postln;
 	doomed = list.select({0.1.coin;});

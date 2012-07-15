@@ -36,7 +36,7 @@ VicsekParticle {
 	/*		synth = */
 		}*/
 	free {
-		
+
 	}
 }
 VicsekGrid {
@@ -50,7 +50,7 @@ VicsekGrid {
 		"whistling-wind.wav.aif"];
 	}
 	*new {|population, noise, delta, radius, dim=2, tickTime=1, lfo1p=0.007, lfo2p=0.031, lfo3p=0.022, lfoa=4, rescale|
-		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime, lfo1p, lfo2p, lfo3p, lfoa, rescale).init; 
+		^super.newCopyArgs(population, noise, delta, radius, dim, tickTime, lfo1p, lfo2p, lfo3p, lfoa, rescale).init;
 	}
 	init {
 		particles = population.collect({VicsekParticle.new;});
@@ -96,13 +96,13 @@ VicsekGrid {
 		//randomise?
 		particles.do({|particle|
 			particle.vel_(
-				(particle.vel*(1-noise)) + 
+				(particle.vel*(1-noise)) +
 				(noise*(this.class.randomVector(dim)))
 			);
 		});
 		isPlaying.not.if({^this});
 		//but if we ARE playing...
-		particles.do({|particle| 
+		particles.do({|particle|
 			particle.synth.set(
 				\xpos, particle.pos[0],
 				\ypos, particle.pos[1],
@@ -116,8 +116,8 @@ VicsekGrid {
 		noise = (timenow*lfo1p).cos.linexp(-1,1, lfoa.reciprocal, lfoa) * baseNoise;
 		delta = (timenow*lfo2p).cos.linexp(-1,1, lfoa.reciprocal, lfoa) * baseDelta;
 		noise = (timenow*lfo3p).cos.linexp(-1,1, lfoa.reciprocal, lfoa) * baseRadius;
-		
-		
+
+
 	}
 	server {^myServer;}
 	group {^myGroup;}
@@ -126,7 +126,7 @@ VicsekGrid {
 		//this really should be wrapped in a generic other class
 		myBuffers = List.new;
 		samplePath.isNil.if({samplePath=~zamples++"cockatoo island/textures/"});
-		
+
 		Task({
 			myServer = server ?? Server.default;
 			VicsekSynths.loadSynthDefs(myServer);
@@ -154,7 +154,7 @@ VicsekGrid {
 				}.play(myGroup, myOutBus, addAction:\addToTail);
 			server.sync;
 			outSynth.set(\amp, gain);
-			particles.do({|particle, i| 
+			particles.do({|particle, i|
 				particle.synth = Synth.new(\vicsek_gull4,
 					[
 						\i_out, myOutBus,
@@ -180,7 +180,7 @@ VicsekGrid {
 		}).play;
 	}
 	free {
-		particles.do({|particle| 
+		particles.do({|particle|
 			particle.synth.isNil.if( {
 				particle.synth.set(\gate, 0);
 				particle.synth = nil;
@@ -210,15 +210,15 @@ VicsekSynths {
 			 xvel,yvel,zvel,
 			 tickTime=1,
 			 rescale=1.407, //only look at part of the surface
-			 farSideDelay=0.05| 
+			 farSideDelay=0.05|
 			//synth vars
 			var amp, alive, outMono, posX, posY, posZ, pointer, randRatio, windowSize, env;
 			posX = xpos.linlin(0, 1, rescale.neg, rescale);
 			posY = ypos.linlin(0, 1, rescale.neg, rescale);
 			posZ = zpos.linlin(0, 1, -1.05, 1.05);
 			alive = (
-				((posX.abs)<1) * 
-				((posY.abs)<1) * 
+				((posX.abs)<1) *
+				((posY.abs)<1) *
 				((posZ.abs)<1)
 			);
 			posX = Lag.kr(posX, tickTime*2).clip2(1);

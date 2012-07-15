@@ -144,7 +144,7 @@ SynthDef.new(\ps_twinker_drone, {
 
 
 /*
- * TODO: 
+ * TODO:
  * * maybe spectrally extract output from input?
  * * or just work out if there is truly a difference by MFCC
  * * record many buffers

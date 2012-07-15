@@ -26,7 +26,7 @@ Allocator {
 	printOn { arg stream;
 		stream << this.class.asString <<"(nResources:" << nResources.asString << ", available:" << toAlloc.asString << ")";
 	}
-	
+
 }
 
 BusAllocator : Allocator {
@@ -34,7 +34,7 @@ BusAllocator : Allocator {
 	var <nChans;
 	var <server;
 	var <busArray;
-	
+
 	play {|serverOrBusArray, numChannels, busRate=\audio|
 		nChans = numChannels;
 		serverOrBusArray.isKindOf(Server).if({
@@ -54,5 +54,5 @@ BusAllocator : Allocator {
 	dealloc {|i|
 		super.dealloc((i.index-busArray.index)/nChans);
 	}
-	
+
 }

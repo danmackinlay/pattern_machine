@@ -26,7 +26,7 @@ ringconvolve = {|left, right|
 window = FlowView(bounds:300@300, windowTitle: "window!").front;
 CmdPeriod.doOnce({window.close});
 
-suppressionwidget = MultiSliderView(window, 
+suppressionwidget = MultiSliderView(window,
 		Point(window.bounds.width*0.9, 100))
 	.size_(model[\suppressions])
 	.value_(model[\suppressions])

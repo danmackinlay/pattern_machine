@@ -28,6 +28,6 @@ PSInfestManager {
 			target:group);
 	}
 	setNote {|buffer, slot, on|
-		
+
 	}
 }

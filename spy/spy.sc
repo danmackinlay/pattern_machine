@@ -3,7 +3,7 @@ This guy listens to a a given bus at a given point in the node order.
 It probably duplicates ScopeOut, but that is undocumented,
 and this use is straightforward.
 */
-	
+
 SpyBus {
 	var <>server;
 	var <>listenBus;
@@ -11,7 +11,7 @@ SpyBus {
 	var <>target;
 	var <>scope;
 	var <>listenerNode;
-	
+
 	*initClass{
 		StartUp.add({
 			this.loadSynthDefs;
@@ -45,5 +45,5 @@ SpyBus {
 	moveBefore {|aNode| listenerNode.moveBefore(aNode);}
 	moveToHead {|aNode| listenerNode.moveToHead(aNode);}
 	moveToTail {|aNode| listenerNode.moveToTail(aNode);}
-	
+
 }

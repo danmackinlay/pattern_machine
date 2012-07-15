@@ -17,9 +17,9 @@ fork {
 		env = EnvGen.kr(Env.perc(0.01, sustain), doneAction: 2);
 		sig = RLPF.ar(Saw.ar(freq, amp), freq + (env * headroom), rq) * env;
 		Out.ar(out, sig ! 2);	// sig ! 2 is the same as [sig, sig]
-		
+
 	}).add(s);
-	
+
 	//TODO: add in spring constrints w/regard to central frequency.
 	//TODO: add in hard clipping to avoid mishaps
 	//TODO: add in dust noise to anneal out of local maxima
@@ -53,10 +53,10 @@ fork {
 		env = EnvGen.kr(Env.asr(0.01, 1.0, 0.1), gate, doneAction: 2) * peakGain;
 		Out.ar(out, (sigOut * env) ! 2);	// sig ! 2 is the same as [sig, sig]
 	}).add(s);
-	
+
 	SynthDef.new(\stereolimiter, {|out| ReplaceOut.ar(out, Limiter.ar(In.ar(out, 2))); }).add(s);
 	s.sync;
-	
+
 	~mainOut = Bus.new(\audio, 0, 2);
 	~synthBus = Bus.audio(s, 2);
 	~synthGroup = Group.new(s);
@@ -66,7 +66,7 @@ fork {
 	~masterGroup = Group.after(~fxGroup);
 	s.volume.volume(-10);
 	s.sync;
-	
+
 	p = Pbind(
 			\out, ~synthBus,
 			\instrument, \sawgrain,
@@ -76,9 +76,9 @@ fork {
 			\amp, 0.5, //\detune, 1.005,
 			\group, ~synthGroup
 		).play(quant: 1);
-	
+
 	s.sync;
-	
+
 	~fx = Synth.new(\rezofloss, [\in, ~synthBus, \out, ~mainOut, \freq, 90.midicps], ~fxGroup).play;
 	~limiter = Synth.new(\stereolimiter, [\out, ~mainOut], ~masterGroup);
 };

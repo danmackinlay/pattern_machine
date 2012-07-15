@@ -4,7 +4,7 @@ PSControllerIsland : PSRealTimeIsland {
 	var <>controller;
 	//Because I oft-times re-use MCLD's listensynths, and they approach zero when signals match:
  	classvar <defaultScoreCooker = #[phenosynth, score_cookers, zero_peak];
-	
+
 	*defaultParams {
 		var defParams = super.defaultParams;
 		defParams.individualFactory = PSSynthPhenotype;

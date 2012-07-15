@@ -1,6 +1,6 @@
 PSBasicPlaySynths {
 	classvar <synthArgMaps;
-	
+
 	*initClass{
 		StartUp.add({
 			this.classInit;
@@ -24,7 +24,7 @@ PSBasicPlaySynths {
 					Out.ar(out, DC.ar(gain));
 				}
 			).add;
-			synthArgMaps[\ps_dc] = (\gain: \unipolar.asSpec);		
+			synthArgMaps[\ps_dc] = (\gain: \unipolar.asSpec);
 			SynthDef.new(
 				\ps_sine,
 				{ |out=0, gate=0, t_reset=0, pitch=800, gain=1.0|
@@ -36,7 +36,7 @@ PSBasicPlaySynths {
 					);
 					Out.ar(out, SinOsc.ar(pitch, mul: env*gain));
 				}
-			).add;		
+			).add;
 			SynthDef.new(
 				\ps_reson_saw,
 				{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0|
@@ -60,7 +60,7 @@ PSBasicPlaySynths {
 				\rq: \rq.asSpec,
 				\gain: \unipolar.asSpec
 			);
-			
+
 			SynthDef.new(
 				\ps_reson_saw_2pan,
 				{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, pan=0|

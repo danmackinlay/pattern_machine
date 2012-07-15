@@ -11,7 +11,7 @@ UnitFloat.intFromBits(UnitFloat.bitsFromInt(27689));
 UnitFloat {
 	classvar <nbits=24;
 	classvar <maxInt=16777216;
-	
+
 	*floatFromBits { |bitArray|
 		^this.floatFromInt(this.intFromBits(bitArray));
 	}

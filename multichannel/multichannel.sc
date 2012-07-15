@@ -28,7 +28,7 @@ PSSynthPhenotype.map
 PSMCCore {
 	classvar <maxChannels = 16;
 	classvar <nameBase = "core";
-	
+
 	*initClass{
 		StartUp.add({
 			this.classInit
@@ -63,7 +63,7 @@ PSMCCore {
 PSMCMix : PSMCCore {
 	classvar <maxChannels = 16;
 	classvar <nameBase = "mix";
-	
+
 	*makeSynthDef {|numChannels|
 		^SynthDef.new(this.synthName(numChannels), { |in, out|
 			Out.ar(out, Mix.new(In.ar(in, numChannels)));

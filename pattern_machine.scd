@@ -37,7 +37,7 @@ SynthDef.new(\autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.1, certthr
 ~recorder = Synth.new(\autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
 ~recBuf.plot;
 /*
- * TODO: 
+ * TODO:
  * * maybe spectrally extract output from input?
  * * or just work out if there is truly a difference by MFCC
  * * record many buffers

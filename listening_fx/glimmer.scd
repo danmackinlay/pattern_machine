@@ -83,7 +83,7 @@ SynthDef.new(\glimmergrains,
 		outChannels = Limiter.ar(LeakDC.ar(Mix.new(voices)),1,0.01);
 		LocalOut.ar(outChannels);
 		Out.ar(out, outChannels);
-	}	
+	}
 ).add(s);
 
 

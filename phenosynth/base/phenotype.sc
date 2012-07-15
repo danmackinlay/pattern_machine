@@ -3,7 +3,7 @@ PSPhenotype {
 	var <>fitness=0;
 	var <logicalAge=0;
 	var <birthTime;
-		
+
 	*new{|chromosome|
 		var noob = super.new;
 		noob.chromosome = chromosome;

@@ -36,7 +36,7 @@ PSOperators {
 			{|params, phenotype|
 				var a0, a1, a2, a3;
 				# a0, a1, a2, a3 = phenotype.chromosome;
-				(2 - 
+				(2 -
 					((
 						((a0*a1*pi).cos) -
 						((a2*a3*pi*3/2).sin)
@@ -57,7 +57,7 @@ PSOperators {
 				).abs);
 			};
 		);
-		
+
 		/* Score cookers take the scores of the entire population
 		and massage them into fitnesses */
 		/* This first one does the trivial thing, passing them unchanged. */
@@ -117,7 +117,7 @@ PSOperators {
 			{|params, rawScoreMap|
 				var cookedFitnessMap, normedScores, range;
 				cookedFitnessMap = IdentityDictionary.new;
-				
+
 				normedScores = rawScoreMap.values.asArray.abs;
 				normedScores.notEmpty.if({
 					var fmax, fmin;
@@ -139,7 +139,7 @@ PSOperators {
 			{|params, rawScoreMap|
 				var cookedFitnessMap, normedScores, range;
 				cookedFitnessMap = IdentityDictionary.new;
-				
+
 				normedScores = rawScoreMap.values.asArray;
 				normedScores.notEmpty.if({
 					var fmax, fmin;
@@ -153,7 +153,7 @@ PSOperators {
 				cookedFitnessMap;
 			};
 		);
-		
+
 		/*
 		Termination conditions tell us when to stop -
 		when we are "close enough" or have run too long
@@ -163,7 +163,7 @@ PSOperators {
 				iterations > params.stopIterations;
 			}
 		);
-		
+
 		/*
 		Death selectors select which agents to cull.
 		*/

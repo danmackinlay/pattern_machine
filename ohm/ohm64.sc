@@ -1,7 +1,7 @@
 /* My favourite MIDI controller, Livid Instruments' OHM64, set up just the way I like it.
 Pluggable, single-button-per-responder linkages, and note-ons and note-offs handled the same way.
 
-It also assumes that the led signal to the Ohm 
+It also assumes that the led signal to the Ohm
 
 TODO:
 
@@ -39,7 +39,7 @@ Ohm64 {
 	var <noteDebounceRegisterEvents;
 	var <noteDebounceRegisterTimes;
 	var <noteDebounceRegisterWorkers;
-	
+
 	*new {|inPort, debounceTime=0.05|
 		inPort = inPort ?? {
 			MIDIIn.connectAll;
@@ -86,21 +86,21 @@ Ohm64 {
 		noteDebounceRegisterEvents = Array.fill(128,nil);
 		noteDebounceRegisterWorkers = Array.fill(128,nil);
 		noteDebounceRegisterTimes = Array.fill(128,Date.gmtime.rawSeconds);
-		
+
 		noteonresponder = MIDIFunc.noteOn(
 			func: { |val, num, inchan, src|
 				this.debounceNoteRespond(val, num, inchan, true, src);
-			}, 
+			},
 			srcID: inPort.uid);
 		noteoffresponder = MIDIFunc.noteOff(
 			func: { |val, num, inchan, src|
 				this.debounceNoteRespond(val, num, inchan, false, src);
-			}, 
+			},
 			srcID: inPort.uid);
 		ccresponder = MIDIFunc.cc(
 			func: { |val, num, inchan, src|
 				this.ccRespond(val, num, inchan, src);
-			}, 
+			},
 			srcID: inPort.uid);
 	}
 	ccRespond  { |val, num, inchan, src|
@@ -142,7 +142,7 @@ Ohm64 {
 					this.serviceDebounceQueue(localNum);
 				}
 			);
-		});	
+		});
 		noteDebounceRegisterTimes[num]=now;
 	}
 	serviceDebounceQueue { |queueNum|
@@ -227,7 +227,7 @@ Ohm64 {
 				this.sendNote(idx:localId, val:0, on:false, controlName:controlName);
 			});
 		});
-		
+
 	}
 	sendGridNote {|rowcol, val, outchan, on, controlName=\grid|
 		this.sendNote(this.degridNote(rowcol), val, outchan, on, controlName);

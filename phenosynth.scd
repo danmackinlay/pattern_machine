@@ -255,27 +255,27 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     failures and misc screencruft in that case)
   * allow custom evolvability mappings and starting chromosome.
   * plots and histograms of values
-  
+
     * update to use GNUPlot class for data rather than SC's lame native plot
       method (which does not support parent args to re-use the GUI or scale). As
       Bill Tozier points, out, 'tis better to use scatter plots or
       similar rich displays for GAs. (Sadly, Till's ScatterView  doesn't seem
       to work in SC 3.5)
     * send data over OSC to some nonparametric estimator somewhere and plot that.
-  
-  * Fix leaks  
-  
+
+  * Fix leaks
+
     * ensure Groups are also freed.
     * use Synth doneActions and per-listener groups to free all resources on
       demand
     * remove rebugging loggers
-      
+
   * fitness improvements
 
     * work out the stats for proper birth/death hazard processes, fitness-weighted
-      
+
   * better fitness metrics for listening
-  
+
     * time-delayed correlation?
     * amplitude-weighted convolution
     * some fancy wavelet shit?
@@ -283,16 +283,16 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     * FFT_wide is not very good. If one signal is low frequency the entire thing
       has a low distance, lower even than a perfect match. (Why?) Even the narrowband
       FFT weights rates low-frequency signals implausibly similar. (try wintype:1?)
-  
+
   * sort out the interactions of all these different tick rates and periods.
   * Handle "free controls", values that are passed in live by the user, or
     external LFOs or data in general. (esp for triggers)
   * serialize phenotypes to disk so evolution can be resumed.
   * chromosome management
-  
+
     * create handy new classes to cast as needed between int, bits, float. (UnitFloat,
       and a Chromosome class.)
-    
+
   * Check for extinction and restock.
 
 * Give the faintest of indications that I do care about tests
@@ -302,7 +302,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   * examples of using this to do vanilla non-accumulating, genotype-style selection
 
 * Crazy schemes happening no time soon.
-	
+
     * support geographical separation of populations to aid speciation
     * augment all operator protocols to pass in the PSIsland instance, or some other global
       state
@@ -325,13 +325,13 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     versatile responses to diverse signals
   * sampling, playback
   * LFOs
-  
+
     * support creatures which vocalise only sporadically (saving CPU, or at
       least saving earspace)
 
   * give lifespans using the exponential distribution \lambda \e ^{-\lambda \e}
   * doesn't apply ATM but might with different regimes:
-  
+
     * scale birthRate and deathRate so that they fit eventual fitness
     * reseed population when they all die
 */
@@ -370,7 +370,7 @@ fork {
 	//~comparer = Synth.new(\ps_judge_convolution_norm, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
-	
+
 	Routine.new({
 		while( true, {~matchOut.get(_.postln);
 		1.yield;})
@@ -398,7 +398,7 @@ fork {
 ~candidate.set(\pitch, 27, \ffreq, 1200, \rq, 0.1, \gain, 0.5);
 /*~candidate.autogui(specs:(
 	\freq: [20, 20000, \exp, 1, 440],
-	\ffreq: [100, 10000, \exp, 1, 440],	
+	\ffreq: [100, 10000, \exp, 1, 440],
 	\rq: [0.01, 1, \exp, 1, 0.3]
 )*/
 )

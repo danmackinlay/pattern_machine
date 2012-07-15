@@ -6,11 +6,11 @@ PSIsland {
 	where we define the default operators. These are, in general, vanilla
 	functions or paths to Library functions that will be cast to Library
 	functions at run time, in the initOperators method.
-	
+
 	Since we can't define naked functions in a classvar, these *particular* ones
 	are all Library Paths.
 	*/
-	
+
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
 	classvar <defaultScoreEvaluator = #[phenosynth, score_evals, chromosomemean];
@@ -25,22 +25,22 @@ PSIsland {
 	//be modified at run-time without defining new functions
 	var <>params;
 	var <>log;
-	
+
 	//These are the main state variable
 	var <population;
 	var <rawScoreMap;
 	var <cookedFitnessMap;
-	
+
 	/* this is another state variable. If I got one nore small var like this I'd make it
 	a state *dictionary* */
 	var <iterations = 0;
-	
+
 	//flag to stop iterator gracefuly.
 	var playing = false;
-	
+
 	/*
 	Here are the variables that hold the operator functions.
-	Paths are coerced to functions at instantiation time to avoid problems with 
+	Paths are coerced to functions at instantiation time to avoid problems with
 	not knowing when the Library gets filled.
 	*/
 	var <deathSelector;
@@ -217,7 +217,7 @@ PSIsland {
 		while(
 			{(terminationCondition.value(
 				params, population, iterations
-				).not) && 
+				).not) &&
 				playing},
 			{
 				this.tend;
@@ -260,7 +260,7 @@ PSRealTimeIsland : PSIsland {
 	themselves. I poll them at a defined interval to do tending.*/
 	var <worker;
 	var clock;
-	
+
 	classvar <defaultScoreEvaluator = #[phenosynth, nulloperator];
 	classvar <defaultDeathSelector = #[phenosynth, death_selectors, byRoulettePerRateAdultsOnly];
 
@@ -268,7 +268,7 @@ PSRealTimeIsland : PSIsland {
 		var defParams = super.defaultParams;
 		defParams.populationSize = 40;
 		^defParams;
-	}	
+	}
 	*new {|params, log|
 		params.pollPeriod ?? {
 			params = params.copy;
@@ -293,7 +293,7 @@ PSRealTimeIsland : PSIsland {
 			while(
 				{(terminationCondition.value(
 					params, population, iterations
-					).not) && 
+					).not) &&
 					playing
 				}, {
 					this.tend;

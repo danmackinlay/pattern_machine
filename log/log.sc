@@ -55,10 +55,10 @@ FileLogger : NullLogger {
 	classvar global;
 	classvar default;
 	classvar <>logpath = "~/Logs/Supercollider";
-	
+
 	var file;
 	var <fileName;
-	
+
 	*new {|fileName|
 		var file, thisLogPath;
 		thisLogPath = PathName(logpath);
@@ -68,7 +68,7 @@ FileLogger : NullLogger {
 		File.exists(thisLogPath.fullPath).not.if({
 			File.mkdir(thisLogPath.fullPath);
 		});
-		
+
 		fileName = (thisLogPath +/+ fileName).fullPath;
 		file = File.open(fileName, "a");
 		^super.newCopyArgs(nil, file, fileName).init;
@@ -82,7 +82,7 @@ FileLogger : NullLogger {
 		^this.new(fileName);
 	}
 	*global {
-		/* a shared, appendable log that all local supercolldier procs 
+		/* a shared, appendable log that all local supercolldier procs
 		can write to. */
 		global.isNil.if({global = this.new("_global")});
 		^global;

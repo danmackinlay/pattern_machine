@@ -24,7 +24,7 @@ SynthDef(\ps_pitch_writer, {
 	//NB following line does not wrap as advertised
 	counter = Stepper.kr(trig, min:0, max:buflen);
 	write = BufWr.kr(
-		pitch, bufnum: i_buffer, 
+		pitch, bufnum: i_buffer,
 		phase: (counter*trig) - (trig<1)
 	);
 	Poll.kr(trig*dopoll, pitch, \pitchfound);
@@ -37,11 +37,11 @@ SynthDef(\tempotrack, {|in, out, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0
 	fftbuffer = LocalBuf(1024, 1);
 
 	in = In.ar(in);
-	
+
 	fft = FFT(fftbuffer, in);
-	
+
 	#trackb,trackh,trackq,tempo=BeatTrack.kr(fft, lock);
-	
+
 	tempo = Clip.kr(tempo, 0.1, 10);
 	beep = SinOsc.ar(1000,0.0,Decay.kr(trackb,0.1));
 	Out.kr(tempoout, tempo);
@@ -284,7 +284,7 @@ s.waitForBoot( fork {
 	s.sync;
 	Pdef(\tempo, (~tempo ? 2));
 	~basepatt = Pbind(
-		\out, ~output, 
+		\out, ~output,
 		\instrument, \ps_flange_chorister_del_bp_compand,
 //		\instrument, \ps_flange_grain_del_bp_compand,
 		\group, ~fxgroup,

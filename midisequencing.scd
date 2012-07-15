@@ -1,4 +1,4 @@
-MIDIClient.init; 
+MIDIClient.init;
 m = MIDIOut(0, MIDIClient.destinations.at(0).uid);
 
 (

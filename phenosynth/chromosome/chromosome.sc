@@ -17,7 +17,7 @@ UnitFloat.bitsFromFloat([0.6, 0.5])
 PSChromosome {
 	var <bits;  //cache bit array for manual parsing
 	var <counter = 0;
-	
+
 	*new{
 		^super.new.init;
 	}
@@ -50,7 +50,7 @@ PSChromosome {
 	floats {
 		^bits.clump(UnitFloat.nbits).collect(UnitFloat.floatFromBits(_))
 	}
-	
+
 	//support for ad-hoc chromosome parsing
 	reset {
 		counter=0;

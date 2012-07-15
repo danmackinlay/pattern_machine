@@ -18,15 +18,15 @@ PSSynthController {
 	/*pass all server instructions through this guy to allow them
 	to be delivered in the right order and the boring bus/server allocation
 	details to be abstracted away, and to track resources needing freeing.
-	
+
 	This basic controller only does *playing* of synths, presuming that you are
 	going to rank them manually or something (e.g. Dan Stowell's neat GOAD.sc)
-	
+
 	A subclass, PSListenSynthController, handles setting up candidate
 	phenosynths and listeners simultaneously.
 	*/
-	
-	/*Instance vars are all public to aid debugging, but not much use to look 
+
+	/*Instance vars are all public to aid debugging, but not much use to look
 	at unless you *are* debugging.*/
 	var <numChannels;
 	var <log;
@@ -36,7 +36,7 @@ PSSynthController {
 	var <playGroup;
 	var <playing = false;
 	var <island;
-	
+
 	*new {|numChannels=1, log|
 		^super.newCopyArgs(numChannels, log ?? NullLogger.new).init;
 	}
@@ -122,7 +122,7 @@ PSSynthController {
 	free {
 		/* Stop taking requests. */
 		playing = false;
-		
+
 		/* Free synths
 		   Do it in a routine to maximise our hope of killing ones spawned
 		   concurrently. (you'd think no new ones would be spawned if we
@@ -174,10 +174,10 @@ PSListenSynthController : PSSynthController {
 	var <fitnessBusses;
 	var <playBusses;
 	var <jackNodes;
-	
+
 	//Toy example synth
 	classvar <>defaultListenSynthDef = \ps_listen_eight_hundred;
-	
+
 	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynthDef, leakCoef=0.5, maxPop=40|
 		^super.new(numChannels, log).init(
 			newFitnessPollInterval: fitnessPollInterval,
@@ -296,10 +296,10 @@ PSListenSynthController : PSSynthController {
 PSCompareSynthController : PSListenSynthController {
 	/* This evolutionary listener compares the agents against an incoming
 	(external?) signal and allocates fitness accordingly. */
-	
+
 	classvar <>defaultListenSynthDef = \ps_judge_fftmatch;
 	var <>targetBus;
-	
+
 	play {|serverOrGroup, outBus, listenGroup, targetBus|
 		this.targetBus = targetBus;
 		super.play(serverOrGroup, outBus, listenGroup);

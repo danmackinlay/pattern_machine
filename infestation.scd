@@ -52,7 +52,7 @@ MIDIIn.connectAll;
 ~o.resetLights;
 ~parasites = Array.fill2D(7,8,[false,nil]);
 ~hosts = Array.fill(8,[false,nil]);
-~o.setNoteResponder(\grid, 
+~o.setNoteResponder(\grid,
 	{
 		|id, val, selector, inchan, on|
 		var row, col;
