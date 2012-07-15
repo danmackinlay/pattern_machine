@@ -3,25 +3,47 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 
 //This is the API I want to approximate:
 
-rules = StochLRules.new;
-rules.add(\a, 1, [\b, \a]);
-rules.add(\a, 9, [\c, \a]);
-rules.add(\a, 10, [\c, \a], [\c, \d]); //not yet - is this how branching should go? Or should it be
-rules.add(\a, 10, [\[, \c, \a, \], \c, \d); // is this how branching should go? Or 
-rules.add(\a, 10, [\c, [\a, \d]]); //I do like that one.
+productions = PSProductions.new;
+productions.add(\a, 1, [\b, \a]);
+productions.add(\a, 9, [\c, \a]);
+productions.add(\a, 10, [\c, \a], [\c, \d]); //not yet - is this how branching should go? Or should it be
+productions.add(\a, 10, [\[, \c, \a, \], \c, \d); // is this how branching should go? Or
+productions.add(\a, 10, [\c, [\a, \d]]); //I do like that one.
 
-//rules.chomp([\a]); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
-rules.next(\a); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
+//productions.chomp([\a]); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
+productions.next(\a); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
 
-mapping = StochMapping.new;
-//operator mapping
-mapping[\c] = [\operator, Pbindf(_, \pitch, Pkey(\pitch) +2)]
-mapping[\c] = [\operator, Padd(\pitch, 2, _)]
-//mapping[\c] = [\operator, PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})]
-//atom mapping
-mapping[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
-//mapping[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no mapping so not a terminal? or may we have things be both?
-// These operators and atoms will be composed by <>?
+coding = PSProductionCoding.new;
+//operator coding
+coding[\c] = [\operator, Pbindf(_, \pitch, Pkey(\pitch) +2)]
+coding[\c] = [\operator, Padd(\pitch, 2, _)]
+//coding[\c] = [\operator, PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})]
+//atom coding
+coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
+//coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal? or may we have things be both?
+												// Let's not and say we did. But who knows about terminality? productions or codings?
+												// both. A terminal is anything without a rewrite rule.
+
+productions.words
+Set(\a)
+
+dispatcher = PSRuleDispatcher.new(productions);
+dispatcher
+
+// These operators and atoms will be composed by something like <>?
+// There is an asymmetry here - the (time)shift operator. Since all productions need to schedule themselves
+// (that is, i'd like them to) they need to have an idea of setting a note length
+// Since time passes, that "state" is tracked for us automatically.
+
+// we would like state more generally to collapse for us into polite flat context dictionaries.
+// the context should be enought o know which note to play on next, and what default params to be working with.
+// we can't really keep stacks of the fucking things lying about.
+// although we prolly could if we ditched tail recursion.
+// This will need a StatefulEvent, which should emit a PLazyEnvirN that transforms patterns appropriately.
+// or a PeventMod. A pity, because otherwise Environment has great stack push/pop methods that would be
+// easy to work with. Maybe we still could?
+
+// Also, what PS acronym can we use? PatternState? ProductionSystems?
 
 
 String.rewrite/Plsys
@@ -59,7 +81,6 @@ Padd(name, value, pattern)	Pbindf(pattern, name, Pkey(name) + value)
 Pmul(name, value, pattern)	Pbindf(pattern, name, Pkey(name) * value)
 The patterns Psetpre, Paddpre, and Pmulpre reverse the order of evaluation. Pchain is able to duplicate this functionality.
 */
-
 
 
 ////////// recursion learning examples
