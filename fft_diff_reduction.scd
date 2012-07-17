@@ -1,5 +1,14 @@
-GUI.qt;
-Server.default = s = ~serverboot.(\internal, \builtin);
+GUI.qt;Server.default = s = ~serverboot.(\internal, \builtin);
+/*
+Summary:
+FFT differences are just awful because low f bins are lies, and highly variable, esp for high bandwidth.
+Work arounds?
+BatUgens FrameCompare?
+Weight frequencies?
+Time blur frequencies? w/ PV_MagSmooth? http://sc3-plugins.git.sourceforge.net/git/gitweb.cgi?p=sc3-plugins/sc3-plugins;a=blob_plain;hb=refs/heads/master;f=source/MCLDUGens/sc/Help/PV_MagSmooth.html
+Log differences?
+*/
+
 (fork {
 	var	observedFftBuffer,targetFftBuffer, bothSignals,
 		observedBus, targetBus, matchOut, examplesynthdef,
@@ -35,6 +44,8 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 		Integrator.kr(FFTDiffMags.kr(targetfftchain, obsfftchain) * (1-leak),  leak);
 	}.play(target:s, addAction: \addToTail, outbus: matchOut);
 	
+	s.volume.volume = -20;
+	
 	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
 		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, delay=0.0|
@@ -65,7 +76,7 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 		target: s,
 		addAction: \addToHead
 	);
-
+	
 	Routine.new({
 		while( true, {matchOut.get(_.postln);
 		10.yield;})
@@ -82,12 +93,6 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 		~bothSignals.scope;
 		FreqScope.new(busNum: ~observedBus);
 	}.defer;
-})
-(
-	~observedFftBuffer.plot;
-	~targetFftBuffer.plot;
-)
-(
 	//From the FFT Overview Help file, the best way of getting magnitudes
 	// (should the buffer *happen* to have complex contents)
 	~bufToComplex = {arg buf;
@@ -96,6 +101,11 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 	Ê Ê z = [Signal.newFrom(z[0]), Signal.newFrom(z[1])];
 	Ê Ê Complex(z[0], z[1]);
 	};
+
+})
+(
+	~observedFftBuffer.plot;
+	~targetFftBuffer.plot;
 )
 //Now let's see how this goes with the two signals set to the same params
 //Mags should be similar, but phases different.
@@ -105,13 +115,13 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 
 //wait, then run
 (
-	~observedFftBufferSame.loadToFloatArray(action: { |array|
+	~observedFftBuffer.loadToFloatArray(action: { |array|
 		~obsfftbufasarraySame = array;
 		~obsfftbufascomplexSame = ~bufToComplex.value(array);
 	});
-	~targetFftBufferSame.loadToFloatArray(action: { |array| 
+	~targetFftBuffer.loadToFloatArray(action: { |array| 
 		~targetfftbufasarraySame = array;
-		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+		~targetfftbufascomplexSame = ~bufToComplex.value(array);
 	});
 )
 //Now plot
@@ -132,20 +142,20 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 ~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \gain, 0.5);
 )
 (
-	~observedFftBufferSame.loadToFloatArray(action: { |array|
-		~obsfftbufasarraySame = array;
-		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+	~observedFftBuffer.loadToFloatArray(action: { |array|
+		~obsfftbufasarrayDiff = array;
+		~obsfftbufascomplexDiff = ~bufToComplex.value(array);
 	});
-	~targetFftBufferSame.loadToFloatArray(action: { |array| 
-		~targetfftbufasarraySame = array;
-		~obsfftbufascomplexSame = ~bufToComplex.value(array);
+	~targetFftBuffer.loadToFloatArray(action: { |array| 
+		~targetfftbufasarrayDiff = array;
+		~targetfftbufascomplexDiff = ~bufToComplex.value(array);
 	});
 )
 //Now plot
 (
-	//~obsfftbufplotSame = ~obsfftbufasarraySame.plot("raw obs");
-	~obsfftbufplotcomplexSame = ~obsfftbufascomplexSame.magnitude.plot("obs magnitude - signals different");
-	//~targetfftbufplot = ~targetfftbufasarraySame.plot("raw target - signals different");
-	~targetfftbufplotcomplexSame = ~targetfftbufascomplexSame.magnitude.plot("target magnitude - signals different");
-	~diffmagbufplotSame = (~targetfftbufascomplexSame.magnitude-~obsfftbufascomplexSame.magnitude).abs.plot("diffmag - signals different");
+	//~obsfftbufplotDiff = ~obsfftbufasarrayDiff.plot("raw obs");
+	~obsfftbufplotcomplexDiff = ~obsfftbufascomplexDiff.magnitude.plot("obs magnitude - signals different");
+	//~targetfftbufplot = ~targetfftbufasarrayDiff.plot("raw target - signals different");
+	~targetfftbufplotcomplexDiff = ~targetfftbufascomplexDiff.magnitude.plot("target magnitude - signals different");
+	~diffmagbufplotDiff = (~targetfftbufascomplexDiff.magnitude-~obsfftbufascomplexDiff.magnitude).abs.plot("diffmag - signals different");
 )
