@@ -40,10 +40,13 @@ c.(3)
 //This is surprisingly fiddly, beacuse Events have default values. see also Pstretch
 //TODO: create a Function subclass, AffineTransform that automatically collapses 
 //simple transforms and also prints a better diagnostic with printOn
+//Should we be able to play Patterns in Contexts as well?
+//Would be lots of work; ignore for now.
+//Work around by playing events with recursive patterns in/
+
 PSContext.test;
 a=2*_+1
 a.(2)
-
 
 // These operators and atoms will be composed by something like <>?
 // There is an asymmetry here - the (time)shift operator. Since all productions need to schedule themselves
@@ -95,6 +98,8 @@ Pset(name, value, pattern)	Pbindf(pattern, name, value)
 Padd(name, value, pattern)	Pbindf(pattern, name, Pkey(name) + value)
 Pmul(name, value, pattern)	Pbindf(pattern, name, Pkey(name) * value)
 The patterns Psetpre, Paddpre, and Pmulpre reverse the order of evaluation. Pchain is able to duplicate this functionality.
+
+http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Pfindur-with-a-Pattern-for-the-duration-tp7579205p7579235.html
 */
 
 
