@@ -1,6 +1,6 @@
 PSIsland {
 	/*Islands manage populations of individuals, which can be anything
-	responding to \chromosome*/
+	responding to \chromosome */
 
 	/*
 	where we define the default operators. These are, in general, vanilla
@@ -26,12 +26,12 @@ PSIsland {
 	var <>params;
 	var <>log;
 
-	//These are the main state variable
+	//These are the main state variables
 	var <population;
 	var <rawScoreMap;
 	var <cookedFitnessMap;
 
-	/* this is another state variable. If I got one nore small var like this I'd make it
+	/* this is another state variable. If I got one more small var like this I'd make it
 	a state *dictionary* */
 	var <iterations = 0;
 
@@ -78,31 +78,31 @@ PSIsland {
 		^thisNew;
 	}
 	deathSelector_ {|fn|
-		deathSelector = this.loadFunction(fn);
+		deathSelector = LoadLibraryFunction(fn);
 	}
 	birthSelector_ {|fn|
-		birthSelector = this.loadFunction(fn);
+		birthSelector = LoadLibraryFunction(fn);
 	}
 	mutator_ {|fn|
-		mutator = this.loadFunction(fn);
+		mutator = LoadLibraryFunction(fn);
 	}
 	crossover_ {|fn|
-		crossover = this.loadFunction(fn);
+		crossover = LoadLibraryFunction(fn);
 	}
 	initialChromosomeFactory_ {|fn|
-		initialChromosomeFactory = this.loadFunction(fn);
+		initialChromosomeFactory = LoadLibraryFunction(fn);
 	}
 	individualFactory_ {|fn|
-		individualFactory = this.loadFunction(fn);
+		individualFactory = LoadLibraryFunction(fn);
 	}
 	scoreEvaluator_ {|fn|
-		scoreEvaluator = this.loadFunction(fn);
+		scoreEvaluator = LoadLibraryFunction(fn);
 	}
 	scoreCooker_ {|fn|
-		scoreCooker = this.loadFunction(fn);
+		scoreCooker = LoadLibraryFunction(fn);
 	}
 	terminationCondition_ {|fn|
-		terminationCondition = this.loadFunction(fn);
+		terminationCondition = LoadLibraryFunction(fn);
 	}
 	init {
 		population = IdentitySet.new(1000);
@@ -120,30 +120,6 @@ PSIsland {
 		this.scoreEvaluator = this.class.defaultScoreEvaluator;
 		this.scoreCooker = this.class.defaultScoreCooker;
 		this.terminationCondition = this.class.defaultTerminationCondition;
-	}
-	loadFunction {|nameOrFunction|
-		/* we have a method here for two reasons:
-		1. it allows us to transparently pass through actual functions, but load
-			other things from the Library
-		2. to force a test for missing library names, or it's hard to track what
-			went wrong. (Because nil is callable(!))
-		*/
-		var candidate;
-		nameOrFunction.isFunction.if(
-			{^nameOrFunction},
-			{
-				candidate = Library.atList(nameOrFunction);
-				candidate.isNil.if({
-					("Nothing found at %".format(nameOrFunction.cs)).throw;
-				});
-				candidate.isFunction.not.if({
-					("Non-function found at % (%)".format(
-						nameOrFunction.cs, candidate.cs)
-				).throw;
-				});
-				^candidate;
-			}
-		);
 	}
 	add {|phenotype|
 		population.add(phenotype);
