@@ -35,7 +35,7 @@ PSSynthController {
 	var <all;
 	var <playGroup;
 	var <playing = false;
-	var <island;
+	var <optimizer;
 
 	*new {|numChannels=1, log|
 		^super.newCopyArgs(numChannels, log ?? NullLogger.new).init;
@@ -66,9 +66,9 @@ PSSynthController {
 	playBundle {|serverOrGroup, outBus|
 		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
 	}
-	connect {|newIsland|
-		//couple to an island
-		island = newIsland;
+	connect {|newOptimizer|
+		//couple to an optimizer
+		optimizer = newOptimizer;
 	}
 	playIndividual {|phenotype|
 		var indDict;
@@ -285,7 +285,7 @@ PSListenSynthController : PSSynthController {
 					tag: \controlling, priority: 1);
 				log.log(msgchunks: [\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus],
 					tag: \controlling,  priority: 0);
-				island.notNil.if({island.setFitness(localIndDict.phenotype, val);});
+				optimizer.notNil.if({optimizer.setFitness(localIndDict.phenotype, val);});
 				localIndDict.phenotype.incAge;
 			};
 			indDict.fitnessBus.get(updater);
