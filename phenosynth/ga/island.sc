@@ -187,7 +187,6 @@ PSIsland {
 	}
 	play {
 		//The fire button. trigger this, and the simulation will run until it is bored
-		var iterator;
 		this.populate;
 		playing = true;
 		while(

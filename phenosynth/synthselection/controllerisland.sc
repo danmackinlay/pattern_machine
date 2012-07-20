@@ -40,4 +40,12 @@ PSControllerIsland : PSRealTimeIsland {
 		super.free;
 		controller.free;
 	}
+	rankedPopulation {
+		//return all population that have a fitness, ranked in descending order thereof.
+		//Individuals that do not yet have a fitness are not returned
+		^population.selectAs(
+			{|i| cookedFitnessMap[i].notNil}, Array
+		).sort({|a, b| cookedFitnessMap[a] > cookedFitnessMap[b] });
+	}
+	
 }
