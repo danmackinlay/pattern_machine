@@ -1,13 +1,15 @@
 PSOptimisingSwarm {
 	/* handle a swarm of agents optimising.
-	This is a little like PSControllerIsland, but not enough that it is worth it to subclass.
-	There should be some duck-typing possible,
+	This is a little like PSControllerIsland, but not enough that it is worth it
+	to subclass.
+	There should be some duck-typing possible.
 	
-	Also note that unlike the class hierarchy of the GA-type selection, and I make no allowance
-	for non-synth-based selection. That is because of Deadlines.
+	Also note that unlike the class hierarchy of the GA-type selection, and I 
+	make no allowance for non-synth-based selection.
+	This is because of Deadlines.
 	*/
-	//Because I oft-times re-use MCLD's listensynths, and they approach zero when signals match:
- 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, zero_peak];
+	
+	classvar <defaultScoreCooker = #[phenosynth, score_cookers, zero_peak];
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
 	classvar <defaultScoreEvaluator = #[phenosynth, score_evals, chromosomemean];
@@ -46,14 +48,8 @@ PSOptimisingSwarm {
 	// because overriding is way awkward this way.
 	*defaultParams {
 		^(
-			\deathRate: 0.3,
-			\populationSize: 100,
-			\numParents: 2,
-			\initialChromosomeSize: 1,
-			\crossoverProb: 1,
+			\initialChromosomeSize: 4,
 			\individualFactory: PSPhenotype,
-			\mutationProb: 0.1,
-			\mutationSize: 0.1,
 			\stopIterations: 1000,
 			\individualFactory: PSSynthPhenotype,
 			\populationSize: 40,
@@ -109,7 +105,6 @@ PSOptimisingSwarm {
 	}
 	play {|controller|
 		//pass the controller a reference to me so it can push notifications
-		//A pub-sub solution would scale better to future multi-server parallelism
 		this.controller = controller;
 		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
 		controller.connect(this);

@@ -249,6 +249,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
     than maps, would be better.
   * cause fitness thingies to automatically report fitness, without waiting for /get
     messages
+  * reimplement internal population wrangling using ObjectTable.
   * listensynthdefs are primitive compared to comparesynthdefs. Bring them up to date
   * optionally recycle listeners, since deleting and creating them is CPU-heavy
   * fix operation when numChannels>1 (at the moment there are bus allocation
