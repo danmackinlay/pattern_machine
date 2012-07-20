@@ -28,7 +28,10 @@ PSOptimisingSwarm {
 	var <rawScoreMap;
 	var <cookedFitnessMap;
 	var <iterations = 0;
-
+	var <velocityTable;
+	var <bestKnownTable;
+	var <neighbourTable;
+	
 	//flag to stop iterator gracefuly.
 	var playing = false;
 
@@ -44,8 +47,6 @@ PSOptimisingSwarm {
 	var <terminationCondition;
 
 	// default values for that parameter thing
-	// I wish I could do this with a literal instead of a method
-	// because overriding is way awkward this way.
 	*defaultParams {
 		^(
 			\initialChromosomeSize: 4,
@@ -94,21 +95,53 @@ PSOptimisingSwarm {
 		var res;
 		res = controller.playIndividual(phenotype);
 		res.notNil.if({
-			super.add(phenotype);
+			population.add(phenotype);
 		}, {
 			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
 		});
 	}
 	remove {|phenotype|
-		super.remove(phenotype);
+		population.remove(phenotype);
+		rawScoreMap.removeAt(phenotype);
+		cookedFitnessMap.removeAt(phenotype);
 		controller.freeIndividual(phenotype);
 	}
+	populate {
+		params.populationSize.do({
+			this.add(initialChromosomeFactory.value(params));
+		});
+	}
+	evaluate {
+		population.do({|phenotype|
+			this.setFitness(phenotype, scoreEvaluator.value(params, phenotype));
+			phenotype.incAge;
+		});
+		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
+	}
+	setFitness {|phenotype, value|
+		rawScoreMap[phenotype] = value;
+	}
+	
 	play {|controller|
 		//pass the controller a reference to me so it can push notifications
 		this.controller = controller;
 		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
 		controller.connect(this);
-		super.play;
+		this.populate;
+		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
+		playing = true;
+		worker = Routine.new({
+			while(
+				{(terminationCondition.value(
+					params, population, iterations
+					).not) &&
+					playing
+				}, {
+					this.tend;
+					1.yield;
+				}
+			);
+		}).play(clock);
 	}
 	free {
 		super.free;
