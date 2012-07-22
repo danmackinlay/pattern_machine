@@ -30,7 +30,7 @@ PSOptimisingSwarm {
 	var <iterations = 0;
 	var <velocityTable;
 	var <bestKnownPosTable;
-	var <bestKnownValTable;
+	var <bestKnownFitnessTable;
 	var <neighbourTable;
 	
 	//flag to stop iterator gracefuly.
@@ -52,9 +52,10 @@ PSOptimisingSwarm {
 		^(
 			\chromosomeSize: 4,
 			\stepSize: 0.01,
-			\clockRate: 0.1,
-			\selfTracking: 0.1,
+			\clockRate: 10.0,
+			\selfTracking: 0.05,
 			\groupTracking: 0.1,
+			\momentum: 0.9,
 			\linksTransitive: false,
 			\individualFactory: PSPhenotype,
 			\stopIterations: 1000,
@@ -91,7 +92,7 @@ PSOptimisingSwarm {
 		velocityTable = IdentityDictionary.new(100);
 		neighbourTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
-		bestKnownValTable = IdentityDictionary.new(100);
+		bestKnownFitnessTable = IdentityDictionary.new(100);
 		this.initOperators;
 	}
 	initOperators {
@@ -112,7 +113,7 @@ PSOptimisingSwarm {
 			velocityTable[phenotype] = {1.rand2}.dup(params.chromosomeSize);
 			neighbourTable[phenotype] = Set[];
 			bestKnownPosTable[phenotype] = 0;
-			bestKnownValTable[phenotype] = phenotype.chromosome;
+			bestKnownFitnessTable[phenotype] = phenotype.chromosome;
 		});
 	}
 	remove {|phenotype|
@@ -122,7 +123,7 @@ PSOptimisingSwarm {
 		velocityTable.removeAt(phenotype);
 		neighbourTable.removeAt(phenotype);
 		bestKnownPosTable.removeAt(phenotype);
-		bestKnownValTable.removeAt(phenotype);
+		bestKnownFitnessTable.removeAt(phenotype);
 		controller.freeIndividual(phenotype);
 	}
 	populate {
@@ -144,13 +145,6 @@ PSOptimisingSwarm {
 		params.linksTransitive.if({
 			neighbourTable[dest] = src;
 		});
-	}
-	evaluate {
-		population.do({|phenotype|
-			this.setFitness(phenotype, scoreEvaluator.value(params, phenotype));
-			phenotype.incAge;
-		});
-		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
 	}
 	setFitness {|phenotype, value|
 		rawScoreMap[phenotype] = value;
@@ -178,6 +172,45 @@ PSOptimisingSwarm {
 			);
 		}).play(clock);
 	}
+	tend {
+		/*Note there is a problem here at the moment with asynchronous updating
+		particles modify the bestness tables in situ
+		
+		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
+		*/
+
+		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
+		
+		population.do({|phenotype|
+			var currentFitness, myBestFitness, neighbourhoodBestFitness;
+			var currentPos, myBestPos, neighbourhoodBestPos;
+			var thisVel, thisNeighbourhood;
+
+			thisNeighbourhood = neighbourTable[phenotype];
+
+			currentPos = phenotype.chromosome;
+			currentFitness = cookedFitnessMap[phenotype];
+			myBestPos = bestKnownPosTable[phenotype];
+			myBestFitness = bestKnownFitnessTable[phenotype];
+			(currentFitness>myBestFitness).if({
+				myBestFitness = currentFitness;
+				myBestPos = currentPos;				
+			});
+
+			thisVel = velocityTable[phenotype];
+			currentPos = currentPos + thisVel * (params.stepSize);
+			
+			thisVel = (params.momentum * thisVel) + 
+				params.thisTracking * (currentPos - bestPos);
+			
+			//how do we mutate synth params here?
+			bestKnownPosTable[phenotype] = myBestPos;
+			bestKnownFitnessTable[phenotype] = myBestFitness;
+		});
+		params.log.log(msgchunks: [\tending], tag: \nuffin);
+		iterations = iterations + 1;
+	}
+	
 	free {
 		super.free;
 		controller.free;
