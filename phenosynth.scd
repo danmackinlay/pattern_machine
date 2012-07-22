@@ -51,9 +51,9 @@ fork {
 	//actual real work now: first choose the controller that will manage the synths
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_sample_grain, synthArgMap: (\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory, \log: ~log));
+	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualFactory: ~factory, \log: ~log));
 
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:45);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -66,7 +66,7 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.25, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1, \log: ~log, \deathRate: 0.5));
+	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.25, \mutationSize: 0.1, \initialChromosomeSize: 4, \clockRate: 1, \log: ~log, \deathRate: 0.5));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 	~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
@@ -169,7 +169,7 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1,  leakCoef:0.5, maxPop:45);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -182,7 +182,7 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.25, \mutationSize: 0.1, \initialChromosomeSize: 4, \pollPeriod: 1, \log: ~log, \deathRate: 0.5));
+	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.25, \mutationSize: 0.1, \initialChromosomeSize: 4, \clockRate: 1, \log: ~log, \deathRate: 0.5));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 	~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
@@ -408,7 +408,7 @@ fork {
 //Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \builtin);
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(numChannels:1, fitnessPollInterval:1, leakCoef:0.5, maxPop:40);
+~control = PSListenSynthController.new(numChannels:1, fitnessPollRate:1, leakCoef:0.5, maxPop:40);
 ~control.play(s, outBus: ~globalOuts);
 //~ind = PSSynthPhenotype.newRandom(4);
 //~control.playIndividual(~ind);
@@ -440,14 +440,14 @@ fork {
 	//~log = FileLogger.global;
 	s.sync;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollInterval:1, leakCoef:0.0, maxPop:60);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.0, maxPop:60);
 	~control.listenSynthDef = \ps_judge_return_observed;
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
 	s.sync;
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \pollPeriod: 1, \individualFactory: ~factory, \log: ~log));
+	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualFactory: ~factory, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	~island.scoreCooker = #[phenosynth, score_cookers, rescale];
 	//~island.scoreCooker = #[phenosynth, score_cookers, ranked];

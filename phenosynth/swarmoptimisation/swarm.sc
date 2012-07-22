@@ -141,10 +141,10 @@ PSOptimisingSwarm {
 		var clock;
 		//pass the controller a reference to me so it can push notifications
 		this.controller = controller;
-		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
+		params.clockRate ?? {params.clockRate = controller.fitnessPollRate ? 1;};
 		controller.connect(this);
 		this.populate;
-		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
+		clock = TempoClock.new(params.clockRate, 1);
 		playing = true;
 		worker = Routine.new({
 			while(

@@ -162,7 +162,7 @@ PSListenSynthController : PSSynthController {
 	This Controller subclass sets up Synths and listeners to those synths
 	simultaneously.
 	*/
-	var <>fitnessPollInterval;
+	var <>fitnessPollRate;
 	var <>listenGroup;
 	var <>worker;
 	var <>clock;
@@ -178,17 +178,17 @@ PSListenSynthController : PSSynthController {
 	//Toy example synth
 	classvar <>defaultListenSynthDef = \ps_listen_eight_hundred;
 
-	*new {|numChannels=1, log, fitnessPollInterval=1, listenSynthDef, leakCoef=0.5, maxPop=40|
+	*new {|numChannels=1, log, fitnessPollRate=1, listenSynthDef, leakCoef=0.5, maxPop=40|
 		^super.new(numChannels, log).init(
-			newFitnessPollInterval: fitnessPollInterval,
+			newFitnessPollInterval: fitnessPollRate,
 			newListenSynth: listenSynthDef ? defaultListenSynthDef,
 			newLeakCoef:leakCoef,
 			newMaxPop: maxPop
 		);
 	}
-	init {|newFitnessPollInterval, newListenSynth, newLeakCoef, newMaxPop|
+	init {|newFitnessPollRate, newListenSynth, newLeakCoef, newMaxPop|
 		super.init;
-		fitnessPollInterval = newFitnessPollInterval;
+		fitnessPollRate = newFitnessPollRate;
 		listenSynthDef = newListenSynth;
 		leakCoef = newLeakCoef;
 		maxPop = newMaxPop;
@@ -197,7 +197,7 @@ PSListenSynthController : PSSynthController {
 	play {|serverOrGroup, outBus, listenGroup|
 		//set server and group using the parent method
 		super.play(serverOrGroup, outBus, listenGroup);
-		clock = clock ?? { TempoClock.new(fitnessPollInterval.reciprocal, 1); };
+		clock = clock ?? { TempoClock.new(fitnessPollRate, 1); };
 		worker = worker ?? {
 			Routine.new({loop {
 				this.updateFitnesses;

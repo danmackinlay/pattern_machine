@@ -245,9 +245,9 @@ PSRealTimeIsland : PSIsland {
 		^defParams;
 	}
 	*new {|params, log|
-		params.pollPeriod ?? {
+		params.clockRate ?? {
 			params = params.copy;
-			params.pollPeriod = 1;
+			params.clockRate = 1;
 		}
 		^super.new(params, log).init;
 	}
@@ -262,7 +262,7 @@ PSRealTimeIsland : PSIsland {
 	play {
 		/*note this does not call parent. */
 		this.populate;
-		clock = TempoClock.new(params.pollPeriod.reciprocal, 1);
+		clock = TempoClock.new(params.clockRate, 1);
 		playing = true;
 		worker = Routine.new({
 			while(

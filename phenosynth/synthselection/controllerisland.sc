@@ -32,7 +32,7 @@ PSControllerIsland : PSRealTimeIsland {
 		//pass the controller a reference to me so it can push notifications
 		//A pub-sub solution would scale better to future multi-server parallelism
 		this.controller = controller;
-		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
+		params.clockRate ?? {params.clockRate = controller.fitnessPollRate ? 1;};
 		controller.connect(this);
 		super.play;
 	}
