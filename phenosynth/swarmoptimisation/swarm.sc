@@ -49,7 +49,11 @@ PSOptimisingSwarm {
 	// default values for that parameter thing
 	*defaultParams {
 		^(
-			\initialChromosomeSize: 4,
+			\chromosomeSize: 4,
+			\stepSize: 0.01,
+			\clockRate: 0.1,
+			\selfTracking: 0.1,
+			\groupTracking: 0.1,
 			\individualFactory: PSPhenotype,
 			\stopIterations: 1000,
 			\individualFactory: PSSynthPhenotype,
