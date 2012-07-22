@@ -2,9 +2,9 @@ PSOptimisingSwarm {
 	/* handle a swarm of agents optimising.
 	This is a little like PSControllerIsland, but not enough that it is worth it
 	to subclass.
-	There should be some duck-typing possible.
+	There should be some duck-typing possible, though.
 	
-	Also note that unlike the class hierarchy of the GA-type selection, and I 
+	Also note that unlike the class hierarchy of the GA-type selection, I 
 	make no allowance for non-synth-based selection.
 	This is because of Deadlines.
 	*/
@@ -79,9 +79,12 @@ PSOptimisingSwarm {
 		terminationCondition = LoadLibraryFunction(fn);
 	}
 	init {
-		population = IdentitySet.new(1000);
-		rawScoreMap = IdentityDictionary.new(1000);
-		cookedFitnessMap = IdentityDictionary.new(1000);
+		population = IdentitySet.new(100);
+		rawScoreMap = IdentityDictionary.new(100);
+		cookedFitnessMap = IdentityDictionary.new(100);
+		velocityTable = IdentityDictionary.new(100);
+		neighbourTable = IdentityDictionary.new(100);
+		bestKnownTable = IdentityDictionary.new(100);
 		this.initOperators;
 	}
 	initOperators {
@@ -92,24 +95,32 @@ PSOptimisingSwarm {
 		this.terminationCondition = this.class.defaultTerminationCondition;
 	}
 	add {|phenotype|
-		var res;
+		var res, velocity, neighbours;
 		res = controller.playIndividual(phenotype);
-		res.notNil.if({
-			population.add(phenotype);
-		}, {
+		res.isNil.if({
+			//no busses available to play on
 			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
+		}, {
+			population.add(phenotype);
+			velocityTable[phenotype] = [0,0,0,0];
+			neighbourTable[phenotype] = Set[];
+			bestKnownTable[phenotype] = 0;
 		});
 	}
 	remove {|phenotype|
 		population.remove(phenotype);
 		rawScoreMap.removeAt(phenotype);
 		cookedFitnessMap.removeAt(phenotype);
+		velocityTable.removeAt(phenotype);
+		neighbourTable.removeAt(phenotype);
+		bestKnownTable.removeAt(phenotype);
 		controller.freeIndividual(phenotype);
 	}
 	populate {
 		params.populationSize.do({
 			this.add(initialChromosomeFactory.value(params));
 		});
+		this.createNeighbourhood;
 	}
 	evaluate {
 		population.do({|phenotype|
@@ -123,6 +134,7 @@ PSOptimisingSwarm {
 	}
 	
 	play {|controller|
+		var clock;
 		//pass the controller a reference to me so it can push notifications
 		this.controller = controller;
 		params.pollPeriod ?? {params.pollPeriod = controller.fitnessPollInterval ? 1;};
