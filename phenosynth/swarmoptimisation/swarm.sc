@@ -29,7 +29,8 @@ PSOptimisingSwarm {
 	var <cookedFitnessMap;
 	var <iterations = 0;
 	var <velocityTable;
-	var <bestKnownTable;
+	var <bestKnownPosTable;
+	var <bestKnownValTable;
 	var <neighbourTable;
 	
 	//flag to stop iterator gracefuly.
@@ -54,6 +55,7 @@ PSOptimisingSwarm {
 			\clockRate: 0.1,
 			\selfTracking: 0.1,
 			\groupTracking: 0.1,
+			\linksTransitive: false,
 			\individualFactory: PSPhenotype,
 			\stopIterations: 1000,
 			\individualFactory: PSSynthPhenotype,
@@ -88,7 +90,8 @@ PSOptimisingSwarm {
 		cookedFitnessMap = IdentityDictionary.new(100);
 		velocityTable = IdentityDictionary.new(100);
 		neighbourTable = IdentityDictionary.new(100);
-		bestKnownTable = IdentityDictionary.new(100);
+		bestKnownPosTable = IdentityDictionary.new(100);
+		bestKnownValTable = IdentityDictionary.new(100);
 		this.initOperators;
 	}
 	initOperators {
@@ -106,9 +109,10 @@ PSOptimisingSwarm {
 			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
 		}, {
 			population.add(phenotype);
-			velocityTable[phenotype] = [0,0,0,0];
+			velocityTable[phenotype] = {1.rand2}.dup(params.chromosomeSize);
 			neighbourTable[phenotype] = Set[];
-			bestKnownTable[phenotype] = 0;
+			bestKnownPosTable[phenotype] = 0;
+			bestKnownValTable[phenotype] = phenotype.chromosome;
 		});
 	}
 	remove {|phenotype|
@@ -117,14 +121,29 @@ PSOptimisingSwarm {
 		cookedFitnessMap.removeAt(phenotype);
 		velocityTable.removeAt(phenotype);
 		neighbourTable.removeAt(phenotype);
-		bestKnownTable.removeAt(phenotype);
+		bestKnownPosTable.removeAt(phenotype);
+		bestKnownValTable.removeAt(phenotype);
 		controller.freeIndividual(phenotype);
 	}
 	populate {
 		params.populationSize.do({
 			this.add(initialChromosomeFactory.value(params));
 		});
-		this.createNeighbourhood;
+		this.createTopology;
+	}
+	createTopology {|linksPerNode=3|
+		//create a Renyi whole random social graph all at once
+		// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
+		var nLinks = params.populationSize * linksPerNode;
+		nLinks.do({
+			this.addLink(population.choose, population.choose);
+		});
+	}
+	addLink{|src,dest|
+		neighbourTable[src] = dest;
+		params.linksTransitive.if({
+			neighbourTable[dest] = src;
+		});
 	}
 	evaluate {
 		population.do({|phenotype|
