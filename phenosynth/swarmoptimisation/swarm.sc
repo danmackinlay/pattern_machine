@@ -182,26 +182,26 @@ PSOptimisingSwarm {
 		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
 		
 		population.do({|phenotype|
-			var currentFitness, myBestFitness, neighbourhoodBestFitness;
-			var currentPos, myBestPos, neighbourhoodBestPos;
-			var thisVel, thisNeighbourhood;
+			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
+			var myCurrentPos, myBestPos, myNeighbourhoodBestPos;
+			var myVel, myNeighbourhood;
 
-			thisNeighbourhood = neighbourTable[phenotype];
+			myNeighbourhood = neighbourTable[phenotype];
 
-			currentPos = phenotype.chromosome;
-			currentFitness = cookedFitnessMap[phenotype];
+			myCurrentPos = phenotype.chromosome;
+			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype];
 			myBestFitness = bestKnownFitnessTable[phenotype];
-			(currentFitness>myBestFitness).if({
-				myBestFitness = currentFitness;
-				myBestPos = currentPos;				
+			(myCurrentFitness>myBestFitness).if({
+				myBestFitness = myCurrentFitness;
+				myBestPos = myCurrentPos;
 			});
 
-			thisVel = velocityTable[phenotype];
-			currentPos = currentPos + thisVel * (params.stepSize);
+			myVel = velocityTable[phenotype];
+			myCurrentPos = myCurrentPos + myVel * (params.stepSize);
 			
-			thisVel = (params.momentum * thisVel) + 
-				params.thisTracking * (currentPos - bestPos);
+			myVel = (params.momentum * myVel) +
+				params.thisTracking * (myCurrentPos - myBestPos);
 			
 			//how do we mutate synth params here?
 			bestKnownPosTable[phenotype] = myBestPos;
