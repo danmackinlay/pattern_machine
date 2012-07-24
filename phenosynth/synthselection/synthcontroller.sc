@@ -90,14 +90,6 @@ PSSynthController {
 		this.actuallyPlayIndividual(indDict);
 		^indDict;
 	}
-	decorateIndividualDict {|indDict|
-		indDict.playBus = outBus;
-	}
-	getSynthArgs {|indDict|
-		var playArgs;
-		playArgs = [\out, indDict.playBus, \gate, 1] ++ indDict.phenotype.chromosomeAsSynthArgs;
-		^playArgs;
-	}
 	actuallyPlayIndividual {|indDict|
 		//private
 		var synthArgs = this.getSynthArgs(indDict);
@@ -108,6 +100,23 @@ PSSynthController {
 			target: playGroup
 		);
 		indDict.phenotype.clockOn;
+	}
+	updateIndividual {|phenotype|
+		var indDict;
+		playing.not.if({"Controller is not playing!".throw});
+		indDict = all.get(indDict.phenotype.identityHash);
+		log.log(msgchunks:[\update_synth_args] ++ phenotype.chromosomeAsSynthArgs,
+			tag:\controlling);
+		indDict.playNode.set(*phenotype.chromosomeAsSynthArgs);
+		^indDict;
+	}
+	decorateIndividualDict {|indDict|
+		indDict.playBus = outBus;
+	}
+	getSynthArgs {|indDict|
+		var playArgs;
+		playArgs = [\out, indDict.playBus, \gate, 1] ++ indDict.phenotype.chromosomeAsSynthArgs;
+		^playArgs;
 	}
 	freeIndividual {|phenotype|
 		var freed;

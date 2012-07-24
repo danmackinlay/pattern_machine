@@ -198,12 +198,13 @@ PSOptimisingSwarm {
 			});
 
 			myVel = velocityTable[phenotype];
-			myCurrentPos = myCurrentPos + myVel * (params.stepSize);
-			
 			myVel = (params.momentum * myVel) +
 				params.thisTracking * (myCurrentPos - myBestPos);
+			myCurrentPos = myCurrentPos + myVel * (params.stepSize);
 			
-			//how do we mutate synth params here?
+			phenotype.chromosome = myCurrentPos;
+			controller.updateIndividual(phenotype);
+			
 			bestKnownPosTable[phenotype] = myBestPos;
 			bestKnownFitnessTable[phenotype] = myBestFitness;
 		});
