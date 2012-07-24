@@ -188,8 +188,8 @@ PSListenSynthController : PSSynthController {
 	classvar <>defaultListenSynthDef = \ps_listen_eight_hundred;
 
 	*new {|numChannels=1, log, fitnessPollRate=1, listenSynthDef, leakCoef=0.5, maxPop=40|
-		^super.new(numChannels, log).init(
-			newFitnessPollInterval: fitnessPollRate,
+		var noob = super.new(numChannels, log).init(
+			newFitnessPollRate: fitnessPollRate,
 			newListenSynth: listenSynthDef ? defaultListenSynthDef,
 			newLeakCoef:leakCoef,
 			newMaxPop: maxPop
