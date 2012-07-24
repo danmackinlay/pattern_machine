@@ -16,12 +16,12 @@ PSOptimisingSwarm {
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, raw];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 
+	var <>params;
+	var <>log;
+
 	var <>controller;
 	var <>particles;
 	var <worker;
-	
-	var <>params;
-	var <>log;
 
 	//These are the main state variables
 	var <population;
