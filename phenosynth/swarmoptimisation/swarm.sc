@@ -57,8 +57,6 @@ PSOptimisingSwarm {
 			\groupTracking: 0.1,
 			\momentum: 0.9,
 			\linksTransitive: false,
-			\individualFactory: PSPhenotype,
-			\stopIterations: 1000,
 			\individualFactory: PSSynthPhenotype,
 			\populationSize: 40,
 			\log: NullLogger.new

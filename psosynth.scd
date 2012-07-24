@@ -13,29 +13,19 @@ fork {
 	~phenogroup = Group.new(s);
 	s.sync;
 	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
-	~outgroup = Group.new(~phenogroup,  addAction: \addToTail);
+	~outgroup = Group.new(~phenogroup, addAction: \addToTail);
 	//~log = NullLogger.global;
 	~log = PostLogger.global;
 	//~log = FileLogger.global;
-	~log.reject(\selection);
 	~log.accept(\controlling);
 	~log.minPriority = 0;
-	s.sync;
-	/*******************/
-	/* Do either THIS: */
-	//better way to get first audio in?
-	//~targetBus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
-	/* or THIS */
-	/*******************/
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
 	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
-	~spy=SpyBus.new.play(~target, ~targetBus);
-	//~target.set(\pitch, 500);
+	~spy = SpyBus.new.play(~target, ~targetBus);
 	s.sync;
 	//~spy.moveAfter(~target);
-	//~target.trace;
 	/*******************/
 	//limiter, to avoid little accidents
 	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
@@ -57,7 +47,8 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 40, \mutationProb: 0.25, \mutationSize: 0.1, \initialChromosomeSize: 4, \clockRate: 1, \log: ~log, \deathRate: 0.5));
+	~island = PSOptimisingSwarm((\populationSize: 40, 
+		\chromosomeSize: 4, \clockRate: 1, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 	~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
