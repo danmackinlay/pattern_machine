@@ -34,7 +34,7 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1,  leakCoef:0.5, maxPop:45);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -42,17 +42,16 @@ fork {
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
-	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~island = PSOptimisingSwarm((\populationSize: 40, 
+	~swarm = PSOptimisingSwarm((\populationSize: 40, 
 		\chromosomeSize: 4, \clockRate: 1, \log: ~log));
-	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
-	//~island.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-	~island.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
-	~island.play(~control);
+	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
+	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+	~swarm.play(~control);
 	s.sync;
 	[\phenogroup, ~phenogroup, \controlgroup, ~control.playGroup, ~control.listenGroup].postln;
 };
@@ -60,45 +59,45 @@ fork {
 //listen for a while.
 //experiment
 s.queryAllNodes;
-~island.controller;
+~swarm.controller;
 ~control.outBus;
 ~control.playBusses;
 ~control.fitnessBusses;
 ~control.all.keys.asArray[0];
 ~control.all.asArray.dump;
 //add in a good one and see how it survives:
-~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
-//{~island.plotFitness(raw:true);}.defer;
-~island.params;
-~island.population.size;
-~island.population.asArray[0];
+~swarm.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
+//{~swarm.plotFitness(raw:true);}.defer;
+~swarm.params;
+~swarm.population.size;
+~swarm.population.asArray[0];
 //when you are bored, do a
-~island.free;
+~swarm.free;
 ~target.free;
 ~targetBus.free;
-~island.cookedFitnessMap;
-~island.cookedFitnessMap.values.postln;
-~island.rawScoreMap.values.postln;
-~island.rawScoreMap.keys.asArray[1].hash.asHexString
-Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~island.rawScoreMap);
-Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~island.rawScoreMap);
+~swarm.cookedFitnessMap;
+~swarm.cookedFitnessMap.values.postln;
+~swarm.rawScoreMap.values.postln;
+~swarm.rawScoreMap.keys.asArray[1].hash.asHexString
+Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~swarm.rawScoreMap);
+Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~swarm.rawScoreMap);
 //testing that things are going OK:
 (
 var best, worst, ranked;
-ranked = ~island.rankedPopulation;
+ranked = ~swarm.rankedPopulation;
 best = ranked[0];
 worst = ranked[ranked.size-1];
-[\best, ~island.rawScoreMap[best],~island.cookedFitnessMap[best], best.chromosomeAsSynthArgs].postln;
-[\worst, ~island.rawScoreMap[worst],~island.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
+[\best, ~swarm.rawScoreMap[best],~swarm.cookedFitnessMap[best], best.chromosomeAsSynthArgs].postln;
+[\worst, ~swarm.rawScoreMap[worst],~swarm.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
-[~island.population.size, ~island.rankedPopulation.size, ~island.cookedFitnessMap.size, ~island.rawScoreMap.size];
+[~swarm.population.size, ~swarm.rankedPopulation.size, ~swarm.cookedFitnessMap.size, ~swarm.rawScoreMap.size];
 //these should only ever differ momentarily
-~island.population.select(_.wallClockAge>0)
-~island.controller.all[~island.population[0].identityHash].playBus.scope;
-FreqScope.new(busNum:~island.controller.all[~island.population[0].identityHash].playBus);
+~swarm.population.select(_.wallClockAge>0)
+~swarm.controller.all[~swarm.population[0].identityHash].playBus.scope;
+FreqScope.new(busNum:~swarm.controller.all[~swarm.population[0].identityHash].playBus);
 FreqScope.new(busNum:~targetBus);
-//~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
+//~swarm.controller.all[~swarm.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
 PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.002]);
