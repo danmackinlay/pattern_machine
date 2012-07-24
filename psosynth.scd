@@ -69,6 +69,8 @@ s.queryAllNodes;
 ~swarm.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
 //{~swarm.plotFitness(raw:true);}.defer;
 ~swarm.params;
+~swarm.initialChromosomeFactory.value;
+~swarm.individualFactory.value;
 ~swarm.population.size;
 ~swarm.population.asArray[0];
 //when you are bored, do a

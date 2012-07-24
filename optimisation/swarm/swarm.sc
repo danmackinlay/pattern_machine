@@ -126,18 +126,20 @@ PSOptimisingSwarm {
 	}
 	populate {
 		params.populationSize.do({
-			this.add(initialChromosomeFactory.value(params));
+			var noob;
+			noob = initialChromosomeFactory.value(params);
+			this.add(noob);
 		});
-		this.createTopology;
+		// this.createTopology;
 	}
-	createTopology {|linksPerNode=3|
-		//create a Renyi whole random social graph all at once
-		// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
-		var nLinks = params.populationSize * linksPerNode;
-		nLinks.do({
-			this.addLink(population.choose, population.choose);
-		});
-	}
+	// createTopology {|linksPerNode=3|
+	// 	//create a Renyi whole random social graph all at once
+	// 	// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
+	// 	var nLinks = params.populationSize * linksPerNode;
+	// 	nLinks.do({
+	// 		this.addLink(population.choose, population.choose);
+	// 	});
+	// }
 	addLink{|src,dest|
 		neighbourTable[src] = dest;
 		params.linksTransitive.if({
