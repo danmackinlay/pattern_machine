@@ -14,7 +14,7 @@ PSOptimisingSwarm {
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, defer_to_constructor];
 	classvar <defaultScoreEvaluator = #[phenosynth, score_evals, chromosomemean];
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, raw];
-	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
+	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, never];
 
 	var <>params;
 

@@ -163,6 +163,11 @@ PSOperators {
 				iterations > params.stopIterations;
 			}
 		);
+		Library.put(\phenosynth, \termination_conds, \never,
+			{|params, population, iterations|
+				false;
+			}
+		);
 
 		/*
 		Death selectors select which agents to cull.
