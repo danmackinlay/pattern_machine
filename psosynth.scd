@@ -34,7 +34,7 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.5, maxPop:45);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.5, maxPop:5);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;

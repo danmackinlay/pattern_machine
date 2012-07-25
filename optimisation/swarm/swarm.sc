@@ -180,6 +180,9 @@ PSOptimisingSwarm {
 		*/
 
 		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
+		params.log.log(msgchunks: [
+			\fitnessesfound, cookedFitnessMap
+		], tag: \selecting);
 		
 		cookedFitnessMap.keys.do({|phenotype|
 			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
