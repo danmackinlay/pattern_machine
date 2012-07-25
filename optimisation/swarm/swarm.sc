@@ -49,7 +49,7 @@ PSOptimisingSwarm {
 	// default values for that parameter thing
 	*defaultParams {
 		^(
-			\chromosomeSize: 4,
+			\initialChromosomeSize: 4,
 			\stepSize: 0.01,
 			\clockRate: 10.0,
 			\selfTracking: 0.05,
@@ -107,7 +107,7 @@ PSOptimisingSwarm {
 			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
 		}, {
 			population.add(phenotype);
-			velocityTable[phenotype] = {1.rand2}.dup(params.chromosomeSize);
+			velocityTable[phenotype] = {1.rand2}.dup(params.initialChromosomeSize);
 			neighbourTable[phenotype] = Set[];
 			bestKnownPosTable[phenotype] = 0;
 			bestKnownFitnessTable[phenotype] = phenotype.chromosome;
@@ -125,8 +125,9 @@ PSOptimisingSwarm {
 	}
 	populate {
 		params.populationSize.do({
-			var noob;
-			noob = initialChromosomeFactory.value(params);
+			var noob, chromosome;
+			chromosome = initialChromosomeFactory.value(params);
+			noob = individualFactory.value(params, chromosome);
 			this.add(noob);
 		});
 		// this.createTopology;
