@@ -17,7 +17,6 @@ PSOptimisingSwarm {
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
 
 	var <>params;
-	var <>log;
 
 	var <>controller;
 	var <>particles;
@@ -62,7 +61,7 @@ PSOptimisingSwarm {
 			\log: NullLogger.new
 		);
 	}
-	*new {|params, log|
+	*new {|params|
 		var thisNew = super.newCopyArgs(
 			this.defaultParams.updatedFrom(params ? Event.new)
 		).init;

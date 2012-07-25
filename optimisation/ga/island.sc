@@ -24,7 +24,6 @@ PSIsland {
 	//generic function parameters can be passed to mutators, and they may
 	//be modified at run-time without defining new functions
 	var <>params;
-	var <>log;
 
 	//These are the main state variables
 	var <population;
@@ -71,7 +70,7 @@ PSIsland {
 			\log: NullLogger.new
 		);
 	}
-	*new {|params, log|
+	*new {|params|
 		var thisNew = super.newCopyArgs(
 			this.defaultParams.updatedFrom(params ? Event.new)
 		).init;
@@ -245,12 +244,12 @@ PSRealTimeIsland : PSIsland {
 		defParams.populationSize = 40;
 		^defParams;
 	}
-	*new {|params, log|
+	*new {|params|
 		params.clockRate ?? {
 			params = params.copy;
 			params.clockRate = 1;
 		}
-		^super.new(params, log).init;
+		^super.new(params).init;
 	}
 	init {
 		^super.init;
