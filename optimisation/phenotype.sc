@@ -13,6 +13,7 @@ PSPhenotype {
 		^this.new(this.randomChromosome(initialChromosomeSize));
 	}
 	*randomChromosome{|initialChromosomeSize|
+		//This should really be attached to the chromosome class
 		^{1.0.rand;}.dup(initialChromosomeSize);
 	}
 	chromosome_ {|newChromosome|

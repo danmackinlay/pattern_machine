@@ -12,7 +12,7 @@ PSIsland {
 	*/
 
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
-	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
+	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, defer_to_constructor];
 	classvar <defaultScoreEvaluator = #[phenosynth, score_evals, chromosomemean];
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, raw];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
@@ -64,7 +64,7 @@ PSIsland {
 			\numParents: 2,
 			\initialChromosomeSize: 1,
 			\crossoverProb: 1,
-			\individualFactory: PSPhenotype,
+			\individualConstructor: PSPhenotype,
 			\mutationProb: 0.1,
 			\mutationSize: 0.1,
 			\stopIterations: 1000,
@@ -131,7 +131,8 @@ PSIsland {
 	}
 	populate {
 		params.populationSize.do({
-			this.add(initialChromosomeFactory.value(params));
+			this.add(individualFactory.value(params, 
+				initialChromosomeFactory.value(params)));
 		});
 	}
 	evaluate {

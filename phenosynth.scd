@@ -51,7 +51,7 @@ fork {
 	//actual real work now: first choose the controller that will manage the synths
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_sample_grain, synthArgMap: (\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualFactory: ~factory, \log: ~log));
+	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualConstructor: ~factory, \log: ~log));
 
 	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
@@ -447,7 +447,7 @@ fork {
 	s.sync;
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
-	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualFactory: ~factory, \log: ~log));
+	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualConstructor: ~factory, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
 	~island.scoreCooker = #[phenosynth, score_cookers, rescale];
 	//~island.scoreCooker = #[phenosynth, score_cookers, ranked];

@@ -11,7 +11,7 @@ PSOptimisingSwarm {
 	
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, zero_peak];
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
-	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, basic];
+	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, defer_to_constructor];
 	classvar <defaultScoreEvaluator = #[phenosynth, score_evals, chromosomemean];
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, raw];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, basic];
@@ -57,7 +57,7 @@ PSOptimisingSwarm {
 			\groupTracking: 0.1,
 			\momentum: 0.9,
 			\linksTransitive: false,
-			\individualFactory: PSSynthPhenotype,
+			\individualConstructor: PSSynthPhenotype,
 			\populationSize: 40,
 			\log: NullLogger.new
 		);
