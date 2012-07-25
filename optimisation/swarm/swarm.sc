@@ -181,7 +181,7 @@ PSOptimisingSwarm {
 
 		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
 		
-		population.do({|phenotype|
+		cookedFitnessMap.keys.do({|phenotype|
 			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
 			var myCurrentPos, myBestPos, myNeighbourhoodBestPos;
 			var myVel, myNeighbourhood;
