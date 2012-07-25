@@ -192,6 +192,12 @@ PSOptimisingSwarm {
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype];
 			myBestFitness = bestKnownFitnessTable[phenotype];
+			params.log.log(msgchunks: [
+					\pos, myCurrentPos,
+					\fit, myCurrentFitness,
+					\bestpos, myBestPos,
+					\bestfit, myBestFitness
+				], tag: \selecting);
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
