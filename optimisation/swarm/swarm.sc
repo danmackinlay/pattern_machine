@@ -50,9 +50,9 @@ PSOptimisingSwarm {
 	*defaultParams {
 		^(
 			\initialChromosomeSize: 4,
-			\stepSize: 0.01,
+			\stepSize: 0.1,
 			\clockRate: 10.0,
-			\selfTracking: 0.05,
+			\selfTracking: 0.1,
 			\groupTracking: 0.1,
 			\momentum: 0.9,
 			\linksTransitive: false,
@@ -180,10 +180,7 @@ PSOptimisingSwarm {
 		*/
 
 		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
-		params.log.log(msgchunks: [
-			\fitnessesfound, cookedFitnessMap
-		], tag: \selecting);
-		
+				
 		cookedFitnessMap.keys.do({|phenotype|
 			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
 			var myCurrentPos, myBestPos, myNeighbourhoodBestPos;
@@ -195,23 +192,39 @@ PSOptimisingSwarm {
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
+
+			myVel = velocityTable[phenotype];
+			
+			params.log.log(msgchunks: [
+					\vel, myVel,
+					\pos, myCurrentPos,
+					\delta, (myBestPos - myCurrentPos),
+				], tag: \moving1);
+			
+			myVel = (params.momentum * myVel) +
+				(params.selfTracking * (1.0.rand) * (myBestPos - myCurrentPos));
+			velocityTable[phenotype] = myVel;
+			myCurrentPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
+			
+			params.log.log(msgchunks: [
+					\vel, myVel,
+					\pos, myCurrentPos,
+				], tag: \moving2);
+			
+			phenotype.chromosome = myCurrentPos;
+			controller.updateIndividual(phenotype);
+			params.log.log(msgchunks: [
+					\phenotype, phenotype
+				], tag: \moving3);
+
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
 			});
-			myVel = velocityTable[phenotype];
-			myVel = (params.momentum * myVel) +
-				params.selfTracking * (myCurrentPos - myBestPos);
-			velocityTable[phenotype] = myVel;
-			myCurrentPos = myCurrentPos + myVel * (params.stepSize);
-			
-			phenotype.chromosome = myCurrentPos;
-			controller.updateIndividual(phenotype);
 			
 			bestKnownPosTable[phenotype] = myBestPos;
 			bestKnownFitnessTable[phenotype] = myBestFitness;
 		});
-		params.log.log(msgchunks: [\tending], tag: \nuffin);
 		iterations = iterations + 1;
 	}
 	
