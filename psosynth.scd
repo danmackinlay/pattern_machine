@@ -60,6 +60,8 @@ fork {
 //experiment
 s.queryAllNodes;
 ~swarm.controller;
+~swarm.params;
+~swarm.neighbourTable;
 ~control.outBus;
 ~control.playBusses;
 ~control.fitnessBusses;
