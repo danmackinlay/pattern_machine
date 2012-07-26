@@ -55,10 +55,11 @@ PSOptimisingSwarm {
 			\selfTracking: 0.1,
 			\groupTracking: 0.1,
 			\momentum: 0.9,
-			\linksTransitive: false,
+			//\linksTransitive: false,
+			\neighboursPerNode:3,
 			\individualConstructor: PSSynthPhenotype,
 			\populationSize: 40,
-			\log: NullLogger.new
+			\log: NullLogger.new,
 		);
 	}
 	*new {|params|
@@ -108,7 +109,7 @@ PSOptimisingSwarm {
 		}, {
 			population.add(phenotype);
 			velocityTable[phenotype] = {1.0.rand2}.dup(params.initialChromosomeSize);
-			neighbourTable[phenotype] = Set[];
+			neighbourTable[phenotype] = Array.newFrom([phenotype]);
 			bestKnownPosTable[phenotype] = nil;
 			bestKnownFitnessTable[phenotype] = nil;
 		});
@@ -130,21 +131,28 @@ PSOptimisingSwarm {
 			noob = individualFactory.value(params, chromosome);
 			this.add(noob);
 		});
-		// this.createTopology;
+		this.createTopology;
 	}
-	// createTopology {|linksPerNode=3|
-	// 	//create a Renyi whole random social graph all at once
-	// 	// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
-	// 	var nLinks = params.populationSize * linksPerNode;
-	// 	nLinks.do({
-	// 		this.addLink(population.choose, population.choose);
-	// 	});
-	// }
-	addLink{|src,dest|
-		neighbourTable[src] = dest;
-		params.linksTransitive.if({
-			neighbourTable[dest] = src;
+	createTopology {
+		//create a whole Renyi random social graph all at once
+		// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
+		// Maybe preferential attachment dynamics is desirable though? I dunno.
+		var nLinks = [params.neighboursPerNode, params.populationSize-1].maxItem;
+		// Not supported at the moment because of pains of avoiding duplicates
+		//(params.linksTransitive).if({nLinks = nLinks / 2;});
+		population.do({|here|
+			var unusedNeighbours = population.flat; //this copies, right?
+			unusedNeighbours.take(here);
+			nLinks.do({
+				this.addLink(here, unusedNeighbours.take(unusedNeighbours.choose));
+			});
 		});
+	}
+	addLink{|src, dest|
+		neighbourTable[src] = neighbourTable[src].add(dest);
+		/*params.linksTransitive.if({
+			neighbourTable[dest] = neighbourTable[dest].add(src);
+		});*/
 	}
 	setFitness {|phenotype, value|
 		rawScoreMap[phenotype] = value;
@@ -184,7 +192,9 @@ PSOptimisingSwarm {
 		cookedFitnessMap.keys.do({|phenotype|
 			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
 			var myCurrentPos, myBestPos, myNeighbourhoodBestPos;
+			var myBestNeighbour;
 			var myVel, myNeighbourhood;
+			var myDelta, myNeighbourhoodDelta;
 
 			myNeighbourhood = neighbourTable[phenotype];
 
@@ -192,17 +202,29 @@ PSOptimisingSwarm {
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
-
+			myDelta = (myBestPos - myCurrentPos);
+			
+			myBestNeighbour = myNeighbourhood[
+				myNeighbourhood.maxIndex({|neighbour|
+					cookedFitnessMap[neighbour]
+				});
+			];
+			myNeighbourhoodBestPos = myBestNeighbour.chromosome;
+			myNeighbourhoodBestFitness = cookedFitnessMap[myBestNeighbour];
+			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
+			
 			myVel = velocityTable[phenotype];
 			
 			params.log.log(msgchunks: [
 					\vel, myVel,
 					\pos, myCurrentPos,
-					\delta, (myBestPos - myCurrentPos),
+					\mydelta, myDelta,
 				], tag: \moving1);
 			
 			myVel = (params.momentum * myVel) +
-				(params.selfTracking * (1.0.rand) * (myBestPos - myCurrentPos));
+				(params.selfTracking * (1.0.rand) * myDelta) +
+				(params.groupTracking * (1.0.rand) * myDelta);
+			
 			velocityTable[phenotype] = myVel;
 			myCurrentPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
 			
