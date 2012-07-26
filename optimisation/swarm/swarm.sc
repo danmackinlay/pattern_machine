@@ -202,6 +202,7 @@ PSOptimisingSwarm {
 			myVel = velocityTable[phenotype];
 			myVel = (params.momentum * myVel) +
 				params.selfTracking * (myCurrentPos - myBestPos);
+			velocityTable[phenotype] = myVel;
 			myCurrentPos = myCurrentPos + myVel * (params.stepSize);
 			
 			phenotype.chromosome = myCurrentPos;
