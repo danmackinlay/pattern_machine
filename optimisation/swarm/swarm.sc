@@ -107,10 +107,10 @@ PSOptimisingSwarm {
 			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
 		}, {
 			population.add(phenotype);
-			velocityTable[phenotype] = {1.rand2}.dup(params.initialChromosomeSize);
+			velocityTable[phenotype] = {1.0.rand2}.dup(params.initialChromosomeSize);
 			neighbourTable[phenotype] = Set[];
-			bestKnownPosTable[phenotype] = 0;
-			bestKnownFitnessTable[phenotype] = phenotype.chromosome;
+			bestKnownPosTable[phenotype] = nil;
+			bestKnownFitnessTable[phenotype] = nil;
 		});
 	}
 	remove {|phenotype|
@@ -193,22 +193,15 @@ PSOptimisingSwarm {
 
 			myCurrentPos = phenotype.chromosome;
 			myCurrentFitness = cookedFitnessMap[phenotype];
-			myBestPos = bestKnownPosTable[phenotype];
-			myBestFitness = bestKnownFitnessTable[phenotype];
-			params.log.log(msgchunks: [
-					\pos, myCurrentPos,
-					\fit, myCurrentFitness,
-					\bestpos, myBestPos,
-					\bestfit, myBestFitness
-				], tag: \selecting);
+			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
+			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
 			});
-
 			myVel = velocityTable[phenotype];
 			myVel = (params.momentum * myVel) +
-				params.thisTracking * (myCurrentPos - myBestPos);
+				params.selfTracking * (myCurrentPos - myBestPos);
 			myCurrentPos = myCurrentPos + myVel * (params.stepSize);
 			
 			phenotype.chromosome = myCurrentPos;

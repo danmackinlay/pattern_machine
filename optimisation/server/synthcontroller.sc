@@ -104,10 +104,10 @@ PSSynthController {
 	updateIndividual {|phenotype|
 		var indDict;
 		playing.not.if({"Controller is not playing!".throw});
-		indDict = all.get(indDict.phenotype.identityHash);
+		indDict = all.at(phenotype.identityHash);
 		log.log(msgchunks:[\update_synth_args] ++ phenotype.chromosomeAsSynthArgs,
 			tag:\controlling);
-		indDict.playNode.set(*phenotype.chromosomeAsSynthArgs);
+		indDict.playNode.set(*(phenotype.chromosomeAsSynthArgs));
 		^indDict;
 	}
 	decorateIndividualDict {|indDict|
