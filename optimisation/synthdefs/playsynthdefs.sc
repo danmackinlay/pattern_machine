@@ -11,9 +11,8 @@ PSBasicPlaySynths {
 	automagic casting messes with this.
 	
 	possibly synthArgMaps could make this be sane.
-	*/
-	*makeLagged { |name, func, lags|
-		/* create an altered, lagged version */
+	*makeLagged { |name, func, synthArgMap|
+		// create an altered, lagged version 
 		var laggedName = (name ++ \_lagged).asSymbol;
 		SynthDef.new(laggedName, {
 			|out=0, gate=0, t_reset=0, lagtime=0.1, ... synthArgs|
@@ -21,6 +20,8 @@ PSBasicPlaySynths {
 			SynthDef.wrap(func, prependArgs: synthArgs);
 		}).add;
 	}
+	*/
+> 	
 	*loadSynthDefs{
 			synthArgMaps = ();
 			// Really simple SynthDef to play a buffer when triggered
