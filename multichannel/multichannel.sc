@@ -17,7 +17,7 @@ SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.new(In.ar(ins))))}).add
 	Out.ar(out, In.ar(in, numChannels));
 	}).add;
 });
-PSSynthPhenotype.map
+PSSynthDefPhenotype.map
 "nameBase" ++ "$$" ++ 4.asString
 )
 */

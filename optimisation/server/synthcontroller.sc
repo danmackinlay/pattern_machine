@@ -4,13 +4,13 @@
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSSynthController.new(s, ~globalOuts);
-~ind = PSSynthPhenotype.newRandom;
+~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;
-10.do({~control.playIndividual(PSSynthPhenotype.newRandom)});
+10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */
@@ -156,13 +156,13 @@ PSSynthController {
 s=Server.default;
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSListenSynthController.new(s, ~globalOuts);
-~ind = PSSynthPhenotype.newRandom;
+~ind = PSSynthDefPhenotype.newRandom;
 ~control.playIndividual(~ind);
 ~control.freeIndividual(~ind);
 ~ind.mappedArgs
 ~ind.identityHash;
 ~ind.chromosome;
-10.do({~control.playIndividual(PSSynthPhenotype.newRandom)});
+10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom)});
 ~control.all.do({|a,b,c| [a,b,c].postln;});
 )
 */

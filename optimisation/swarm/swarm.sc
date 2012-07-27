@@ -58,7 +58,7 @@ PSOptimisingSwarm {
 			\maxVel: 1.0,
 			//\linksTransitive: false,
 			\neighboursPerNode:3,
-			\individualConstructor: PSSynthPhenotype,
+			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 40,
 			\log: NullLogger.new,
 		);

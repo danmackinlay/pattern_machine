@@ -75,16 +75,6 @@ PSSynthDefPhenotype : PSPhenotype {
 	}
 }
 
-PSSynthPhenotype : PSSynthDefPhenotype {
-	/* Hold a particular synth *instance* and associate fitness with it.
-	I'm not sure this merits a distinct subclass, or that the single method it has is not
-	better associated with a PS*Controller. */
-
-	stop {|synth|
-		synth.set(\gate, 0);
-	}
-}
-
 PSSynthDefPhenotypeFactory {
 	/*
 	A handy class that you can pass in as the individualFactory parameter to allow
