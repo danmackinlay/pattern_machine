@@ -226,7 +226,7 @@ PSListenSynthController : PSSynthController {
 		super.playBundle(serverOrGroup, outBus);
 		listenGroup = listenGroup ?? { Group.after(playGroup);};
 		this.listenGroup = listenGroup;
-		//these next 2 don't seem to get executed, but that might still be OK
+		//these next 2 don't seem to do anything server-side. Huh.
 		playBusses = Bus.alloc(rate:\audio, server:server, numChannels: maxPop*numChannels);
 		fitnessBusses = Bus.alloc(rate:\control, server:server, numChannels: maxPop);
 		//re-route some output to the master input

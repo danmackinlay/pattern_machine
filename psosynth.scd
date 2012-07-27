@@ -6,6 +6,7 @@ Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
+
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -115,9 +116,12 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * multichannel
 * detecting the need to update noise parameters
 * GUI for noise params
-* Lags on synth update
+* (better way of having) lags on synth update
 * sample playing
 * sample reecording
+* can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
+* should I put some methods in there to handle lagtime on the controller?
+* Eliminate the phenotype factory malarkey; it should be all handle by the controller.
 */
 
 /**************************
@@ -129,19 +133,18 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 //Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \builtin);
 ~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(numChannels:1, fitnessPollRate:1, leakCoef:0.5, maxPop:40);
+~control = PSListenSynthController.new(numChannels:1, fitnessPollRate:5, leakCoef:0.5, maxPop:40);
 ~control.play(s, outBus: ~globalOuts);
-//~ind = PSSynthPhenotype.newRandom(4);
+//~ind = PSSynthDefPhenotype.newRandom(4);
 //~control.playIndividual(~ind);
 //~control.freeIndividual(~ind);
 //~ind.chromosomeAsSynthArgs;
 //~ind.identityHash;
 //~ind.chromosome;
-10.do({~control.playIndividual(PSSynthPhenotype.newRandom(4))});
+10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom(4))});
 ~control.all.do({|a,b| [a,b].postln;});
 ~control.updateFitnesses;
 ~control.all.collect({|indDict, key| [indDict, key]});
 ~control.all.values.collect({|indDict| indDict.phenotype.fitness});
 ~control.free;
 )
-

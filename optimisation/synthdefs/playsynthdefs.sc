@@ -21,7 +21,6 @@ PSBasicPlaySynths {
 		}).add;
 	}
 	*/
-> 	
 	*loadSynthDefs{
 			synthArgMaps = ();
 			// Really simple SynthDef to play a buffer when triggered
