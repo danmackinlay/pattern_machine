@@ -34,7 +34,7 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.5, maxPop:6);
+	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.5, maxPop:31);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -46,7 +46,7 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~swarm = PSOptimisingSwarm((\populationSize: 5, 
+	~swarm = PSOptimisingSwarm((\populationSize: 30, 
 		\chromosomeSize: 4, \clockRate: 1, \log: ~log));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
@@ -56,13 +56,6 @@ fork {
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
-/*
-Todo:
-* multichannel
-* detecting the need to update noise parameters
-* GUI for noise params
-* Lags on synth update
-*/
 //listen for a while.
 //experiment
 s.queryAllNodes;
@@ -118,8 +111,11 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 /**************************
  * TODO
  **************************
-
-
+ 
+* multichannel
+* detecting the need to update noise parameters
+* GUI for noise params
+* Lags on synth update
 */
 
 /**************************
