@@ -56,6 +56,13 @@ fork {
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
+/*
+Todo:
+* multichannel
+* detecting the need to update noise parameters
+* GUI for noise params
+* Lags on synth update
+*/
 //listen for a while.
 //experiment
 s.queryAllNodes;

@@ -184,7 +184,7 @@ PSOptimisingSwarm {
 		}).play(clock);
 	}
 	tend {
-		/*Note there is a problem here at the moment with asynchronous updating
+		/*Note there is a potential problem with asynchronous updating:
 		particles modify the bestness tables in situ
 		
 		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
