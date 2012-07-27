@@ -70,6 +70,33 @@ PSBasicPlaySynths {
 				\rq: \rq.asSpec,
 				\gain: \unipolar.asSpec
 			);
+			SynthDef.new(
+				\ps_reson_saw_lagged,
+				{ |out=0, gate=0, t_reset=0, lagtime=0.1, pitch=800, ffreq=500, rq=0.5, gain=1.0|
+					var env;
+					var time = 1;
+					pitch = Lag.kr(pitch, lagtime);
+					ffreq = Lag.kr(ffreq, lagtime);
+					rq = Lag.kr(rq, lagtime);
+					gain = Lag.kr(gain, lagtime);
+					env = EnvGen.kr(
+						Env.asr(time/2, 1, time/2, 'linear'),
+						gate: gate,
+						doneAction: 0
+					);
+					Out.ar(out, Resonz.ar(
+						Saw.ar(pitch, env),
+						ffreq,//cutoff
+						rq		//inverse bandwidth
+					) * env * gain);
+				}
+			).add;
+			synthArgMaps[\ps_reson_saw_lagged] = (
+				\pitch: \midfreq.asSpec,
+				\ffreq: \midfreq.asSpec,
+				\rq: \rq.asSpec,
+				\gain: \unipolar.asSpec
+			);
 
 			SynthDef.new(
 				\ps_reson_saw_2pan,
