@@ -35,7 +35,12 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.5, maxPop:31);
+	~factory = PSSynthDefPhenotypeFactory.new(
+		synthDef:\ps_reson_saw_lagged);
+	~control = PSCompareSynthController.new(
+		numChannels:1, log:~log, fitnessPollRate:5, leakCoef:0.5, maxPop:5,
+	);
+	~control.extraSynthArgs = [\lagtime, 0.3];
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -47,8 +52,9 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
-	~swarm = PSOptimisingSwarm((\populationSize: 30, 
-		\chromosomeSize: 4, \clockRate: 1, \log: ~log));
+	~swarm = PSOptimisingSwarm((\populationSize: 5, 
+		\chromosomeSize: 4, \clockRate: 1, \log: ~log,
+		\individualConstructor: ~factory));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 	~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];

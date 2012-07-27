@@ -107,8 +107,11 @@ PSSynthDefPhenotypeFactory {
 		^phenotypeClass.new(chromosome, synthDef, synthArgMap);
 	}
 
-	newRandom {|initialChromosomeSize|
+	newRandom {|initialChromosomeSize|		
 		^this.new(phenotypeClass.randomChromosome(initialChromosomeSize));
+	}
+	randomChromosome {|initialChromosomeSize|
+		^phenotypeClass.randomChromosome(initialChromosomeSize);
 	}
 
 	newFromSynthArgs {|synthArgs|
