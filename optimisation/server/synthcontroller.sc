@@ -30,6 +30,8 @@ PSSynthController {
 	at unless you *are* debugging.*/
 	var <numChannels;
 	var <log;
+	//we stash bonus bus information here
+	var <>extraSynthArgs;
 	var <>outBus;
 	var <server;
 	var <all;
@@ -42,6 +44,7 @@ PSSynthController {
 	}
 	init {
 		all = IdentityDictionary.new(1000);
+		extraSynthArgs = [];
 	}
 	play {|serverOrGroup, outBus ... argz|
 		var setupBundle;
@@ -63,7 +66,7 @@ PSSynthController {
 		server.listSendBundle(nil, setupBundle);
 		playing = true;
 	}
-	playBundle {|serverOrGroup, outBus|
+	playBundle {|serverOrGroup, outBus ... argz|
 		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
 	}
 	connect {|newOptimizer|
@@ -92,17 +95,21 @@ PSSynthController {
 	}
 	actuallyPlayIndividual {|indDict|
 		//private
+		// we inject extraSynthArgs in here at initialisation to allow for global buses etc
 		var synthArgs = this.getSynthArgs(indDict);
-		log.log(msgchunks: [\synthargs] ++ synthArgs, tag: \controlling);
+		log.log(
+			msgchunks: [\synthargs] ++ synthArgs ++ extraSynthArgs,
+			tag: \controlling);
 		indDict.playNode = Synth.new(
 			indDict.phenotype.synthDef,
-			synthArgs,
+			synthArgs ++ extraSynthArgs,
 			target: playGroup
 		);
 		indDict.phenotype.clockOn;
 	}
 	updateIndividual {|phenotype|
 		var indDict;
+		// we do not inject extraSynthArgs here; they are presumed already set
 		playing.not.if({"Controller is not playing!".throw});
 		indDict = all.at(phenotype.identityHash);
 		log.log(msgchunks:[\update_synth_args] ++ phenotype.chromosomeAsSynthArgs,
