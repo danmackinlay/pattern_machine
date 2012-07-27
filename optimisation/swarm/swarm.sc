@@ -54,7 +54,8 @@ PSOptimisingSwarm {
 			\clockRate: 10.0,
 			\selfTracking: 0.1,
 			\groupTracking: 0.1,
-			\momentum: 0.9,
+			\momentum: 1.05,
+			\maxVel: 0.1,
 			//\linksTransitive: false,
 			\neighboursPerNode:3,
 			\individualConstructor: PSSynthPhenotype,
@@ -194,7 +195,7 @@ PSOptimisingSwarm {
 				
 		cookedFitnessMap.keys.do({|phenotype|
 			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
-			var myCurrentPos, myBestPos, myNeighbourhoodBestPos;
+			var myCurrentPos, myBestPos, myNeighbourhoodBestPos, myNextPos;
 			var myBestNeighbour;
 			var myVel, myNeighbourhood;
 			var myDelta, myNeighbourhoodDelta;
@@ -230,16 +231,18 @@ PSOptimisingSwarm {
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
 				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myDelta);
-			
+			myVel = myVel.clip2(params.maxVel);
+			myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
+			//allow clipping of velocities to reflect hitting the edge:
+			myVel = (myNextPos - myCurrentPos)/(params.stepSize);
 			velocityTable[phenotype] = myVel;
-			myCurrentPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
 			
 			params.log.log(msgchunks: [
 					\vel, myVel,
 					\pos, myCurrentPos,
 				], tag: \moving2);
 			
-			phenotype.chromosome = myCurrentPos;
+			phenotype.chromosome = myNextPos;
 			controller.updateIndividual(phenotype);
 			params.log.log(msgchunks: [
 					\phenotype, phenotype
