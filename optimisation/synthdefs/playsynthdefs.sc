@@ -11,6 +11,18 @@ PSBasicPlaySynths {
 		*/
 		this.loadSynthDefs;
 	}
+	/* an attempt to make laggedness in synths, though different arg types and
+	automagic casting messes with this. */
+	
+	*makeLagged { |name, func, lags|
+		/* create an altered, lagged version */
+		var laggedName = (name ++ \_lagged).asSymbol;
+		SynthDef.new(laggedName, {
+			|out=0, gate=0, t_reset=0, lagtime=0.1, ... synthArgs|
+			synthArgs = VarLag(synthArgs, lagTime: lagtime);
+			SynthDef.wrap(func, prependArgs: synthArgs);
+		}).add;
+	}
 	*loadSynthDefs{
 			synthArgMaps = ();
 			// Really simple SynthDef to play a buffer when triggered
