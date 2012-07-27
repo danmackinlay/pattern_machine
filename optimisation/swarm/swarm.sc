@@ -198,10 +198,13 @@ PSOptimisingSwarm {
 			var myBestNeighbour;
 			var myVel, myNeighbourhood;
 			var myDelta, myNeighbourhoodDelta;
+			var vecLen;
 
 			myNeighbourhood = neighbourTable[phenotype];
 
 			myCurrentPos = phenotype.chromosome;
+			vecLen = phenotype.chromosome.size;
+			
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
@@ -225,8 +228,8 @@ PSOptimisingSwarm {
 				], tag: \moving1);
 			
 			myVel = (params.momentum * myVel) +
-				(params.selfTracking * (1.0.rand) * myDelta) +
-				(params.groupTracking * (1.0.rand) * myDelta);
+				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
+				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myDelta);
 			
 			velocityTable[phenotype] = myVel;
 			myCurrentPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
