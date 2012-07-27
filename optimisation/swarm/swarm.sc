@@ -141,10 +141,13 @@ PSOptimisingSwarm {
 		// Not supported at the moment because of pains of avoiding duplicates
 		//(params.linksTransitive).if({nLinks = nLinks / 2;});
 		population.do({|here|
-			var unusedNeighbours = population.flat; //this copies, right?
-			unusedNeighbours.take(here);
+			var unusedNeighbours = IdentitySet.newFrom(population); //this copies, right?
+			unusedNeighbours.remove(here);
 			nLinks.do({
-				this.addLink(here, unusedNeighbours.take(unusedNeighbours.choose));
+				var there;
+				there = unusedNeighbours.choose;
+				unusedNeighbours.remove(there);
+				this.addLink(here, there);
 			});
 		});
 	}
