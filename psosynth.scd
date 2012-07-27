@@ -116,6 +116,8 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * detecting the need to update noise parameters
 * GUI for noise params
 * Lags on synth update
+* sample playing
+* sample reecording
 */
 
 /**************************

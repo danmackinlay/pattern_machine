@@ -3,17 +3,15 @@ PSBasicPlaySynths {
 
 	*initClass{
 		StartUp.add({
-			this.classInit;
+			this.loadSynthDefs;
 		});
 	}
-	*classInit{
-		/* I give my *actual* class initialisation the name of classInit, for ease of consistently initialising classes
-		*/
-		this.loadSynthDefs;
-	}
-	/* an attempt to make laggedness in synths, though different arg types and
-	automagic casting messes with this. */
+	/*
+	An attempt to make laggedness in synths, though different arg types and
+	automagic casting messes with this.
 	
+	possibly synthArgMaps could make this be sane.
+	*/
 	*makeLagged { |name, func, lags|
 		/* create an altered, lagged version */
 		var laggedName = (name ++ \_lagged).asSymbol;
