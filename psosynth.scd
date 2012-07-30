@@ -18,7 +18,7 @@ fork {
 	//~log = NullLogger.global;
 	~log = PostLogger.global;
 	//~log = FileLogger.global;
-	~log.accept(\controlling);
+	//~log.accept(\controlling);
 	~log.minPriority = -1;
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
@@ -38,9 +38,9 @@ fork {
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef:\ps_reson_saw_lagged);
 	~control = PSCompareSynthController.new(
-		numChannels:1, log:~log, fitnessPollRate:5, leakCoef:0.5, maxPop:5,
+		numChannels:1, log:~log, fitnessPollRate:5, leakCoef:0.5, maxPop:30,
 	);
-	~control.extraSynthArgs = [\lagtime, 0.3];
+	~control.extraSynthArgs = [\lagtime, 2.0];
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -51,9 +51,9 @@ fork {
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 	s.sync;
 	1.wait;
-	//now set up the "island" that will control their evolution
-	~swarm = PSOptimisingSwarm((\populationSize: 5, 
-		\chromosomeSize: 4, \clockRate: 1, \log: ~log,
+	//now set up the "swarm" that will control their evolution
+	~swarm = PSOptimisingSwarm((\populationSize: 30, 
+		\chromosomeSize: 4, \clockRate: 2.5, \log: ~log,
 		\individualConstructor: ~factory));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];

@@ -81,6 +81,11 @@ PSSynthDefPhenotypeFactory {
 	class-free synth phenotype implementation.
 
 	You shouldn't have to subclass things just to override a trivial parameter or two.
+	
+	I could probably do this better and eliminate the need for a factory class by
+	pushing all instantiation logic into the Controller. This would meet 90% of
+	use cases, and have less code, more consistent between trivial and that 90%
+	of complex uses.
 	*/
 	classvar <>defaultPhenotypeClass;
 
