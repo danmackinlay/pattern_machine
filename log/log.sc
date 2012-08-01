@@ -41,7 +41,7 @@ NullLogger {
 		^this.new;
 	}
 	acceptMsg {|priority, tag|
-		^(priority>minPriority).and(rejSet.includes(tag).not);
+		^(priority >= minPriority).and(rejSet.includes(tag).not);
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true|
 		//See subclasses for example implementations
