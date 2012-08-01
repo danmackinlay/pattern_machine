@@ -222,11 +222,12 @@ PSOptimisingSwarm {
 			
 			myVel = velocityTable[phenotype];
 			
-			params.log.log(msgchunks: [
+			params.log.log(msgchunks: [\premove,
 					\vel, myVel,
 					\pos, myCurrentPos,
 					\mydelta, myDelta,
-				], tag: \moving1);
+				], priority: -1,
+				tag: \moving);
 			
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
@@ -237,16 +238,18 @@ PSOptimisingSwarm {
 			myVel = (myNextPos - myCurrentPos)/(params.stepSize);
 			velocityTable[phenotype] = myVel;
 			
-			params.log.log(msgchunks: [
+			params.log.log(msgchunks: [\velupdate,
 					\vel, myVel,
 					\pos, myCurrentPos,
-				], tag: \moving2);
+				], priority: -1,
+				tag: \moving);
 			
 			phenotype.chromosome = myNextPos;
 			controller.updateIndividual(phenotype);
-			params.log.log(msgchunks: [
+			params.log.log(msgchunks: [\postmove,
 					\phenotype, phenotype
-				], tag: \moving3);
+				], priority: -1,
+				tag: \moving);
 
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
