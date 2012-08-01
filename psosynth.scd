@@ -15,23 +15,29 @@ StartUp.run;
 
 (
 ~graphSwarm = {|swarm|
-	var worker, plotter, pop, idhashes;
+	//TODO: implement as "impulses" plot style
+	var worker, plotter, population, idhashes;
 	var state = ();
-	pop = swarm.population.asArray;
-	idhashes = state.idhashes = pop.collect({|i|
+	state.population = population = swarm.population.asArray;
+	state.idhashes = idhashes = population.collect({|i|
 		i.identityHash.asHexString;
 	});
-	plotter = state.plotter = GNUPlot.new;
+	state.plotter = plotter = GNUPlot.new;
+	//fitness-relevant axis ranges.
+	plotter.sendCmd("set xrange [0:1]");
+	plotter.sendCmd("set yrange [0:1]");
+	plotter.sendCmd("set zrange [0:]");
 	worker = state.worker = Routine.new({
 		loop {
+			//this plots a 2d slice of the chromosome, using the z axis for fitness
+			// of said slice.
 			var locs;
-			\looping.postln;
-			locs = pop.collect({|ind|
-				ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind];
+			locs = population.collect({|ind|
+				//[\ind, ind].postln;
+				[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
 			});
-			//plotter.scatter(locs, idhashes);
-			plotter.scatter(locs, \foo);
-			state.locs = locs;
+			plotter.scatter(locs, idhashes);
+			//state.locs = locs;
 			(swarm.params.clockRate.reciprocal).yield;
 		};
 	}).play(AppClock);
