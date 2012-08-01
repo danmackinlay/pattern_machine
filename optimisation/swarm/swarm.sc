@@ -45,6 +45,9 @@ PSOptimisingSwarm {
 	var <scoreEvaluator;
 	var <scoreCooker;
 	var <terminationCondition;
+	
+	//we log debug information about one particular particle
+	var <>exemplar;
 
 	// default values for that parameter thing
 	*defaultParams {
@@ -124,6 +127,7 @@ PSOptimisingSwarm {
 		bestKnownPosTable.removeAt(phenotype);
 		bestKnownFitnessTable.removeAt(phenotype);
 		controller.freeIndividual(phenotype);
+		(exemplar == phenotype).if({exemplar = population.choose;});
 	}
 	populate {
 		params.populationSize.do({
@@ -132,6 +136,7 @@ PSOptimisingSwarm {
 			noob = individualFactory.value(params, chromosome);
 			this.add(noob);
 		});
+		exemplar = population.choose;
 		this.createTopology;
 	}
 	createTopology {
@@ -190,6 +195,13 @@ PSOptimisingSwarm {
 		
 		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
 		*/
+		var logExemplar = {|...args|
+			params.log.log(
+				msgchunks: args,
+				priority: -1,
+				tag: \exemplar
+			);
+		};
 
 		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
 				
@@ -200,6 +212,8 @@ PSOptimisingSwarm {
 			var myVel, myNeighbourhood;
 			var myDelta, myNeighbourhoodDelta;
 			var vecLen;
+			var maybeLog = nil;
+			(phenotype==exemplar).if({maybeLog = logExemplar;});
 
 			myNeighbourhood = neighbourTable[phenotype];
 
