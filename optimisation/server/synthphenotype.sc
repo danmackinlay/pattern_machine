@@ -84,8 +84,8 @@ PSSynthDefPhenotypeFactory {
 	
 	I could probably do this better and eliminate the need for a factory class by
 	pushing all instantiation logic into the Controller. This would meet 90% of
-	use cases, and have less code, more consistent between trivial and that 90%
-	of complex uses.
+	use cases, and have less code, and that which remained would be more consistent
+	between trivial and that 90% of complex uses.
 	*/
 	classvar <>defaultPhenotypeClass;
 

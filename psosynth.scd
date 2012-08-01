@@ -120,9 +120,9 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
+* go to MLO - choose random peer as neighbour.
 * detecting the need to update noise parameters
 * GUI for noise params
-* (better way of having) lags on synth update
 * sample playing
 * sample reecording
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
