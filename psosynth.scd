@@ -1,12 +1,46 @@
 ServerTreeGui.makeWindow(s);
-
 //initialisation
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
+~g = GNUPlot.new;
+~g.scatter([
+	[[0,0,1]], 
+	[[0,0.1,1]], 
+	[[0,0.6,1]], 
+], [\a, \b, \c]
+);
 
+(
+~graphSwarm = {|swarm|
+	var worker, plotter, pop, idhashes;
+	var state = ();
+	pop = swarm.population.asArray;
+	idhashes = state.idhashes = pop.collect({|i|
+		i.identityHash.asHexString;
+	});
+	plotter = state.plotter = GNUPlot.new;
+	worker = state.worker = Routine.new({
+		loop {
+			var locs;
+			\looping.postln;
+			locs = pop.collect({|ind|
+				ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind];
+			});
+			//plotter.scatter(locs, idhashes);
+			plotter.scatter(locs, \foo);
+			state.locs = locs;
+			(swarm.params.clockRate.reciprocal).yield;
+		};
+	}).play(AppClock);
+	state;
+};
+)
+~plotState = ~graphSwarm.(~swarm);
+~plotState.worker.stop;
+~plotState.plotter.stop;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
