@@ -51,8 +51,8 @@ fork {
 	//~log = NullLogger.global;
 	~log = PostLogger.global;
 	//~log = FileLogger.global;
-	//~log.accept(\controlling);
-	~log.minPriority = -1;
+	~log.reject(\controlling);
+	~log.minPriority = 0;
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
@@ -73,14 +73,14 @@ fork {
 	~control = PSCompareSynthController.new(
 		numChannels:1, log:~log, fitnessPollRate:5, leakCoef:0.5, maxPop:30,
 	);
-	~control.extraSynthArgs = [\lagtime, 2.0];
-	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
+	~control.extraSynthArgs = [\lagtime, 0];
+	~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
 	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
-	~control.listenSynthDef = \ps_judge_mfcc_distance;
+	//~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 	s.sync;
 	1.wait;
@@ -89,8 +89,8 @@ fork {
 		\chromosomeSize: 4, \clockRate: 2.5, \log: ~log,
 		\individualConstructor: ~factory));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
-	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-	~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+	~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
 	s.sync;
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
