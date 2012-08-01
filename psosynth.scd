@@ -71,7 +71,7 @@ fork {
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef:\ps_reson_saw_lagged);
 	~control = PSCompareSynthController.new(
-		numChannels:1, log:~log, fitnessPollRate:5, leakCoef:0.5, maxPop:30,
+		numChannels:1, log:~log, fitnessPollRate:2, leakCoef:0.5, maxPop:30,
 	);
 	~control.extraSynthArgs = [\lagtime, 0];
 	~control.listenSynthDef = \ps_judge_pitchamp_distance;
