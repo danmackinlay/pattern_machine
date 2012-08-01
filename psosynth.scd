@@ -5,13 +5,6 @@ Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
-~g = GNUPlot.new;
-~g.scatter([
-	[[0,0,1]], 
-	[[0,0.1,1]], 
-	[[0,0.6,1]], 
-], [\a, \b, \c]
-);
 
 (
 ~graphSwarm = {|swarm|
@@ -160,7 +153,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
-* go to MLO - choose random peer as neighbour.
+* go to MOL ("many optimising liaisons") - choose random peer as neighbour.
 * detecting the need to update noise parameters
 * GUI for noise params
 * sample playing

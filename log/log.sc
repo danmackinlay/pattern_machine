@@ -82,7 +82,7 @@ FileLogger : NullLogger {
 		^this.new(fileName);
 	}
 	*global {
-		/* a shared, appendable log that all local supercolldier procs
+		/* a shared, appendable log that all local supercollider procs
 		can write to. */
 		global.isNil.if({global = this.new("_global")});
 		^global;
