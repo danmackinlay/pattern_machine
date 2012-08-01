@@ -298,9 +298,9 @@ PSListenSynthController : PSSynthController {
 			var updater = {|val|
 				var localIndDict = indDict;
 				log.log(msgchunks: [\updating] ++ localIndDict.phenotype.chromosomeAsSynthArgs ++ [\to, val],
-					tag: \controlling, priority: 1);
+					tag: \controlling, priority: -1);
 				log.log(msgchunks: [\using, indDict.fitnessBus, \insteadof, localIndDict.fitnessBus],
-					tag: \controlling,  priority: 0);
+					tag: \controlling,  priority: -1);
 				optimizer.notNil.if({optimizer.setFitness(localIndDict.phenotype, val);});
 				localIndDict.phenotype.incAge;
 			};
