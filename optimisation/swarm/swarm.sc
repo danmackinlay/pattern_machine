@@ -198,7 +198,7 @@ PSOptimisingSwarm {
 		var logExemplar = {|...args|
 			params.log.log(
 				msgchunks: args,
-				priority: -1,
+				priority: 0,
 				tag: \exemplar
 			);
 		};
@@ -243,14 +243,28 @@ PSOptimisingSwarm {
 				], priority: -1,
 				tag: \moving);
 			
+			maybeLog.([\pos] ++ myCurrentPos);
+			maybeLog.([\fitness, myCurrentFitness]);
+			maybeLog.([\mybestpos] ++ myBestPos);
+			maybeLog.([\mybest, myBestFitness]);
+			maybeLog.([\mydelta] ++ myDelta);
+			maybeLog.([\groupbest, myNeighbourhoodBestFitness]);
+			maybeLog.([\groupbestpos] ++ myNeighbourhoodBestPos);
+			maybeLog.([\groupdelta] ++ myNeighbourhoodDelta);
+			maybeLog.([\vel1] ++ myVel);
+			
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
 				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myDelta);
 			myVel = myVel.clip2(params.maxVel);
+			maybeLog.([\vel2] ++ myVel);			
 			myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
+			maybeLog.([\vel3] ++ myVel);
 			//allow clipping of velocities to reflect hitting the edge:
 			myVel = (myNextPos - myCurrentPos)/(params.stepSize);
+			maybeLog.([\vel4] ++ myVel);
 			velocityTable[phenotype] = myVel;
+			maybeLog.([\newpos] ++ myCurrentPos);
 			
 			params.log.log(msgchunks: [\velupdate,
 					\vel, myVel,
