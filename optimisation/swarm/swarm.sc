@@ -307,30 +307,30 @@ SwarmGraph {
 		^super.newCopyArgs(swarm).init;
 	}
 	init {
-	//TODO: implement as "impulses" plot style
-	population = swarm.population.asArray;
-	idhashes = population.collect({|i|
-		i.identityHash.asHexString;
-	});
-	plotter = GNUPlot.new;
-	//fitness-relevant axis ranges.
-	plotter.sendCmd("set xrange [0:1]");
-	plotter.sendCmd("set yrange [0:1]");
-	plotter.sendCmd("set zrange [0:]");
-	worker = Routine.new({
-		loop {
-			//this plots a 2d slice of the chromosome, using the z axis for fitness
-			// of said slice.
-			var locs;
-			locs = population.collect({|ind|
-				//[\ind, ind].postln;
-				[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
-			});
-			plotter.scatter(locs, idhashes);
-			//state.locs = locs;
-			(swarm.params.clockRate.reciprocal).yield;
-		};
-	}).play(AppClock);
+		//TODO: implement as "impulses" plot style
+		population = swarm.population.asArray;
+		idhashes = population.collect({|i|
+			i.identityHash.asHexString;
+		});
+		plotter = GNUPlot.new;
+		//fitness-relevant axis ranges.
+		plotter.sendCmd("set xrange [0:1]");
+		plotter.sendCmd("set yrange [0:1]");
+		plotter.sendCmd("set zrange [0:]");
+		worker = Routine.new({
+			loop {
+				//this plots a 2d slice of the chromosome, using the z axis for fitness
+				// of said slice.
+				var locs;
+				locs = population.collect({|ind|
+					//[\ind, ind].postln;
+					[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
+				});
+				plotter.scatter(locs, idhashes);
+				//state.locs = locs;
+				(swarm.params.clockRate.reciprocal).yield;
+			};
+		}).play(AppClock);
 	}
 	stop {
 		worker.stop;
