@@ -8,7 +8,6 @@ StartUp.run;
 
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -21,7 +20,8 @@ fork {
 	~log = PostLogger.global;
 	//~log = FileLogger.global;
 	~log.reject(\controlling);
-	~log.minPriority = 0;
+	~log.reject(\moving);
+	~log.minPriority = -1;
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
