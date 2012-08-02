@@ -86,8 +86,11 @@ fork {
 	1.wait;
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSOptimisingSwarm((\populationSize: 30, 
-		\chromosomeSize: 4, \clockRate: 2.5, \log: ~log,
-		\individualConstructor: ~factory));
+		\chromosomeSize: 4, \clockRate: 1, \log: ~log,
+		\individualConstructor: ~factory,
+		\selfTracking: 0.0, 
+		//\groupTracking: 0.5,
+	));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];

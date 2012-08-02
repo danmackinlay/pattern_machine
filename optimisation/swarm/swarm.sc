@@ -233,7 +233,7 @@ PSOptimisingSwarm {
 			myNeighbourhoodBestPos = myBestNeighbour.chromosome;
 			myNeighbourhoodBestFitness = cookedFitnessMap[myBestNeighbour];
 			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
-			
+						
 			myVel = velocityTable[phenotype];
 			
 			params.log.log(msgchunks: [\premove,
