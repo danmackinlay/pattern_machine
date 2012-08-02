@@ -110,8 +110,8 @@ PSOptimisingSwarm {
 		}, {
 			population.add(phenotype);
 			velocityTable[phenotype] = {1.0.rand2}.dup(params.initialChromosomeSize);
-			bestKnownPosTable[phenotype] = nil;
-			bestKnownFitnessTable[phenotype] = nil;
+			bestKnownPosTable[phenotype] = phenotype.chromosome;
+			bestKnownFitnessTable[phenotype] = 0.0;
 			^phenotype;
 		});
 	}
@@ -196,17 +196,20 @@ PSOptimisingSwarm {
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
+			
 			myDelta = (myBestPos - myCurrentPos);
 			
 			myBestNeighbour = myNeighbourhood[
 				myNeighbourhood.maxIndex({|neighbour|
-					cookedFitnessMap[neighbour]
+					bestKnownFitnessTable[neighbour]
 				});
 			];
-			myNeighbourhoodBestPos = myBestNeighbour.chromosome;
-			myNeighbourhoodBestFitness = cookedFitnessMap[myBestNeighbour];
+			
+			myNeighbourhoodBestPos = bestKnownPosTable[myBestNeighbour];
+			myNeighbourhoodBestFitness = bestKnownFitnessTable[myBestNeighbour];
+			
 			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
-						
+					
 			myVel = velocityTable[phenotype];
 			
 			params.log.log(msgchunks: [\premove,
@@ -228,7 +231,7 @@ PSOptimisingSwarm {
 			
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
-				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myDelta);
+				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourhoodDelta);
 			myVel = myVel.clip2(params.maxVel);
 			maybeLog.([\vel2] ++ myVel);			
 			myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
@@ -251,7 +254,7 @@ PSOptimisingSwarm {
 					\phenotype, phenotype
 				], priority: -1,
 				tag: \moving);
-
+			
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
