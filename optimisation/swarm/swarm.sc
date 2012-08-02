@@ -30,7 +30,6 @@ PSOptimisingSwarm {
 	var <velocityTable;
 	var <bestKnownPosTable;
 	var <bestKnownFitnessTable;
-	var <neighbourTable;
 	
 	//flag to stop iterator gracefuly.
 	var playing = false;
@@ -59,8 +58,6 @@ PSOptimisingSwarm {
 			\groupTracking: 2.0,
 			\momentum: 1.05,
 			\maxVel: 1.0,
-			//\linksTransitive: false,
-			\neighboursPerNode:3,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 40,
 			\log: NullLogger.new,
@@ -92,7 +89,6 @@ PSOptimisingSwarm {
 		rawScoreMap = IdentityDictionary.new(100);
 		cookedFitnessMap = IdentityDictionary.new(100);
 		velocityTable = IdentityDictionary.new(100);
-		neighbourTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
 		bestKnownFitnessTable = IdentityDictionary.new(100);
 		this.initOperators;
@@ -105,17 +101,18 @@ PSOptimisingSwarm {
 		this.terminationCondition = this.class.defaultTerminationCondition;
 	}
 	add {|phenotype|
-		var res, velocity, neighbours;
+		var res, velocity;
 		res = controller.playIndividual(phenotype);
 		res.isNil.if({
 			//no busses available to play on
 			params.log.log(msgchunks: ["Could not add phenotype", phenotype], tag: \resource_exhausted);
+			^nil;
 		}, {
 			population.add(phenotype);
 			velocityTable[phenotype] = {1.0.rand2}.dup(params.initialChromosomeSize);
-			neighbourTable[phenotype] = Array.newFrom([phenotype]);
 			bestKnownPosTable[phenotype] = nil;
 			bestKnownFitnessTable[phenotype] = nil;
+			^phenotype;
 		});
 	}
 	remove {|phenotype|
@@ -123,7 +120,6 @@ PSOptimisingSwarm {
 		rawScoreMap.removeAt(phenotype);
 		cookedFitnessMap.removeAt(phenotype);
 		velocityTable.removeAt(phenotype);
-		neighbourTable.removeAt(phenotype);
 		bestKnownPosTable.removeAt(phenotype);
 		bestKnownFitnessTable.removeAt(phenotype);
 		controller.freeIndividual(phenotype);
@@ -137,36 +133,10 @@ PSOptimisingSwarm {
 			this.add(noob);
 		});
 		exemplar = population.choose;
-		this.createTopology;
-	}
-	createTopology {
-		//create a whole Renyi random social graph all at once
-		// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
-		// Maybe preferential attachment dynamics is desirable though? I dunno.
-		var nLinks = [params.neighboursPerNode, params.populationSize-1].maxItem;
-		// Not supported at the moment because of pains of avoiding duplicates
-		//(params.linksTransitive).if({nLinks = nLinks / 2;});
-		population.do({|here|
-			var unusedNeighbours = IdentitySet.newFrom(population); //this copies, right?
-			unusedNeighbours.remove(here);
-			nLinks.do({
-				var there;
-				there = unusedNeighbours.choose;
-				unusedNeighbours.remove(there);
-				this.addLink(here, there);
-			});
-		});
-	}
-	addLink{|src, dest|
-		neighbourTable[src] = neighbourTable[src].add(dest);
-		/*params.linksTransitive.if({
-			neighbourTable[dest] = neighbourTable[dest].add(src);
-		});*/
 	}
 	setFitness {|phenotype, value|
 		rawScoreMap[phenotype] = value;
-	}
-	
+	}	
 	play {|controller|
 		var clock;
 		//pass the controller a reference to me so it can push notifications
@@ -188,6 +158,9 @@ PSOptimisingSwarm {
 				}
 			);
 		}).play(clock);
+	}
+	getNeighbours {|phenotype|
+		^population.asArray;
 	}
 	tend {
 		/*Note there is a potential problem with asynchronous updating:
@@ -215,7 +188,7 @@ PSOptimisingSwarm {
 			var maybeLog = nil;
 			(phenotype==exemplar).if({maybeLog = logExemplar;});
 
-			myNeighbourhood = neighbourTable[phenotype];
+			myNeighbourhood = this.getNeighbours(phenotype);
 
 			myCurrentPos = phenotype.chromosome;
 			vecLen = phenotype.chromosome.size;
@@ -296,6 +269,60 @@ PSOptimisingSwarm {
 	}
 }
 
+PSLocalOptimisingSwarm : PSOptimisingSwarm {
+	var <neighbourTable;
+	*defaultParams {
+		var params = super.defaultParams;
+		params.neighboursPerNode =3;
+		//params.linksTransitive= false;
+		^params;
+	}
+	init {
+		super.init;
+		neighbourTable = IdentityDictionary.new(100);
+	}
+	populate {
+		super.populate;
+		this.createTopology;
+	}
+	getNeighbours {|phenotype|
+		^neighbourTable[phenotype];
+	}
+	createTopology {
+		//create a whole Renyi random social graph all at once
+		// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
+		// Maybe preferential attachment dynamics is desirable though? I dunno.
+		var nLinks = [params.neighboursPerNode, params.populationSize-1].maxItem;
+		// Not supported at the moment because of pains of avoiding duplicates
+		//(params.linksTransitive).if({nLinks = nLinks / 2;});
+		population.do({|here|
+			var unusedNeighbours = IdentitySet.newFrom(population); //this copies, right?
+			unusedNeighbours.remove(here);
+			nLinks.do({
+				var there;
+				there = unusedNeighbours.choose;
+				unusedNeighbours.remove(there);
+				this.addLink(here, there);
+			});
+		});
+	}
+	add {|phenotype|
+		var added = super.add(phenotype);
+		added.notNil.if({
+			neighbourTable[phenotype] = Array.new;
+		});
+	}
+	remove {|phenotype|
+		super.remove(phenotype);
+		neighbourTable.removeAt(phenotype);
+	}
+	addLink{|src, dest|
+		neighbourTable[src] = neighbourTable[src].add(dest);
+		/*params.linksTransitive.if({
+			neighbourTable[dest] = neighbourTable[dest].add(src);
+		});*/
+	}
+}
 SwarmGraph {
 	var <swarm;
 	var <worker;

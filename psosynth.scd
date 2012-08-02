@@ -54,7 +54,9 @@ fork {
 	s.sync;
 	1.wait;
 	//now set up the "swarm" that will control their evolution
-	~swarm = PSOptimisingSwarm((\populationSize: 30, 
+	//~swarm = PSLocalOptimisingSwarm(
+	~swarm = PSOptimisingSwarm(
+		(\populationSize: 30, 
 		\chromosomeSize: 4, \clockRate: 1, \log: ~log,
 		\individualConstructor: ~factory,
 		\selfTracking: 0.0, 
