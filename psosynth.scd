@@ -6,40 +6,9 @@ Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 StartUp.run;
 
-(
-~graphSwarm = {|swarm|
-	//TODO: implement as "impulses" plot style
-	var worker, plotter, population, idhashes;
-	var state = ();
-	state.population = population = swarm.population.asArray;
-	state.idhashes = idhashes = population.collect({|i|
-		i.identityHash.asHexString;
-	});
-	state.plotter = plotter = GNUPlot.new;
-	//fitness-relevant axis ranges.
-	plotter.sendCmd("set xrange [0:1]");
-	plotter.sendCmd("set yrange [0:1]");
-	plotter.sendCmd("set zrange [0:]");
-	worker = state.worker = Routine.new({
-		loop {
-			//this plots a 2d slice of the chromosome, using the z axis for fitness
-			// of said slice.
-			var locs;
-			locs = population.collect({|ind|
-				//[\ind, ind].postln;
-				[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
-			});
-			plotter.scatter(locs, idhashes);
-			//state.locs = locs;
-			(swarm.params.clockRate.reciprocal).yield;
-		};
-	}).play(AppClock);
-	state;
-};
-)
-~plotState = ~graphSwarm.(~swarm);
-~plotState.worker.stop;
-~plotState.plotter.stop;
+~plotState = SwarmGraph.new(~swarm);
+~plotState.stop;
+
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
