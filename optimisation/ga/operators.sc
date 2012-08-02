@@ -112,7 +112,9 @@ PSOperators {
 		distance metric for some matching process), use this.
 		It incidentally rescales everything to be in the range 0-1,
 		where fitnesss is reported as 1 when it's closest to 1
-		and 0 when farthest.*/
+		and 0 when farthest. You therefore don't want to use this
+		in a test that wants fitness to be consistent across time,
+		e.g. a swarm selection.*/
 		Library.put(\phenosynth, \score_cookers, \zero_peak,
 			{|params, rawScoreMap|
 				var cookedFitnessMap, normedScores, range;
@@ -133,7 +135,7 @@ PSOperators {
 		);
 		/*
 		Not sure the fitness range in advance and don't like ranking?
-		Rescale!
+		Adaptively rescale!
 		*/
 		Library.put(\phenosynth, \score_cookers, \rescale,
 			{|params, rawScoreMap|
@@ -148,6 +150,25 @@ PSOperators {
 					range = [fmax-fmin, 0.000001].maxItem;
 					rawScoreMap.keysValuesDo({|key,val|
 						cookedFitnessMap[key] = (val-fmin)/range;
+					});
+				});
+				cookedFitnessMap;
+			};
+		);
+		/*
+		Score is a distance measure (0:params.maxdistance) but you want similarity?
+		Rescale!
+		*/
+		Library.put(\phenosynth, \score_cookers, \distance_to_similarity,
+			{|params, rawScoreMap|
+				var cookedFitnessMap, normedScores, range;
+				cookedFitnessMap = IdentityDictionary.new;
+
+				normedScores = rawScoreMap.values.asArray;
+				normedScores.notEmpty.if({
+					var maxd = params.maxdistance;
+					rawScoreMap.keysValuesDo({|key,val|
+						cookedFitnessMap[key] = ((maxd-val)/maxd).clip(0.0, 1.0);
 					});
 				});
 				cookedFitnessMap;
@@ -182,10 +203,11 @@ PSOperators {
 					[];
 				}, {
 					//notice we do our rate calculations based on chance of survival
-					//the maths here is slighly flakey. Given a set death rate, and a fitness-weighted rate
+					//the maths here is slighly flakey. Given a set death rate, and a
+					// fitness-weighted rate
 					//how do we make this fly properly? Hot Poisson/exp distro action.
 					//anyway, for low rates they all converge.
-					// not that the 2-x term below mean the prob is not guaranteed positive.
+					// note that the 2-x term below means that the prob is not guaranteed positive.
 					localPopulation = fitnessMap.keys;
 					rate = params.deathRate;
 					meanFitness = localFitnesses.mean;

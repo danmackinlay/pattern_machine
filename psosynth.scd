@@ -8,7 +8,7 @@ StartUp.run;
 
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-
+~swarm.rawScoreMap.values.postcs;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -56,9 +56,12 @@ fork {
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSOptimisingSwarm((\populationSize: 30, 
 		\chromosomeSize: 4, \clockRate: 2.5, \log: ~log,
-		\individualConstructor: ~factory));
+		\individualConstructor: ~factory,
+		\maxdistance: 8 //a good distance for \ps_judge_pitchamp
+	));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
-	~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	~swarm.scoreCooker = #[phenosynth, score_cookers, distance_to_similarity];
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
 	s.sync;
