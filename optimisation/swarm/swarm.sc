@@ -59,7 +59,7 @@ PSOptimisingSwarm {
 			\momentum: 1.05,
 			\maxVel: 1.0,
 			\individualConstructor: PSSynthDefPhenotype,
-			\populationSize: 40,
+			\populationSize: 30,
 			\log: NullLogger.new,
 		);
 	}
