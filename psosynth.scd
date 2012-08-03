@@ -8,6 +8,7 @@ StartUp.run;
 
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
+
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -55,9 +56,12 @@ fork {
 	1.wait;
 	//now set up the "swarm" that will control their evolution
 	//~swarm = PSLocalOptimisingSwarm(
-	~swarm = PSOptimisingSwarm(
+	//~swarm = PSOptimisingSwarm(
+	~swarm = PSMOLOptimisingSwarm(
 		(\populationSize: 30, 
-		\chromosomeSize: 4, \clockRate: 1, \log: ~log,
+		\chromosomeSize: 4,
+		\clockRate: 100, 
+		\log: ~log,
 		\individualConstructor: ~factory,
 		\selfTracking: 0.0, 
 		//\groupTracking: 0.5,
