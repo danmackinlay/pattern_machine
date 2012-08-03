@@ -1,4 +1,4 @@
-PSOptimisingSwarm {
+PSMOLOptimisingSwarm {
 	/* handle a swarm of agents optimising.
 	This is a little like PSControllerIsland, but not enough that it is worth it
 	to subclass.
@@ -53,11 +53,10 @@ PSOptimisingSwarm {
 		^(
 			\initialChromosomeSize: 4,
 			\stepSize: 0.1,
-			\clockRate: 10.0,
-			\selfTracking: 2.0,
-			\groupTracking: 2.0,
+			\clockRate: 100.0,
 			\momentum: 1.05,
 			\maxVel: 1.0,
+			\groupTracking: 2.0,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
 			\log: NullLogger.new,
@@ -159,9 +158,99 @@ PSOptimisingSwarm {
 			);
 		}).play(clock);
 	}
-	getNeighbours {|phenotype|
-		^population.asArray;
+	tend {
+		var myCurrentFitness, myNeighbourBestFitness;
+		var myCurrentPos, myNeighbourBestPos, myNextPos;
+		var myVel, myNeighbour;
+		var myNeighbourDelta;
+		var vecLen;
+		var phenotype;
+		var maybeLog = nil;
+		var logExemplar = {|...args|
+			params.log.log(
+				msgchunks: args,
+				priority: 0,
+				tag: \exemplar
+			);
+		};
+		(phenotype==exemplar).if({maybeLog = logExemplar;});
+		
+		//this could be done much less frequently; at the fitness update interval
+		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
+		
+		//this is all the stochastic business
+		phenotype = cookedFitnessMap.keys.choose;
+		phenotype.isNil.if({^nil});
+		myNeighbour = cookedFitnessMap.keys.choose;
+		myCurrentPos = phenotype.chromosome;
+		
+		myCurrentFitness = cookedFitnessMap[phenotype];
+		(myCurrentFitness>(bestKnownFitnessTable[phenotype])).if({
+			bestKnownFitnessTable[phenotype] = myCurrentFitness;
+			bestKnownPosTable[phenotype] = myCurrentPos;
+		});
+				
+		myNeighbourBestPos = bestKnownPosTable[myNeighbour];
+		myNeighbourBestFitness = bestKnownFitnessTable[myNeighbour];
+		myNeighbourDelta = (myNeighbourBestPos - myCurrentPos);
+						
+		myVel = velocityTable[phenotype];
+		
+		params.log.log(msgchunks: [\premove,
+				\vel, myVel,
+				\pos, myCurrentPos,
+			], priority: -1,
+			tag: \moving);
+			
+		maybeLog.([\pos] ++ myCurrentPos);
+		maybeLog.([\fitness, myCurrentFitness]);
+		maybeLog.([\neighbourbest, myNeighbourBestFitness]);
+		maybeLog.([\neighbourbestpos] ++ myNeighbourBestPos);
+		maybeLog.([\neighbourdelta] ++ myNeighbourDelta);
+		maybeLog.([\vel1] ++ myVel);
+		
+		vecLen = phenotype.chromosome.size;	
+		myVel = (params.momentum * myVel) +
+			(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourDelta);
+		myVel = myVel.clip2(params.maxVel);
+		maybeLog.([\vel2] ++ myVel);
+		myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
+		//allow clipping of velocities to reflect hitting the edge:
+		myVel = (myNextPos - myCurrentPos)/(params.stepSize);
+		maybeLog.([\vel4] ++ myVel);
+		velocityTable[phenotype] = myVel;
+		maybeLog.([\newpos] ++ myCurrentPos);
+			
+		params.log.log(msgchunks: [\velupdate,
+				\vel, myVel,
+				\pos, myCurrentPos,
+			], priority: -1,
+			tag: \moving);
+			
+		phenotype.chromosome = myNextPos;
+		controller.updateIndividual(phenotype);
+		params.log.log(msgchunks: [\postmove,
+				\phenotype, phenotype
+			], priority: -1,
+			tag: \moving);
+			
+		iterations = iterations + 1;
 	}
+	
+	free {
+		super.free;
+		controller.free;
+	}
+}
+
+PSOptimisingSwarm : PSMOLOptimisingSwarm {
+	*defaultParams {
+		var params = super.defaultParams;
+		params.selfTracking = 2.0;
+		params.clockRate= 10.0;
+		^params;
+	}
+	
 	tend {
 		/*Note there is a potential problem with asynchronous updating:
 		particles modify the bestness tables in situ
@@ -265,11 +354,10 @@ PSOptimisingSwarm {
 		});
 		iterations = iterations + 1;
 	}
-	
-	free {
-		super.free;
-		controller.free;
+	getNeighbours {|phenotype|
+		^population.asArray;
 	}
+	
 }
 
 PSLocalOptimisingSwarm : PSOptimisingSwarm {
