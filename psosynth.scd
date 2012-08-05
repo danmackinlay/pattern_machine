@@ -43,13 +43,13 @@ fork {
 		numChannels:1, log:~log, fitnessPollRate:2, leakCoef:0.5, maxPop:30,
 	);
 	~control.extraSynthArgs = [\lagtime, 0];
-	~control.listenSynthDef = \ps_judge_pitchamp_distance;
+	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
 	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
-	//~control.listenSynthDef = \ps_judge_mfcc_distance;
+	~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
 	s.sync;
 	1.wait;
@@ -59,12 +59,13 @@ fork {
 		(\populationSize: 30, 
 		\chromosomeSize: 4, \clockRate: 1, \log: ~log,
 		\individualConstructor: ~factory,
-		\selfTracking: 0.0, 
+		\selfTracking: 0.0,
+		\stepSize: 0.1,
 		//\groupTracking: 0.5,
 	));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
-	~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
+	~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
 	s.sync;
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
