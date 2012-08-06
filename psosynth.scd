@@ -47,8 +47,8 @@ fork {
 		numChannels:1, log:~log, fitnessPollRate:2, leakCoef:0.5, maxPop:30,
 	);
 	~control.extraSynthArgs = [\lagtime, 0];
-	~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	~control.leakCoef = 0.05;
+	~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -72,7 +72,8 @@ fork {
 		\momentum: 1.05,
 		\log: ~log,
 		\individualConstructor: ~factory,
-		\maxdistance: 8 //a good distance for \ps_judge_pitchamp
+		//\maxdistance: 8, //a good distance for \ps_judge_pitchamp
+		\maxdistance: 5, //a good distance for \ps_judge_mfcc_distance
 	));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
@@ -140,6 +141,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
+* annealing schedule
 * go to MOL ("many optimising liaisons") - choose random peer as neighbour.
 * detecting the need to update noise parameters
 * GUI for noise params
