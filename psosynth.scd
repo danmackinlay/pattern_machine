@@ -12,6 +12,7 @@ StartUp.run;
 ~swarm.params[\groupTracking] = 2.0;
 ~swarm.params[\momentum] = 1.03;
 ~swarm.params[\momentum] = 0.99;
+~swarm.params[\noise] = 0.001;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -143,17 +144,17 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
+* per-voice synth params - say, a pan spread.
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
-* inject noise on demand
 * go to MOL ("many optimising liaisons") - choose random peer as neighbour.
 * GUI for noise params
 * sample playing
 * sample reecording
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
 * should I put some methods in there to handle lagtime on the controller?
-* Eliminate the phenotype factory malarkey; it should be all handle by the controller.
+* Eliminate the phenotype factory malarkey; it should be all handled by the controller.
 */
 
 /**************************

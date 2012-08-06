@@ -56,7 +56,8 @@ PSOptimisingSwarm {
 			\clockRate: 10.0,
 			\selfTracking: 2.0,
 			\groupTracking: 2.0,
-			\momentum: 1.05,
+			\momentum: 1.03,
+			\noise: 0.0,
 			\maxVel: 1.0,
 			//\linksTransitive: false,
 			\neighboursPerNode: 3,
@@ -233,7 +234,8 @@ PSOptimisingSwarm {
 			
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
-				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourhoodDelta);
+				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourhoodDelta)+
+				(params.noise * ({1.0.rand2}.dup(vecLen)));
 			myVel = myVel.clip2(params.maxVel);
 			maybeLog.([\vel2] ++ myVel);			
 			myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
