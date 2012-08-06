@@ -108,8 +108,8 @@ PSOperators {
 				cookedFitnessMap;
 			};
 		);
-		/* if score approaches zero for a good result (e.g. a
-		distance metric for some matching process), use this.
+		/* if score approaches zero for a good result 
+		but is not guaranteed positive, use this.
 		It incidentally rescales everything to be in the range 0-1,
 		where fitnesss is reported as 1 when it's closest to 1
 		and 0 when farthest. You therefore don't want to use this
@@ -185,7 +185,7 @@ PSOperators {
 		);
 
 		/*
-		Termination conditions tell us when to stop -
+		Termination conditions tell us when to stop an algorithm -
 		when we are "close enough" or have run too long
 		*/
 		Library.put(\phenosynth, \termination_conds, \basic,

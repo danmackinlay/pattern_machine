@@ -143,9 +143,11 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
-* annealing schedule
+* meta-optimisation of the meta-heuristic.
+	* annealing schedule
+	* detecting the need to update noise parameters
+* inject noise on demand
 * go to MOL ("many optimising liaisons") - choose random peer as neighbour.
-* detecting the need to update noise parameters
 * GUI for noise params
 * sample playing
 * sample reecording
