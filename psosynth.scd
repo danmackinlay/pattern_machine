@@ -29,6 +29,8 @@ fork {
 	~log.reject(\moving);
 	~log.minPriority = -1;
 	~targetBus = Bus.new(\audio, 1, 1, s);
+	~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
+	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
 	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
