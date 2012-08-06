@@ -156,20 +156,29 @@ PSOperators {
 			};
 		);
 		/*
-		Score is a distance measure (0:params.maxdistance) but you want similarity?
+		Score is a distance measure [0:params.maxdistance] but you want similarity?
 		Rescale!
 		*/
-		Library.put(\phenosynth, \score_cookers, \distance_to_similarity,
+		Library.put(\phenosynth, \score_cookers, \scale_distance_to_similarity,
 			{|params, rawScoreMap|
-				var cookedFitnessMap, normedScores, range;
+				var cookedFitnessMap;
+				var maxd = params.maxdistance;
 				cookedFitnessMap = IdentityDictionary.new;
-
-				normedScores = rawScoreMap.values.asArray;
-				normedScores.notEmpty.if({
-					var maxd = params.maxdistance;
-					rawScoreMap.keysValuesDo({|key,val|
-						cookedFitnessMap[key] = ((maxd-val)/maxd).clip(0.0, 1.0);
-					});
+				rawScoreMap.keysValuesDo({|key,val|
+					cookedFitnessMap[key] = ((maxd-val)/maxd).clip(0.0, 1.0);
+				});
+				cookedFitnessMap;
+			};
+		);
+		/*
+		Score is a distance measure (0:inf) but you want similarity?
+		Take reciprocals!
+		*/
+		Library.put(\phenosynth, \score_cookers, \invert_distance_to_similarity,
+			{|params, rawScoreMap|
+				var cookedFitnessMap = IdentityDictionary.new;
+				rawScoreMap.keysValuesDo({|key,val|
+					cookedFitnessMap[key] = val.reciprocal;
 				});
 				cookedFitnessMap;
 			};

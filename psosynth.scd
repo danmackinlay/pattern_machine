@@ -48,7 +48,7 @@ fork {
 	);
 	~control.extraSynthArgs = [\lagtime, 0];
 	~control.leakCoef = 0.05;
-	~control.listenSynthDef = \ps_judge_pitchamp_distance;
+	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
@@ -68,16 +68,18 @@ fork {
 		\stepSize: 0.01,
 		\selfTracking: 0.0,
 		\groupTracking: 0.5,
+		\momentum: 0.99,
 		\neighboursPerNode: 5,
 		\momentum: 1.05,
 		\log: ~log,
 		\individualConstructor: ~factory,
-		//\maxdistance: 8, //a good distance for \ps_judge_pitchamp
-		\maxdistance: 5, //a good distance for \ps_judge_mfcc_distance
+		//\maxdistance: 8, //a good distance for \ps_judge_pitchamp and scale_distance_to_similarity
+		\maxdistance: 5, //a good distance for \ps_judge_mfcc_distance and scale_distance_to_similarity
 	));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
-	~swarm.scoreCooker = #[phenosynth, score_cookers, distance_to_similarity];
+	//~swarm.scoreCooker = #[phenosynth, score_cookers, scale_distance_to_similarity];
+	~swarm.scoreCooker = #[phenosynth, score_cookers, invert_distance_to_similarity];
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
 	s.sync;
