@@ -144,14 +144,17 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
-* per-voice synth params - say, a pan spread.
+* per-voice synth params - e.g. a pan spread.
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
+	* GUI for noise params
 * go to MOL ("many optimising liaisons") - choose random peer as neighbour.
-* GUI for noise params
-* sample playing
-* sample reecording
+* specific sample synth player
+	* How can this sound sparser? Reward silence?
+	* sample playing
+	* sample recording
+* handle feedback in reverberant environments in some smart way
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
 * should I put some methods in there to handle lagtime on the controller?
 * Eliminate the phenotype factory malarkey; it should be all handled by the controller.
