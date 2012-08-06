@@ -8,7 +8,10 @@ StartUp.run;
 
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-~swarm.rawScoreMap.values.postcs;
+~swarm.params[\selfTracking] = 0.0;
+~swarm.params[\groupTracking] = 2.0;
+~swarm.params[\momentum] = 1.03;
+~swarm.params[\momentum] = 0.99;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -44,6 +47,7 @@ fork {
 	);
 	~control.extraSynthArgs = [\lagtime, 0];
 	~control.listenSynthDef = \ps_judge_pitchamp_distance;
+	~control.leakCoef = 0.05;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
 	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
@@ -55,7 +59,14 @@ fork {
 	1.wait;
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSOptimisingSwarm((\populationSize: 30, 
-		\chromosomeSize: 4, \clockRate: 2.5, \log: ~log,
+		\chromosomeSize: 4,
+		\clockRate: 2.5,
+		\stepSize: 0.01,
+		\selfTracking: 0.0,
+		\groupTracking: 0.5,
+		\neighboursPerNode: 5,
+		\momentum: 1.05,
+		\log: ~log,
 		\individualConstructor: ~factory,
 		\maxdistance: 8 //a good distance for \ps_judge_pitchamp
 	));

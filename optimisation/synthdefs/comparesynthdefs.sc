@@ -34,8 +34,8 @@ PSBasicCompareSynths {
 			//observedbus.poll(0.1, \observedbus);
 
 			/*Calculate a leak coefficient to discount fitness over time,
-			 presuming the supplied value is a decay rate _per_second_. (Half
-			 life is less convenient, since it doesn't admit infinity easily) */
+			 presuming the supplied value is a decay level _per_second_. (Half
+			 life is less convenient, since it doesn't admit -infinity easily) */
 			i_leak = (i_leak**(ControlRate.ir.reciprocal)*(i_leak>0));//.poll(0.1, \leak);
 
 			comparison = SynthDef.wrap(func, lags, [targetsig, observedsig]);

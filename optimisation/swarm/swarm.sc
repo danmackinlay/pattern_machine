@@ -53,14 +53,14 @@ PSOptimisingSwarm {
 	*defaultParams {
 		^(
 			\initialChromosomeSize: 4,
-			\stepSize: 0.1,
+			\stepSize: 0.01,
 			\clockRate: 10.0,
 			\selfTracking: 2.0,
 			\groupTracking: 2.0,
 			\momentum: 1.05,
 			\maxVel: 1.0,
 			//\linksTransitive: false,
-			\neighboursPerNode:3,
+			\neighboursPerNode: 3,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 40,
 			\log: NullLogger.new,
@@ -259,12 +259,12 @@ PSOptimisingSwarm {
 			myVel = myVel.clip2(params.maxVel);
 			maybeLog.([\vel2] ++ myVel);			
 			myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
-			maybeLog.([\vel3] ++ myVel);
 			//allow clipping of velocities to reflect hitting the edge:
 			myVel = (myNextPos - myCurrentPos)/(params.stepSize);
-			maybeLog.([\vel4] ++ myVel);
+			maybeLog.([\vel3] ++ myVel);
 			velocityTable[phenotype] = myVel;
-			maybeLog.([\newpos] ++ myCurrentPos);
+			maybeLog.([\newpos] ++ myNextPos);
+			maybeLog.([\posdelta, (myNextPos - myCurrentPos)]);
 			
 			params.log.log(msgchunks: [\velupdate,
 					\vel, myVel,
