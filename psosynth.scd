@@ -15,9 +15,11 @@ StartUp.run;
 ~swarm.params[\momentum] = 0.99;
 ~swarm.params[\noise] = 0.001;
 ~swarm.params[\noise] = 0.1;
+~swarm.params[\noise] = 1;
 ~log.minPriority = -1;
 ~swarm.cookedFitnessMap.values.mean;
 ~swarm.cookedFitnessMap.values.variance;
+~swarm.meanDistance;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -147,11 +149,17 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  
 * multichannel
 * per-voice synth params - e.g. a pan spread.
+* update the target to be an evolving synth
+	- say, lots of (possibly polyphonic) note events
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
+		(e.g. decreasing without changing)
+	* detecting convergence
 	* GUI for noise params
-* go to MOL ("many optimising liaisons") - choose random peer as neighbour.
+* go to MOL ("many optimising liaisons") 
+	* choose random peer as neighbour each time
+	* update only one at each time
 * specific sample synth player
 	* How can this sound sparser? Reward silence?
 	* sample playing

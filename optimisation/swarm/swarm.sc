@@ -277,7 +277,19 @@ PSOptimisingSwarm {
 			{|i| cookedFitnessMap[i].notNil}, Array
 		).sort({|a, b| cookedFitnessMap[a] > cookedFitnessMap[b] });
 	}
-	
+	meanChromosome {
+		//return a chromosome that is a mean of all current ones
+		^population.collect(_.chromosome).asArray.mean;
+	}
+	meanFitness {
+		//return the mean fitness for the whole population
+		^cookedFitnessMap.values.mean;
+	}
+	meanDistance {|from|
+		//return the mean square distance from a particular vector
+		from = from ? this.meanChromosome;
+		^population.collect(_.chromosome-from).asArray.squared.mean.mean.sqrt;
+	}
 	free {
 		super.free;
 		controller.free;
