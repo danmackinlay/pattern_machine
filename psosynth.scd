@@ -14,6 +14,7 @@ StartUp.run;
 ~swarm.params[\momentum] = 1.03;
 ~swarm.params[\momentum] = 0.99;
 ~swarm.params[\noise] = 0.001;
+~swarm.params[\noise] = 0.1;
 ~log.minPriority = -1;
 ~swarm.cookedFitnessMap.values.mean;
 ~swarm.cookedFitnessMap.values.variance;
@@ -81,7 +82,7 @@ fork {
 		\selfTracking: 0.0,
 		\groupTracking: 0.5,
 		\momentum: 0.99,
-		\neighboursPerNode: 5,
+		\neighboursPerNode: 2,
 		\log: ~log,
 		\individualConstructor: ~factory,
 		//\maxdistance: 8, //a good distance for \ps_judge_pitchamp and scale_distance_to_similarity
@@ -123,7 +124,7 @@ worst = ranked[ranked.size-1];
 [\worst, ~swarm.rawScoreMap[worst],~swarm.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
-
+~buffer.plot;
 //when you are bored, do a
 ~swarm.free;
 ~target.free;
