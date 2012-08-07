@@ -5,7 +5,6 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
-
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
 //~swarm.params[\selfTracking] = 1.0;

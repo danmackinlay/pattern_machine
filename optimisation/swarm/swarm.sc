@@ -170,7 +170,7 @@ PSOptimisingSwarm {
 		^population.asArray;
 	}
 	tend {
-		/*Note there is a potential problem with asynchronous updating:
+		/* Note there is a potential problem with asynchronous updating:
 		particles modify the bestness tables in situ
 		
 		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
@@ -218,7 +218,7 @@ PSOptimisingSwarm {
 			myNeighbourhoodBestFitness = bestKnownFitnessTable[myBestNeighbour];
 			
 			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
-					
+			
 			myVel = velocityTable[phenotype];
 			
 			params.log.log(msgchunks: [\premove,
@@ -243,7 +243,7 @@ PSOptimisingSwarm {
 				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourhoodDelta)+
 				(params.noise * ({1.0.rand2}.dup(vecLen)));
 			myVel = myVel.clip2(params.maxVel);
-			maybeLog.([\vel2] ++ myVel);			
+			maybeLog.([\vel2] ++ myVel);
 			myNextPos = (myCurrentPos + (myVel * (params.stepSize))).clip(0.0, 1.0);
 			//allow clipping of velocities to reflect hitting the edge:
 			myVel = (myNextPos - myCurrentPos)/(params.stepSize);
