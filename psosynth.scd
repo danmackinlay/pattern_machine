@@ -1,9 +1,9 @@
 ServerTreeGui.makeWindow(s);
 //initialisation
-Server.default = s = ~serverboot.(\local, \motu);
-Server.default = s = ~serverboot.(\local, \builtin);
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
+Server.default = s = ~serverboot.(\local, \motu);
+Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 
 ~plotState = SwarmGraph.new(~swarm);
@@ -14,6 +14,9 @@ StartUp.run;
 ~swarm.params[\momentum] = 1.03;
 ~swarm.params[\momentum] = 0.99;
 ~swarm.params[\noise] = 0.001;
+~log.minPriority = -1;
+~swarm.cookedFitnessMap.values.mean;
+~swarm.cookedFitnessMap.values.variance;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -27,14 +30,14 @@ fork {
 	//~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
-	~log.minPriority = -1;
+	~log.minPriority = 1;
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
 	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
 	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
-	~spy = SpyBus.new.play(~target, ~targetBus);
+	//~spy = SpyBus.new.play(~target, ~targetBus);
 	s.sync;
 	//~spy.moveAfter(~target);
 	/*******************/
@@ -93,31 +96,18 @@ fork {
 //experiment
 s.queryAllNodes;
 ~swarm.controller;
-~swarm.params;
 ~swarm.neighbourTable;
 ~control.outBus;
 ~control.playBusses;
 ~control.fitnessBusses;
-~control.all.keys.asArray[0];
-~control.all.asArray.dump;
-//add in a good one and see how it survives:
-~swarm.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
 //{~swarm.plotFitness(raw:true);}.defer;
 ~swarm.params;
 ~swarm.initialChromosomeFactory.value;
 ~swarm.individualFactory.value;
-~swarm.population.size;
-~swarm.population.asArray[0];
-//when you are bored, do a
-~swarm.free;
-~target.free;
-~targetBus.free;
 ~swarm.cookedFitnessMap;
 ~swarm.cookedFitnessMap.values.postln;
 ~swarm.rawScoreMap.values.postln;
 ~swarm.rawScoreMap.keys.asArray[1].hash.asHexString
-Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~swarm.rawScoreMap);
-Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~swarm.rawScoreMap);
 //testing that things are going OK:
 (
 var best, worst, ranked;
@@ -128,13 +118,17 @@ worst = ranked[ranked.size-1];
 [\worst, ~swarm.rawScoreMap[worst],~swarm.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
-[~swarm.population.size, ~swarm.rankedPopulation.size, ~swarm.cookedFitnessMap.size, ~swarm.rawScoreMap.size];
+
+//when you are bored, do a
+~swarm.free;
+~target.free;
+~targetBus.free;
+Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~swarm.rawScoreMap);
+Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~swarm.rawScoreMap);
+
 //these should only ever differ momentarily
 ~swarm.population.select(_.wallClockAge>0)
 ~swarm.controller.all[~swarm.population[0].identityHash].playBus.scope;
-FreqScope.new(busNum:~swarm.controller.all[~swarm.population[0].identityHash].playBus);
-FreqScope.new(busNum:~targetBus);
-//~swarm.controller.all[~swarm.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
 PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.002]);
@@ -161,28 +155,3 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * should I put some methods in there to handle lagtime on the controller?
 * Eliminate the phenotype factory malarkey; it should be all handled by the controller.
 */
-
-/**************************
- * Debugging bits
- **************************/
-
-(
-//How the listening controller works, nuts-and-bolts
-//Server.default = s = ~serverboot.(\local, \builtin);
-Server.default = s = ~serverboot.(\internal, \builtin);
-~globalOuts = Bus.new(\audio, 0, 2);
-~control = PSListenSynthController.new(numChannels:1, fitnessPollRate:5, leakCoef:0.5, maxPop:40);
-~control.play(s, outBus: ~globalOuts);
-//~ind = PSSynthDefPhenotype.newRandom(4);
-//~control.playIndividual(~ind);
-//~control.freeIndividual(~ind);
-//~ind.chromosomeAsSynthArgs;
-//~ind.identityHash;
-//~ind.chromosome;
-10.do({~control.playIndividual(PSSynthDefPhenotype.newRandom(4))});
-~control.all.do({|a,b| [a,b].postln;});
-~control.updateFitnesses;
-~control.all.collect({|indDict, key| [indDict, key]});
-~control.all.values.collect({|indDict| indDict.phenotype.fitness});
-~control.free;
-)
