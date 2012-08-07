@@ -30,6 +30,8 @@ PSOptimisingSwarm {
 	var <velocityTable;
 	var <bestKnownPosTable;
 	var <bestKnownFitnessTable;
+	var <lastMeanPosition;
+	var <lastMeanFitness;
 	
 	//flag to stop iterator gracefuly.
 	var playing = false;
@@ -94,6 +96,8 @@ PSOptimisingSwarm {
 		velocityTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
 		bestKnownFitnessTable = IdentityDictionary.new(100);
+		lastMeanPosition = 0.5.dup(params.initialChromosomeSize);
+		lastMeanFitness = 0.0;
 		this.initOperators;
 	}
 	initOperators {
@@ -171,6 +175,8 @@ PSOptimisingSwarm {
 		
 		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
 		*/
+		var thisMeanPosition;
+		var thisMeanFitness;
 		var logExemplar = {|...args|
 			params.log.log(
 				msgchunks: args,
@@ -267,9 +273,13 @@ PSOptimisingSwarm {
 			bestKnownPosTable[phenotype] = myBestPos;
 			bestKnownFitnessTable[phenotype] = myBestFitness;
 		});
+		thisMeanPosition = this.meanFitness;
+		thisMeanFitness = this.meanChromosome;
+		//TODO: clone this into the subclass method.
+		lastMeanPosition = thisMeanPosition;
+		lastMeanFitness = thisMeanFitness;
 		iterations = iterations + 1;
 	}
-	
 	rankedPopulation {
 		//return all population that have a fitness, ranked in descending order thereof.
 		//Individuals that do not yet have a fitness are not returned
