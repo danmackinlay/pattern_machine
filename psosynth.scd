@@ -32,7 +32,9 @@ fork {
 	~log.reject(\moving);
 	~log.minPriority = 1;
 	~targetBus = Bus.new(\audio, 1, 1, s);
-	~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
+	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
+	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
+	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
 	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
@@ -48,12 +50,15 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
+	//~factory = PSSynthDefPhenotypeFactory.new(
+	//	synthDef:\ps_reson_saw_lagged);
+	// this should pick up the right default args from the playsynthdefs class
 	~factory = PSSynthDefPhenotypeFactory.new(
-		synthDef:\ps_reson_saw_lagged);
+		synthDef:\ps_sample_grain_lagged);
 	~control = PSCompareSynthController.new(
 		numChannels:1, log:~log, fitnessPollRate:2, leakCoef:0.5, maxPop:30,
 	);
-	~control.extraSynthArgs = [\lagtime, 1.0];
+	~control.extraSynthArgs = [\lagtime, 1.0, \buffer, ~buffer];
 	~control.leakCoef = 0.05;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
@@ -70,7 +75,7 @@ fork {
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
 		(\populationSize: 30, 
-		\chromosomeSize: 4,
+		\initialChromosomeSize: 7,
 		\clockRate: 20,
 		\stepSize: 0.01,
 		\selfTracking: 0.0,
