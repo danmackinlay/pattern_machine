@@ -34,16 +34,18 @@ fork {
 	~log.reject(\moving);
 	~log.minPriority = 1;
 	~targetBus = Bus.new(\audio, 1, 1, s);
+	//~targetBus = Bus.audio(s, 1);
 	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
-	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
-	//~spy = SpyBus.new.play(~target, ~targetBus);
+	~targetGroup = Group.head(~phenogroup);
+	~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
+	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~targetGroup);
+	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
 	s.sync;
-	//~spy.moveAfter(~target);
+	//~spy.moveAfter(~targetGroup);
 	/*******************/
 	//limiter, to avoid little accidents
 	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
@@ -128,7 +130,7 @@ nil;
 ~buffer.plot;
 //when you are bored, do a
 ~swarm.free;
-~target.free;
+~targetGroup.free;
 ~targetBus.free;
 Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~swarm.rawScoreMap);
 Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~swarm.rawScoreMap);
