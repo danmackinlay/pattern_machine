@@ -42,7 +42,7 @@ PSBasicPlaySynths {
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
-					doneAction: 0
+					doneAction: 2
 				);
 				Out.ar(out, SinOsc.ar(pitch, mul: env*amp));
 			}
@@ -55,7 +55,7 @@ PSBasicPlaySynths {
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
-					doneAction: 0
+					doneAction: 2
 				);
 				Out.ar(out, Resonz.ar(
 					Saw.ar(pitch, env),
@@ -82,7 +82,7 @@ PSBasicPlaySynths {
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
-					doneAction: 0
+					doneAction: 2
 				);
 				Out.ar(out, Resonz.ar(
 					Saw.ar(pitch, env),
@@ -106,7 +106,7 @@ PSBasicPlaySynths {
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
-					doneAction: 0
+					doneAction: 2
 				);
 				Out.ar(out, Pan2.ar(
 					Resonz.ar(
@@ -128,7 +128,7 @@ PSBasicPlaySynths {
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
-					doneAction: 0
+					doneAction: 2
 				);
 				Out.ar(out, Resonz.ar(
 					Warp1.ar(
@@ -169,7 +169,7 @@ PSBasicPlaySynths {
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
-					doneAction: 0
+					doneAction: 2
 				);
 				Out.ar(out, Resonz.ar(
 					Warp1.ar(
