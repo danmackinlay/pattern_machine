@@ -19,6 +19,9 @@ StartUp.run;
 ~swarm.cookedFitnessMap.values.mean;
 ~swarm.cookedFitnessMap.values.variance;
 ~swarm.meanDistance;
+  ( 'instrument': \ps_reson_saw, 'out': Bus(\audio, 1, 1, s), 'ffreq': 800, 'dur': 10, 
+    'gain': 1, 'pitch': 500, 'group': Group(1003), 'rq': 0.2, 'addAction': 0, 'gate': 1).play; 
+
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -41,7 +44,21 @@ fork {
 	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
 	~targetGroup = Group.head(~phenogroup);
-	~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
+	//~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
+	s.sync;
+	~targetPattern = DebugPbind(
+		\instrument, \ps_reson_saw,
+		\out, ~targetBus,
+		//\ffreq, 800,
+		\ffreq, Pgbrown(1.0, 2.0, 0.1, inf),
+		\amp, 1,
+		\pitch, 500,
+		\rq, 0.2,
+		\gate, 1,
+		\dur, Prand([1, 3], inf),
+		\group, ~targetGroup,
+		\addAction, 0
+	).play;
 	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~targetGroup);
 	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
 	s.sync;
