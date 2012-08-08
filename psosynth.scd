@@ -13,15 +13,13 @@ StartUp.run;
 ~swarm.params[\momentum] = 1.03;
 ~swarm.params[\momentum] = 0.99;
 ~swarm.params[\noise] = 0.001;
+~swarm.params[\noise] = 0.01;
 ~swarm.params[\noise] = 0.1;
 ~swarm.params[\noise] = 1;
 ~log.minPriority = -1;
 ~swarm.cookedFitnessMap.values.mean;
 ~swarm.cookedFitnessMap.values.variance;
 ~swarm.meanDistance;
-  ( 'instrument': \ps_reson_saw, 'out': Bus(\audio, 1, 1, s), 'ffreq': 800, 'dur': 10, 
-    'gain': 1, 'pitch': 500, 'group': Group(1003), 'rq': 0.2, 'addAction': 0, 'gate': 1).play; 
-
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -46,16 +44,15 @@ fork {
 	~targetGroup = Group.head(~phenogroup);
 	//~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
 	s.sync;
-	~targetPattern = DebugPbind(
+	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\out, ~targetBus,
 		//\ffreq, 800,
-		\ffreq, Pgbrown(1.0, 2.0, 0.1, inf),
+		\ffreq, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*600,
 		\amp, 1,
-		\pitch, 500,
+		\pitch, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*500,
 		\rq, 0.2,
-		\gate, 1,
-		\dur, Prand([1, 3], inf),
+		\dur, Pexprand(1, 10, inf),
 		\group, ~targetGroup,
 		\addAction, 0
 	).play;
