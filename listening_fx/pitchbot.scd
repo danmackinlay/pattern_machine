@@ -214,9 +214,9 @@ SynthDef(\tee, {
 	Out.ar(out2, in);
 }).add;
 SynthDef(\injectfb, {
-	|in, out, gain=0.5|
+	|in, out, amp=0.5|
 	in = InFeedback.ar(in, 2);
-	Out.ar(out, in*gain);
+	Out.ar(out, in*amp);
 }).add;
 SynthDef(\delwrite, {|in, buffer, phaseout|
 	var tapPhase;
@@ -278,7 +278,7 @@ s.waitForBoot( fork {
 	~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 	//~tee = Synth.new(\tee, [\out, ~output, \out2, ~fboutput], target: ~fbgroup );
 	//~fb = Synth.new(\injectfb, [\in, ~output, \out, ~fxinput], target: ~fxgroup, addAction:\addToHead );
-	//~fb.set(\gain, 0.5);
+	//~fb.set(\amp, 0.5);
 	//~pitchsprayer = Synth.new(\ps_pitch_spray, [\i_bufpointer, ~pitchbufpos, \out, ~pitches, \i_buffer, ~pitchbuffer], target:~pitchwriter, addAction: \addAfter);
 	//~pitchsprayer.set(\maxdel, 10);
 	s.sync;

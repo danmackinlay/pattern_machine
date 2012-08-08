@@ -41,8 +41,8 @@ fork {
 	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
 	~targetGroup = Group.head(~phenogroup);
-	~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
-	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~targetGroup);
+	~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
+	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~targetGroup);
 	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
 	s.sync;
 	//~spy.moveAfter(~targetGroup);
@@ -140,9 +140,9 @@ Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~swarm
 ~swarm.controller.all[~swarm.population[0].identityHash].playBus.scope;
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
-PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.002]);
+PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.002]);
 PSSynthDefPhenotype.synthArgsAsChromosome(PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]));
-PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.01]));
+PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.01]));
 )
 /**************************
  * TODO

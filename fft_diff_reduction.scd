@@ -48,11 +48,11 @@ Log differences?
 	
 	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
-		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, delay=0.0|
+		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, delay=0.0|
 			Out.ar(out,
 				DelayN.ar(
 					Resonz.ar(
-						Saw.ar(pitch, gain),
+						Saw.ar(pitch, amp),
 						ffreq,
 						rq
 					),
@@ -66,13 +66,13 @@ Log differences?
 	
 	template = Synth.new(
 		\fft_dist_test_synth,
-		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0],
+		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0],
 		target: s,
 		addAction: \addToHead
 	);
 	candidate = Synth.new(
 		\fft_dist_test_synth,
-		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5, \delay, 0.0321207],
+		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0.0321207],
 		target: s,
 		addAction: \addToHead
 	);
@@ -110,7 +110,7 @@ Log differences?
 //Now let's see how this goes with the two signals set to the same params
 //Mags should be similar, but phases different.
 (
-~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
+~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5);
 )
 
 //wait, then run
@@ -139,7 +139,7 @@ Log differences?
 )
 //Rinse and repeat, but now set the observered signal to have very different phases *and* mags
 (
-~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \gain, 0.5);
+~candidate.set(\pitch, 27, \ffreq, 4800, \rq, 0.01, \amp, 0.5);
 )
 (
 	~observedFftBuffer.loadToFloatArray(action: { |array|

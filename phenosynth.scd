@@ -34,8 +34,8 @@ fork {
 	/*******************/
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
-	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
+	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 	~spy=SpyBus.new.play(~target, ~targetBus);
 	//~target.set(\pitch, 500);
 	s.sync;
@@ -49,7 +49,7 @@ fork {
 	//s.volume.gui;
 	s.volume.volume = -20;
 	//actual real work now: first choose the controller that will manage the synths
-	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_sample_grain, synthArgMap: (\gain: \unipolar.asSpec));
+	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_sample_grain, synthArgMap: (\amp: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
 	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualConstructor: ~factory, \log: ~log));
 
@@ -85,7 +85,7 @@ s.queryAllNodes;
 ~control.all.keys.asArray[0];
 ~control.all.asArray.dump;
 //add in a good one and see how it survives:
-~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2]));
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
@@ -119,9 +119,9 @@ FreqScope.new(busNum:~targetBus);
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
-PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.002]);
+PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.002]);
 PSSynthDefPhenotype.synthArgsAsChromosome(PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]));
-PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.01]));
+PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.01]));
 )
 
 
@@ -154,8 +154,8 @@ fork {
 	/*******************/
 	~targetBus = Bus.new(\audio, 1, 1, s);
 	s.sync;
-	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \gain, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
+	~target = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+	//~target = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 	~spy=SpyBus.new.play(~target, ~targetBus);
 	//~target.set(\pitch, 500);
 	s.sync;
@@ -201,7 +201,7 @@ s.queryAllNodes;
 ~control.all.keys.asArray[0];
 ~control.all.asArray.dump;
 //add in a good one and see how it survives:
-~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \gain, 1, \pitch, 500, \rq, 0.2]));
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2]));
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
@@ -235,9 +235,9 @@ FreqScope.new(busNum:~targetBus);
 //~island.controller.all[~island.population[0].identityHash].playBus.spectrogram
 (
 PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
-PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.002]);
+PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.002]);
 PSSynthDefPhenotype.synthArgsAsChromosome(PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]));
-PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \gain, 1, \pitch, 800, \rq, 0.01]));
+PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.01]));
 )
 /**************************
  * TODO
@@ -363,8 +363,8 @@ fork {
 	~outgroup = Group.after(~voxgroup);
 	s.sync;
 	0.1.wait;
-	~template = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5], target: ~voxgroup);
-	~candidate = Synth.new(\ps_reson_saw, [\out, ~observedBus, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \gain, 0.5], target: ~voxgroup);
+	~template = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5], target: ~voxgroup);
+	~candidate = Synth.new(\ps_reson_saw, [\out, ~observedBus, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \amp, 0.5], target: ~voxgroup);
 	//~comparer = Synth.new(\ps_judge_fft_distance_narrow, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
 	~comparer = Synth.new(\ps_judge_fft_distance_wide, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~observedBus, \targetbus, ~targetBus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
@@ -392,11 +392,11 @@ fork {
 (
 // ~candidate.trace;
 // ~comparer.trace;
-~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \gain, 0.5);
-~candidate.set(\pitch, 800, \ffreq, 800, \rq, 0.3, \gain, 0.5);
-~candidate.set(\pitch, 300, \ffreq, 200, \rq, 0.8, \gain, 0.5);
-~candidate.set(\pitch, 600, \ffreq, 600, \rq, 0.3, \gain, 0.5);
-~candidate.set(\pitch, 27, \ffreq, 1200, \rq, 0.1, \gain, 0.5);
+~candidate.set(\pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5);
+~candidate.set(\pitch, 800, \ffreq, 800, \rq, 0.3, \amp, 0.5);
+~candidate.set(\pitch, 300, \ffreq, 200, \rq, 0.8, \amp, 0.5);
+~candidate.set(\pitch, 600, \ffreq, 600, \rq, 0.3, \amp, 0.5);
+~candidate.set(\pitch, 27, \ffreq, 1200, \rq, 0.1, \amp, 0.5);
 /*~candidate.autogui(specs:(
 	\freq: [20, 20000, \exp, 1, 440],
 	\ffreq: [100, 10000, \exp, 1, 440],
@@ -445,7 +445,7 @@ fork {
 	~control.leakCoef;
 	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: nil);
 	s.sync;
-	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\gain: \unipolar.asSpec));
+	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\amp: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
 	~island = PSControllerIsland((\populationSize: 50, \mutationProb: 0.1, \mutationSize: 0.1, \initialChromosomeSize: 1, \clockRate: 1, \individualConstructor: ~factory, \log: ~log));
 	//~island.scoreCooker = #[phenosynth, score_cookers, raw];
@@ -469,7 +469,7 @@ s.queryAllNodes;
 ~control.all.asArray.dump;
 ~control.listenGroup;
 //add in a good one and see how it survives:
-~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \gain, 1, \pitch, 500, \rq, 1.0]));
+~island.add(PSSynthDefPhenotype.newFromSynthArgs([\ffreq, 500, \amp, 1, \pitch, 500, \rq, 1.0]));
 //{~island.plotFitness(raw:true);}.defer;
 ~island.params;
 ~island.population.size;
@@ -488,7 +488,7 @@ fork {
 	~dummyBus = Bus.audio(s, 1);
 	~fitnessBus = Bus.control(s, 1);
 	s.sync;
-	~observed = Synth.new(\ps_dc, [\gain, 0.63, \out, ~observedBus, \gate, 1], target: s);
+	~observed = Synth.new(\ps_dc, [\amp, 0.63, \out, ~observedBus, \gate, 1], target: s);
 	s.sync;
 	~comparer = Synth.new(\ps_judge_return_observed, [\observedbus, ~observedBus, \targetbus, ~dummyBus, \out, ~fitnessBus, \active, 1, \t_reset, 0, \i_leak, 0.0], target:~observed, addAction:\addAfter);
 	s.sync;

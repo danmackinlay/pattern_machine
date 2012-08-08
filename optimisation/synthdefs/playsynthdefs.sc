@@ -30,26 +30,26 @@ PSBasicPlaySynths {
 		synthArgMaps[\ps_just_playbuf] = ();
 		SynthDef.new(
 			\ps_dc,
-			{ |out=0, gate=0, gain=1.0|
-				Out.ar(out, DC.ar(gain));
+			{ |out=0, gate=0, amp=1.0|
+				Out.ar(out, DC.ar(amp));
 			}
 		).add;
-		synthArgMaps[\ps_dc] = (\gain: \unipolar.asSpec);
+		synthArgMaps[\ps_dc] = (\amp: \unipolar.asSpec);
 		SynthDef.new(
 			\ps_sine,
-			{ |out=0, gate=0, t_reset=0, pitch=800, gain=1.0|
+			{ |out=0, gate=0, t_reset=0, pitch=800, amp=1.0|
 				var env, time = 1;
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
 					doneAction: 0
 				);
-				Out.ar(out, SinOsc.ar(pitch, mul: env*gain));
+				Out.ar(out, SinOsc.ar(pitch, mul: env*amp));
 			}
 		).add;
 		SynthDef.new(
 			\ps_reson_saw,
-			{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0|
+			{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0|
 				var env;
 				var time = 1;
 				env = EnvGen.kr(
@@ -61,24 +61,24 @@ PSBasicPlaySynths {
 					Saw.ar(pitch, env),
 					ffreq,	 //cutoff
 					rq			 //inverse bandwidth
-				) * env * gain);
+				) * env * amp);
 			}
 		).add;
 		synthArgMaps[\ps_reson_saw] = (
 			\pitch: \midfreq.asSpec,
 			\ffreq: \midfreq.asSpec,
 			\rq: \rq.asSpec,
-			\gain: \unipolar.asSpec
+			\amp: \unipolar.asSpec
 		);
 		SynthDef.new(
 			\ps_reson_saw_lagged,
-			{ |out=0, gate=0, t_reset=0, lagtime=0.1, pitch=800, ffreq=500, rq=0.5, gain=1.0|
+			{ |out=0, gate=0, t_reset=0, lagtime=0.1, pitch=800, ffreq=500, rq=0.5, amp=1.0|
 				var env;
 				var time = 1;
 				pitch = Lag.kr(pitch, lagtime);
 				ffreq = Lag.kr(ffreq, lagtime);
 				rq = Lag.kr(rq, lagtime);
-				gain = Lag.kr(gain, lagtime);
+				amp = Lag.kr(amp, lagtime);
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
@@ -88,19 +88,19 @@ PSBasicPlaySynths {
 					Saw.ar(pitch, env),
 					ffreq,//cutoff
 					rq		//inverse bandwidth
-				) * env * gain);
+				) * env * amp);
 			}
 		).add;
 		synthArgMaps[\ps_reson_saw_lagged] = (
 			\pitch: \midfreq.asSpec,
 			\ffreq: \midfreq.asSpec,
 			\rq: \rq.asSpec,
-			\gain: \unipolar.asSpec
+			\amp: \unipolar.asSpec
 		);
 
 		SynthDef.new(
 			\ps_reson_saw_2pan,
-			{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, gain=1.0, pan=0|
+			{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, pan=0|
 				var env;
 				var time = 1;
 				env = EnvGen.kr(
@@ -114,14 +114,14 @@ PSBasicPlaySynths {
 						ffreq,	//cutoff
 						rq		//inverse bandwidth
 					)
-				) * env * gain);
+				) * env * amp);
 			}
 		).add;
 		SynthDef.new(
 			\ps_sample_grain,
 			{ |out=0, gate=0, t_reset=0,
 					buffer, pitch=1, ffreq=500,
-					rq=0.5, gain=1.0, pointer=0.5,
+					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5|
 				var env;
 				var time = 1;
@@ -140,7 +140,7 @@ PSBasicPlaySynths {
 						windowRandRatio: windowRandRatio),
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth
-				) * env * gain);
+				) * env * amp);
 			}
 		).add;
 		synthArgMaps[\ps_sample_grain] = (
@@ -150,13 +150,13 @@ PSBasicPlaySynths {
 			\windowRandRatio: \unipolar.asSpec,
 			\windowSize: ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp'),
 			\rq: \rq.asSpec,
-			\gain: \unipolar.asSpec
+			\amp: \unipolar.asSpec
 		);
 		SynthDef.new(
 			\ps_sample_grain_lagged,
 			{ |out=0, gate=0, t_reset=0,
 					buffer, pitch=1, ffreq=500,
-					rq=0.5, gain=1.0, pointer=0.5,
+					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5, lagtime=0.1|
 				var env;
 				var time = 1;
@@ -164,7 +164,7 @@ PSBasicPlaySynths {
 				pitch = Lag.kr(pitch, lagtime);
 				ffreq = Lag.kr(ffreq, lagtime);
 				rq = Lag.kr(rq, lagtime);
-				gain = Lag.kr(gain, lagtime);
+				amp = Lag.kr(amp, lagtime);
 				
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
@@ -181,7 +181,7 @@ PSBasicPlaySynths {
 						windowRandRatio: windowRandRatio),
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth
-				) * env * gain);
+				) * env * amp);
 			}
 		).add;
 		synthArgMaps[\ps_sample_grain_lagged] = (
@@ -191,7 +191,7 @@ PSBasicPlaySynths {
 			\windowRandRatio: \unipolar.asSpec,
 			\windowSize: ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp'),
 			\rq: \rq.asSpec,
-			\gain: \unipolar.asSpec
+			\amp: \unipolar.asSpec
 		);
 	}
 }

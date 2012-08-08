@@ -122,7 +122,7 @@ VicsekGrid {
 	server {^myServer;}
 	group {^myGroup;}
 	bus {^myOutBus;}
-	play {|server, target, bus, addAction=\addToTail, samplePath, gain=1.0|
+	play {|server, target, bus, addAction=\addToTail, samplePath, amp=1.0|
 		//this really should be wrapped in a generic other class
 		myBuffers = List.new;
 		samplePath.isNil.if({samplePath=~zamples++"cockatoo island/textures/"});
@@ -153,7 +153,7 @@ VicsekGrid {
 				ReplaceOut.ar(myOutBus, son);
 				}.play(myGroup, myOutBus, addAction:\addToTail);
 			server.sync;
-			outSynth.set(\amp, gain);
+			outSynth.set(\amp, amp);
 			particles.do({|particle, i|
 				particle.synth = Synth.new(\vicsek_gull4,
 					[

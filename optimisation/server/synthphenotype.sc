@@ -29,7 +29,7 @@ PSSynthDefPhenotype : PSPhenotype {
 				\pitch: \midfreq.asSpec,
 				\ffreq: \midfreq.asSpec,
 				\rq: \rq.asSpec,
-				\gain: \unipolar.asSpec
+				\amp: \unipolar.asSpec
 			);
 		};
 	}
