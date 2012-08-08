@@ -165,7 +165,11 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * multichannel
 * per-voice synth params - e.g. a pan spread.
 * update the target to be an evolving synth
-	- say, lots of (possibly polyphonic) note events
+	* say, lots of (possibly polyphonic) note events
+	* or a live audio input
+* more interesting objective functions:
+	* match a pitch-shifted version of the input
+	* or a delayed version
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
@@ -182,5 +186,4 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * handle feedback in reverberant environments in some smart way
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
 * should I put some methods in there to handle lagtime on the controller?
-* Eliminate the phenotype factory malarkey; it should be all handled by the controller.
 */
