@@ -19,7 +19,13 @@ StartUp.run;
 ~log.minPriority = -1;
 ~swarm.cookedFitnessMap.values.mean;
 ~swarm.cookedFitnessMap.values.variance;
-~swarm.meanDistance;
+~swarm.swarmLagPosSpeed;
+~swarm.swarmLagMeanPosition;
+~swarm.swarmLagMeanFitness;
+~swarm.swarmLagFitnessSpeed;
+~swarm.swarmLagDispersal;
+~swarm.swarmMeanFitness;
+~swarm.meanFitness;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);

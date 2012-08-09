@@ -30,8 +30,14 @@ PSOptimisingSwarm {
 	var <velocityTable;
 	var <bestKnownPosTable;
 	var <bestKnownFitnessTable;
-	var <lastMeanPosition;
-	var <lastMeanFitness;
+	
+	//tracking convergence
+	var <swarmLagMeanPosition;
+	var <swarmLagPosSpeed=0;
+	var <swarmMeanFitness=0;
+	var <swarmLagMeanFitness=0;
+	var <swarmLagFitnessSpeed=0;
+	var <swarmLagDispersal=0;
 	
 	//flag to stop iterator gracefuly.
 	var playing = false;
@@ -65,6 +71,7 @@ PSOptimisingSwarm {
 			\neighboursPerNode: 3,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
+			\lagCoef: 0.1,
 			\log: NullLogger.new,
 		);
 	}
@@ -96,8 +103,7 @@ PSOptimisingSwarm {
 		velocityTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
 		bestKnownFitnessTable = IdentityDictionary.new(100);
-		lastMeanPosition = 0.5.dup(params.initialChromosomeSize);
-		lastMeanFitness = 0.0;
+		swarmLagMeanPosition = 0.5.dup(params.initialChromosomeSize);
 		this.initOperators;
 	}
 	initOperators {
@@ -175,8 +181,6 @@ PSOptimisingSwarm {
 		
 		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
 		*/
-		var thisMeanPosition;
-		var thisMeanFitness;
 		var logExemplar = {|...args|
 			params.log.log(
 				msgchunks: args,
@@ -273,12 +277,38 @@ PSOptimisingSwarm {
 			bestKnownPosTable[phenotype] = myBestPos;
 			bestKnownFitnessTable[phenotype] = myBestFitness;
 		});
-		thisMeanPosition = this.meanFitness;
-		thisMeanFitness = this.meanChromosome;
-		//TODO: clone this into the subclass method.
-		lastMeanPosition = thisMeanPosition;
-		lastMeanFitness = thisMeanFitness;
+		this.trackConvergence;
 		iterations = iterations + 1;
+	}
+	trackConvergence{
+		var lastMeanFitness;
+		var lagCoef = params.lagCoef;
+
+		lastMeanFitness = swarmMeanFitness;
+		swarmMeanFitness = this.meanFitness;
+		
+		swarmLagPosSpeed = (lagCoef * this.meanVelocity.squared.mean.sqrt) + ((1-lagCoef) * swarmLagPosSpeed);
+		swarmLagMeanPosition = (lagCoef * this.meanChromosome.squared.mean.sqrt) + ((1-lagCoef) * swarmLagMeanPosition);
+		swarmLagMeanFitness = (lagCoef * swarmLagMeanFitness) + ((1-lagCoef) * swarmLagMeanFitness);
+		swarmLagFitnessSpeed = (lagCoef * (swarmMeanFitness-lastMeanFitness)) + ((1-lagCoef) * swarmLagFitnessSpeed);
+		swarmLagDispersal = (lagCoef * this.meanDistance) + ((1-lagCoef) * swarmLagDispersal);
+	}
+	meanChromosome {
+		//return a chromosome that is a mean of all current ones
+		^population.collect(_.chromosome).asArray.mean;
+	}
+	meanFitness {
+		// return the mean fitness for the whole population
+		// (or 0 if there is no fitness yet)
+		^(cookedFitnessMap.size>0).if({cookedFitnessMap.values.mean;}, 0);
+	}
+	meanDistance {|from|
+		//return the mean square distance from a particular vector
+		from = from ? this.meanChromosome;
+		^population.collect(_.chromosome-from).asArray.squared.mean.mean.sqrt;
+	}
+	meanVelocity {
+		^velocityTable.values.mean;
 	}
 	rankedPopulation {
 		//return all population that have a fitness, ranked in descending order thereof.
@@ -286,19 +316,6 @@ PSOptimisingSwarm {
 		^population.selectAs(
 			{|i| cookedFitnessMap[i].notNil}, Array
 		).sort({|a, b| cookedFitnessMap[a] > cookedFitnessMap[b] });
-	}
-	meanChromosome {
-		//return a chromosome that is a mean of all current ones
-		^population.collect(_.chromosome).asArray.mean;
-	}
-	meanFitness {
-		//return the mean fitness for the whole population
-		^cookedFitnessMap.values.mean;
-	}
-	meanDistance {|from|
-		//return the mean square distance from a particular vector
-		from = from ? this.meanChromosome;
-		^population.collect(_.chromosome-from).asArray.squared.mean.mean.sqrt;
 	}
 	free {
 		super.free;
