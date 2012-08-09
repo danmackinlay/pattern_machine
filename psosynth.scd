@@ -7,6 +7,7 @@ Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
+
 //~swarm.params[\selfTracking] = 1.0;
 ~swarm.params[\selfTracking] = 0.0;
 ~swarm.params[\groupTracking] = 2.0;
@@ -60,7 +61,8 @@ fork {
 		\rq, 0.2,
 		\dur, Pexprand(1, 10, inf),
 		\group, ~targetGroup,
-		\addAction, 0
+		\addAction, 0,
+		\legato, 2.0,
 	).play;
 	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~targetGroup);
 	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
@@ -79,8 +81,14 @@ fork {
 	// this should pick up the right default args from the playsynthdefs class
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef:\ps_sample_grain_lagged);
+	//Weirdly, this works best if the fitnessPollRate is lower than the
+	//update rate.
 	~control = PSCompareSynthController.new(
-		numChannels:1, log:~log, fitnessPollRate:2, leakCoef:0.5, maxPop:30,
+		numChannels:1,
+		log:~log,
+		fitnessPollRate:2,
+		leakCoef:0.5,
+		maxPop:30,
 	);
 	~control.extraSynthArgs = [\lagtime, 1.0, \buffer, ~buffer];
 	~control.leakCoef = 0.05;
@@ -169,19 +177,22 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
+* or just one server per channel perhaps?
 * per-voice synth params - e.g. a pan spread.
+* pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
 	* say, lots of (possibly polyphonic) note events
 	* or a live audio input
 * more interesting objective functions:
 	* match a pitch-shifted version of the input
 	* or a delayed version
+	* Weight total spectral energy of target against particle
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
 		(e.g. decreasing without changing)
 	* detecting convergence
-	* GUI for noise params
+	* GUI for noise and convergence params
 * go to MOL ("many optimising liaisons") 
 	* choose random peer as neighbour each time
 	* update only one at each time
