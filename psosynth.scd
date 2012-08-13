@@ -7,7 +7,7 @@ Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-~bits = ~makeGui.(~swarm);
+~bits = ~makeSwarmGui.(~swarm);
 ~bits[\paramscontroller].(\clockRate, 26);
 //~swarm.params[\selfTracking] = 1.0;
 ~swarm.params[\selfTracking] = 0.0;
@@ -130,7 +130,7 @@ fork {
 };
 )
 (
-	~makeGui = {|swarm|
+	~makeSwarmGui = {|swarm|
 		var window, paramsGuiUpdater, paramsModel, clockRateWidget, paramsModelSetter, clock, worker;
 		//model
 		paramsModel = swarm.params;
