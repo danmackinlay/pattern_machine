@@ -131,7 +131,9 @@ fork {
 )
 (
 	~makeSwarmGui = {|swarm|
-		var window, paramsGuiUpdater, paramsModel, clockRateWidget, paramsModelSetter, clock, worker;
+		var window, paramsGuiUpdater, paramsModel, paramsModelSetter, clock, worker;
+		var clockRateWidget, stepSizeWidget;
+		
 		//model
 		paramsModel = swarm.params;
 		//view
@@ -149,6 +151,23 @@ fork {
 			initVal: paramsModel.clockRate,
 			action: {|view| paramsModelSetter.value(\clockRate, view.value);}
 		);
+		stepSizeWidget = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "stepsize",
+			controlSpec: ControlSpec.new(0.0001, 1,
+				\exponential,
+				default: paramsModel.stepSize,
+			),
+			initVal: paramsModel.stepSize,
+			action: {|view| paramsModelSetter.value(\stepSize, view.value);}
+		);
+		/*
+		\selfTracking: 0.0,
+		\groupTracking: 0.5,
+		\momentum: 0.99,
+		\neighboursPerNode: 2,
+		*/
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
@@ -161,7 +180,8 @@ fork {
 		paramsGuiUpdater = {|theChanger, what, val|
 			{
 				what.switch(
-					\clockRate, { clockRateWidget.value_(val);}
+					\clockRate, { clockRateWidget.value_(val);},
+					\stepSize, { stepSizeWidget.value_(val);},
 				);
 			}.defer;
 		};
