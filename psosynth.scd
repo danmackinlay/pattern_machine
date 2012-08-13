@@ -62,7 +62,7 @@ fork {
 		\dur, Pexprand(1, 10, inf),
 		\group, ~targetGroup,
 		\addAction, 0,
-		\legato, 2.0,
+		\legato, Prand([1/2, 1, 2, ], inf)*5,
 	).play;
 	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~targetGroup);
 	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
@@ -181,8 +181,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 * per-voice synth params - e.g. a pan spread.
 * pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
-	* say, lots of (possibly polyphonic) note events
-	* or a live audio input
+	* say, a live audio input
 * more interesting objective functions:
 	* match a pitch-shifted version of the input
 	* or a delayed version
@@ -203,6 +202,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 	* sample playing
 	* sample recording
 * handle feedback in reverberant environments in some smart way
+	* this could be as simple as pitch shifting inputs
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
 * should I put some methods in there to handle lagtime on the controller?
 */
