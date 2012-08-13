@@ -9,7 +9,6 @@ StartUp.run;
 ~plotState.stop;
 ~bits = ~makeSwarmGui.(~swarm);
 ~bits[\paramscontroller].(\clockRate, 26);
-//~swarm.params[\selfTracking] = 1.0;
 ~swarm.params[\selfTracking] = 0.0;
 ~swarm.params[\groupTracking] = 2.0;
 ~swarm.params[\momentum] = 1.03;
@@ -31,14 +30,11 @@ StartUp.run;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
-	//{~globalOuts.scope;}.defer;
 	~phenogroup = Group.new(s);
 	s.sync;
 	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
 	~outgroup = Group.new(~phenogroup, addAction: \addToTail);
-	//~log = NullLogger.global;
 	~log = PostLogger.global;
-	//~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;
@@ -50,7 +46,6 @@ fork {
 	~buffer = Buffer.read(s, ~filename, 0);
 	s.sync;
 	~targetGroup = Group.head(~phenogroup);
-	//~targetSynth = Synth.new(\ps_reson_saw, [\out, ~targetBus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~targetGroup);
 	s.sync;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
@@ -65,7 +60,6 @@ fork {
 		\addAction, 0,
 		\legato, Prand([1/2, 1, 2, ], inf)*5,
 	).play;
-	//~targetSynth = Synth.new(\ps_sine, [\out, ~targetBus, \gate, 1, \amp, 1, \pitch, 500], target: ~targetGroup);
 	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
 	s.sync;
 	//~spy.moveAfter(~targetGroup);
@@ -77,12 +71,9 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	//actual real work now: first choose the controller that will manage the synths
-	//~factory = PSSynthDefPhenotypeFactory.new(
-	//	synthDef:\ps_reson_saw_lagged);
-	// this should pick up the right default args from the playsynthdefs class
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef:\ps_sample_grain_lagged);
-	//Weirdly, this works best if the fitnessPollRate is lower than the
+	//Weirdly, this seems to work best if the fitnessPollRate is lower than the
 	//update rate.
 	~control = PSCompareSynthController.new(
 		numChannels:1,
@@ -166,7 +157,6 @@ fork {
 		\selfTracking: 0.0,
 		\groupTracking: 0.5,
 		\momentum: 0.99,
-		\neighboursPerNode: 2,
 		*/
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
