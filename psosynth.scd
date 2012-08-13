@@ -7,7 +7,8 @@ Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-
+~bits = ~makeGui.(~swarm);
+~bits[\controllerparams].(\clockRate, 26);
 //~swarm.params[\selfTracking] = 1.0;
 ~swarm.params[\selfTracking] = 0.0;
 ~swarm.params[\groupTracking] = 2.0;
@@ -128,6 +129,50 @@ fork {
 	s.sync;
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
+)
+(
+	~makeGui = {|swarm|
+		var window, paramsguiupdater, modelparams, modelstate, clockratewidget, modelParamsSetter, clock, worker, ringconvolve;
+		//model
+		modelparams = swarm.params;
+		//view
+		window = FlowView(bounds:300@300, windowTitle: "window!").front;
+		CmdPeriod.doOnce({window.close});
+		
+		clockratewidget = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "clockrate",
+			controlSpec: ControlSpec.new(1, 100,
+				\exponential,
+				default: modelparams.clockRate,
+				units:\hz),
+			initVal: modelparams.clockRate,
+			action: {|view| modelParamsSetter.value(\clockRate, view.value);}
+		);
+		window.onClose_({
+			modelparams.removeDependant(paramsguiupdater);
+		});
+		
+		//controller
+		modelParamsSetter = {|statekey, stateval|
+			modelparams[statekey] = stateval;
+			modelparams.changed(statekey, stateval);
+		};
+		paramsguiupdater = {|theChanger, what, val|
+			{
+				what.switch(
+					\clockRate, { clockratewidget.value_(val);}
+				);
+			}.defer;
+		};
+		modelparams.addDependant(paramsguiupdater);
+		(
+			\modelparams: modelparams,
+			\window: window,
+			\controllerparams: modelParamsSetter,
+		);
+	}
 )
 //listen for a while.
 //experiment

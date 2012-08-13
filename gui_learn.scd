@@ -1,7 +1,7 @@
 /* TODO:
  * Check out ObjectGui helpfile to make autogui action easy.
  * how do I make this size itself dynamically as claimed in the world
- * of QtGui?
+   of QtGui?
  */
 
 GUI.qt;
