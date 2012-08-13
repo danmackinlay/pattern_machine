@@ -178,7 +178,7 @@ PSListenSynthController : PSSynthController {
 	This Controller subclass sets up Synths and listeners to those synths
 	simultaneously.
 	*/
-	var <>fitnessPollRate;
+	var <fitnessPollRate;
 	var <>listenGroup;
 	var <>worker;
 	var <>clock;
@@ -251,6 +251,10 @@ PSListenSynthController : PSSynthController {
 		clock.stop;
 		clock = nil;
 		worker = nil;
+	}
+	fitnessPollRate_ {|val|
+		fitnessPollRate = val;
+		clock.notNil.if({clock.tempo=val;});
 	}
 	decorateIndividualDict {|indDict|
 		var offset;

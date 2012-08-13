@@ -151,13 +151,15 @@ PSOptimisingSwarm {
 		rawScoreMap[phenotype] = value;
 	}	
 	play {|controller|
-		var clock;
+		var clock, rate;
 		//pass the controller a reference to me so it can push notifications
 		this.controller = controller;
-		params.clockRate ?? {params.clockRate = controller.fitnessPollRate ? 1;};
+		rate = params.clockRate ?? {controller.fitnessPollRate ? 1;};
 		controller.connect(this);
+		controller.fitnessPollRate = rate;
 		this.populate;
-		clock = TempoClock.new(params.clockRate, 1);
+		clock = TempoClock.new(rate, 1);
+		params.clockRate = rate;
 		playing = true;
 		worker = Routine.new({
 			while(

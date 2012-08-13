@@ -87,7 +87,6 @@ fork {
 	~control = PSCompareSynthController.new(
 		numChannels:1,
 		log:~log,
-		fitnessPollRate:2,
 		leakCoef:0.5,
 		maxPop:30,
 	);
@@ -223,6 +222,8 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  
 * multichannel
 * or just one server per channel perhaps?
+* update swarm to wrap Params in a controller so that,
+  e.g. clockrate can change on the flye
 * per-voice synth params - e.g. a pan spread.
 * pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
