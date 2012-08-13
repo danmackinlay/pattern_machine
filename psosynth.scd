@@ -122,7 +122,7 @@ fork {
 )
 (
 	~makeSwarmGui = {|swarm|
-		var window, paramsGuiUpdater, paramsModel, paramsModelSetter, clock, worker;
+		var window, paramsGuiUpdater, paramsModel, paramsModelSetter;
 		var widgets = ();
 		
 		//model
@@ -131,7 +131,7 @@ fork {
 		window = FlowView(bounds:300@300, windowTitle: "window!").front;
 		CmdPeriod.doOnce({window.close});
 		
-		widgets.clockrate = EZSlider.new(
+		widgets.clockRate = EZSlider.new(
 			parent: window,
 			bounds: Point(window.bounds.width*0.9, 16),
 			label: "clockrate",
@@ -175,9 +175,17 @@ fork {
 			initVal: paramsModel.groupTracking,
 			action: {|view| paramsModelSetter.value(\groupTracking, view.value);}
 		);
-		/*
-		\momentum: 0.99,
-		*/
+		widgets.momentum = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "momentum",
+			controlSpec: ControlSpec.new(0.9, 0.9.reciprocal,
+				\exponential,
+				default: paramsModel.momentum,
+			),
+			initVal: paramsModel.momentum,
+			action: {|view| paramsModelSetter.value(\momentum, view.value);}
+		);
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
@@ -194,6 +202,7 @@ fork {
 					\stepSize, { widgets.stepSize.value_(val);},
 					\selfTracking, { widgets.selfTracking.value_(val);},
 					\groupTracking, { widgets.groupTracking.value_(val);},
+					\momentum, { widgets.momentum.value_(val);},
 				);
 			}.defer;
 		};
