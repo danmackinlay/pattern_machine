@@ -123,7 +123,7 @@ fork {
 (
 	~makeSwarmGui = {|swarm|
 		var window, paramsGuiUpdater, paramsModel, paramsModelSetter, clock, worker;
-		var clockRateWidget, stepSizeWidget;
+		var widgets = ();
 		
 		//model
 		paramsModel = swarm.params;
@@ -131,7 +131,7 @@ fork {
 		window = FlowView(bounds:300@300, windowTitle: "window!").front;
 		CmdPeriod.doOnce({window.close});
 		
-		clockRateWidget = EZSlider.new(
+		widgets.clockrate = EZSlider.new(
 			parent: window,
 			bounds: Point(window.bounds.width*0.9, 16),
 			label: "clockrate",
@@ -142,7 +142,7 @@ fork {
 			initVal: paramsModel.clockRate,
 			action: {|view| paramsModelSetter.value(\clockRate, view.value);}
 		);
-		stepSizeWidget = EZSlider.new(
+		widgets.stepSize = EZSlider.new(
 			parent: window,
 			bounds: Point(window.bounds.width*0.9, 16),
 			label: "stepsize",
@@ -170,8 +170,8 @@ fork {
 		paramsGuiUpdater = {|theChanger, what, val|
 			{
 				what.switch(
-					\clockRate, { clockRateWidget.value_(val);},
-					\stepSize, { stepSizeWidget.value_(val);},
+					\clockRate, { widgets.clockRate.value_(val);},
+					\stepSize, { widgets.stepSize.value_(val);},
 				);
 			}.defer;
 		};
