@@ -153,9 +153,29 @@ fork {
 			initVal: paramsModel.stepSize,
 			action: {|view| paramsModelSetter.value(\stepSize, view.value);}
 		);
+		widgets.selfTracking = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "selftracking",
+			controlSpec: ControlSpec.new(0.0, 2.0,
+				\linear,
+				default: paramsModel.selfTracking,
+			),
+			initVal: paramsModel.selfTracking,
+			action: {|view| paramsModelSetter.value(\selfTracking, view.value);}
+		);
+		widgets.groupTracking = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "groupTracking",
+			controlSpec: ControlSpec.new(0.0, 2.0,
+				\linear,
+				default: paramsModel.groupTracking,
+			),
+			initVal: paramsModel.groupTracking,
+			action: {|view| paramsModelSetter.value(\groupTracking, view.value);}
+		);
 		/*
-		\selfTracking: 0.0,
-		\groupTracking: 0.5,
 		\momentum: 0.99,
 		*/
 		window.onClose_({
@@ -172,6 +192,8 @@ fork {
 				what.switch(
 					\clockRate, { widgets.clockRate.value_(val);},
 					\stepSize, { widgets.stepSize.value_(val);},
+					\selfTracking, { widgets.selfTracking.value_(val);},
+					\groupTracking, { widgets.groupTracking.value_(val);},
 				);
 			}.defer;
 		};
