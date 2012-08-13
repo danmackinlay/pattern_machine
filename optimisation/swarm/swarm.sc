@@ -289,7 +289,7 @@ PSOptimisingSwarm {
 		
 		swarmLagPosSpeed = (lagCoef * this.meanVelocity.squared.mean.sqrt) + ((1-lagCoef) * swarmLagPosSpeed);
 		swarmLagMeanPosition = (lagCoef * this.meanChromosome.squared.mean.sqrt) + ((1-lagCoef) * swarmLagMeanPosition);
-		swarmLagMeanFitness = (lagCoef * swarmLagMeanFitness) + ((1-lagCoef) * swarmLagMeanFitness);
+		swarmLagMeanFitness = (lagCoef * this.meanFitness) + ((1-lagCoef) * swarmLagMeanFitness);
 		swarmLagFitnessSpeed = (lagCoef * (swarmMeanFitness-lastMeanFitness)) + ((1-lagCoef) * swarmLagFitnessSpeed);
 		swarmLagDispersal = (lagCoef * this.meanDistance) + ((1-lagCoef) * swarmLagDispersal);
 	}
