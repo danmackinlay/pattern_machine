@@ -428,89 +428,88 @@ SwarmGui {
 	*new{|swarm| ^super.newCopyArgs(swarm).init;}
 	
 	init {
-	widgets = ();
-	//model
-	paramsModel = swarm.params;
-	//view
-	window = FlowView(bounds:300@300, windowTitle: "window!").front;
-	CmdPeriod.doOnce({window.close});
+		widgets = ();
+		//model
+		paramsModel = swarm.params;
+		//view
+		window = FlowView(bounds:300@300, windowTitle: "window!").front;
+		CmdPeriod.doOnce({window.close});
 		
-	widgets.clockRate = EZSlider.new(
-		parent: window,
-		bounds: Point(window.bounds.width*0.9, 16),
-		label: "clockrate",
-		controlSpec: ControlSpec.new(1, 100,
-			\exponential,
-			default: paramsModel.clockRate,
-			units:\hz),
-		initVal: paramsModel.clockRate,
-		action: {|view| paramsModelSetter.value(\clockRate, view.value);}
-	);
-	widgets.stepSize = EZSlider.new(
-		parent: window,
-		bounds: Point(window.bounds.width*0.9, 16),
-		label: "stepsize",
-		controlSpec: ControlSpec.new(0.0001, 1,
-			\exponential,
-			default: paramsModel.stepSize,
-		),
-		initVal: paramsModel.stepSize,
-		action: {|view| paramsModelSetter.value(\stepSize, view.value);}
-	);
-	widgets.selfTracking = EZSlider.new(
-		parent: window,
-		bounds: Point(window.bounds.width*0.9, 16),
-		label: "selftracking",
-		controlSpec: ControlSpec.new(0.0, 2.0,
-			\linear,
-			default: paramsModel.selfTracking,
-		),
-		initVal: paramsModel.selfTracking,
-		action: {|view| paramsModelSetter.value(\selfTracking, view.value);}
-	);
-	widgets.groupTracking = EZSlider.new(
-		parent: window,
-		bounds: Point(window.bounds.width*0.9, 16),
-		label: "groupTracking",
-		controlSpec: ControlSpec.new(0.0, 2.0,
-			\linear,
-			default: paramsModel.groupTracking,
-		),
-		initVal: paramsModel.groupTracking,
-		action: {|view| paramsModelSetter.value(\groupTracking, view.value);}
-	);
-	widgets.momentum = EZSlider.new(
-		parent: window,
-		bounds: Point(window.bounds.width*0.9, 16),
-		label: "momentum",
-		controlSpec: ControlSpec.new(0.9, 0.9.reciprocal,
-			\exponential,
-			default: paramsModel.momentum,
-		),
-		initVal: paramsModel.momentum,
-		action: {|view| paramsModelSetter.value(\momentum, view.value);}
-	);
-	window.onClose_({
-		paramsModel.removeDependant(paramsGuiUpdater);
-	});
+		widgets.clockRate = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "clockrate",
+			controlSpec: ControlSpec.new(1, 100,
+				\exponential,
+				default: paramsModel.clockRate,
+				units:\hz),
+			initVal: paramsModel.clockRate,
+			action: {|view| paramsModelSetter.value(\clockRate, view.value);}
+		);
+		widgets.stepSize = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "stepsize",
+			controlSpec: ControlSpec.new(0.0001, 1,
+				\exponential,
+				default: paramsModel.stepSize,
+			),
+			initVal: paramsModel.stepSize,
+			action: {|view| paramsModelSetter.value(\stepSize, view.value);}
+		);
+		widgets.selfTracking = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "selftracking",
+			controlSpec: ControlSpec.new(0.0, 2.0,
+				\linear,
+				default: paramsModel.selfTracking,
+			),
+			initVal: paramsModel.selfTracking,
+			action: {|view| paramsModelSetter.value(\selfTracking, view.value);}
+		);
+		widgets.groupTracking = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "groupTracking",
+			controlSpec: ControlSpec.new(0.0, 2.0,
+				\linear,
+				default: paramsModel.groupTracking,
+			),
+			initVal: paramsModel.groupTracking,
+			action: {|view| paramsModelSetter.value(\groupTracking, view.value);}
+		);
+		widgets.momentum = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "momentum",
+			controlSpec: ControlSpec.new(0.9, 0.9.reciprocal,
+				\exponential,
+				default: paramsModel.momentum,
+			),
+			initVal: paramsModel.momentum,
+			action: {|view| paramsModelSetter.value(\momentum, view.value);}
+		);
+		window.onClose_({
+			paramsModel.removeDependant(paramsGuiUpdater);
+		});
 		
-	//controller
-	paramsModelSetter = {|statekey, stateval|
-		paramsModel[statekey] = stateval;
-		paramsModel.changed(statekey, stateval);
-	};
-	paramsGuiUpdater = {|theChanger, what, val|
-		{
-			what.switch(
-				\clockRate, { widgets.clockRate.value_(val);},
-				\stepSize, { widgets.stepSize.value_(val);},
-				\selfTracking, { widgets.selfTracking.value_(val);},
-				\groupTracking, { widgets.groupTracking.value_(val);},
-				\momentum, { widgets.momentum.value_(val);},
-			);
-		}.defer;
-	};
-	paramsModel.addDependant(paramsGuiUpdater);
+		//controller
+		paramsModelSetter = {|statekey, stateval|
+			paramsModel[statekey] = stateval;
+			paramsModel.changed(statekey, stateval);
+		};
+		paramsGuiUpdater = {|theChanger, what, val|
+			{
+				what.switch(
+					\clockRate, { widgets.clockRate.value_(val);},
+					\stepSize, { widgets.stepSize.value_(val);},
+					\selfTracking, { widgets.selfTracking.value_(val);},
+					\groupTracking, { widgets.groupTracking.value_(val);},
+					\momentum, { widgets.momentum.value_(val);},
+				);
+			}.defer;
+		};
+		paramsModel.addDependant(paramsGuiUpdater);
 	}
 }
-
