@@ -67,8 +67,6 @@ PSOptimisingSwarm {
 			\momentum: 1.03,
 			\noise: 0.0,
 			\maxVel: 1.0,
-			//\linksTransitive: false,
-			\neighboursPerNode: 3,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
 			\lagCoef: 0.1,
@@ -329,8 +327,7 @@ PSLocalOptimisingSwarm : PSOptimisingSwarm {
 	var <neighbourTable;
 	*defaultParams {
 		var params = super.defaultParams;
-		params.neighboursPerNode =3;
-		//params.linksTransitive= false;
+		params.neighboursPerNode = 3;
 		^params;
 	}
 	init {
@@ -349,8 +346,6 @@ PSLocalOptimisingSwarm : PSOptimisingSwarm {
 		// this is easier than bit-by-bit if we want to avoid preferential attachment dynamics
 		// Maybe preferential attachment dynamics is desirable though? I dunno.
 		var nLinks = [params.neighboursPerNode, params.populationSize-1].maxItem;
-		// Not supported at the moment because of pains of avoiding duplicates
-		//(params.linksTransitive).if({nLinks = nLinks / 2;});
 		population.do({|here|
 			var unusedNeighbours = IdentitySet.newFrom(population); //this copies, right?
 			unusedNeighbours.remove(here);
@@ -374,9 +369,6 @@ PSLocalOptimisingSwarm : PSOptimisingSwarm {
 	}
 	addLink{|src, dest|
 		neighbourTable[src] = neighbourTable[src].add(dest);
-		/*params.linksTransitive.if({
-			neighbourTable[dest] = neighbourTable[dest].add(src);
-		});*/
 	}
 }
 SwarmGraph {
