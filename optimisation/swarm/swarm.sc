@@ -70,7 +70,8 @@ PSOptimisingSwarm {
 			\maxVel: 1.0,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
-			\lagCoef: 0.1,
+			\shortLagCoef: 0.1,
+			\longLagCoef: 0.1,
 			\log: NullLogger.new,
 		);
 	}
@@ -102,7 +103,7 @@ PSOptimisingSwarm {
 		velocityTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
 		bestKnownFitnessTable = IdentityDictionary.new(100);
-		swarmLagMeanPosition = 0.5.dup(params.initialChromosomeSize);
+		swarmLagMeanPosition = 0.5.dup(params.initialChromosomeSize) *.t [1,1];
 		this.initOperators;
 	}
 	initOperators {
@@ -288,17 +289,18 @@ PSOptimisingSwarm {
 	trackConvergence{
 		var lastMeanFitness;
 		var meanChromosome;
-		var lagCoef = params.lagCoef;
+		var lagCoefs = [params.shortLagCoef, params.longLagCoef];
+		var convLagCoefs = 1.0 - lagCoefs;
 		meanChromosome = this.meanChromosome;
 		
 		lastMeanFitness = swarmMeanFitness;
 		swarmMeanFitness = this.meanFitness;
 		
-		swarmLagPosSpeed = (lagCoef * this.meanVelocity.squared.mean.sqrt) + ((1-lagCoef) * swarmLagPosSpeed);
-		swarmLagMeanPosition = (lagCoef * meanChromosome) + ((1-lagCoef) * swarmLagMeanPosition);
-		swarmLagMeanFitness = (lagCoef * this.meanFitness) + ((1-lagCoef) * swarmLagMeanFitness);
-		swarmLagFitnessSpeed = (lagCoef * (swarmMeanFitness-lastMeanFitness)) + ((1-lagCoef) * swarmLagFitnessSpeed);
-		swarmLagDispersal = (lagCoef * this.meanDistance(meanChromosome)) + ((1-lagCoef) * swarmLagDispersal);
+		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
+		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (convLagCoefs *.t swarmLagMeanPosition );
+		swarmLagMeanFitness = (lagCoefs * this.meanFitness) + (convLagCoefs * swarmLagMeanFitness);
+		swarmLagFitnessSpeed = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessSpeed);
+		swarmLagDispersal = (lagCoefs * this.meanDistance(meanChromosome)) + (convLagCoefs * swarmLagDispersal);
 	}
 	meanChromosome {
 		//return a chromosome that is a mean of all current ones
