@@ -9,6 +9,7 @@ StartUp.run;
 ~plotState.stop;
 ~gui = SwarmGui.new(~swarm);
 ~gui.setParam(\clockRate, 26);
+~gui.setParam(\stepSize, 0.05);
 ~gui.setParam(\selfTracking, 0.0);
 ~gui.setParam(\groupTracking, 2.0);
 ~gui.setParam(\momentum, 1.03);

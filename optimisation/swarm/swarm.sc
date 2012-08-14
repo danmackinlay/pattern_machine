@@ -444,7 +444,7 @@ SwarmGui {
 				default: paramsModel.clockRate,
 				units:\hz),
 			initVal: paramsModel.clockRate,
-			action: {|view| paramsModelSetter.value(\clockRate, view.value);}
+			action: {|view| this.setParam(\clockRate, view.value);}
 		);
 		widgets.stepSize = EZSlider.new(
 			parent: window,
@@ -455,7 +455,7 @@ SwarmGui {
 				default: paramsModel.stepSize,
 			),
 			initVal: paramsModel.stepSize,
-			action: {|view| paramsModelSetter.value(\stepSize, view.value);}
+			action: {|view| this.setParam(\stepSize, view.value);}
 		);
 		widgets.selfTracking = EZSlider.new(
 			parent: window,
@@ -466,7 +466,7 @@ SwarmGui {
 				default: paramsModel.selfTracking,
 			),
 			initVal: paramsModel.selfTracking,
-			action: {|view| paramsModelSetter.value(\selfTracking, view.value);}
+			action: {|view| this.setParam(\selfTracking, view.value);}
 		);
 		widgets.groupTracking = EZSlider.new(
 			parent: window,
@@ -477,7 +477,7 @@ SwarmGui {
 				default: paramsModel.groupTracking,
 			),
 			initVal: paramsModel.groupTracking,
-			action: {|view| paramsModelSetter.value(\groupTracking, view.value);}
+			action: {|view| this.setParam(\groupTracking, view.value);}
 		);
 		widgets.momentum = EZSlider.new(
 			parent: window,
@@ -488,7 +488,18 @@ SwarmGui {
 				default: paramsModel.momentum,
 			),
 			initVal: paramsModel.momentum,
-			action: {|view| paramsModelSetter.value(\momentum, view.value);}
+			action: {|view| this.setParam(\momentum, view.value);}
+		);
+		widgets.noise = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "noise",
+			controlSpec: ControlSpec.new(0.00001, 1,
+				\exponential,
+				default: paramsModel.noise,
+			),
+			initVal: paramsModel.noise,
+			action: {|view| this.setParam(\noise, view.value);}
 		);
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
@@ -501,6 +512,7 @@ SwarmGui {
 					\selfTracking, { widgets.selfTracking.value_(val);},
 					\groupTracking, { widgets.groupTracking.value_(val);},
 					\momentum, { widgets.momentum.value_(val);},
+					\noise, { widgets.noise.value_(val);},
 				);
 			}.defer;
 		};
