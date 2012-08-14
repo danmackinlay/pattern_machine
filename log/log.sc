@@ -13,7 +13,16 @@ NullLogger {
 	 logging without changing code, but also ia a semi-abstract superclass. */
 	var <>minPriority = -1;
 	var <rejSet;
-	init {
+	*new {
+		^super.new.initNullLogger;
+	}
+	*global {
+		^this.new;
+	}
+	*default {
+		^this.new;
+	}
+	initNullLogger {
 		rejSet = rejSet ?? {Set[]};
 	}
 	reject {|tag|
@@ -30,15 +39,6 @@ NullLogger {
 			stamp = [tag, priority];
 		});
 		^">>>"+(stamp ++ msgchunks).join("|")++"\n";
-	}
-	*new {
-		^super.new.init;
-	}
-	*global {
-		^this.new;
-	}
-	*default {
-		^this.new;
 	}
 	acceptMsg {|priority, tag|
 		^(priority >= minPriority).and(rejSet.includes(tag).not);
@@ -60,18 +60,7 @@ FileLogger : NullLogger {
 	var <fileName;
 
 	*new {|fileName|
-		var file, thisLogPath;
-		thisLogPath = PathName(logpath);
-		fileName.isNil.if({
-			"No log name supplied".throw;
-		});
-		File.exists(thisLogPath.fullPath).not.if({
-			File.mkdir(thisLogPath.fullPath);
-		});
-
-		fileName = (thisLogPath +/+ fileName).fullPath;
-		file = File.open(fileName, "a");
-		^super.newCopyArgs(nil, file, fileName).init;
+		^super.new.initFileLogger(fileName);
 	}
 	*newFromDate {|prefix|
 		var fileName;
@@ -91,6 +80,18 @@ FileLogger : NullLogger {
 		/* a fresh, time-stamped logfile for your ease of logging */
 		default.isNil.if({default = this.newFromDate});
 		^default;
+	}
+	initFileLogger {|fn|
+		var file, thisLogPath;
+		thisLogPath = PathName(logpath);
+		fn.isNil.if({
+			"No log name supplied".throw;
+		});
+		File.exists(thisLogPath.fullPath).not.if({
+			File.mkdir(thisLogPath.fullPath);
+		});
+		fileName = (thisLogPath +/+ fn).fullPath;
+		file = File.open(fileName, "a");
 	}
 	log {|msgchunks, tag=\default, priority=0, time=true, flush=true|
 		this.acceptMsg(priority, tag).if {
