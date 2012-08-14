@@ -36,7 +36,7 @@ fork {
 	s.sync;
 	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
 	~outgroup = Group.new(~phenogroup, addAction: \addToTail);
-	~log = PostLogger.global;
+	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;

@@ -61,7 +61,7 @@ PSOptimisingSwarm {
 		^(
 			\initialChromosomeSize: 4,
 			\stepSize: 0.01,
-			\clockRate: 10.0,
+			\clockRate: 5.0,
 			\selfTracking: 2.0,
 			\groupTracking: 2.0,
 			\momentum: 1.03,
@@ -289,18 +289,39 @@ PSOptimisingSwarm {
 	trackConvergence{
 		var lastMeanFitness;
 		var meanChromosome;
-		var lagCoefs = [params.shortLagCoef, params.longLagCoef];
-		var convLagCoefs = 1.0 - lagCoefs;
+		var lagCoefs; 
+		var convLagCoefs;
+		
+		lagCoefs = [params[\shortLagCoef], params[\longLagCoef]];
+		convLagCoefs = 1.0 - lagCoefs;
+		
+		params.log.log(msgchunks:[\trackconv1, \ps] ++
+			[params[\shortLagCoef], params[\longLagCoef]] ++
+			[\lagCoefs] ++ lagCoefs ++
+			[\convLagCoefs] ++ convLagCoefs,
+			tag:\stats, priority: 1);
 		meanChromosome = this.meanChromosome;
 		
 		lastMeanFitness = swarmMeanFitness;
 		swarmMeanFitness = this.meanFitness;
 		
 		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
-		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (convLagCoefs *.t swarmLagMeanPosition );
+		params.log.log(msgchunks:[\tick1], tag:\stats, priority: 1);
+			swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (convLagCoefs *.t swarmLagMeanPosition );
+		//this next line eventually hangs everything:
 		swarmLagMeanFitness = (lagCoefs * this.meanFitness) + (convLagCoefs * swarmLagMeanFitness);
+		params.log.log(msgchunks:[\tick2], tag:\stats, priority: 1);
 		swarmLagFitnessSpeed = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessSpeed);
+		params.log.log(msgchunks:[\tick3], tag:\stats, priority: 1);
 		swarmLagDispersal = (lagCoefs * this.meanDistance(meanChromosome)) + (convLagCoefs * swarmLagDispersal);
+		params.log.log(msgchunks:[\tick4], tag:\stats, priority: 1);
+		
+		params.log.log(msgchunks:[\trackconv2, \ps] ++
+			[params[\shortLagCoef], params[\longLagCoef]] ++
+			[\lagCoefs] ++ lagCoefs ++
+			[\convLagCoefs] ++ convLagCoefs,
+			tag:\stats, priority: 1);
+		
 	}
 	meanChromosome {
 		//return a chromosome that is a mean of all current ones
