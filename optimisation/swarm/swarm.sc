@@ -65,7 +65,8 @@ PSOptimisingSwarm {
 			\selfTracking: 2.0,
 			\groupTracking: 2.0,
 			\momentum: 1.03,
-			\noise: 0.0,
+			\memoryDecay: 0.99,
+			\noise: 0.0001,
 			\maxVel: 1.0,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
@@ -276,6 +277,10 @@ PSOptimisingSwarm {
 			
 			bestKnownPosTable[phenotype] = myBestPos;
 			bestKnownFitnessTable[phenotype] = myBestFitness;
+			
+			bestKnownFitnessTable.keysValuesDo({|key, val|
+				bestKnownFitnessTable[key] = val*(params.memoryDecay);
+			});
 		});
 		this.trackConvergence;
 		iterations = iterations + 1;
@@ -316,6 +321,9 @@ PSOptimisingSwarm {
 		^population.selectAs(
 			{|i| cookedFitnessMap[i].notNil}, Array
 		).sort({|a, b| cookedFitnessMap[a] > cookedFitnessMap[b] });
+	}
+	swarmMeanBestFitness {
+		^bestKnownFitnessTable.values.asArray.mean;
 	}
 	free {
 		super.free;
@@ -493,6 +501,17 @@ SwarmGui {
 			initVal: paramsModel.noise,
 			action: {|view| this.setParam(\noise, view.value);}
 		);
+		widgets.memoryDecay = EZSlider.new(
+			parent: window,
+			bounds: Point(window.bounds.width*0.9, 16),
+			label: "memoryDecay",
+			controlSpec: ControlSpec.new(0.9, 1.0,
+				\exponential,
+				default: paramsModel.memoryDecay,
+			),
+			initVal: paramsModel.memoryDecay,
+			action: {|view| this.setParam(\memoryDecay, view.value);}
+		);
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
@@ -505,6 +524,7 @@ SwarmGui {
 					\groupTracking, { widgets.groupTracking.value_(val);},
 					\momentum, { widgets.momentum.value_(val);},
 					\noise, { widgets.noise.value_(val);},
+					\memoryDecay, { widgets.memoryDecay.value_(val);},
 				);
 			}.defer;
 		};

@@ -27,6 +27,7 @@ StartUp.run;
 ~swarm.swarmLagFitnessSpeed;
 ~swarm.swarmLagDispersal;
 ~swarm.swarmMeanFitness;
+~swarm.swarmMeanBestFitness;
 ~swarm.meanFitness;
 (
 fork {
