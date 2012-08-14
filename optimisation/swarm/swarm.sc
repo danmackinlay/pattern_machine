@@ -287,16 +287,18 @@ PSOptimisingSwarm {
 	}
 	trackConvergence{
 		var lastMeanFitness;
+		var meanChromosome;
 		var lagCoef = params.lagCoef;
-
+		meanChromosome = this.meanChromosome;
+		
 		lastMeanFitness = swarmMeanFitness;
 		swarmMeanFitness = this.meanFitness;
 		
 		swarmLagPosSpeed = (lagCoef * this.meanVelocity.squared.mean.sqrt) + ((1-lagCoef) * swarmLagPosSpeed);
-		swarmLagMeanPosition = (lagCoef * this.meanChromosome) + ((1-lagCoef) * swarmLagMeanPosition);
+		swarmLagMeanPosition = (lagCoef * meanChromosome) + ((1-lagCoef) * swarmLagMeanPosition);
 		swarmLagMeanFitness = (lagCoef * this.meanFitness) + ((1-lagCoef) * swarmLagMeanFitness);
 		swarmLagFitnessSpeed = (lagCoef * (swarmMeanFitness-lastMeanFitness)) + ((1-lagCoef) * swarmLagFitnessSpeed);
-		swarmLagDispersal = (lagCoef * this.meanDistance) + ((1-lagCoef) * swarmLagDispersal);
+		swarmLagDispersal = (lagCoef * this.meanDistance(meanChromosome)) + ((1-lagCoef) * swarmLagDispersal);
 	}
 	meanChromosome {
 		//return a chromosome that is a mean of all current ones
