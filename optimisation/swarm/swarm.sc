@@ -307,8 +307,8 @@ PSOptimisingSwarm {
 		
 		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
 		params.log.log(msgchunks:[\tick1], tag:\stats, priority: 1);
-			swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (convLagCoefs *.t swarmLagMeanPosition );
 		//this next line eventually hangs everything:
+		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (convLagCoefs * swarmLagMeanPosition );
 		swarmLagMeanFitness = (lagCoefs * this.meanFitness) + (convLagCoefs * swarmLagMeanFitness);
 		params.log.log(msgchunks:[\tick2], tag:\stats, priority: 1);
 		swarmLagFitnessSpeed = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessSpeed);
