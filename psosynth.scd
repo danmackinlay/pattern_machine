@@ -29,6 +29,7 @@ StartUp.run;
 ~swarm.swarmMeanFitness;
 ~swarm.swarmMeanBestFitness;
 ~swarm.meanFitness;
+
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
