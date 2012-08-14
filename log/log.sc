@@ -56,7 +56,7 @@ FileLogger : NullLogger {
 	classvar default;
 	classvar <>logpath = "~/Logs/Supercollider";
 
-	var file;
+	var <file;
 	var <fileName;
 
 	*new {|fileName|
@@ -82,7 +82,7 @@ FileLogger : NullLogger {
 		^default;
 	}
 	initFileLogger {|fn|
-		var file, thisLogPath;
+		var thisLogPath;
 		thisLogPath = PathName(logpath);
 		fn.isNil.if({
 			"No log name supplied".throw;
