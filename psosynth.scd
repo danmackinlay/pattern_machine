@@ -18,7 +18,7 @@ StartUp.run;
 ~gui.setParam(\noise, 0.01);
 ~gui.setParam(\noise, 0.1);
 ~gui.setParam(\noise, 1);
-~log.minPriority = -1;
+~log.minPriority = 1;
 ~swarm.cookedFitnessMap.values.mean;
 ~swarm.cookedFitnessMap.values.variance;
 ~swarm.swarmLagPosSpeed;
@@ -36,7 +36,7 @@ fork {
 	s.sync;
 	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
 	~outgroup = Group.new(~phenogroup, addAction: \addToTail);
-	~log = PostLogger.global;
+	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;
@@ -171,9 +171,9 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
  **************************
  
 * multichannel
-* or just one server per channel perhaps?
-* update swarm to wrap Params in a controller so that,
-  e.g. clockrate can change on the flye
+  * or just one server per channel perhaps?
+* update SynthController to have its params accessed through a controller
+  so that, e.g. clockrate can change on the fly
 * per-voice synth params - e.g. a pan spread.
 * pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
@@ -182,12 +182,13 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 	* match a pitch-shifted version of the input
 	* or a delayed version
 	* Weight total spectral energy of target against particle
+	* cepstral measures to favour harmonicity
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
 		(e.g. decreasing without changing)
 	* detecting convergence
-	* GUI for noise and convergence params
+	* GUI for fitness statistics
 	* remember near-global maxima so I know when I've drifted off.
 	* short/long lags for fitness
 * go to MOL ("many optimising liaisons") 

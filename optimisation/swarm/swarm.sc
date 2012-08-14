@@ -61,7 +61,7 @@ PSOptimisingSwarm {
 		^(
 			\initialChromosomeSize: 4,
 			\stepSize: 0.01,
-			\clockRate: 10.0,
+			\clockRate: 5.0,
 			\selfTracking: 2.0,
 			\groupTracking: 2.0,
 			\momentum: 1.03,
@@ -70,7 +70,8 @@ PSOptimisingSwarm {
 			\maxVel: 1.0,
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
-			\lagCoef: 0.1,
+			\shortLagCoef: 0.1,
+			\longLagCoef: 0.1,
 			\log: NullLogger.new,
 		);
 	}
@@ -102,7 +103,7 @@ PSOptimisingSwarm {
 		velocityTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
 		bestKnownFitnessTable = IdentityDictionary.new(100);
-		swarmLagMeanPosition = 0.5.dup(params.initialChromosomeSize);
+		swarmLagMeanPosition =  [1,1] *.t (0.5.dup(params.initialChromosomeSize));
 		this.initOperators;
 	}
 	initOperators {
@@ -288,17 +289,30 @@ PSOptimisingSwarm {
 	trackConvergence{
 		var lastMeanFitness;
 		var meanChromosome;
-		var lagCoef = params.lagCoef;
-		meanChromosome = this.meanChromosome;
+		var lagCoefs; 
+		var convLagCoefs;
 		
+		//vector of lag coefficients:
+		lagCoefs = [params[\shortLagCoef], params[\longLagCoef]];
+		convLagCoefs = 1.0 - lagCoefs;
+		
+		//some state that needs extra work to track
 		lastMeanFitness = swarmMeanFitness;
 		swarmMeanFitness = this.meanFitness;
+        meanChromosome = this.meanChromosome;
 		
-		swarmLagPosSpeed = (lagCoef * this.meanVelocity.squared.mean.sqrt) + ((1-lagCoef) * swarmLagPosSpeed);
-		swarmLagMeanPosition = (lagCoef * meanChromosome) + ((1-lagCoef) * swarmLagMeanPosition);
-		swarmLagMeanFitness = (lagCoef * this.meanFitness) + ((1-lagCoef) * swarmLagMeanFitness);
-		swarmLagFitnessSpeed = (lagCoef * (swarmMeanFitness-lastMeanFitness)) + ((1-lagCoef) * swarmLagFitnessSpeed);
-		swarmLagDispersal = (lagCoef * this.meanDistance(meanChromosome)) + ((1-lagCoef) * swarmLagDispersal);
+		//calculate lags
+		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
+		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (swarmLagMeanPosition * convLagCoefs );
+		swarmLagMeanFitness = (lagCoefs * this.meanFitness) + (convLagCoefs * swarmLagMeanFitness);
+		swarmLagFitnessSpeed = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessSpeed);
+		swarmLagDispersal = (lagCoefs * this.meanDistance(meanChromosome)) + (convLagCoefs * swarmLagDispersal);
+		// careful, operator order and depth get weird with this last one:
+		/*params.log.log(msgchunks:[\subtick1, \meanc] ++ meanChromosome ++
+			[\lagmeanc] ++ swarmLagMeanPosition ++
+			[\dimsina, meanChromosome.size, meanChromosome[0].size] ++
+			[\dimsinb, swarmLagMeanPosition.size, swarmLagMeanPosition[0].size],
+			tag:\stats, priority: 1);*/
 	}
 	meanChromosome {
 		//return a chromosome that is a mean of all current ones
