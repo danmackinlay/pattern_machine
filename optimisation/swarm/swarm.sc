@@ -493,12 +493,6 @@ SwarmGui {
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
-		
-		//controller
-		paramsModelSetter = {|statekey, stateval|
-			paramsModel[statekey] = stateval;
-			paramsModel.changed(statekey, stateval);
-		};
 		paramsGuiUpdater = {|theChanger, what, val|
 			{
 				what.switch(
@@ -511,5 +505,10 @@ SwarmGui {
 			}.defer;
 		};
 		paramsModel.addDependant(paramsGuiUpdater);
+	}
+	//controller. This is the only supported accessor for swarm params.
+	setParam {|statekey, stateval|
+		paramsModel[statekey] = stateval;
+		paramsModel.changed(statekey, stateval);
 	}
 }
