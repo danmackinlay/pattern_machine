@@ -24,7 +24,7 @@ StartUp.run;
 ~swarm.swarmLagPosSpeed;
 ~swarm.swarmLagMeanPosition;
 ~swarm.swarmLagMeanFitness;
-~swarm.swarmLagFitnessSpeed;
+~swarm.swarmLagFitnessRate;
 ~swarm.swarmLagDispersal;
 ~swarm.swarmMeanFitness;
 ~swarm.swarmMeanBestFitness;

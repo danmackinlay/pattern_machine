@@ -36,7 +36,7 @@ PSOptimisingSwarm {
 	var <swarmLagPosSpeed=0;
 	var <swarmMeanFitness=0;
 	var <swarmLagMeanFitness=0;
-	var <swarmLagFitnessSpeed=0;
+	var <swarmLagFitnessRate=0;
 	var <swarmLagDispersal=0;
 	
 	//flag to stop iterator gracefuly.
@@ -288,7 +288,7 @@ PSOptimisingSwarm {
 		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
 		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (swarmLagMeanPosition * convLagCoefs );
 		swarmLagMeanFitness = (lagCoefs * this.meanFitness) + (convLagCoefs * swarmLagMeanFitness);
-		swarmLagFitnessSpeed = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessSpeed);
+		swarmLagFitnessRate = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessRate);
 		swarmLagDispersal = (lagCoefs * this.meanDistance(meanChromosome)) + (convLagCoefs * swarmLagDispersal);
 		// careful, operator order and depth get weird with this last one:
 		/*params.log.log(msgchunks:[\subtick1, \meanc] ++ meanChromosome ++
@@ -544,6 +544,34 @@ SwarmGui {
 		
 		window.startRow;
 		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="fitness";
+		widgets.fitness = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.fitness.size = 2;
+		widgets.fitness.elasticMode = 1;
+		widgets.fitness.editable = false;
+		widgets.fitness.indexThumbSize = 20;
+		widgets.fitness.valueThumbSize = 2;
+		widgets.fitness.indexIsHorizontal = false;
+		widgets.fitness.isFilled = true;
+		widgets.fitness.value = swarm.swarmLagMeanFitness? [0,0];
+		widgets.fitness.reference = [0,0];
+		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="fitnessrate";
+		widgets.fitnessRate = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.fitnessRate.size = 2;
+		widgets.fitnessRate.elasticMode = 1;
+		widgets.fitnessRate.editable = false;
+		widgets.fitnessRate.indexThumbSize = 20;
+		widgets.fitnessRate.valueThumbSize = 2;
+		widgets.fitnessRate.indexIsHorizontal = false;
+		widgets.fitnessRate.isFilled = true;
+		widgets.fitnessRate.value = swarm.swarmLagFitnessRate? [0,0];
+		widgets.fitnessRate.reference = [0,0];
+		
+		window.startRow;
+		
 		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="dispersal";
 		widgets.dispersal = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
 		widgets.dispersal.size = 2;
@@ -556,6 +584,20 @@ SwarmGui {
 		widgets.dispersal.value = swarm.swarmLagDispersal? [0,0];
 		widgets.dispersal.reference = [0,0];
 		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="speed";
+		widgets.posSpeed = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.posSpeed.size = 2;
+		widgets.posSpeed.elasticMode = 1;
+		widgets.posSpeed.editable = false;
+		widgets.posSpeed.indexThumbSize = 20;
+		widgets.posSpeed.valueThumbSize = 2;
+		widgets.posSpeed.indexIsHorizontal = false;
+		widgets.posSpeed.isFilled = true;
+		widgets.posSpeed.value = swarm.swarmLagPosSpeed? [0,0];
+		widgets.posSpeed.reference = [0,0];
+				
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
@@ -587,6 +629,9 @@ SwarmGui {
 	}
 	updateStatistics {
 		widgets.meanPos.value = swarm.meanChromosome;
+		widgets.fitness.value = swarm.swarmLagMeanFitness;
 		widgets.dispersal.value = swarm.swarmLagDispersal;
+		widgets.posSpeed.value = swarm.swarmLagPosSpeed;
+		widgets.fitnessRate.value = swarm.swarmLagFitnessRate;
 	}
 }
