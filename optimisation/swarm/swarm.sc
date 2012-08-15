@@ -421,19 +421,22 @@ SwarmGraph {
 }
 
 SwarmGui {
-	var <swarm, <window, <paramsGuiUpdater, <paramsModel, <paramsModelSetter;
-	var <widgets;
+	var <swarm, <>pollRate;
+	var <paramsModel;
+	var <paramsModelSetter, <paramsGuiUpdater;
+	var <window, <widgets;
+	var worker;
 	
-	*new{|swarm| ^super.newCopyArgs(swarm).init;}
+	*new{|swarm, pollRate=5| ^super.newCopyArgs(swarm, pollRate).initSwarmGui;}
 	
-	init {
+	initSwarmGui {
 		var sliderWidth, labelWidth, numberWidth;
 		widgets = ();
 		//model
 		paramsModel = swarm.params;
 		//view
 		window = FlowView(bounds:500@600, windowTitle: "window!").front;
-		CmdPeriod.doOnce({window.close});
+		CmdPeriod.doOnce({window.close;});
 		sliderWidth = window.bounds.width - 6;
 		labelWidth = 80;
 		numberWidth = 60;
@@ -528,6 +531,13 @@ SwarmGui {
 			initVal: paramsModel.memoryDecay,
 			action: {|view| this.setParam(\memoryDecay, view.value);}
 		);
+		widgets.meanPos = MultiSliderView(window, Rect(0,0,sliderWidth,100));
+		widgets.meanPos.size = swarm.params[\initialChromosomeSize] ? 7;
+		widgets.meanPos.elasticMode = 1;
+		widgets.meanPos.editable = false;
+		widgets.meanPos.indexThumbSize = sliderWidth/(widgets.meanPos.size);
+		widgets.meanPos.value = swarm.meanChromosome;
+		
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
@@ -545,10 +555,19 @@ SwarmGui {
 			}.defer;
 		};
 		paramsModel.addDependant(paramsGuiUpdater);
+		worker = AppClock.play(Routine({|appClockTime|
+			loop({
+				this.updateStatistics;
+				pollRate.reciprocal.yield;
+			})
+		}));
 	}
 	//controller. This is the only supported accessor for swarm params.
 	setParam {|statekey, stateval|
 		paramsModel[statekey] = stateval;
 		paramsModel.changed(statekey, stateval);
+	}
+	updateStatistics {
+		widgets.meanPos.value = swarm.meanChromosome;
 	}
 }
