@@ -201,38 +201,35 @@ PSOptimisingSwarm {
 			var myDelta, myNeighbourhoodDelta;
 			var vecLen;
 			var maybeLog = nil;
+			//we are going to track one aprticular individual
 			(phenotype==exemplar).if({maybeLog = logExemplar;});
 
-			myNeighbourhood = this.getNeighbours(phenotype);
-
-			myCurrentPos = phenotype.chromosome;
 			vecLen = phenotype.chromosome.size;
 			
+			// first, scale down past fitnesses by a decay factor
+			bestKnownFitnessTable.keysValuesDo({|key, val|
+				bestKnownFitnessTable[key] = val*(params.memoryDecay);
+			});
+			//now, ask myself for my best fitnesses, and compare to mine
+			myCurrentPos = phenotype.chromosome;
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
-			
 			myDelta = (myBestPos - myCurrentPos);
 			
+			// now, ask my neighbours
+			myNeighbourhood = this.getNeighbours(phenotype);
 			myBestNeighbour = myNeighbourhood[
 				myNeighbourhood.maxIndex({|neighbour|
 					bestKnownFitnessTable[neighbour]
 				});
 			];
-			
 			myNeighbourhoodBestPos = bestKnownPosTable[myBestNeighbour];
 			myNeighbourhoodBestFitness = bestKnownFitnessTable[myBestNeighbour];
-			
 			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
 			
+			//get my velocity, coz we're going to update it
 			myVel = velocityTable[phenotype];
-			
-			params.log.log(msgchunks: [\premove,
-					\vel, myVel,
-					\pos, myCurrentPos,
-					\mydelta, myDelta,
-				], priority: -1,
-				tag: \moving);
 			
 			maybeLog.([\pos] ++ myCurrentPos);
 			maybeLog.([\fitness, myCurrentFitness]);
@@ -244,6 +241,7 @@ PSOptimisingSwarm {
 			maybeLog.([\groupdelta] ++ myNeighbourhoodDelta);
 			maybeLog.([\vel1] ++ myVel);
 			
+			//update
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
 				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourhoodDelta)+
@@ -257,36 +255,21 @@ PSOptimisingSwarm {
 			velocityTable[phenotype] = myVel;
 			maybeLog.([\newpos] ++ myNextPos);
 			maybeLog.([\posdelta, (myNextPos - myCurrentPos)]);
-			
-			params.log.log(msgchunks: [\velupdate,
-					\vel, myVel,
-					\pos, myCurrentPos,
-				], priority: -1,
-				tag: \moving);
-			
 			phenotype.chromosome = myNextPos;
 			controller.updateIndividual(phenotype);
-			params.log.log(msgchunks: [\postmove,
-					\phenotype, phenotype
-				], priority: -1,
-				tag: \moving);
 			
+			//Now, update fitness tables to reflect how good that last position was
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
 			});
-			
 			bestKnownPosTable[phenotype] = myBestPos;
-			bestKnownFitnessTable[phenotype] = myBestFitness;
-			
-			bestKnownFitnessTable.keysValuesDo({|key, val|
-				bestKnownFitnessTable[key] = val*(params.memoryDecay);
-			});
+			bestKnownFitnessTable[phenotype] = myBestFitness;			
 		});
-		this.trackConvergence;
+		this.updateStatistics;
 		iterations = iterations + 1;
 	}
-	trackConvergence{
+	updateStatistics{
 		var lastMeanFitness;
 		var meanChromosome;
 		var lagCoefs; 
