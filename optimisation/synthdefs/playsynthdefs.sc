@@ -178,7 +178,9 @@ PSBasicPlaySynths {
 						mul: env,
 						pointer: pointer,
 						windowSize: windowSize,
-						windowRandRatio: windowRandRatio),
+						windowRandRatio: windowRandRatio,
+						overlaps: 2,
+					),
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth
 				) * env * amp);
