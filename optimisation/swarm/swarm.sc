@@ -427,16 +427,21 @@ SwarmGui {
 	*new{|swarm| ^super.newCopyArgs(swarm).init;}
 	
 	init {
+		var sliderWidth, labelWidth, numberWidth;
 		widgets = ();
 		//model
 		paramsModel = swarm.params;
 		//view
-		window = FlowView(bounds:300@300, windowTitle: "window!").front;
+		window = FlowView(bounds:500@600, windowTitle: "window!").front;
 		CmdPeriod.doOnce({window.close});
-		
+		sliderWidth = window.bounds.width - 6;
+		labelWidth = 80;
+		numberWidth = 60;
 		widgets.clockRate = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
 			label: "clockrate",
 			controlSpec: ControlSpec.new(1, 100,
 				\exponential,
@@ -447,7 +452,9 @@ SwarmGui {
 		);
 		widgets.stepSize = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
 			label: "stepsize",
 			controlSpec: ControlSpec.new(0.0001, 1,
 				\exponential,
@@ -458,8 +465,10 @@ SwarmGui {
 		);
 		widgets.selfTracking = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
-			label: "selftracking",
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
+			label: "selfTrack",
 			controlSpec: ControlSpec.new(0.0, 2.0,
 				\linear,
 				default: paramsModel.selfTracking,
@@ -469,8 +478,10 @@ SwarmGui {
 		);
 		widgets.groupTracking = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
-			label: "groupTracking",
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
+			label: "groupTrack",
 			controlSpec: ControlSpec.new(0.0, 2.0,
 				\linear,
 				default: paramsModel.groupTracking,
@@ -480,7 +491,9 @@ SwarmGui {
 		);
 		widgets.momentum = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
 			label: "momentum",
 			controlSpec: ControlSpec.new(0.9, 0.9.reciprocal,
 				\exponential,
@@ -491,7 +504,9 @@ SwarmGui {
 		);
 		widgets.noise = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
 			label: "noise",
 			controlSpec: ControlSpec.new(0.00001, 1,
 				\exponential,
@@ -502,8 +517,10 @@ SwarmGui {
 		);
 		widgets.memoryDecay = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
-			label: "memoryDecay",
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(sliderWidth, 16),
+			label: "memory",
 			controlSpec: ControlSpec.new(0.9, 1.0,
 				\exponential,
 				default: paramsModel.memoryDecay,
