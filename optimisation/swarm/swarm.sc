@@ -36,7 +36,7 @@ PSOptimisingSwarm {
 	var <swarmLagPosSpeed=0;
 	var <swarmMeanFitness=0;
 	var <swarmLagMeanFitness=0;
-	var <swarmLagFitnessSpeed=0;
+	var <swarmLagFitnessRate=0;
 	var <swarmLagDispersal=0;
 	
 	//flag to stop iterator gracefuly.
@@ -71,7 +71,7 @@ PSOptimisingSwarm {
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
 			\shortLagCoef: 0.1,
-			\longLagCoef: 0.1,
+			\longLagCoef: 0.01,
 			\log: NullLogger.new,
 		);
 	}
@@ -103,7 +103,7 @@ PSOptimisingSwarm {
 		velocityTable = IdentityDictionary.new(100);
 		bestKnownPosTable = IdentityDictionary.new(100);
 		bestKnownFitnessTable = IdentityDictionary.new(100);
-		swarmLagMeanPosition = 0.5.dup(params.initialChromosomeSize) *.t [1,1];
+		swarmLagMeanPosition =  [1,1] *.t (0.5.dup(params.initialChromosomeSize));
 		this.initOperators;
 	}
 	initOperators {
@@ -201,38 +201,35 @@ PSOptimisingSwarm {
 			var myDelta, myNeighbourhoodDelta;
 			var vecLen;
 			var maybeLog = nil;
+			//we are going to track one aprticular individual
 			(phenotype==exemplar).if({maybeLog = logExemplar;});
 
-			myNeighbourhood = this.getNeighbours(phenotype);
-
-			myCurrentPos = phenotype.chromosome;
 			vecLen = phenotype.chromosome.size;
 			
+			// first, scale down past fitnesses by a decay factor
+			bestKnownFitnessTable.keysValuesDo({|key, val|
+				bestKnownFitnessTable[key] = val*(params.memoryDecay);
+			});
+			//now, ask myself for my best fitnesses, and compare to mine
+			myCurrentPos = phenotype.chromosome;
 			myCurrentFitness = cookedFitnessMap[phenotype];
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
-			
 			myDelta = (myBestPos - myCurrentPos);
 			
+			// now, ask my neighbours
+			myNeighbourhood = this.getNeighbours(phenotype);
 			myBestNeighbour = myNeighbourhood[
 				myNeighbourhood.maxIndex({|neighbour|
 					bestKnownFitnessTable[neighbour]
 				});
 			];
-			
 			myNeighbourhoodBestPos = bestKnownPosTable[myBestNeighbour];
 			myNeighbourhoodBestFitness = bestKnownFitnessTable[myBestNeighbour];
-			
 			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
 			
+			//get my velocity, coz we're going to update it
 			myVel = velocityTable[phenotype];
-			
-			params.log.log(msgchunks: [\premove,
-					\vel, myVel,
-					\pos, myCurrentPos,
-					\mydelta, myDelta,
-				], priority: -1,
-				tag: \moving);
 			
 			maybeLog.([\pos] ++ myCurrentPos);
 			maybeLog.([\fitness, myCurrentFitness]);
@@ -244,6 +241,7 @@ PSOptimisingSwarm {
 			maybeLog.([\groupdelta] ++ myNeighbourhoodDelta);
 			maybeLog.([\vel1] ++ myVel);
 			
+			//update
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
 				(params.groupTracking * ({1.0.rand}.dup(vecLen)) * myNeighbourhoodDelta)+
@@ -257,74 +255,47 @@ PSOptimisingSwarm {
 			velocityTable[phenotype] = myVel;
 			maybeLog.([\newpos] ++ myNextPos);
 			maybeLog.([\posdelta, (myNextPos - myCurrentPos)]);
-			
-			params.log.log(msgchunks: [\velupdate,
-					\vel, myVel,
-					\pos, myCurrentPos,
-				], priority: -1,
-				tag: \moving);
-			
 			phenotype.chromosome = myNextPos;
 			controller.updateIndividual(phenotype);
-			params.log.log(msgchunks: [\postmove,
-					\phenotype, phenotype
-				], priority: -1,
-				tag: \moving);
 			
+			//Now, update fitness tables to reflect how good that last position was
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
 			});
-			
 			bestKnownPosTable[phenotype] = myBestPos;
-			bestKnownFitnessTable[phenotype] = myBestFitness;
-			
-			bestKnownFitnessTable.keysValuesDo({|key, val|
-				bestKnownFitnessTable[key] = val*(params.memoryDecay);
-			});
+			bestKnownFitnessTable[phenotype] = myBestFitness;			
 		});
-		this.trackConvergence;
+		this.updateStatistics;
 		iterations = iterations + 1;
 	}
-	trackConvergence{
+	updateStatistics{
 		var lastMeanFitness;
 		var meanChromosome;
 		var lagCoefs; 
 		var convLagCoefs;
 		
+		//vector of lag coefficients:
 		lagCoefs = [params[\shortLagCoef], params[\longLagCoef]];
 		convLagCoefs = 1.0 - lagCoefs;
 		
-		params.log.log(msgchunks:[\trackconv1, \ps] ++
-			[params[\shortLagCoef], params[\longLagCoef]] ++
-			[\lagCoefs] ++ lagCoefs ++
-			[\convLagCoefs] ++ convLagCoefs,
-			tag:\stats, priority: 1);
-		meanChromosome = this.meanChromosome;
-		
+		//some state that needs extra work to track
 		lastMeanFitness = swarmMeanFitness;
 		swarmMeanFitness = this.meanFitness;
+        meanChromosome = this.meanChromosome;
 		
+		//calculate lags
 		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
-		params.log.log(msgchunks:[\tick1], tag:\stats, priority: 1);
-		//this next line eventually hangs everything:
-		params.log.log(msgchunks:[\subtick1, \meanc] ++ meanChromosome ++ [\lagmeanc] ++ swarmLagMeanPosition, tag:\stats, priority: 1);
-		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (convLagCoefs * swarmLagMeanPosition );
-		params.log.log(msgchunks:[\subtick2, \meanc] ++ meanChromosome ++ [\lagmeanc] ++ swarmLagMeanPosition, tag:\stats, priority: 1);
-		
+		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (swarmLagMeanPosition * convLagCoefs );
 		swarmLagMeanFitness = (lagCoefs * this.meanFitness) + (convLagCoefs * swarmLagMeanFitness);
-		params.log.log(msgchunks:[\tick2], tag:\stats, priority: 1);
-		swarmLagFitnessSpeed = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessSpeed);
-		params.log.log(msgchunks:[\tick3], tag:\stats, priority: 1);
+		swarmLagFitnessRate = (lagCoefs * (swarmMeanFitness-lastMeanFitness)) + (convLagCoefs * swarmLagFitnessRate);
 		swarmLagDispersal = (lagCoefs * this.meanDistance(meanChromosome)) + (convLagCoefs * swarmLagDispersal);
-		params.log.log(msgchunks:[\tick4], tag:\stats, priority: 1);
-		
-		params.log.log(msgchunks:[\trackconv2, \ps] ++
-			[params[\shortLagCoef], params[\longLagCoef]] ++
-			[\lagCoefs] ++ lagCoefs ++
-			[\convLagCoefs] ++ convLagCoefs,
-			tag:\stats, priority: 1);
-		
+		// careful, operator order and depth get weird with this last one:
+		/*params.log.log(msgchunks:[\subtick1, \meanc] ++ meanChromosome ++
+			[\lagmeanc] ++ swarmLagMeanPosition ++
+			[\dimsina, meanChromosome.size, meanChromosome[0].size] ++
+			[\dimsinb, swarmLagMeanPosition.size, swarmLagMeanPosition[0].size],
+			tag:\stats, priority: 1);*/
 	}
 	meanChromosome {
 		//return a chromosome that is a mean of all current ones
@@ -450,22 +421,34 @@ SwarmGraph {
 }
 
 SwarmGui {
-	var <swarm, <window, <paramsGuiUpdater, <paramsModel, <paramsModelSetter;
-	var <widgets;
+	var <swarm, <>pollRate;
+	var <>maxFitness;
+	var <paramsModel;
+	var <paramsModelSetter, <paramsGuiUpdater;
+	var <window, <widgets;
+	var worker;
 	
-	*new{|swarm| ^super.newCopyArgs(swarm).init;}
+	*new{|swarm, pollRate=5, maxFitness=1| ^super.newCopyArgs(swarm, pollRate, maxFitness).initSwarmGui;}
 	
-	init {
+	initSwarmGui {
+		var ezSliderWidth, meterWidth, labelWidth, numberWidth, statsHeight;
 		widgets = ();
 		//model
 		paramsModel = swarm.params;
 		//view
-		window = FlowView(bounds:300@300, windowTitle: "window!").front;
-		CmdPeriod.doOnce({window.close});
+		window = FlowView(bounds:500@600, windowTitle: "window!").front;
+		CmdPeriod.doOnce({window.close;});
+		ezSliderWidth = window.bounds.width - 6;
+		labelWidth = 80;
+		meterWidth = ezSliderWidth - labelWidth - 8;
+		numberWidth = 60;
+		statsHeight = 30;
 		
 		widgets.clockRate = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
 			label: "clockrate",
 			controlSpec: ControlSpec.new(1, 100,
 				\exponential,
@@ -476,7 +459,9 @@ SwarmGui {
 		);
 		widgets.stepSize = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
 			label: "stepsize",
 			controlSpec: ControlSpec.new(0.0001, 1,
 				\exponential,
@@ -487,8 +472,10 @@ SwarmGui {
 		);
 		widgets.selfTracking = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
-			label: "selftracking",
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
+			label: "selfTrack",
 			controlSpec: ControlSpec.new(0.0, 2.0,
 				\linear,
 				default: paramsModel.selfTracking,
@@ -498,8 +485,10 @@ SwarmGui {
 		);
 		widgets.groupTracking = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
-			label: "groupTracking",
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
+			label: "groupTrack",
 			controlSpec: ControlSpec.new(0.0, 2.0,
 				\linear,
 				default: paramsModel.groupTracking,
@@ -509,7 +498,9 @@ SwarmGui {
 		);
 		widgets.momentum = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
 			label: "momentum",
 			controlSpec: ControlSpec.new(0.9, 0.9.reciprocal,
 				\exponential,
@@ -520,7 +511,9 @@ SwarmGui {
 		);
 		widgets.noise = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
 			label: "noise",
 			controlSpec: ControlSpec.new(0.00001, 1,
 				\exponential,
@@ -531,8 +524,10 @@ SwarmGui {
 		);
 		widgets.memoryDecay = EZSlider.new(
 			parent: window,
-			bounds: Point(window.bounds.width*0.9, 16),
-			label: "memoryDecay",
+			numberWidth: numberWidth,
+			labelWidth: labelWidth,
+			bounds: Point(ezSliderWidth, 16),
+			label: "memory",
 			controlSpec: ControlSpec.new(0.9, 1.0,
 				\exponential,
 				default: paramsModel.memoryDecay,
@@ -540,6 +535,74 @@ SwarmGui {
 			initVal: paramsModel.memoryDecay,
 			action: {|view| this.setParam(\memoryDecay, view.value);}
 		);
+		widgets.meanPos = MultiSliderView(window, Rect(0,0,ezSliderWidth,100));
+		widgets.meanPos.size = swarm.params[\initialChromosomeSize] ? 7;
+		widgets.meanPos.elasticMode = 1;
+		widgets.meanPos.editable = false;
+		widgets.meanPos.indexThumbSize = ezSliderWidth/(widgets.meanPos.size);
+		widgets.meanPos.valueThumbSize = 2;
+		widgets.meanPos.value = swarm.meanChromosome;
+		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="fitness";
+		widgets.fitness = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.fitness.size = 2;
+		widgets.fitness.elasticMode = 1;
+		widgets.fitness.editable = false;
+		widgets.fitness.indexThumbSize = 20;
+		widgets.fitness.valueThumbSize = 2;
+		widgets.fitness.indexIsHorizontal = false;
+		widgets.fitness.isFilled = true;
+		widgets.fitness.value = swarm.swarmLagMeanFitness? [0,0];
+		widgets.fitness.reference = [0,0].linlin(0.0, maxFitness, 0.0, 1.0);
+		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="fitnessrate";
+		widgets.fitnessRate = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.fitnessRate.size = 2;
+		widgets.fitnessRate.elasticMode = 1;
+		widgets.fitnessRate.editable = false;
+		widgets.fitnessRate.indexThumbSize = 20;
+		widgets.fitnessRate.valueThumbSize = 2;
+		widgets.fitnessRate.indexIsHorizontal = false;
+		widgets.fitnessRate.isFilled = true;
+		widgets.fitnessRate.value = swarm.swarmLagFitnessRate? [0,0];
+		widgets.fitnessRate.reference = [0,0].linlin(
+			-1 * (paramsModel[\stepSize] * maxFitness),
+			(paramsModel[\stepSize] * maxFitness),
+			0.0, 1.0
+		);
+		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="dispersal";
+		widgets.dispersal = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.dispersal.size = 2;
+		widgets.dispersal.elasticMode = 1;
+		widgets.dispersal.editable = false;
+		widgets.dispersal.indexThumbSize = 20;
+		widgets.dispersal.valueThumbSize = 2;
+		widgets.dispersal.indexIsHorizontal = false;
+		widgets.dispersal.isFilled = true;
+		widgets.dispersal.value = swarm.swarmLagDispersal? [0,0];
+		widgets.dispersal.reference = [0,0].linlin(0.0, 0.3, 0.0, 1.0);
+		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="speed";
+		widgets.posSpeed = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.posSpeed.size = 2;
+		widgets.posSpeed.elasticMode = 1;
+		widgets.posSpeed.editable = false;
+		widgets.posSpeed.indexThumbSize = 20;
+		widgets.posSpeed.valueThumbSize = 2;
+		widgets.posSpeed.indexIsHorizontal = false;
+		widgets.posSpeed.isFilled = true;
+		widgets.posSpeed.value = swarm.swarmLagPosSpeed? [0,0];
+		widgets.posSpeed.reference = [0,0];
+				
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});
@@ -557,10 +620,27 @@ SwarmGui {
 			}.defer;
 		};
 		paramsModel.addDependant(paramsGuiUpdater);
+		worker = AppClock.play(Routine({|appClockTime|
+			loop({
+				this.updateStatistics;
+				pollRate.reciprocal.yield;
+			})
+		}));
 	}
 	//controller. This is the only supported accessor for swarm params.
 	setParam {|statekey, stateval|
 		paramsModel[statekey] = stateval;
 		paramsModel.changed(statekey, stateval);
+	}
+	updateStatistics {
+		widgets.meanPos.value = swarm.meanChromosome;
+		widgets.fitness.value = swarm.swarmLagMeanFitness.linlin(0.0, maxFitness, 0.0, 1.0);
+		widgets.fitnessRate.value = swarm.swarmLagFitnessRate.linlin(
+			-1 * (paramsModel[\stepSize] * maxFitness),
+			(paramsModel[\stepSize] * maxFitness),
+			0.0, 1.0
+		);
+		widgets.dispersal.value = swarm.swarmLagDispersal.linlin(0, 0.3, 0.0, 1.0);
+		widgets.posSpeed.value = swarm.swarmLagPosSpeed;
 	}
 }

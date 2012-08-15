@@ -7,7 +7,7 @@ Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-~gui = SwarmGui.new(~swarm);
+~gui = SwarmGui.new(~swarm, maxFitness:10);
 ~gui.setParam(\clockRate, 26);
 ~gui.setParam(\stepSize, 0.05);
 ~gui.setParam(\selfTracking, 0.0);
@@ -24,11 +24,12 @@ StartUp.run;
 ~swarm.swarmLagPosSpeed;
 ~swarm.swarmLagMeanPosition;
 ~swarm.swarmLagMeanFitness;
-~swarm.swarmLagFitnessSpeed;
+~swarm.swarmLagFitnessRate;
 ~swarm.swarmLagDispersal;
 ~swarm.swarmMeanFitness;
 ~swarm.swarmMeanBestFitness;
 ~swarm.meanFitness;
+
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -190,7 +191,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 	* detecting convergence
 	* GUI for fitness statistics
 	* remember near-global maxima so I know when I've drifted off.
-	* short/long lags for fitness
 * go to MOL ("many optimising liaisons") 
 	* choose random peer as neighbour each time
 	* update only one at each time
