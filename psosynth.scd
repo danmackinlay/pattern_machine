@@ -177,6 +177,9 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
   so that, e.g. clockrate can change on the fly
 * per-voice synth params - e.g. a pan spread.
 * pluck individuals out and let them wander back to the swarm
+* High-pass output (or at least DC-remove)
+* GUI
+    * input and output level mix
 * update the target to be an evolving synth
 	* say, a live audio input
 * more interesting objective functions:
@@ -189,7 +192,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 	* detecting the need to update noise parameters
 		(e.g. decreasing without changing)
 	* detecting convergence
-	* GUI for fitness statistics
 	* remember near-global maxima so I know when I've drifted off.
 * go to MOL ("many optimising liaisons") 
 	* choose random peer as neighbour each time
