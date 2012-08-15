@@ -29,7 +29,7 @@ StartUp.run;
 ~swarm.swarmMeanFitness;
 ~swarm.swarmMeanBestFitness;
 ~swarm.meanFitness;
-
+~targetBus.scope;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -41,8 +41,9 @@ fork {
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;
-	~targetBus = Bus.new(\audio, 1, 1, s);
+	~targetBus = Bus.newFrom(s.inputBus, 2, 1); //input 3
 	//~targetBus = Bus.audio(s, 1);
+	//~targetBus = Bus.new(\audio, 1, 1, s);
 	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
@@ -50,7 +51,7 @@ fork {
 	s.sync;
 	~targetGroup = Group.head(~phenogroup);
 	s.sync;
-	~targetPattern = Pbind(
+	/*~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\out, ~targetBus,
 		//\ffreq, 800,
@@ -62,7 +63,8 @@ fork {
 		\group, ~targetGroup,
 		\addAction, 0,
 		\legato, Prand([1/2, 1, 2, ], inf)*5,
-	).play;
+	).play;*/
+	
 	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
 	s.sync;
 	//~spy.moveAfter(~targetGroup);
@@ -71,11 +73,15 @@ fork {
 	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
 	s.sync;
 	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
-	//s.volume.gui;
-	s.volume.volume= -20;
+	{s.volume.gui}.defer;
+	s.volume.volume= -6;
 	//actual real work now: first choose the controller that will manage the synths
+	~synthName = \ps_sample_grain_lagged;
+	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
+	//~synthArgMap[\windowSize] = ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp');
 	~factory = PSSynthDefPhenotypeFactory.new(
-		synthDef:\ps_sample_grain_lagged);
+		synthDef: ~synthName,
+		synthArgMap: ~synthArgMap);
 	//Weirdly, this seems to work best if the fitnessPollRate is lower than the
 	//update rate.
 	~control = PSCompareSynthController.new(
