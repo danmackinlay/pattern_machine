@@ -161,18 +161,7 @@ nil;
 ~swarm.free;
 ~targetGroup.free;
 ~targetBus.free;
-Library.atList([\phenosynth, \score_cookers, \zero_peak]).value(nil, ~swarm.rawScoreMap);
-Library.atList([\phenosynth, \score_cookers, \reverse_ranked]).value(nil, ~swarm.rawScoreMap);
 
-//these should only ever differ momentarily
-~swarm.population.select(_.wallClockAge>0)
-~swarm.controller.all[~swarm.population[0].identityHash].playBus.scope;
-(
-PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]);
-PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.002]);
-PSSynthDefPhenotype.synthArgsAsChromosome(PSSynthDefPhenotype.chromosomeAsSynthArgs([0.0, 0.25, 0.75, 1]));
-PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromosome([\ffreq, 800, \amp, 1, \pitch, 800, \rq, 0.01]));
-)
 /**************************
  * TODO
  **************************
