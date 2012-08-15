@@ -422,12 +422,13 @@ SwarmGraph {
 
 SwarmGui {
 	var <swarm, <>pollRate;
+	var <>maxFitness;
 	var <paramsModel;
 	var <paramsModelSetter, <paramsGuiUpdater;
 	var <window, <widgets;
 	var worker;
 	
-	*new{|swarm, pollRate=5| ^super.newCopyArgs(swarm, pollRate).initSwarmGui;}
+	*new{|swarm, pollRate=5, maxFitness=1| ^super.newCopyArgs(swarm, pollRate, maxFitness).initSwarmGui;}
 	
 	initSwarmGui {
 		var ezSliderWidth, meterWidth, labelWidth, numberWidth, statsHeight;
@@ -554,7 +555,7 @@ SwarmGui {
 		widgets.fitness.indexIsHorizontal = false;
 		widgets.fitness.isFilled = true;
 		widgets.fitness.value = swarm.swarmLagMeanFitness? [0,0];
-		widgets.fitness.reference = [0,0];
+		widgets.fitness.reference = [0,0].linlin(0.0, maxFitness, 0.0, 1.0);
 		
 		window.startRow;
 		
@@ -568,7 +569,11 @@ SwarmGui {
 		widgets.fitnessRate.indexIsHorizontal = false;
 		widgets.fitnessRate.isFilled = true;
 		widgets.fitnessRate.value = swarm.swarmLagFitnessRate? [0,0];
-		widgets.fitnessRate.reference = [0,0];
+		widgets.fitnessRate.reference = [0,0].linlin(
+			-1 * (paramsModel[\stepSize] * maxFitness),
+			(paramsModel[\stepSize] * maxFitness),
+			0.0, 1.0
+		);
 		
 		window.startRow;
 		
@@ -582,7 +587,7 @@ SwarmGui {
 		widgets.dispersal.indexIsHorizontal = false;
 		widgets.dispersal.isFilled = true;
 		widgets.dispersal.value = swarm.swarmLagDispersal? [0,0];
-		widgets.dispersal.reference = [0,0];
+		widgets.dispersal.reference = [0,0].linlin(0.0, 0.3, 0.0, 1.0);
 		
 		window.startRow;
 		
@@ -629,9 +634,13 @@ SwarmGui {
 	}
 	updateStatistics {
 		widgets.meanPos.value = swarm.meanChromosome;
-		widgets.fitness.value = swarm.swarmLagMeanFitness;
-		widgets.dispersal.value = swarm.swarmLagDispersal;
+		widgets.fitness.value = swarm.swarmLagMeanFitness.linlin(0.0, maxFitness, 0.0, 1.0);
+		widgets.fitnessRate.value = swarm.swarmLagFitnessRate.linlin(
+			-1 * (paramsModel[\stepSize] * maxFitness),
+			(paramsModel[\stepSize] * maxFitness),
+			0.0, 1.0
+		);
+		widgets.dispersal.value = swarm.swarmLagDispersal.linlin(0, 0.3, 0.0, 1.0);
 		widgets.posSpeed.value = swarm.swarmLagPosSpeed;
-		widgets.fitnessRate.value = swarm.swarmLagFitnessRate;
 	}
 }

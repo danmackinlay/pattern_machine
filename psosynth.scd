@@ -7,7 +7,7 @@ Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 ~plotState = SwarmGraph.new(~swarm);
 ~plotState.stop;
-~gui = SwarmGui.new(~swarm);
+~gui = SwarmGui.new(~swarm, maxFitness:10);
 ~gui.setParam(\clockRate, 26);
 ~gui.setParam(\stepSize, 0.05);
 ~gui.setParam(\selfTracking, 0.0);
