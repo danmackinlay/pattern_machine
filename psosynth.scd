@@ -191,7 +191,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 	* detecting convergence
 	* GUI for fitness statistics
 	* remember near-global maxima so I know when I've drifted off.
-	* short/long lags for fitness
 * go to MOL ("many optimising liaisons") 
 	* choose random peer as neighbour each time
 	* update only one at each time
