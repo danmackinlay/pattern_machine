@@ -71,7 +71,7 @@ PSOptimisingSwarm {
 			\individualConstructor: PSSynthDefPhenotype,
 			\populationSize: 30,
 			\shortLagCoef: 0.1,
-			\longLagCoef: 0.1,
+			\longLagCoef: 0.01,
 			\log: NullLogger.new,
 		);
 	}
@@ -430,21 +430,24 @@ SwarmGui {
 	*new{|swarm, pollRate=5| ^super.newCopyArgs(swarm, pollRate).initSwarmGui;}
 	
 	initSwarmGui {
-		var sliderWidth, labelWidth, numberWidth;
+		var ezSliderWidth, meterWidth, labelWidth, numberWidth, statsHeight;
 		widgets = ();
 		//model
 		paramsModel = swarm.params;
 		//view
 		window = FlowView(bounds:500@600, windowTitle: "window!").front;
 		CmdPeriod.doOnce({window.close;});
-		sliderWidth = window.bounds.width - 6;
+		ezSliderWidth = window.bounds.width - 6;
 		labelWidth = 80;
+		meterWidth = ezSliderWidth - labelWidth - 8;
 		numberWidth = 60;
+		statsHeight = 30;
+		
 		widgets.clockRate = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "clockrate",
 			controlSpec: ControlSpec.new(1, 100,
 				\exponential,
@@ -457,7 +460,7 @@ SwarmGui {
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "stepsize",
 			controlSpec: ControlSpec.new(0.0001, 1,
 				\exponential,
@@ -470,7 +473,7 @@ SwarmGui {
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "selfTrack",
 			controlSpec: ControlSpec.new(0.0, 2.0,
 				\linear,
@@ -483,7 +486,7 @@ SwarmGui {
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "groupTrack",
 			controlSpec: ControlSpec.new(0.0, 2.0,
 				\linear,
@@ -496,7 +499,7 @@ SwarmGui {
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "momentum",
 			controlSpec: ControlSpec.new(0.9, 0.9.reciprocal,
 				\exponential,
@@ -509,7 +512,7 @@ SwarmGui {
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "noise",
 			controlSpec: ControlSpec.new(0.00001, 1,
 				\exponential,
@@ -522,7 +525,7 @@ SwarmGui {
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
-			bounds: Point(sliderWidth, 16),
+			bounds: Point(ezSliderWidth, 16),
 			label: "memory",
 			controlSpec: ControlSpec.new(0.9, 1.0,
 				\exponential,
@@ -531,12 +534,27 @@ SwarmGui {
 			initVal: paramsModel.memoryDecay,
 			action: {|view| this.setParam(\memoryDecay, view.value);}
 		);
-		widgets.meanPos = MultiSliderView(window, Rect(0,0,sliderWidth,100));
+		widgets.meanPos = MultiSliderView(window, Rect(0,0,ezSliderWidth,100));
 		widgets.meanPos.size = swarm.params[\initialChromosomeSize] ? 7;
 		widgets.meanPos.elasticMode = 1;
 		widgets.meanPos.editable = false;
-		widgets.meanPos.indexThumbSize = sliderWidth/(widgets.meanPos.size);
+		widgets.meanPos.indexThumbSize = ezSliderWidth/(widgets.meanPos.size);
+		widgets.meanPos.valueThumbSize = 2;
 		widgets.meanPos.value = swarm.meanChromosome;
+		
+		window.startRow;
+		
+		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="dispersal";
+		widgets.dispersal = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
+		widgets.dispersal.size = 2;
+		widgets.dispersal.elasticMode = 1;
+		widgets.dispersal.editable = false;
+		widgets.dispersal.indexThumbSize = 20;
+		widgets.dispersal.valueThumbSize = 2;
+		widgets.dispersal.indexIsHorizontal = false;
+		widgets.dispersal.isFilled = true;
+		widgets.dispersal.value = swarm.swarmLagDispersal? [0,0];
+		widgets.dispersal.reference = [0,0];
 		
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
@@ -569,5 +587,6 @@ SwarmGui {
 	}
 	updateStatistics {
 		widgets.meanPos.value = swarm.meanChromosome;
+		widgets.dispersal.value = swarm.swarmLagDispersal;
 	}
 }
