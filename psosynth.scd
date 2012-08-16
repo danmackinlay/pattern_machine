@@ -47,10 +47,10 @@ s.waitForBoot({
 		\amp, 0.1,
 		\pitch, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*500,
 		\rq, 0.2,
-		\dur, Pexprand(1, 10, inf),
+		\dur, Pexprand(5, 20, inf),
 		\group, ~targetGroup,
 		\addAction, 0,
-		\legato, Prand([1/2, 1, 2, ], inf)*2,
+		\legato, Prand([1/2, 3/4, 1, 3/2, 2,], inf),
 	).play;
 	s.sync;
 	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
@@ -80,7 +80,7 @@ s.waitForBoot({
 		leakCoef:0.5,
 		maxPop:population,
 	);
-	~control.extraSynthArgs = [\lagtime, 0.1, \buffer, ~buffer];
+	~control.extraSynthArgs = [\lagtime, 0.2, \buffer, ~buffer];
 	~control.leakCoef = 0.05;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
