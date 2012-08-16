@@ -67,7 +67,7 @@ fork {
 		\outbus, ~targetbus,
 		//\ffreq, 800,
 		\ffreq, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*600,
-		\amp, 1,
+		\amp, 0.1,
 		\pitch, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*500,
 		\rq, 0.2,
 		\dur, Pexprand(1, 10, inf),
