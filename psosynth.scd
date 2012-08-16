@@ -25,7 +25,7 @@ s.waitForBoot({
 					cutoff
 				),
 				1,
-				0.1
+				0.01
 			)
 		)
 	}).add;
@@ -76,7 +76,7 @@ s.waitForBoot({
 		leakCoef:0.5,
 		maxPop:30,
 	);
-	~control.extraSynthArgs = [\lagtime, 1.0, \buffer, ~buffer];
+	~control.extraSynthArgs = [\lagtime, 0.1, \buffer, ~buffer];
 	~control.leakCoef = 0.05;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
