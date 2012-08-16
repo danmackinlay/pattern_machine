@@ -131,16 +131,6 @@ s.waitForBoot({
 ServerTreeGui.makeWindow(s);
 s.queryAllNodes;
 
-//testing that things are going OK:
-(
-var best, worst, ranked;
-ranked = ~swarm.rankedPopulation;
-best = ranked[0];
-worst = ranked[ranked.size-1];
-[\best, ~swarm.rawScoreMap[best],~swarm.cookedFitnessMap[best], best.chromosomeAsSynthArgs].postln;
-[\worst, ~swarm.rawScoreMap[worst],~swarm.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
-nil;
-)
 //when you are bored, do a
 ~swarm.free;
 ~phenoGroup.free;
