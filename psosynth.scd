@@ -89,7 +89,8 @@ s.waitForBoot({
 	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
-	~control.listenSynthDef = \ps_judge_mfcc_distance;
+	//~control.listenSynthDef = \ps_judge_mfcc_distance;
+	~control.listenSynthDef = \ps_judge_mfcc_distance_amp;
 	~control.play(~phenogroup, outbus: ~swarmOut, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
@@ -161,7 +162,6 @@ nil;
 * more interesting objective functions:
 	* match a pitch-shifted version of the input
 	* or a delayed version
-	* Weight total spectral energy of target against particle
 	* cepstral measures to favour harmonicity
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule

@@ -220,7 +220,7 @@ PSBasicCompareSynths {
 		It will, e.g., prefer signals with similar bandwidths over signals with similar pitches.*/
 		this.makeComparer(\ps_judge_mfcc_distance, {
 			|targetsig, observedsig|
-			var targetfft, offt, sigcepstrum, ocepstrum, bfr1, bfr2;
+			var targetfft, offt, sigMFCCoef, oMFCCoef, bfr1, bfr2;
 
 			//should be 2048 for 96kHz, 1024 for 44/48kHz.
 			bfr1 = LocalBuf.new(1024,1);
@@ -230,10 +230,33 @@ PSBasicCompareSynths {
 			offt =   FFT(bfr2, observedsig);
 
 			//rms difference - should log diff? or abs diff?
-			sigcepstrum = MFCC.kr(targetfft, numcoeff:42);
-			ocepstrum = MFCC.kr(offt, numcoeff:42);
+			sigMFCCoef = MFCC.kr(targetfft, numcoeff:42);
+			oMFCCoef = MFCC.kr(offt, numcoeff:42);
 
-			(sigcepstrum - ocepstrum).squared.sum;
+			(sigMFCCoef - oMFCCoef).squared.sum;
+		});
+		/*MFCC-based comparison with extra amplitude-match weighting*/
+		this.makeComparer(\ps_judge_mfcc_distance_amp, {
+			|targetsig, observedsig|
+			var targetfft, offt, sigMFCCoef, oMFCCoef, bfr1, bfr2, ampdist, targetamp, oamp;
+
+			//should be 2048 for 96kHz, 1024 for 44/48kHz.
+			bfr1 = LocalBuf.new(1024,1);
+			bfr2 = LocalBuf.new(1024,1);
+
+			targetfft = FFT(bfr1, targetsig);
+			offt =   FFT(bfr2, observedsig);
+
+			//rms difference - should log diff? or abs diff?
+			sigMFCCoef = MFCC.kr(targetfft, numcoeff:42);
+			oMFCCoef = MFCC.kr(offt, numcoeff:42);
+			
+			targetamp = Amplitude.kr(targetsig)+0.0000001;
+			oamp = Amplitude.kr(observedsig)+0.0000001;
+			//check out these fairly arbitrary scaling factors:
+			ampdist = (((targetamp.log)-(oamp.log)).abs*0.25);
+
+			(sigMFCCoef - oMFCCoef).squared.sum + ampdist;
 		});
 		/*For debugging, we sometimes wish to return the input.
 		This makes no sense as an actual fitness function, however.*/
