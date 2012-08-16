@@ -235,7 +235,7 @@ PSListenSynthController : PSSynthController {
 			Synth.new(
 				PSMCCore.n(numChannels),
 				[
-					\in, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
+					\inbus, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
 					\outbus, outbus
 				],
 				target: listenGroup
