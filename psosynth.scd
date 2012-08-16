@@ -66,7 +66,7 @@ s.waitForBoot({
 		s.volume.volume= -6;
 	}.defer;
 	//actual real work now: first choose the controller that will manage the synths
-	~synthName = \ps_sample_grain_lagged;
+	~synthName = \ps_sample_grain_lfo_lagged;
 	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
 	//~synthArgMap[\windowSize] = ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp');
 	~factory = PSSynthDefPhenotypeFactory.new(
@@ -98,7 +98,7 @@ s.waitForBoot({
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
 		(\populationSize: population, 
-		\initialChromosomeSize: 7,
+		\initialChromosomeSize: 9,
 		\clockRate: 20,
 		\stepSize: 0.01,
 		\selfTracking: 0.0,
@@ -163,6 +163,7 @@ nil;
 	* match a pitch-shifted version of the input
 	* or a delayed version
 	* cepstral measures to favour harmonicity
+	* how the hell does this get to be near-infinite for quiet inputs?
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
