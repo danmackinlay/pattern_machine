@@ -85,6 +85,7 @@ PSSynthController {
 			switch(error.species.name)
 			 	{ 'OutOfResources' } {
 					log.log(msgchunks: [error.errorString], tag: \resource_exhausted);
+					error.errorString.warn;
 					^nil;
 				}
 			 	// default condition: unhandled exception, rethrow

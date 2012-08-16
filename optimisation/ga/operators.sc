@@ -208,7 +208,7 @@ PSOperators {
 				// weighted roulette
 				var hitList, localFitnesses, localPopulation, meanFitness, rate;
 				(fitnessMap.size == 0).if({
-					"Warning: empty population; no death for now".postln;
+					"Warning: empty population; no death for now".warn;
 					[];
 				}, {
 					//notice we do our rate calculations based on chance of survival
@@ -236,7 +236,7 @@ PSOperators {
 				localFitnesses = localPopulation.collect({|i| fitnessMap[i];});
 				//[\localPopulation, localPopulation.size, localPopulation, fitnessMap].postln;
 				(localPopulation.size == 0).if({
-					"Warning: no valid candidates; no death for now".postln;
+					"Warning: no valid candidates; no death for now".warn;
 					[];
 				}, {
 					//see comments at #[phenosynth, death_selectors, byRoulettePerRate]
@@ -259,8 +259,7 @@ PSOperators {
 				// fitness-weighted roulette
 				var localPopulation, parentList, localFitnesses, meanFitness, targetBirths;
 				(fitnessMap.size == 0).if({
-					"Warning: empty population; no breeding for now".postln;
-					[\emptiness, fitnessMap].postln;
+					"Warning: empty population; no breeding for now".warn;
 					[];
 				}, {
 					targetBirths = (params.populationSize) - fitnessMap.size;
