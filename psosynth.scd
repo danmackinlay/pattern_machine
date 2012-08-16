@@ -1,42 +1,16 @@
-ServerTreeGui.makeWindow(s);
 //initialisation
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
-~plotState = SwarmGraph.new(~swarm);
-~plotState.stop;
-~gui = SwarmGui.new(~swarm, maxFitness:10);
-~gui.setParam(\clockRate, 26);
-~gui.setParam(\stepSize, 0.05);
-~gui.setParam(\selfTracking, 0.0);
-~gui.setParam(\groupTracking, 2.0);
-~gui.setParam(\momentum, 1.03);
-~gui.setParam(\momentum, 0.99);
-~gui.setParam(\noise, 0.001);
-~gui.setParam(\noise, 0.01);
-~gui.setParam(\noise, 0.1);
-~gui.setParam(\noise, 1);
-~log.minPriority = 1;
-~swarm.cookedFitnessMap.values.mean;
-~swarm.cookedFitnessMap.values.variance;
-~swarm.swarmLagPosSpeed;
-~swarm.swarmLagMeanPosition;
-~swarm.swarmLagMeanFitness;
-~swarm.swarmLagFitnessRate;
-~swarm.swarmLagDispersal;
-~swarm.swarmMeanFitness;
-~swarm.swarmMeanBestFitness;
-~swarm.meanFitness;
-~targetbus.scope;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
 	s.sync;
-	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
-	~outgroup = Group.new(~phenogroup, addAction: \addToTail);
+	~voxgroup = Group.head(~phenogroup);
+	~targetGroup = Group.head(~phenogroup);
 	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
@@ -48,8 +22,7 @@ fork {
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
-	s.sync;
-	~targetGroup = Group.head(~phenogroup);
+	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
 	s.sync;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
@@ -62,19 +35,16 @@ fork {
 		\dur, Pexprand(1, 10, inf),
 		\group, ~targetGroup,
 		\addAction, 0,
-		\legato, Prand([1/2, 1, 2, ], inf)*5,
+		\legato, Prand([1/2, 1, 2, ], inf)*2,
 	).play;
 	
 	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
-	s.sync;
 	//~spy.moveAfter(~targetGroup);
 	/*******************/
 	//limiter, to avoid little accidents
-	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
-	s.sync;
 	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
 	{
-		s.volume.gui;
+		//s.volume.gui;
 		s.volume.volume= -6;
 	}.defer;
 	//actual real work now: first choose the controller that will manage the synths
@@ -127,27 +97,20 @@ fork {
 	~swarm.scoreCooker = #[phenosynth, score_cookers, invert_distance_to_similarity];
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
-	s.sync;
+	{
+		~plotState = SwarmGraph.new(~swarm);
+		~gui = SwarmGui.new(~swarm, maxFitness:10);
+	}.defer;
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
-
+~plotState.stop;
+~buffer.plot
 //listen for a while.
 //experiment
+ServerTreeGui.makeWindow(s);
 s.queryAllNodes;
-~swarm.controller;
-~swarm.neighbourTable;
-~control.outbus;
-~control.playBusses;
-~control.fitnessBusses;
-//{~swarm.plotFitness(raw:true);}.defer;
-~swarm.params;
-~swarm.initialChromosomeFactory.value;
-~swarm.individualFactory.value;
-~swarm.cookedFitnessMap;
-~swarm.cookedFitnessMap.values.postln;
-~swarm.rawScoreMap.values.postln;
-~swarm.rawScoreMap.keys.asArray[1].hash.asHexString
+
 //testing that things are going OK:
 (
 var best, worst, ranked;
@@ -158,10 +121,9 @@ worst = ranked[ranked.size-1];
 [\worst, ~swarm.rawScoreMap[worst],~swarm.cookedFitnessMap[worst], worst.chromosomeAsSynthArgs].postln;
 nil;
 )
-~buffer.plot;
 //when you are bored, do a
 ~swarm.free;
-~targetGroup.free;
+~phenoGroup.free;
 ~targetbus.free;
 
 /**************************
