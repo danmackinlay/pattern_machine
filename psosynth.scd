@@ -16,11 +16,14 @@ s.waitForBoot({
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
-	SynthDef.new(\limi, {|outbus|
+	SynthDef.new(\limi, {|outbus, cutoff=50|
 		ReplaceOut.ar(
 			outbus,
 			Limiter.ar(
-				In.ar(outbus),
+				HPF.ar(
+					In.ar(outbus),
+					cutoff
+				),
 				1,
 				0.1
 			)
@@ -148,7 +151,6 @@ nil;
   so that, e.g. clockrate can change on the fly
 * per-voice synth params - e.g. a pan spread.
 * pluck individuals out and let them wander back to the swarm
-* High-pass output (or at least DC-remove)
 * GUI
     * input and output level mix
 * update the target to be an evolving synth
