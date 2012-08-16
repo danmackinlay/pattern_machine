@@ -1,6 +1,5 @@
-/*
+ /*
 Server.default = s = ~serverboot.(\internal, \builtin);
-Quarks.gui
 //This is the API I want to approximate:
 
 productions = PSProductions.new;
@@ -113,21 +112,21 @@ Unlike Ppar, which could handle a fixed number before stopping, Pspawner can kee
 
 
 (
-p = Pspawner({ |sp| Ê Ê// sp = the Spawner object
-Ê Ê loop {
-Ê Ê Ê Ê Ê Ê // run a new pattern in parallel
-Ê Ê Ê Ê Ê Ê // the pattern is finite
-Ê Ê Ê Ê Ê Ê // after a few events, it stops and the Pspawner forgets about it
-Ê Ê Ê Ê sp.par(Pbind(
-Ê Ê Ê Ê Ê Ê \degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
-Ê Ê Ê Ê Ê Ê \pan, rrand(-1.0, 1.0),
-Ê Ê Ê Ê Ê Ê \dur, rrand(0.1, 0.3) Ê Ê// duration is chosen once for each pattern
-Ê Ê Ê Ê ));
-Ê Ê Ê Ê Ê Ê // tell the Spawner to wait a bit before the next pattern goes
-Ê Ê Ê Ê Ê Ê // DO NOT use numBeats.wait for this!
-Ê Ê Ê Ê Ê Ê // Everything must go through the Spawner
-Ê Ê Ê Ê sp.wait(rrand(1, 4) * 0.25);
-Ê Ê }
+p = Pspawner({ |sp| 	// sp = the Spawner object
+	loop {
+			// run a new pattern in parallel
+			// the pattern is finite
+			// after a few events, it stops and the Pspawner forgets about it
+		sp.par(Pbind(
+			\degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
+			\pan, rrand(-1.0, 1.0),
+			\dur, rrand(0.1, 0.3) 		// duration is chosen once for each pattern
+		));
+			// tell the Spawner to wait a bit before the next pattern goes
+			// DO NOT use numBeats.wait for this!
+			// Everything must go through the Spawner
+		sp.wait(rrand(1, 4) * 0.25);
+	}
 }).play;
 )
 
@@ -135,20 +134,20 @@ p.stop;
 The same, written using Pspawn :
 (
 p = Pspawn(Pbind(
-Ê Ê \method, \par, Ê Ê Ê Ê// embed patterns in parallel
-Ê Ê Ê Ê // generate the subpattern in a Pfunc (so there's a new pattern each time)
-Ê Ê Ê Ê // Pfunc returns the pattern without rendering the stream
-Ê Ê Ê Ê // -- important for Pspawn
-Ê Ê Ê Ê // See the Pspawn helpfile for other ways to embed patterns
-Ê Ê \pattern, Pfunc {
-Ê Ê Ê Ê Pbind(
-Ê Ê Ê Ê Ê Ê \degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
-Ê Ê Ê Ê Ê Ê \pan, rrand(-1.0, 1.0),
-Ê Ê Ê Ê Ê Ê \dur, rrand(0.1, 0.3) Ê Ê// duration is chosen once for each pattern
-Ê Ê Ê Ê )
-Ê Ê },
-Ê Ê Ê Ê // The \delta key is used automatically for the spawner.wait() call
-Ê Ê \delta, Pwhite(1, 4, inf) * 0.25
+	\method, \par, 	// embed patterns in parallel
+		// generate the subpattern in a Pfunc (so there's a new pattern each time)
+		// Pfunc returns the pattern without rendering the stream
+		// -- important for Pspawn
+		// See the Pspawn helpfile for other ways to embed patterns
+	\pattern, Pfunc {
+		Pbind(
+			\degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
+			\pan, rrand(-1.0, 1.0),
+			\dur, rrand(0.1, 0.3) // duration is chosen once for each pattern
+		)
+	},
+		// The \delta key is used automatically for the spawner.wait() call
+	\delta, Pwhite(1, 4, inf) * 0.25
 )).play;
 )
 

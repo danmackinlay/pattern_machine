@@ -96,10 +96,10 @@ Log differences?
 	//From the FFT Overview Help file, the best way of getting magnitudes
 	// (should the buffer *happen* to have complex contents)
 	~bufToComplex = {arg buf;
-	Ê Ê var z, x;
-	Ê Ê z = buf.clump(2).flop;
-	Ê Ê z = [Signal.newFrom(z[0]), Signal.newFrom(z[1])];
-	Ê Ê Complex(z[0], z[1]);
+		var z, x;
+		z = buf.clump(2).flop;
+		z = [Signal.newFrom(z[0]), Signal.newFrom(z[1])];
+		Complex(z[0], z[1]);
 	};
 
 })
