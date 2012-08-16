@@ -6,10 +6,10 @@ PSInfestSynths {
 	}
 	*loadSynthDefs{
 		SynthDef(\ps_infest_poly_host, {
-			|in, i_sndbuffer, phaseout|
+			|inbus, i_sndbuffer, phaseout|
 			//have a stab at recording some stuff
 			RecordBuf.ar(
-				inputArray: In.ar(in),
+				inputArray: In.ar(inbus),
 				bufnum: i_sndbuffer,
 				run:1,
 				loop:0,

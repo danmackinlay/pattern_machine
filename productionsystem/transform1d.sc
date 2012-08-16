@@ -5,6 +5,6 @@ AffineTransform1d: Function {
 	*new {|add, mul|
 		^this.newCopyArgs(add, mul);
 	}
-	value{|in| ^((value * mul) + add);}
+	value{|inbus| ^((value * mul) + add);}
 }
 */

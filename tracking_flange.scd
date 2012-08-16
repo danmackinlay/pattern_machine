@@ -27,18 +27,18 @@ fork {
 	//TODO: make this a send effect so they don't all feed in to one another.
 	//TODO: work out how to make the higher delay not be favoured by reaching its peak more rapidly
 	SynthDef.new(\rezofloss,
-		{ |in, outbus=0, freq = 220,
+		{ |inbus, outbus=0, freq = 220,
 			sideFreq=10,
 			range=0.9, decay=0.5,
 			lag=0.1, rate=10.0,
 			offPeakGain=0, offPeakLag=0.2,
 			gate = 1|
 		var sigIn, sigOut, reference, offsetFreq, currentFreq, lower, middle, higher, velocity, env, offPeak, delta, peakGain;
-		in.poll(1, \i);
+		inbus.poll(1, \i);
 		velocity = Lag.kr(LocalIn.kr(1), lag).poll(1, \v);
 		offsetFreq = Decay.kr(velocity, lag).poll(1, \off);
 		currentFreq = (freq + offsetFreq).max(10+sideFreq).min(8000-sideFreq).poll(1, \c);//Clip.kr NaNs out for me
-		sigIn = In.ar(in);
+		sigIn = In.ar(inbus);
 		sigOut = LeakDC.ar(CombL.ar(sigIn, 0.1, currentFreq.reciprocal, decay));
 		reference = Amplitude.kr(DelayN.ar(sigIn, 0.1, currentFreq.reciprocal))+ 0.0001;
 		lower = Amplitude.kr(LeakDC.ar(CombL.ar(sigIn, 0.1, (currentFreq-sideFreq).reciprocal, decay)))/reference.poll(1, \l);
@@ -49,7 +49,7 @@ fork {
 		delta = rate * ((higher-lower).sign) * ((higher-middle).max(lower-middle)).poll(1, \delta) ;// /(ControlRate.ir);
 		//spring constraints here
 		LocalOut.kr(offPeak*delta);
-		peakGain = Lag.kr(Select.kr(offPeak, [1, offPeakGain]), offPeakLag);//mute when in transit
+		peakGain = Lag.kr(Select.kr(offPeak, [1, offPeakGain]), offPeakLag);//mute when inbus transit
 		env = EnvGen.kr(Env.asr(0.01, 1.0, 0.1), gate, doneAction: 2) * peakGain;
 		Out.ar(outbus, (sigOut * env) ! 2);	// sig ! 2 is the same as [sig, sig]
 	}).add(s);
@@ -79,7 +79,7 @@ fork {
 
 	s.sync;
 
-	~fx = Synth.new(\rezofloss, [\in, ~synthBus, \outbus, ~mainOut, \freq, 90.midicps], ~fxGroup).play;
+	~fx = Synth.new(\rezofloss, [\inbus, ~synthBus, \outbus, ~mainOut, \freq, 90.midicps], ~fxGroup).play;
 	~limiter = Synth.new(\stereolimiter, [\outbus, ~mainOut], ~masterGroup);
 };
 )

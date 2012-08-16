@@ -9,12 +9,12 @@ Server.default = s = ~serverboot.(\internal, \internal);
 
 (
 SynthDef(\ps_pitch_writer, {
-	|in, i_bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, pitchthresh=100, dopoll=1|
+	|inbus, i_bufpointer, i_buffer, baserate=20, certthresh=0.9, ampthresh=0.1, ampscale=3, pitchthresh=100, dopoll=1|
 	var trig, gate, pitch, certainty, amp, counter, write, buflen;
 	buflen = BufFrames.ir(i_buffer)-1; //last sample gets filled with crap due to rude phase wrapping
-	in = In.ar(in);
-	#pitch, certainty = Tartini.kr(in);
-	amp = Amplitude.kr(in);
+	inbus = In.ar(inbus);
+	#pitch, certainty = Tartini.kr(inbus);
+	amp = Amplitude.kr(inbus);
 	gate = (certainty>certthresh)*(amp>ampthresh)*(pitch>pitchthresh);
 	//trigger rate is modulated by the amount by which amp exceeeds threshold
 	trig = Impulse.kr(baserate *
@@ -30,15 +30,15 @@ SynthDef(\ps_pitch_writer, {
 	Poll.kr(trig*dopoll, pitch, \pitchfound);
 	Out.kr(i_bufpointer, counter);
 }).add;
-SynthDef(\tempotrack, {|in, outbus, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0.0, lock=0|
+SynthDef(\tempotrack, {|inbus, outbus, tempoout=(-1), beatout=(-1), vol=0.0, beepvol=0.0, lock=0|
 	var fft, resample, fftbuffer;
 	var trackb,trackh,trackq,tempo;
 	var bsound,hsound,qsound, beep;
 	fftbuffer = LocalBuf(1024, 1);
 
-	in = In.ar(in);
+	inbus = In.ar(inbus);
 
-	fft = FFT(fftbuffer, in);
+	fft = FFT(fftbuffer, inbus);
 
 	#trackb,trackh,trackq,tempo=BeatTrack.kr(fft, lock);
 
@@ -46,14 +46,14 @@ SynthDef(\tempotrack, {|in, outbus, tempoout=(-1), beatout=(-1), vol=0.0, beepvo
 	beep = SinOsc.ar(1000,0.0,Decay.kr(trackb,0.1));
 	Out.kr(tempoout, tempo);
 	Out.kr(beatout, tempo.reciprocal);
-	Out.ar(outbus, Pan2.ar((vol*in)+(beepvol*beep), 0.0));
+	Out.ar(outbus, Pan2.ar((vol*inbus)+(beepvol*beep), 0.0));
 }).add;
 ~trackpitch = {|i_bufpointer, i_buffer, maxdel=50|
 	 BufRd.kr(
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
+			inbus: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo: 0,
 			hi: (BufFrames.ir(i_buffer)-1)
 		),
@@ -62,24 +62,24 @@ SynthDef(\tempotrack, {|in, outbus, tempoout=(-1), beatout=(-1), vol=0.0, beepvo
 };
 SynthDef(\ps_flange_chorister_del_bp, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1|
-	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
+	pitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
-	in = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
-	sig  = Pan2.ar(in, Rand(lo:-1, hi:1));
+	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
+	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		in: sig,
+		inbus: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		in: sig,
+		inbus: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -89,24 +89,24 @@ SynthDef(\ps_flange_chorister_del_bp, {
 }).add;
 SynthDef(\ps_flange_chorister_del_bp_compand, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1, thresh=0.001, slopeAbove=0.1|
-	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
+	pitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
-	in = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
-	sig  = Pan2.ar(in, Rand(lo:-1, hi:1));
+	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
+	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		in: sig,
+		inbus: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		in: sig,
+		inbus: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -120,7 +120,7 @@ SynthDef(\ps_flange_chorister_del_bp_compand, {
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
+			inbus: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo: 0,
 			hi: (BufFrames.ir(i_buffer)-1)
 		),
@@ -129,24 +129,24 @@ SynthDef(\ps_flange_chorister_del_bp_compand, {
 };
 SynthDef(\ps_flange_grain_del_bp, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1|
-	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
+	pitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
-	in = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
-	sig  = Pan2.ar(in, Rand(lo:-1, hi:1));
+	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
+	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		in: sig,
+		inbus: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		in: sig,
+		inbus: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -156,24 +156,24 @@ SynthDef(\ps_flange_grain_del_bp, {
 }).add;
 SynthDef(\ps_flange_grain_del_bp_compand, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1, thresh=0.001, slopeAbove=0.1|
-	var in, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
+	pitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
 	//Linear envelope, coz it gets squared.
 	env = EnvGen.kr(Env.perc(attackTime:attack, releaseTime:release, level:1.0, curve:\lin), gate:1, doneAction:2);
-	in = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
-	sig  = Pan2.ar(in, Rand(lo:-1, hi:1));
+	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
+	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		in: sig,
+		inbus: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		in: sig,
+		inbus: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -183,44 +183,44 @@ SynthDef(\ps_flange_grain_del_bp_compand, {
 	sig = sig*env;
 	Out.ar(outbus, sig);
 }).add;
-//I get very occasional exploding peaks of doom in here, so I aggressively hunt and destroy
+//I get very occasional exploding peaks of doom inbus here, so I aggressively hunt and destroy
 SynthDef(\antifbdelaylimit, {
 	|outbus, pregain=1.0, delay=0.5, lookahead=0.05, mindelay=0.2|
-	var in = In.ar(outbus, 2);
-	in = Select.ar(CheckBadValues.ar(in, 0, 0), [in, DC.ar(0), DC.ar(0), DC.ar(0)]);
-	in = LeakDC.ar(in, mul:pregain);
+	var inbus = In.ar(outbus, 2);
+	inbus = Select.ar(CheckBadValues.ar(inbus, 0, 0), [inbus, DC.ar(0), DC.ar(0), DC.ar(0)]);
+	inbus = LeakDC.ar(inbus, mul:pregain);
 	//Limiters are OK, but they don't stop the real nasty explosions
-	in = in * (1-Trig1.kr(((in.abs)>2), 0.1));
-	in = Limiter.ar(in, level: 0.5, dur:lookahead);
-	in = DelayN.ar (in, maxdelaytime: 5, delaytime: Clip.kr((delay-lookahead), mindelay, 5));
-	ReplaceOut.ar(outbus, in);
+	inbus = inbus * (1-Trig1.kr(((inbus.abs)>2), 0.1));
+	inbus = Limiter.ar(inbus, level: 0.5, dur:lookahead);
+	inbus = DelayN.ar (inbus, maxdelaytime: 5, delaytime: Clip.kr((delay-lookahead), mindelay, 5));
+	ReplaceOut.ar(outbus, inbus);
 }).add;
 SynthDef(\ducker, {
 	|outbus, sidechain, threshold=0.4, slopeAbove=0.1, clampTime=0.01, relaxTime=0.3|
-	var in = In.ar(outbus, 2);
+	var inbus = In.ar(outbus, 2);
 	sidechain = Mix.new(In.ar(sidechain, 2));
-	in = Compander.ar(in, sidechain, slopeAbove: slopeAbove, clampTime:clampTime, relaxTime:relaxTime);
-	ReplaceOut.ar(outbus, in);
+	inbus = Compander.ar(inbus, sidechain, slopeAbove: slopeAbove, clampTime:clampTime, relaxTime:relaxTime);
+	ReplaceOut.ar(outbus, inbus);
 }).add;
 SynthDef(\reverb, {
 	|outbus,mix=1, room=0.9, damp=0.4|
-	var in = In.ar(outbus, 2);
-	in = FreeVerb2.ar(in[0], in[1], mix:mix, room:room, damp:damp);	ReplaceOut.ar(outbus, in);
+	var inbus = In.ar(outbus, 2);
+	inbus = FreeVerb2.ar(inbus[0], inbus[1], mix:mix, room:room, damp:damp);	ReplaceOut.ar(outbus, inbus);
 }).add;
 SynthDef(\tee, {
 	|outbus, out2|
-	var in = In.ar(outbus, 2);
-	//ReplaceOut.ar(outbus, in);
-	Out.ar(out2, in);
+	var inbus = In.ar(outbus, 2);
+	//ReplaceOut.ar(outbus, inbus);
+	Out.ar(out2, inbus);
 }).add;
 SynthDef(\injectfb, {
-	|in, outbus, amp=0.5|
-	in = InFeedback.ar(in, 2);
-	Out.ar(outbus, in*amp);
+	|inbus, outbus, amp=0.5|
+	inbus = InFeedback.ar(inbus, 2);
+	Out.ar(outbus, inbus*amp);
 }).add;
-SynthDef(\delwrite, {|in, buffer, phaseout|
+SynthDef(\delwrite, {|inbus, buffer, phaseout|
 	var tapPhase;
-	tapPhase = DelTapWr.ar(buffer, Mix.new(In.ar(in,2)));
+	tapPhase = DelTapWr.ar(buffer, Mix.new(In.ar(inbus,2)));
 	Out.kr(phaseout, tapPhase);
 }).add;
 )
@@ -230,7 +230,7 @@ SynthDef(\delwrite, {|in, buffer, phaseout|
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
+			inbus: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo:0,
 			hi: BufFrames.ir(i_buffer)-1
 		),
@@ -270,14 +270,14 @@ s.waitForBoot( fork {
 	~outputmasterfxgroup = Group.after(~masterfxgroup;);
 	s.sync;
 	~player = ~playFile.(outbus:~analyseinput, target: ~inputgroup, loop:1, );
-	~pitchwriter = Synth.new(\ps_pitch_writer, [\in, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40, \dopoll, 0], target: ~analysisgroup );
-	~tempotracker = Synth.new(\tempotrack, [\in, ~analyseinput, \tempoout, ~tempobus, \beatout, ~beat, \outbus, ~output, \vol, 0.0], target: ~analysisgroup );
+	~pitchwriter = Synth.new(\ps_pitch_writer, [\inbus, ~analyseinput, \i_bufpointer, ~pitchbufpos, \i_buffer, ~pitchbuffer, \ampthresh, 0.01, \baserate, 40, \dopoll, 0], target: ~analysisgroup );
+	~tempotracker = Synth.new(\tempotrack, [\inbus, ~analyseinput, \tempoout, ~tempobus, \beatout, ~beat, \outbus, ~output, \vol, 0.0], target: ~analysisgroup );
 	~mastersafetyfx = Synth.new(\antifbdelaylimit, [\outbus, ~output, \delay, ~beat.asMap, \lookahead, 0.1, \pregain, 3], target: ~masterfxgroup );
 	~ducker = Synth.new(\ducker,  [\outbus, ~output, \sidechain, ~fxinput, \threshold, 0.1, \slopeAbove, 0], target: ~outputmasterfxgroup);
 	~reverb = Synth.new(\reverb,  [\outbus, ~output, \mix, 0.5, \room, 0.1, \damp, 0.3], target: ~outputmasterfxgroup, addAction: \addToTail);
-	~delayin = Synth.new(\delwrite, [\in, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
+	~delayin = Synth.new(\delwrite, [\inbus, ~fxinput, \buffer, ~delbuffer, \phaseout, ~delbufpos], target: ~fxgroup, addAction:\addToHead );
 	//~tee = Synth.new(\tee, [\outbus, ~output, \out2, ~fboutput], target: ~fbgroup );
-	//~fb = Synth.new(\injectfb, [\in, ~output, \outbus, ~fxinput], target: ~fxgroup, addAction:\addToHead );
+	//~fb = Synth.new(\injectfb, [\inbus, ~output, \outbus, ~fxinput], target: ~fxgroup, addAction:\addToHead );
 	//~fb.set(\amp, 0.5);
 	//~pitchsprayer = Synth.new(\ps_pitch_spray, [\i_bufpointer, ~pitchbufpos, \outbus, ~pitches, \i_buffer, ~pitchbuffer], target:~pitchwriter, addAction: \addAfter);
 	//~pitchsprayer.set(\maxdel, 10);

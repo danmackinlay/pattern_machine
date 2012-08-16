@@ -14,7 +14,7 @@ var maxVoices = 23; //primes make it easy to permute, since everything is co-pri
 //input is assumed to be stereo
 
 SynthDef.new(\glimmergrains,
-	{|in, outbus,
+	{|inbus, outbus,
 		trigRate=10,
 		inDuty=0.5, playDuty=0.5,
 		ringTime=2.0, wideness=1,
@@ -24,13 +24,13 @@ SynthDef.new(\glimmergrains,
 		nVoices=23,
 		feedbackGain = 0.5, feedbackLen=0.1|
 		var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
-		in = In.ar(in, 2);
+		inbus = In.ar(inbus, 2);
 		feedback = DelayL.ar(
-			in: LocalIn.ar(2),
+			inbus: LocalIn.ar(2),
 			maxdelaytime: 1.0,
 			delaytime: feedbackLen-ControlRate.ir.reciprocal,
 			mul:feedbackGain) ;
-		mixedIn = Mix.new(in+feedback);
+		mixedIn = Mix.new(inbus+feedback);
 		//poor-man's shared ring buffer
 		freqBufPointer = In.kr(freqBufPointer);
 		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
@@ -64,18 +64,18 @@ SynthDef.new(\glimmergrains,
 				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(80);
 			sig = Resonz.ar(
-				in: mixedIn*inEnv,
+				inbus: mixedIn*inEnv,
 				freq: myFilterFreq,
 				bwr: wideness
 			);
 			sig = CombL.ar(
-				in: sig,
+				inbus: sig,
 				maxdelaytime: 0.1,
 				delaytime: myDelayFreq.reciprocal,
 				decaytime: ringTime,
 				mul:outEnv);
 			Pan2.ar(
-				in: sig,
+				inbus: sig,
 				pos: ((2 * (panI+0.5) * maxVoices.reciprocal) -1),
 				level: 1.0
 			);
@@ -87,11 +87,11 @@ SynthDef.new(\glimmergrains,
 ).add(s);
 
 
-SynthDef.new(\findfreqs, {|in, rate = 10, gate=1, freqBuf, freqBufPointer|
+SynthDef.new(\findfreqs, {|inbus, rate = 10, gate=1, freqBuf, freqBufPointer|
 	var hasFreq, freq, index, writing=0;
 	rate = rate.min(ControlRate.ir/2);//so triggers work
 	//we presume freqBuf has 513 samples, and use 512. Why not?
-	#freq, hasFreq = Pitch.kr(Mix.new(In.ar(in, 2)), execFreq: rate);
+	#freq, hasFreq = Pitch.kr(Mix.new(In.ar(inbus, 2)), execFreq: rate);
 	writing = hasFreq* gate;
 	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
 	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
@@ -128,7 +128,7 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 ~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
 //s.volume.gui;
 s.volume.volume= -20;
-~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
-~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \outbus, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
+~listener = Synth.head(~fxGroup, \findfreqs, [\inbus, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\inbus, ~sourceIns, \outbus, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
 ~freqBufPointer.get(_.postln);
 ~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});

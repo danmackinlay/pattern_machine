@@ -4,21 +4,21 @@ Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \internal);
 ~openStartup.();
 (
-SynthDef.new(\ps_oneshot_record, {|in, sndbuffer|
-	in = HPF.ar(In.ar(in), freq:80);
-	RecordBuf.ar(in, run: 1, trigger: 1, loop:0, doneAction:2);
+SynthDef.new(\ps_oneshot_record, {|inbus, sndbuffer|
+	inbus = HPF.ar(In.ar(inbus), freq:80);
+	RecordBuf.ar(inbus, run: 1, trigger: 1, loop:0, doneAction:2);
 }).add;
-SynthDef.new(\ps_autorecorder, {|in, analout, sndbuffer, pitchbuffer, ampthresh=0.1, certthresh=0.8, lag=0.6, duration=10, pitchid=15, exciteleak=0.9995|
+SynthDef.new(\ps_autorecorder, {|inbus, analout, sndbuffer, pitchbuffer, ampthresh=0.1, certthresh=0.8, lag=0.6, duration=10, pitchid=15, exciteleak=0.9995|
 	var recordtrig, amp, certainty, recordable, pitch, currsndbuffer, currpitchbuffer, onset, excitement;
 	//TODO implement many buffers with Stepper.kr and Latch.kr
 	currsndbuffer = sndbuffer;
 	currpitchbuffer = sndbuffer;
-	in = HPF.ar(In.ar(in), freq:80);
-	# pitch, certainty = Tartini.kr(in);
+	inbus = HPF.ar(In.ar(inbus), freq:80);
+	# pitch, certainty = Tartini.kr(inbus);
 	certainty = Lag.kr(certainty, lagTime:lag);
 	certainty.poll(1, \p);
-	//onset = Coyote.kr(in);
-	amp = Amplitude.kr(in);
+	//onset = Coyote.kr(inbus);
+	amp = Amplitude.kr(inbus);
 	amp = Lag.kr(amp, lagTime:lag);
 	amp.poll(1, \a);
 	excitement = Integrator.kr(certainty*amp, coef: exciteleak);
@@ -31,8 +31,8 @@ SynthDef.new(\ps_autorecorder, {|in, analout, sndbuffer, pitchbuffer, ampthresh=
 	recordable.poll(1, \r2);
 	recordtrig = Trig1.kr(recordable, dur: duration);
 	recordtrig.poll(1, \rt);
-	RecordBuf.ar(in, run: recordtrig, trigger: recordtrig, loop:0);
-	SendTrig.kr(in: recordable*LFPulse.kr(freq: 10), value: pitch);
+	RecordBuf.ar(inbus, run: recordtrig, trigger: recordtrig, loop:0);
+	SendTrig.kr(inbus: recordable*LFPulse.kr(freq: 10), value: pitch);
 	Out.kr(analout, excitement);
 }).add;
 SynthDef.new(\ps_twinker, {|outbus, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
@@ -128,17 +128,17 @@ SynthDef.new(\ps_twinker_drone, {
 ~tmpBus.free;
 ~controlrate;
 ~pitchBuf = Buffer.alloc(numFrames: (~controlrate*10.0).ceil, numChannels:1);
-~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~inbus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 2);
-//~recorder = Synth.new(\ps_autorecorder, [\in, ~in, \sndbuffer,  ~recBuf, \duration, 10]);
+//~recorder = Synth.new(\ps_autorecorder, [\inbus, ~inbus, \sndbuffer,  ~recBuf, \duration, 10]);
 //~recorder.trace;
 //~recorder.free;
-~recorder = Synth.new(\ps_oneshot_record, [\in, ~in, \sndbuffer,  ~recBuf]);
+~recorder = Synth.new(\ps_oneshot_record, [\inbus, ~inbus, \sndbuffer,  ~recBuf]);
 ~recBuf.plot;
-~player = Synth.new(\ps_twinker, [\in, ~in, \outbus, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
+~player = Synth.new(\ps_twinker, [\inbus, ~inbus, \outbus, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
 ~player.trace;
 	~player.release;
-~player = Synth.new(\ps_markov_twinker_constrate, [\in, ~in, \outbus, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10, \duty, 2, \dutyvar, 0.5, \pan, 0, \panvar, 1, \pos, 0, \posvar, 0, \ampvar, 0.1]);
+~player = Synth.new(\ps_markov_twinker_constrate, [\inbus, ~inbus, \outbus, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10, \duty, 2, \dutyvar, 0.5, \pan, 0, \panvar, 1, \pos, 0, \posvar, 0, \ampvar, 0.1]);
 ~player.trace;
 ~player.release;
 

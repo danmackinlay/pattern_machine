@@ -17,9 +17,9 @@ StartUp.run;
 (
 // poly_ -style
 ~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
-~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~inbus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 1);
-~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
+~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\inbus, ~inbus, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite, [\outbus, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //~makeparasite.(~makehost.(0));
 ~recBuf = ~makehost.(0);
@@ -29,9 +29,9 @@ StartUp.run;
 (
 // poly_ _lfo -style
 ~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
-~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~inbus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 1);
-~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
+~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\inbus, ~inbus, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\outbus, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //~makeparasite.(~makehost.(0));
 ~recBuf = ~makehost.(1);
@@ -41,9 +41,9 @@ StartUp.run;
 (
 // poly_ _lfo -style, MIDIfied
 ~recBufs = Buffer.allocConsecutive(numBufs:8, server:s, numFrames: s.sampleRate*10.0, numChannels:1);
-~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
+~inbus = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 1);
-~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
+~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\inbus, ~inbus, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
 ~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\outbus, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //controllerism
 MIDIIn.connectAll;
