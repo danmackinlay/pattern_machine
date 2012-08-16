@@ -152,7 +152,7 @@ nil;
  
 * multichannel
   * or just one server per channel perhaps?
-* per-voice synth params - e.g. a pan spread.
+  * per-voice synth params - e.g. a pan spread.
 * GUI
     * input and output level mix
     * "explode" button, scattering the chromosomes
@@ -167,7 +167,7 @@ nil;
 	* annealing schedule
 	* detecting the need to update noise parameters
 		(e.g. decreasing without changing)
-	* detecting convergence
+	* optional meta-optimising operator
 	* remember near-global maxima so I know when I've drifted off.
 * specific sample synth player
 	* How can this sound sparser? Reward silence?
