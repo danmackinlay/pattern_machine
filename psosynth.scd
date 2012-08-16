@@ -70,7 +70,7 @@ fork {
 	//~spy.moveAfter(~targetGroup);
 	/*******************/
 	//limiter, to avoid little accidents
-	SynthDef.new(\limi, {|bus| ReplaceOut.ar(bus, Limiter.ar(In.ar(bus),1,0.1))}).add;
+	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
 	s.sync;
 	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
 	{
