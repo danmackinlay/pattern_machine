@@ -16,7 +16,16 @@ s.doWhenBooted  {
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
-	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
+	SynthDef.new(\limi, {|outbus|
+		ReplaceOut.ar(
+			outbus,
+			Limiter.ar(
+				In.ar(outbus),
+				1,
+				0.1
+			)
+		)
+	}).add;
 	s.sync;
 	~voxgroup = Group.head(~phenogroup);
 	~targetGroup = Group.head(~phenogroup);
