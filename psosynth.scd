@@ -7,6 +7,7 @@ StartUp.run;
 (
 s.waitForBoot({
 	fork {
+	var population = 30;
 	~swarmOut = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
 	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
@@ -16,13 +17,14 @@ s.waitForBoot({
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
-	SynthDef.new(\limi, {|outbus, cutoff=50|
+	SynthDef.new(\limi, {|outbus, cutoff=50, pregain=1|
 		ReplaceOut.ar(
 			outbus,
 			Limiter.ar(
 				HPF.ar(
-					In.ar(outbus),
-					cutoff
+					in: In.ar(outbus),
+					freq: cutoff,
+					mul: pregain
 				),
 				1,
 				0.01
@@ -56,7 +58,9 @@ s.waitForBoot({
 	//~spy.listenTo(~swarmOut);
 	/*******************/
 	//limiter, to avoid little accidents
-	~limi = Synth.after(~phenogroup, \limi, [\outbus, ~swarmOut]);
+	~limi = Synth.after(~phenogroup, \limi,
+		[\outbus, ~swarmOut,
+		\pregain, population.sqrt.reciprocal]);
 	{
 		//s.volume.gui;
 		s.volume.volume= -6;
@@ -74,7 +78,7 @@ s.waitForBoot({
 		numChannels:1,
 		log:~log,
 		leakCoef:0.5,
-		maxPop:30,
+		maxPop:population,
 	);
 	~control.extraSynthArgs = [\lagtime, 0.1, \buffer, ~buffer];
 	~control.leakCoef = 0.05;
@@ -92,7 +96,7 @@ s.waitForBoot({
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
-		(\populationSize: 30, 
+		(\populationSize: population, 
 		\initialChromosomeSize: 7,
 		\clockRate: 20,
 		\stepSize: 0.01,
