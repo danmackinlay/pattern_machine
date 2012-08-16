@@ -147,12 +147,11 @@ nil;
  
 * multichannel
   * or just one server per channel perhaps?
-* update SynthController to have its params accessed through a controller
-  so that, e.g. clockrate can change on the fly
 * per-voice synth params - e.g. a pan spread.
-* pluck individuals out and let them wander back to the swarm
 * GUI
     * input and output level mix
+    * "explode" button, scattering the chromosomes
+    * pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
 	* say, a live audio input
 * more interesting objective functions:
@@ -170,12 +169,14 @@ nil;
 	* How can this sound sparser? Reward silence?
 	* sample playing
 	* sample recording
+* handle feedback in reverberant environments in some smart way
+	* this could be as simple as pitch shifting inputs
 * go to MOL ("many optimising liaisons") 
 	* choose random peer as neighbour each time
 	* update only one at each time
-* handle feedback in reverberant environments in some smart way
-	* this could be as simple as pitch shifting inputs
+* visualise this using Quartz Composer
+* update SynthController to have its params accessed through a controller
+  so that, e.g. clockrate can change on the fly
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
 * should I put some methods in there to handle lagtime on the controller?
-* visualise this using Quartz Composer
 */
