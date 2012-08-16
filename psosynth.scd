@@ -1,8 +1,11 @@
 // This remix of the psosynth stuff tries to use the ddwMixerChannel to handle levels.
-// unfortunately, I do a hell of a lot more than play synthdefs here, and it doesn't seem to like playing such objects.
+// It kinda works, but graps out when you try to use the GUI.
+//I think this is because objects are not allocated right when I don't actually play anything.
+// I do more than play synthdefs here, and it doesn't seem to like playing such complicated thingies.
 // The workaround: implementing playInMixerGroup { |mixer, target, patchType, args| }
+// on SynthController
 // which will effectively be implementing a playToMixer method in the style of Patch, 
-// which involves some weird bundling voodoo
+// which in turn involves some weird bundling voodoo I don't understand.
 
 //initialisation
 Server.default = s = ~serverboot.(\internal, \motu);
@@ -10,17 +13,27 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 
+
+
 (
-Server.default = s = ~serverboot.(\local, \builtin);
+//Server.default = s = ~serverboot.(\local, \builtin);
 s.doWhenBooted  {
 	StartUp.run;
-	~swarmOuts = Bus.audio(s, 1);
+	~swarmOut = Bus.audio(s, 1);
 	~globalOuts = Bus.new(\audio, 0, 2, s);
 	s.sync;
-	~mixer = MixerChannel.new(\swarm1,
+	~swarmMixer = MixerChannel.new("swarm1",
 		inChannels:1, outChannels:2,
-		inbus:~swarmOuts,
+		inbus:~swarmOut,
 		outbus:~globalOuts);
+	s.sync;
+	//This part doesn't work right now. Not so much.
+	//BusDict never gets filled with the right entries.
+	{
+		~mixingBoard = MixingBoard.new("swarms", nil);
+		~mixingBoard.add(~swarmMixer);
+		BusDict.postServer;
+	}.defer;
 	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
@@ -35,7 +48,7 @@ s.doWhenBooted  {
 	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
 	s.sync;
 	1.wait;
-	~mixer.run;
+	~swarmMixer.run;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\outbus, ~targetbus,
@@ -45,17 +58,17 @@ s.doWhenBooted  {
 		\pitch, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*500,
 		\rq, 0.2,
 		\dur, Pexprand(1, 10, inf),
-		\group, ~mixer.synthgroup,
+		\group, ~swarmMixer.synthgroup,
 		\addAction, 0,
 		\legato, Prand([1/2, 1, 2, ], inf)*5,
 	).play;
 	
-	//~spy = SpyBus.new.play(~mixer.synthgroup, ~targetbus);
-	//~spy.moveAfter(~mixer.synthgroup);
+	//~spy = SpyBus.new.play(~swarmMixer.synthgroup, ~targetbus);
+	//~spy.moveAfter(~swarmMixer.synthgroup);
 	//~spy.listenTo(~swarmOut);
 	/*******************/
 	//limiter, to avoid little accidents
-	~limi = ~mixer.playfx(\limi);
+	~limi = ~swarmMixer.playfx(\limi);
 	
 	//actual real work now: first choose the controller that will manage the synths
 	~synthName = \ps_sample_grain_lagged;
@@ -83,7 +96,7 @@ s.doWhenBooted  {
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
 	2.wait;
-	~control.play(~mixer.synthgroup, outbus: ~swarmOuts, targetbus: ~targetbus);
+	~control.play(~swarmMixer.synthgroup, outbus: ~swarmOut, targetbus: ~targetbus);
 	s.sync;
 	2.wait;
 	//now set up the "swarm" that will control their evolution
@@ -109,7 +122,7 @@ s.doWhenBooted  {
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
 	s.sync;
-	[\phenogroup, ~mixer.synthgroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
+	[\phenogroup, ~swarmMixer.synthgroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
 //listen for a while.
@@ -141,7 +154,7 @@ nil;
 ~buffer.plot;
 //when you are bored, do a
 ~swarm.free;
-~mixer.free;
+~swarmMixer.free;
 ~targetbus.free;
 
 /**************************
