@@ -1,3 +1,9 @@
+// This remix of the psosynth stuff tries to use the ddwMixerChannel to handle levels.
+// unfortunately, I do a hell of a lot more than play synthdefs here, and it doesn't seem to like playing such objects.
+// The workaround: implementing playInMixerGroup { |mixer, target, patchType, args| }
+// which will effectively be implementing a playToMixer method in the style of Patch, 
+// which involves some weird bundling voodoo
+
 ServerTreeGui.makeWindow(s);
 //initialisation
 Server.default = s = ~serverboot.(\internal, \motu);
@@ -30,27 +36,32 @@ StartUp.run;
 ~swarm.swarmMeanBestFitness;
 ~swarm.meanFitness;
 ~targetbus.scope;
+~mixer.synthgroup;
+~mixer.effectgroup;
 (
 fork {
-	~globalOuts = Bus.new(\audio, 0, 1, s);
-	~phenogroup = Group.new(s);
+	~swarmOuts = Bus.audio(s, 1);
+	~globalOuts = Bus.new(\audio, 0, 2, s);
 	s.sync;
-	~voxgroup = Group.new(~phenogroup, addAction: \addToHead);
-	~outgroup = Group.new(~phenogroup, addAction: \addToTail);
+	~mixer = MixerChannel.new(\swarm1,
+		inChannels:1, outChannels:2,
+		inbus:~swarmOuts,
+		outbus:~globalOuts);
 	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;
 	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
 	//~targetbus = Bus.audio(s, 1); // internal channel
-	~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
+	~targetbus = Bus.new(\audio, 1, 1, s); //right output Channel
 	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
+	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
 	s.sync;
-	~targetGroup = Group.head(~phenogroup);
-	s.sync;
+	1.wait;
+	~mixer.run;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\outbus, ~targetbus,
@@ -60,23 +71,17 @@ fork {
 		\pitch, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*500,
 		\rq, 0.2,
 		\dur, Pexprand(1, 10, inf),
-		\group, ~targetGroup,
+		\group, ~mixer.synthgroup,
 		\addAction, 0,
 		\legato, Prand([1/2, 1, 2, ], inf)*5,
 	).play;
 	
-	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
-	s.sync;
-	//~spy.moveAfter(~targetGroup);
+	//~spy = SpyBus.new.play(~mixer.synthgroup, ~targetbus);
+	//~spy.moveAfter(~mixer.synthgroup);
 	/*******************/
 	//limiter, to avoid little accidents
-	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
-	s.sync;
-	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
-	{
-		s.volume.gui;
-		s.volume.volume= -6;
-	}.defer;
+	~limi = ~mixer.playfx(\limi);
+	
 	//actual real work now: first choose the controller that will manage the synths
 	~synthName = \ps_sample_grain_lagged;
 	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
@@ -102,9 +107,10 @@ fork {
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
-	~control.play(~phenogroup, outbus: ~globalOuts, targetbus: ~targetbus);
+	2.wait;
+	~control.play(~mixer.synthgroup, outbus: ~swarmOuts, targetbus: ~targetbus);
 	s.sync;
-	1.wait;
+	2.wait;
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
@@ -128,10 +134,10 @@ fork {
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
 	~swarm.play(~control);
 	s.sync;
-	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
+	[\phenogroup, ~mixer.synthgroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
-
+~control.listenGroup.
 //listen for a while.
 //experiment
 s.queryAllNodes;
@@ -161,7 +167,7 @@ nil;
 ~buffer.plot;
 //when you are bored, do a
 ~swarm.free;
-~targetGroup.free;
+~mixer.free;
 ~targetbus.free;
 
 /**************************
