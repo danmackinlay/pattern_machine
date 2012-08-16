@@ -44,7 +44,7 @@ s.doWhenBooted  {
 	//~spy.listenTo(~swarmOut);
 	/*******************/
 	//limiter, to avoid little accidents
-	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
+	~limi = Synth.after(~phenogroup, \limi, [\outbus, ~swarmOut]);
 	{
 		//s.volume.gui;
 		s.volume.volume= -6;
