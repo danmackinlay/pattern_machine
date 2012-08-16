@@ -3,18 +3,12 @@ Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
-StartUp.run;
 (
-fork {
-	~globalOuts = Bus.new(\audio, 0, 1, s);
+Server.default = s = ~serverboot.(\local, \builtin);
+s.doWhenBooted  {
+	StartUp.run;
+	~swarmOut = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
-	s.sync;
-	~voxgroup = Group.head(~phenogroup);
-	~targetGroup = Group.head(~phenogroup);
-	~log = FileLogger.global;
-	~log.reject(\controlling);
-	~log.reject(\moving);
-	~log.minPriority = 1;
 	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
 	//~targetbus = Bus.audio(s, 1); // internal channel
 	~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
@@ -23,6 +17,13 @@ fork {
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
 	SynthDef.new(\limi, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus),1,0.1))}).add;
+	s.sync;
+	~voxgroup = Group.head(~phenogroup);
+	~targetGroup = Group.head(~phenogroup);
+	~log = FileLogger.global;
+	~log.reject(\controlling);
+	~log.reject(\moving);
+	~log.minPriority = 1;
 	s.sync;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
@@ -37,9 +38,10 @@ fork {
 		\addAction, 0,
 		\legato, Prand([1/2, 1, 2, ], inf)*2,
 	).play;
-	
+	s.sync;
 	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
 	//~spy.moveAfter(~targetGroup);
+	//~spy.listenTo(~swarmOut);
 	/*******************/
 	//limiter, to avoid little accidents
 	~limi = Synth.after(~phenogroup, \limi, [~globalOuts]);
@@ -72,7 +74,7 @@ fork {
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
-	~control.play(~phenogroup, outbus: ~globalOuts, targetbus: ~targetbus);
+	~control.play(~phenogroup, outbus: ~swarmOut, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
 	//now set up the "swarm" that will control their evolution
