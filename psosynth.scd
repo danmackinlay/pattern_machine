@@ -3,10 +3,10 @@ Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
+StartUp.run;
 (
-Server.default = s = ~serverboot.(\local, \builtin);
-s.doWhenBooted  {
-	StartUp.run;
+s.waitForBoot({
+	fork {
 	~swarmOut = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
 	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
@@ -114,6 +114,7 @@ s.doWhenBooted  {
 	}.defer;
 	[\phenogroup, ~phenogroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
+});
 )
 ~plotState.stop;
 ~buffer.plot
