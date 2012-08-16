@@ -4,42 +4,16 @@
 // which will effectively be implementing a playToMixer method in the style of Patch, 
 // which involves some weird bundling voodoo
 
-ServerTreeGui.makeWindow(s);
 //initialisation
 Server.default = s = ~serverboot.(\internal, \motu);
 Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
-StartUp.run;
-~plotState = SwarmGraph.new(~swarm);
-~plotState.stop;
-~gui = SwarmGui.new(~swarm, maxFitness:10);
-~gui.setParam(\clockRate, 26);
-~gui.setParam(\stepSize, 0.05);
-~gui.setParam(\selfTracking, 0.0);
-~gui.setParam(\groupTracking, 2.0);
-~gui.setParam(\momentum, 1.03);
-~gui.setParam(\momentum, 0.99);
-~gui.setParam(\noise, 0.001);
-~gui.setParam(\noise, 0.01);
-~gui.setParam(\noise, 0.1);
-~gui.setParam(\noise, 1);
-~log.minPriority = 1;
-~swarm.cookedFitnessMap.values.mean;
-~swarm.cookedFitnessMap.values.variance;
-~swarm.swarmLagPosSpeed;
-~swarm.swarmLagMeanPosition;
-~swarm.swarmLagMeanFitness;
-~swarm.swarmLagFitnessRate;
-~swarm.swarmLagDispersal;
-~swarm.swarmMeanFitness;
-~swarm.swarmMeanBestFitness;
-~swarm.meanFitness;
-~targetbus.scope;
-~mixer.synthgroup;
-~mixer.effectgroup;
+
 (
-fork {
+Server.default = s = ~serverboot.(\local, \builtin);
+s.doWhenBooted  {
+	StartUp.run;
 	~swarmOuts = Bus.audio(s, 1);
 	~globalOuts = Bus.new(\audio, 0, 2, s);
 	s.sync;
@@ -50,7 +24,7 @@ fork {
 	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
-	~log.minPriority = 1;
+	~log.minPriority = 1;	
 	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
 	//~targetbus = Bus.audio(s, 1); // internal channel
 	~targetbus = Bus.new(\audio, 1, 1, s); //right output Channel
@@ -78,6 +52,7 @@ fork {
 	
 	//~spy = SpyBus.new.play(~mixer.synthgroup, ~targetbus);
 	//~spy.moveAfter(~mixer.synthgroup);
+	//~spy.listenTo(~swarmOut);
 	/*******************/
 	//limiter, to avoid little accidents
 	~limi = ~mixer.playfx(\limi);
@@ -137,7 +112,6 @@ fork {
 	[\phenogroup, ~mixer.synthgroup, \controlgroups, ~control.playGroup, ~control.listenGroup].postln;
 };
 )
-~control.listenGroup.
 //listen for a while.
 //experiment
 s.queryAllNodes;
