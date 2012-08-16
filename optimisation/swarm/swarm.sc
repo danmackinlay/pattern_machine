@@ -16,7 +16,8 @@ PSOptimisingSwarm {
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, raw];
 	classvar <defaultTerminationCondition = #[phenosynth, termination_conds, never];
 
-	var <>params;
+	//this really should be private coz of GUIs and the like
+	var <params;
 
 	var <>controller;
 	var <>particles;
@@ -269,6 +270,10 @@ PSOptimisingSwarm {
 		this.updateStatistics;
 		iterations = iterations + 1;
 	}
+	setParam {|statekey, stateval|
+		params[statekey] = stateval;
+		params.changed(statekey, stateval);
+	}
 	updateStatistics{
 		var lastMeanFitness;
 		var meanChromosome;
@@ -424,7 +429,7 @@ SwarmGui {
 	var <swarm, <>pollRate;
 	var <>maxFitness;
 	var <paramsModel;
-	var <paramsModelSetter, <paramsGuiUpdater;
+	var <paramsGuiUpdater;
 	var <window, <widgets;
 	var worker;
 	
@@ -637,8 +642,7 @@ SwarmGui {
 	}
 	//controller. This is the only supported accessor for swarm params.
 	setParam {|statekey, stateval|
-		paramsModel[statekey] = stateval;
-		paramsModel.changed(statekey, stateval);
+		swarm.setParam(statekey, stateval);
 	}
 	updateStatistics {
 		widgets.meanPos.value = swarm.meanChromosome;
