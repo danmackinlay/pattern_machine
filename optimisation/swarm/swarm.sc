@@ -457,6 +457,7 @@ SwarmGui {
 			initVal: paramsModel.clockRate,
 			action: {|view| this.setParam(\clockRate, view.value);}
 		);
+		widgets.clockRate.numberView.maxDecimals=4;
 		widgets.stepSize = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
@@ -470,6 +471,7 @@ SwarmGui {
 			initVal: paramsModel.stepSize,
 			action: {|view| this.setParam(\stepSize, view.value);}
 		);
+		widgets.stepSize.numberView.maxDecimals=4;
 		widgets.selfTracking = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
@@ -483,6 +485,7 @@ SwarmGui {
 			initVal: paramsModel.selfTracking,
 			action: {|view| this.setParam(\selfTracking, view.value);}
 		);
+		widgets.selfTracking.numberView.maxDecimals=4;
 		widgets.groupTracking = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
@@ -496,6 +499,7 @@ SwarmGui {
 			initVal: paramsModel.groupTracking,
 			action: {|view| this.setParam(\groupTracking, view.value);}
 		);
+		widgets.groupTracking.numberView.maxDecimals=4;
 		widgets.momentum = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
@@ -509,19 +513,21 @@ SwarmGui {
 			initVal: paramsModel.momentum,
 			action: {|view| this.setParam(\momentum, view.value);}
 		);
+		widgets.momentum.numberView.maxDecimals=4;
 		widgets.noise = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
 			labelWidth: labelWidth,
 			bounds: Point(ezSliderWidth, 16),
 			label: "noise",
-			controlSpec: ControlSpec.new(0.00001, 1,
+			controlSpec: ControlSpec.new(0.0001, 1,
 				\exponential,
 				default: paramsModel.noise,
 			),
 			initVal: paramsModel.noise,
 			action: {|view| this.setParam(\noise, view.value);}
 		);
+		widgets.noise.numberView.maxDecimals=4;
 		widgets.memoryDecay = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
@@ -535,6 +541,8 @@ SwarmGui {
 			initVal: paramsModel.memoryDecay,
 			action: {|view| this.setParam(\memoryDecay, view.value);}
 		);
+		widgets.memoryDecay.numberView.maxDecimals=4;
+		
 		widgets.meanPos = MultiSliderView(window, Rect(0,0,ezSliderWidth,100));
 		widgets.meanPos.size = swarm.params[\initialChromosomeSize] ? 7;
 		widgets.meanPos.elasticMode = 1;
