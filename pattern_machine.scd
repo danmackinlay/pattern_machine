@@ -14,7 +14,7 @@ OSCdef.newMatching(\fader1,{|...ar| ar.postln;}, "/1/fader1", ~localfuckingoscul
 ~in = Bus.new(\audio, s.options.numOutputBusChannels, 1);
 ~globalOuts = Bus.new(\audio, 0, 1);
 ~makehost = {|i=0| Synth.new(\ps_infest_poly_host, [\in, ~in, \i_sndbuffer, ~recBufs[i]], s); ~recBufs[i]};
-~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\out, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
+~makeparasite = {|buf| Synth.new(\ps_infest_poly_parasite_lfo, [\outbus, ~globalOuts, \gate, 1, \i_sndbuffer, buf], addAction:\addToTail, target:s); };
 //~makeparasite.(~makehost.(0));
 
 SynthDef.new(\autorecorder, {|in, sndbuffer, pitchbuffer, ampthresh=0.1, certthresh=0.9, duration=10|

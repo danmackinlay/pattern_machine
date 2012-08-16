@@ -35,14 +35,14 @@ SynthDef.new(\ps_autorecorder, {|in, analout, sndbuffer, pitchbuffer, ampthresh=
 	SendTrig.kr(in: recordable*LFPulse.kr(freq: 10), value: pitch);
 	Out.kr(analout, excitement);
 }).add;
-SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
+SynthDef.new(\ps_twinker, {|outbus, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
 	var paramtrig, graintrig, grainrate, envl, effectiveduration, graindur;
 	effectiveduration = duration-1;
 	grainrate = paramrate;
 	graindur = paramrate.reciprocal * duty;
 	graintrig = Impulse.kr(freq: grainrate)-0.1;
 	envl = EnvGen.kr(Env.cutoff(release, curve: -4), gate: gate, doneAction:2);
-	Out.ar(out,
+	Out.ar(outbus,
 		envl *
 		HPF.ar(
 			TGrains.ar(
@@ -60,7 +60,7 @@ SynthDef.new(\ps_twinker, {|out, gate=1, sndbuffer, pitchbuffer, paramrate=3, du
 	);
 }).add;
 SynthDef.new(\ps_markov_twinker_constrate, {
-		|out, gate=1,
+		|outbus, gate=1,
 		sndbuffer,
 		release=1,
 		duration=10.0,
@@ -76,7 +76,7 @@ SynthDef.new(\ps_markov_twinker_constrate, {
 	posrange = posmax-posmin;
 	graintrig = Impulse.kr(freq: stepdur.reciprocal)-0.1;
 	envl = EnvGen.kr(Env.cutoff(release, curve: -4), gate: gate, doneAction:2);
-	Out.ar(out,
+	Out.ar(outbus,
 		envl *
 		HPF.ar(
 			TGrains.ar(
@@ -94,7 +94,7 @@ SynthDef.new(\ps_markov_twinker_constrate, {
 	);
 }).add;
 SynthDef.new(\ps_twinker_drone, {
-		|out, gate=1,
+		|outbus, gate=1,
 		sndbuffer,
 		release=1,
 		grainSize=0.1,
@@ -103,7 +103,7 @@ SynthDef.new(\ps_twinker_drone, {
 		pos=0,
 		amp=(-10.0)|
 	envl = EnvGen.kr(Env.cutoff(release, curve: -4), gate: gate, doneAction:2);
-	Out.ar(out,
+	Out.ar(outbus,
 		Pan2.ar(envl * HPF.ar(
 			Warp1.ar(
 				numChannels:1,
@@ -135,10 +135,10 @@ SynthDef.new(\ps_twinker_drone, {
 //~recorder.free;
 ~recorder = Synth.new(\ps_oneshot_record, [\in, ~in, \sndbuffer,  ~recBuf]);
 ~recBuf.plot;
-~player = Synth.new(\ps_twinker, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
+~player = Synth.new(\ps_twinker, [\in, ~in, \outbus, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10 ]);
 ~player.trace;
 	~player.release;
-~player = Synth.new(\ps_markov_twinker_constrate, [\in, ~in, \out, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10, \duty, 2, \dutyvar, 0.5, \pan, 0, \panvar, 1, \pos, 0, \posvar, 0, \ampvar, 0.1]);
+~player = Synth.new(\ps_markov_twinker_constrate, [\in, ~in, \outbus, ~globalOuts, \sndbuffer,  ~recBuf, \duration, 10, \duty, 2, \dutyvar, 0.5, \pan, 0, \panvar, 1, \pos, 0, \posvar, 0, \ampvar, 0.1]);
 ~player.trace;
 ~player.release;
 

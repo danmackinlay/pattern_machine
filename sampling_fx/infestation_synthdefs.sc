@@ -17,7 +17,7 @@ PSInfestSynths {
 			);
 		}).add;
 		SynthDef(\ps_infest_poly_parasite, {
-			|out, gate=1,
+			|outbus, gate=1,
 			i_sndbuffer,
 			phase=0,
 			windowSize=0.1,
@@ -41,10 +41,10 @@ PSInfestSynths {
 				windowRandRatio: windowRandRatio,
 				mul: env
 			);
-			Out.ar(out, monosig);
+			Out.ar(outbus, monosig);
 		}).add;
 		SynthDef(\ps_infest_poly_parasite_lfo, {
-			|out, gate=1,
+			|outbus, gate=1,
 			i_sndbuffer,
 			phase=0,
 			windowSize=0.1,
@@ -85,7 +85,7 @@ PSInfestSynths {
 				windowRandRatio: windowRandRatio,
 				mul: env * (1+ (lfoam * lfo))
 			);
-			Out.ar(out, monosig);
+			Out.ar(outbus, monosig);
 		}).add;
 	}
 }

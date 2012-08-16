@@ -53,7 +53,7 @@ fork {
 	s.sync;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
-		\out, ~targetBus,
+		\outbus, ~targetBus,
 		//\ffreq, 800,
 		\ffreq, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*600,
 		\amp, 1,

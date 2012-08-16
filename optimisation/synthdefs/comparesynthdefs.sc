@@ -22,7 +22,7 @@ PSBasicCompareSynths {
 		/* A listen synthdef factory, complete with graceful accumulation.
 		Be careful with those bus arguments.*/
 		SynthDef.new(name, {
-			|observedbus, targetbus=0, out=0, active=1, t_reset=0, i_leak=0.5|
+			|observedbus, targetbus=0, outbus=0, active=1, t_reset=0, i_leak=0.5|
 			var observedsig, targetsig, comparison, integral;
 
 			// targetsig  = LeakDC.ar(In.ar(targetbus, 1));
@@ -47,7 +47,7 @@ PSBasicCompareSynths {
 			*/
 			integral = Integrator.kr(comparison * active * (1-i_leak), if(t_reset>0, 0, i_leak));
 
-			Out.kr(out, integral);
+			Out.kr(outbus, integral);
 		}).add;
 	}
 	*loadSynthDefs {

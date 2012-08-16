@@ -21,8 +21,8 @@ SpyBus {
 		/* Simplest synth ever. Taps one bus to another.
 		We do this with a synth so we can spy on interesting places in execution order
 		*/
-		SynthDef.new(\spy_guy, { |in, out|
-			ReplaceOut.ar(out, In.ar(in));
+		SynthDef.new(\spy_guy, { |in, outbus|
+			ReplaceOut.ar(outbus, In.ar(in));
 		}).add;
 	}
 	play {|target, listenBus, spyBus, addAction=\addAfter|
@@ -33,7 +33,7 @@ SpyBus {
 		this.listenBus = listenBus;
 		spyBus = spyBus ? Bus.audio(server, numChannels: 1);
 		this.spyBus = spyBus;
-		listenerNode = Synth.new(\spy_guy, [\in, listenBus, \out, spyBus], target: target, addAction: \addAfter);
+		listenerNode = Synth.new(\spy_guy, [\in, listenBus, \outbus, spyBus], target: target, addAction: \addAfter);
 		{scope = spyBus.scope}.defer;
 	}
 	listenTo {|bus|

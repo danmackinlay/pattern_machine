@@ -1,7 +1,7 @@
 v=VicsekGrid.new(population:25, noise: 0.4, delta: 0.005, radius: 0.1, dim:3, tickTime:0.1, rescale: 2);
-~out = Bus.new(\audio, 2, 4);
+~outbus = Bus.new(\audio, 2, 4);
 v.start;
-v.play(Server.internal, bus: ~out, amp:0.1);
+v.play(Server.internal, bus: ~outbus, amp:0.1);
 Server.internal.volume.gui
 v.noise;
 v.clock.seconds

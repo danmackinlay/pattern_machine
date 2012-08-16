@@ -14,7 +14,7 @@ var maxVoices = 23; //primes make it easy to permute, since everything is co-pri
 //input is assumed to be stereo
 
 SynthDef.new(\glimmergrains,
-	{|in, out,
+	{|in, outbus,
 		trigRate=10,
 		inDuty=0.5, playDuty=0.5,
 		ringTime=2.0, wideness=1,
@@ -82,7 +82,7 @@ SynthDef.new(\glimmergrains,
 		});
 		outChannels = Limiter.ar(LeakDC.ar(Mix.new(voices)),1,0.01);
 		LocalOut.ar(outChannels);
-		Out.ar(out, outChannels);
+		Out.ar(outbus, outChannels);
 	}
 ).add(s);
 
@@ -129,6 +129,6 @@ s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 //s.volume.gui;
 s.volume.volume= -20;
 ~listener = Synth.head(~fxGroup, \findfreqs, [\in, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
-~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \out, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
+~fx = Synth.tail(~fxGroup, \glimmergrains, [\in, ~sourceIns, \outbus, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \numBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
 ~freqBufPointer.get(_.postln);
 ~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});

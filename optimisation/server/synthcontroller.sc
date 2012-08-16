@@ -122,7 +122,7 @@ PSSynthController {
 	}
 	getSynthArgs {|indDict|
 		var playArgs;
-		playArgs = [\out, indDict.playBus, \gate, 1] ++ indDict.phenotype.chromosomeAsSynthArgs;
+		playArgs = [\outbus, indDict.playBus, \gate, 1] ++ indDict.phenotype.chromosomeAsSynthArgs;
 		^playArgs;
 	}
 	freeIndividual {|phenotype|
@@ -236,7 +236,7 @@ PSListenSynthController : PSSynthController {
 				PSMCCore.n(numChannels),
 				[
 					\in, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
-					\out, outBus
+					\outbus, outBus
 				],
 				target: listenGroup
 			);
@@ -284,7 +284,7 @@ PSListenSynthController : PSSynthController {
 	getListenSynthArgs{|indDict|
 		var listenArgs;
 		listenArgs = [\observedbus, indDict.playBus,
-			\out, indDict.fitnessBus,
+			\outbus, indDict.fitnessBus,
 			\active, 1,
 			\i_leak, leakCoef];
 		^listenArgs;
