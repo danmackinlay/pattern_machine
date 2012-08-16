@@ -32,7 +32,7 @@ PSSynthController {
 	var <log;
 	//we stash bonus bus information here
 	var <>extraSynthArgs;
-	var <>outBus;
+	var <>outbus;
 	var <server;
 	var <all;
 	var <playGroup;
@@ -46,7 +46,7 @@ PSSynthController {
 		all = IdentityDictionary.new(1000);
 		extraSynthArgs = [];
 	}
-	play {|serverOrGroup, outBus ... argz|
+	play {|serverOrGroup, outbus ... argz|
 		var setupBundle;
 		serverOrGroup.isNil.if({"need a target".throw;});
 		serverOrGroup.isKindOf(Group).if(
@@ -60,14 +60,14 @@ PSSynthController {
 		);
 		setupBundle = server.makeBundle(
 			false,
-			{this.playBundle(server, outBus, *argz);}
+			{this.playBundle(server, outbus, *argz);}
 		);
 		log.log(msgchunks: [setupBundle], tag: \bundling);
 		server.listSendBundle(nil, setupBundle);
 		playing = true;
 	}
-	playBundle {|serverOrGroup, outBus ... argz|
-		this.outBus = outBus ?? { Bus.audio(server, numChannels)};
+	playBundle {|serverOrGroup, outbus ... argz|
+		this.outbus = outbus ?? { Bus.audio(server, numChannels)};
 	}
 	connect {|newOptimizer|
 		//couple to an optimizer
@@ -118,7 +118,7 @@ PSSynthController {
 		^indDict;
 	}
 	decorateIndividualDict {|indDict|
-		indDict.playBus = outBus;
+		indDict.playBus = outbus;
 	}
 	getSynthArgs {|indDict|
 		var playArgs;
@@ -210,9 +210,9 @@ PSListenSynthController : PSSynthController {
 		maxPop = newMaxPop;
 		busAllocator = Allocator.new(nResources:maxPop);
 	}
-	play {|serverOrGroup, outBus, listenGroup|
+	play {|serverOrGroup, outbus, listenGroup|
 		//set server and group using the parent method
-		super.play(serverOrGroup, outBus, listenGroup);
+		super.play(serverOrGroup, outbus, listenGroup);
 		clock = clock ?? { TempoClock.new(fitnessPollRate, 1); };
 		worker = worker ?? {
 			Routine.new({loop {
@@ -221,9 +221,9 @@ PSListenSynthController : PSSynthController {
 			}}).play(clock);
 		};
 	}
-	playBundle {|serverOrGroup, outBus, listenGroup|
+	playBundle {|serverOrGroup, outbus, listenGroup|
 		//set server and group using the parent method
-		super.playBundle(serverOrGroup, outBus);
+		super.playBundle(serverOrGroup, outbus);
 		listenGroup = listenGroup ?? { Group.after(playGroup);};
 		this.listenGroup = listenGroup;
 		//these next 2 don't seem to do anything server-side. Huh.
@@ -236,7 +236,7 @@ PSListenSynthController : PSSynthController {
 				PSMCCore.n(numChannels),
 				[
 					\in, Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels),
-					\outbus, outBus
+					\outbus, outbus
 				],
 				target: listenGroup
 			);
@@ -318,20 +318,20 @@ PSCompareSynthController : PSListenSynthController {
 	(external?) signal and allocates fitness accordingly. */
 
 	classvar <>defaultListenSynthDef = \ps_judge_fftmatch;
-	var <>targetBus;
+	var <>targetbus;
 
-	play {|serverOrGroup, outBus, listenGroup, targetBus|
-		this.targetBus = targetBus;
-		super.play(serverOrGroup, outBus, listenGroup);
+	play {|serverOrGroup, outbus, listenGroup, targetbus|
+		this.targetbus = targetbus;
+		super.play(serverOrGroup, outbus, listenGroup);
 	}
 	getListenSynthArgs{|indDict|
 		^super.getListenSynthArgs(indDict).addAll([
-			\targetbus, indDict.targetBus
+			\targetbus, indDict.targetbus
 		]);
 	}
 	decorateIndividualDict {|indDict|
 		super.decorateIndividualDict(indDict);
-		indDict.targetBus = targetBus;
+		indDict.targetbus = targetbus;
 		^indDict;
 	}
 }

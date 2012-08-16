@@ -29,7 +29,7 @@ StartUp.run;
 ~swarm.swarmMeanFitness;
 ~swarm.swarmMeanBestFitness;
 ~swarm.meanFitness;
-~targetBus.scope;
+~targetbus.scope;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);
@@ -41,9 +41,9 @@ fork {
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;
-	//~targetBus = Bus.newFrom(s.inputBus, 2, 1); //input 3
-	//~targetBus = Bus.audio(s, 1); // internal channel
-	~targetBus = Bus.new(\audio, 1, 1, s); //right Channel
+	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
+	//~targetbus = Bus.audio(s, 1); // internal channel
+	~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
 	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
@@ -53,7 +53,7 @@ fork {
 	s.sync;
 	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
-		\outbus, ~targetBus,
+		\outbus, ~targetbus,
 		//\ffreq, 800,
 		\ffreq, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*600,
 		\amp, 1,
@@ -65,7 +65,7 @@ fork {
 		\legato, Prand([1/2, 1, 2, ], inf)*5,
 	).play;
 	
-	//~spy = SpyBus.new.play(~targetGroup, ~targetBus);
+	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
 	s.sync;
 	//~spy.moveAfter(~targetGroup);
 	/*******************/
@@ -102,7 +102,7 @@ fork {
 	//~control.listenSynthDef = \ps_judge_convolution;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
-	~control.play(~phenogroup, outBus: ~globalOuts, targetBus: ~targetBus);
+	~control.play(~phenogroup, outbus: ~globalOuts, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
 	//now set up the "swarm" that will control their evolution
@@ -137,7 +137,7 @@ fork {
 s.queryAllNodes;
 ~swarm.controller;
 ~swarm.neighbourTable;
-~control.outBus;
+~control.outbus;
 ~control.playBusses;
 ~control.fitnessBusses;
 //{~swarm.plotFitness(raw:true);}.defer;
@@ -162,7 +162,7 @@ nil;
 //when you are bored, do a
 ~swarm.free;
 ~targetGroup.free;
-~targetBus.free;
+~targetbus.free;
 
 /**************************
  * TODO
