@@ -68,7 +68,8 @@ s.waitForBoot({
 	//actual real work now: first choose the controller that will manage the synths
 	~synthName = \ps_sample_grain_lfo_lagged;
 	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
-	//~synthArgMap[\windowSize] = ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp');
+	~synthArgMap[\lforate] = ControlSpec.new(minval: 1, maxval: 16, warp: 'exp');
+	~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1.5);
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef: ~synthName,
 		synthArgMap: ~synthArgMap);
@@ -162,7 +163,8 @@ s.queryAllNodes;
 	* remember near-global maxima so I know when I've drifted off.
 * specific sample synth player
 	* How can this sound sparser? Reward silence?
-	* sample playing
+	* lfo?
+	* some kind of nonlinear feedback situation?
 	* sample recording
 * handle feedback in reverberant environments in some smart way
 	* this could be as simple as pitch shifting inputs
