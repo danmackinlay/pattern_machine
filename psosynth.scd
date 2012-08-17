@@ -67,22 +67,22 @@ s.waitForBoot({
 		s.volume.volume= -6;
 	}.defer;
 	//actual real work now: first choose the controller that will manage the synths
-	~synthName = \ps_sample_grain_lfo_lagged;
+	~synthName = \ps_sample_grain_lagged_pan2;
 	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
-	~synthArgMap[\lforate] = ControlSpec.new(minval: 0.25, maxval: 8, warp: 'exp');
-	~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
+	//~synthArgMap[\lforate] = ControlSpec.new(minval: 0.25, maxval: 8, warp: 'exp');
+	//~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef: ~synthName,
 		synthArgMap: ~synthArgMap);
 	//Weirdly, this seems to work best if the fitnessPollRate is lower than the
 	//update rate.
 	~control = PSCompareSynthController.new(
-		numChannels:1,
+		numChannels:2,
 		log:~log,
 		leakCoef:0.5,
 		maxPop:population,
 	);
-	~control.extraSynthArgs = [\lagtime, 0.2, \buffer, ~buffer];
+	~control.extraSynthArgs = [\lagtime, 0.2, \buffer, ~buffer, \pan, {1.0.rand2}];
 	~control.leakCoef = 0.05;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_pitch_distance__1_1;
@@ -91,7 +91,7 @@ s.waitForBoot({
 	//~control.listenSynthDef = \ps_judge_convolution__1_1;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_mfcc_distance__1_1;
-	~control.listenSynthDef = \ps_judge_mfcc_distance_amp__1_1;
+	~control.listenSynthDef = \ps_judge_mfcc_distance_amp__2_1;
 	~control.play(~phenogroup, outbus: ~swarmOut, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
