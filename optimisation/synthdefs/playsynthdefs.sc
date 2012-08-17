@@ -175,15 +175,15 @@ PSBasicPlaySynths {
 					Warp1.ar(
 						bufnum: buffer,
 						freqScale: pitch,
-						mul: env,
 						pointer: pointer,
 						windowSize: windowSize,
 						windowRandRatio: windowRandRatio,
 						overlaps: 2,
+						mul: amp,
 					),
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth
-				) * env * amp);
+				) * env);
 			}
 		).add;
 		synthArgMaps[\ps_sample_grain_lagged] = (
@@ -223,15 +223,15 @@ PSBasicPlaySynths {
 					Warp1.ar(
 						bufnum: buffer,
 						freqScale: pitch,
-						mul: env,
 						pointer: pointer,
 						windowSize: windowSize,
 						windowRandRatio: windowRandRatio,
 						overlaps: 2,
+						mul:amp,
 					),
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth
-				) * env * amp * (1+(lfo*lfoamt)));
+				) * env * (1+(lfo*lfoamt)));
 			}
 		).add;
 		synthArgMaps[\ps_sample_grain_lfo_lagged] = (
