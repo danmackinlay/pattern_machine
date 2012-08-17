@@ -20,35 +20,40 @@ PSBasicCompareSynths {
 	}
 	*makeComparer { |name, func, lags|
 		/* A listen synthdef factory, complete with graceful accumulation.
-		Be careful with those bus arguments.*/
-		SynthDef.new(name, {
-			|observedbus, targetbus=0, outbus=0, active=1, t_reset=0, i_leak=0.5|
-			var observedsig, targetsig, comparison, integral;
+		Be careful with those bus arguments.
+		Compararers made with this method are channel-blind -
+		the input channels are mixed down to mono.*/
+		(1..4).do({|i|
+			var channame;
+			channame = "%__%_%".format(name,i,i);
 
-			// targetsig  = LeakDC.ar(In.ar(targetbus, 1));
-			// observedsig = LeakDC.ar(In.ar(observedbus, 1));
-			targetsig  = In.ar(targetbus, 1);
-			observedsig = In.ar(observedbus, 1);
+			SynthDef.new(channame, {
+				|observedbus, targetbus=0, outbus=0, active=1, t_reset=0, i_leak=0.5|
+				var observedsig, targetsig, comparison, integral;
 
-			//targetbus.poll(0.1, \targetbus);
-			//observedbus.poll(0.1, \observedbus);
+				targetsig  = Mix.new(In.ar(targetbus, i));
+				observedsig = Mix.new(In.ar(observedbus, i));
 
-			/*Calculate a leak coefficient to discount fitness over time,
-			 presuming the supplied value is a decay level _per_second_. (Half
-			 life is less convenient, since it doesn't admit -infinity easily) */
-			i_leak = (i_leak**(ControlRate.ir.reciprocal)*(i_leak>0));//.poll(0.1, \leak);
+				//targetbus.poll(0.1, \targetbus);
+				//observedbus.poll(0.1, \observedbus);
 
-			comparison = SynthDef.wrap(func, lags, [targetsig, observedsig]);
+				/*Calculate a leak coefficient to discount fitness over time,
+				 presuming the supplied value is a decay level _per_second_. (Half
+				 life is less convenient, since it doesn't admit -infinity easily) */
+				i_leak = (i_leak**(ControlRate.ir.reciprocal)*(i_leak>0));//.poll(0.1, \leak);
 
-			/*
-			A 1 pole filter with decay rate per second given by i_leak.
-			When t_reset briefly hits nonzero, the integrator drains. That
-			functionality is not actually used here.
-			*/
-			integral = Integrator.kr(comparison * active * (1-i_leak), if(t_reset>0, 0, i_leak));
+				comparison = SynthDef.wrap(func, lags, [targetsig, observedsig]);
 
-			Out.kr(outbus, integral);
-		}).add;
+				/*
+				A 1 pole filter with decay rate per second given by i_leak.
+				When t_reset briefly hits nonzero, the integrator drains. That
+				functionality is not actually used here.
+				*/
+				integral = Integrator.kr(comparison * active * (1-i_leak), if(t_reset>0, 0, i_leak));
+
+				Out.kr(outbus, integral);
+			}).add;
+		});
 	}
 	*loadSynthDefs {
 		// Try and match amplitude envelope against a target signal
