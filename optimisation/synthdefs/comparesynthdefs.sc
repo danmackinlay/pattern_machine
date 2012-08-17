@@ -260,7 +260,7 @@ PSBasicCompareSynths {
 			targetamp = Amplitude.kr(targetsig)+0.0000001;
 			oamp = Amplitude.kr(observedsig)+0.0000001;
 			//check out these fairly arbitrary scaling factors:
-			ampdist = (((targetamp.log)-(oamp.log)).abs*1.25);
+			ampdist = (((targetamp.log)-(oamp.log)).abs*0.25);
 
 			totaldist = (targetMFCCoef - oMFCCoef).squared.sum + ampdist;
 			/*
