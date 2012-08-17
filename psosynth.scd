@@ -142,9 +142,6 @@ s.queryAllNodes;
  * TODO
  **************************
  
-* multichannel
-  * or just one server per channel perhaps?
-  * per-voice synth params - e.g. a pan spread.
 * GUI
     * input and output level mix
     * "explode" button, scattering the chromosomes
@@ -155,7 +152,6 @@ s.queryAllNodes;
 	* match a pitch-shifted version of the input
 	* or a delayed version
 	* cepstral measures to favour harmonicity
-	* how the hell does this get to be near-infinite for quiet inputs?
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
@@ -166,6 +162,7 @@ s.queryAllNodes;
 	* How can this sound sparser? Reward silence?
 	* some kind of nonlinear feedback situation?
 	* sample recording
+	* kill pitch-shifting?
 * handle feedback in reverberant environments in some smart way
 	* this could be as simple as pitch shifting inputs
 * go to MOL ("many optimising liaisons") 
