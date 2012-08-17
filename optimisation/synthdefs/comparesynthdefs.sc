@@ -258,7 +258,10 @@ PSBasicCompareSynths {
 			ampdist = (((targetamp.log)-(oamp.log)).abs*1.25);
 
 			totaldist = (targetMFCCoef - oMFCCoef).squared.sum + ampdist;
-			polltrig = Impulse.kr(0.1);//*(totaldist<0.01);
+			/*
+			//Running this debuggey thing reveals that an empty
+			//mfcc thing has coefficients of all 0.25 (?)
+			polltrig = Impulse.kr(0.1)*(totaldist<0.01);
 			Poll.kr(
 				trig: polltrig,
 				in: oMFCCoef,
@@ -271,9 +274,10 @@ PSBasicCompareSynths {
 				label: 42.collect("target" ++ _),
 				trigid: (1..42)
 			);
+			*/
 			totaldist;
 		});
-		/*For debugging, we sometimes wish to return the input.
+		/* For debugging, we sometimes wish to return the input.
 		This makes no sense as an actual fitness function, however.*/
 		this.makeComparer(\ps_judge_return_observed, {
 			|targetsig, observedsig|
