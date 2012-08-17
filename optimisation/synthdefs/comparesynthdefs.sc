@@ -23,16 +23,16 @@ PSBasicCompareSynths {
 		Be careful with those bus arguments.
 		Compararers made with this method are channel-blind -
 		the input channels are mixed down to mono.*/
-		(1..4).do({|i|
+		(1..4).do({|targetChan| (1..4).do({|obsChan|
 			var channame;
-			channame = "%__%_%".format(name,i,i);
+			channame = "%__%_%".format(name,obsChan,targetChan);
 
 			SynthDef.new(channame, {
 				|observedbus, targetbus=0, outbus=0, active=1, t_reset=0, i_leak=0.5|
 				var observedsig, targetsig, comparison, integral;
 
-				targetsig  = Mix.new(In.ar(targetbus, i));
-				observedsig = Mix.new(In.ar(observedbus, i));
+				targetsig  = Mix.new(In.ar(targetbus, targetChan));
+				observedsig = Mix.new(In.ar(observedbus, obsChan));
 
 				//targetbus.poll(0.1, \targetbus);
 				//observedbus.poll(0.1, \observedbus);
@@ -53,7 +53,7 @@ PSBasicCompareSynths {
 
 				Out.kr(outbus, integral);
 			}).add;
-		});
+		});});
 	}
 	*loadSynthDefs {
 		// Try and match amplitude envelope against a target signal
