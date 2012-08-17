@@ -35,12 +35,12 @@ s.waitForBoot({
 	s.sync;
 	~targetGroup = Group.head(~phenogroup);
 	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
-	~targetbus = Bus.newFrom(s.inputBus, 0, 1); //input 1
-	//~targetbus = Bus.audio(s, 1); // internal channel
+	//~targetbus = Bus.newFrom(s.inputBus, 0, 1); //input 1
+	~targetbus = Bus.audio(s, 1); // internal channel
 	//~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
 	~voxgroup = Group.head(~phenogroup);
 	s.sync;
-	/*~targetPattern = Pbind(
+	~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\outbus, ~targetbus,
 		//\ffreq, 800,
@@ -52,7 +52,7 @@ s.waitForBoot({
 		\group, ~targetGroup,
 		\addAction, 0,
 		\legato, Prand([1/2, 3/4, 1, 3/2, 2,], inf),
-	).play;*/
+	).play;
 	s.sync;
 	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
 	//~spy.moveAfter(~targetGroup);
@@ -164,7 +164,6 @@ s.queryAllNodes;
 	* remember near-global maxima so I know when I've drifted off.
 * specific sample synth player
 	* How can this sound sparser? Reward silence?
-	* lfo?
 	* some kind of nonlinear feedback situation?
 	* sample recording
 * handle feedback in reverberant environments in some smart way
