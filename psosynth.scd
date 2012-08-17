@@ -14,12 +14,26 @@ s.waitForBoot({
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
 	~buffer = Buffer.read(s, ~filename, 0);
-	SynthDef.new(\limi, {|outbus, cutoff=50, pregain=1|
+	SynthDef.new(\limi__1, {|outbus, cutoff=50, pregain=1|
 		ReplaceOut.ar(
 			outbus,
 			Limiter.ar(
 				HPF.ar(
-					in: In.ar(outbus),
+					in: In.ar(outbus, 1),
+					freq: cutoff,
+					mul: pregain
+				),
+				1,
+				0.01
+			)
+		)
+	}).add;
+	SynthDef.new(\limi__2, {|outbus, cutoff=50, pregain=1|
+		ReplaceOut.ar(
+			outbus,
+			Limiter.ar(
+				HPF.ar(
+					in: In.ar(outbus, 2),
 					freq: cutoff,
 					mul: pregain
 				),
@@ -59,7 +73,7 @@ s.waitForBoot({
 	//~spy.listenTo(~swarmOut);
 	/*******************/
 	//limiter, to avoid little accidents
-	~limi = Synth.after(~phenogroup, \limi,
+	~limi = Synth.after(~phenogroup, \limi__2,
 		[\outbus, ~swarmOut,
 		\pregain, population.sqrt.reciprocal]);
 	{
@@ -95,6 +109,7 @@ s.waitForBoot({
 	~control.play(~phenogroup, outbus: ~swarmOut, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
+
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
