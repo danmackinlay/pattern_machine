@@ -242,7 +242,7 @@ PSBasicPlaySynths {
 			\windowSize: ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp'),
 			\rq: \rq.asSpec,
 			\amp: \unipolar.asSpec,
-			\lforate: ControlSpec.new(minval: 16.reciprocal, maxval: 16, warp: 'exp'),
+			\lforate: ControlSpec.new(minval: 4.reciprocal, maxval: 8, warp: 'exp'),
 			\lfoamt: \unipolar.asSpec,
 		);
 	}

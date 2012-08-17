@@ -10,9 +10,6 @@ s.waitForBoot({
 	var population = 30;
 	~swarmOut = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
-	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
-	//~targetbus = Bus.audio(s, 1); // internal channel
-	~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
 	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
 	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
@@ -31,15 +28,19 @@ s.waitForBoot({
 			)
 		)
 	}).add;
-	s.sync;
-	~voxgroup = Group.head(~phenogroup);
-	~targetGroup = Group.head(~phenogroup);
 	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
 	~log.minPriority = 1;
 	s.sync;
-	~targetPattern = Pbind(
+	~targetGroup = Group.head(~phenogroup);
+	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
+	~targetbus = Bus.newFrom(s.inputBus, 0, 1); //input 1
+	//~targetbus = Bus.audio(s, 1); // internal channel
+	//~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
+	~voxgroup = Group.head(~phenogroup);
+	s.sync;
+	/*~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\outbus, ~targetbus,
 		//\ffreq, 800,
@@ -51,7 +52,7 @@ s.waitForBoot({
 		\group, ~targetGroup,
 		\addAction, 0,
 		\legato, Prand([1/2, 3/4, 1, 3/2, 2,], inf),
-	).play;
+	).play;*/
 	s.sync;
 	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
 	//~spy.moveAfter(~targetGroup);
@@ -68,8 +69,8 @@ s.waitForBoot({
 	//actual real work now: first choose the controller that will manage the synths
 	~synthName = \ps_sample_grain_lfo_lagged;
 	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
-	~synthArgMap[\lforate] = ControlSpec.new(minval: 1, maxval: 16, warp: 'exp');
-	~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1.5);
+	~synthArgMap[\lforate] = ControlSpec.new(minval: 0.25, maxval: 8, warp: 'exp');
+	~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef: ~synthName,
 		synthArgMap: ~synthArgMap);
@@ -101,15 +102,16 @@ s.waitForBoot({
 		(\populationSize: population, 
 		\initialChromosomeSize: 9,
 		\clockRate: 20,
-		\stepSize: 0.01,
+		\stepSize: 0.02,
 		\selfTracking: 0.0,
-		\groupTracking: 0.5,
+		\groupTracking: 1.5,
+		\noise: 0.03,
 		\momentum: 0.99,
-		\neighboursPerNode: 2,
+		\neighboursPerNode: 3,
 		\log: ~log,
 		\individualConstructor: ~factory,
 		//\maxdistance: 8, //a good distance for \ps_judge_pitchamp and scale_distance_to_similarity
-		\maxdistance: 5, //a good distance for \ps_judge_mfcc_distance and scale_distance_to_similarity
+		//\maxdistance: 5, //a good distance for \ps_judge_mfcc_distance and scale_distance_to_similarity
 	));
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, raw];
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, zero_peak];
