@@ -99,7 +99,7 @@ s.waitForBoot({
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
 		(\populationSize: population, 
-		\initialChromosomeSize: 9,
+		\initialChromosomeSize: ~synthArgMap.size,
 		\clockRate: 20,
 		\stepSize: 0.02,
 		\selfTracking: 0.0,
