@@ -117,6 +117,8 @@ s.waitForBoot({
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, scale_distance_to_similarity];
 	~swarm.scoreCooker = #[phenosynth, score_cookers, invert_distance_to_similarity];
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
+	~net = NetAddr("127.0.0.1", 57130);
+	~swarm.net_(~net);
 	~swarm.play(~control);
 	{
 		~plotState = SwarmGraph.new(~swarm);
