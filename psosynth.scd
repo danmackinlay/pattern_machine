@@ -174,6 +174,7 @@ s.queryAllNodes;
 	* choose random peer as neighbour each time
 	* update only one at each time
 * visualise this using Quartz Composer
+    * send particle positions over OSC
 * update SynthController to have its params accessed through a controller
   so that, e.g. clockrate can change on the fly
 * can I get rid of the PSSynthDefPhenotypeFactory now that I have extraSynthArgs in the controller class?
