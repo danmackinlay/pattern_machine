@@ -220,7 +220,7 @@ PSBasicCompareSynths {
 		It will, e.g., prefer signals with similar bandwidths over signals with similar pitches.*/
 		this.makeComparer(\ps_judge_mfcc_distance, {
 			|targetsig, observedsig|
-			var targetfft, offt, sigMFCCoef, oMFCCoef, bfr1, bfr2;
+			var targetfft, offt, targetMFCCoef, oMFCCoef, bfr1, bfr2;
 
 			//should be 2048 for 96kHz, 1024 for 44/48kHz.
 			bfr1 = LocalBuf.new(1024,1);
@@ -230,15 +230,16 @@ PSBasicCompareSynths {
 			offt =   FFT(bfr2, observedsig);
 
 			//rms difference - should log diff? or abs diff?
-			sigMFCCoef = MFCC.kr(targetfft, numcoeff:42);
+			targetMFCCoef = MFCC.kr(targetfft, numcoeff:42);
 			oMFCCoef = MFCC.kr(offt, numcoeff:42);
 
-			(sigMFCCoef - oMFCCoef).squared.sum;
+			(targetMFCCoef - oMFCCoef).squared.sum;
 		});
 		/*MFCC-based comparison with extra amplitude-match weighting*/
 		this.makeComparer(\ps_judge_mfcc_distance_amp, {
 			|targetsig, observedsig|
-			var targetfft, offt, sigMFCCoef, oMFCCoef, bfr1, bfr2, ampdist, targetamp, oamp;
+			var targetfft, offt, targetMFCCoef, oMFCCoef, bfr1, bfr2, ampdist;
+			var targetamp, oamp, totaldist, polltrig;
 
 			//should be 2048 for 96kHz, 1024 for 44/48kHz.
 			bfr1 = LocalBuf.new(1024,1);
@@ -248,15 +249,29 @@ PSBasicCompareSynths {
 			offt =   FFT(bfr2, observedsig);
 
 			//rms difference - should log diff? or abs diff?
-			sigMFCCoef = MFCC.kr(targetfft, numcoeff:42);
+			targetMFCCoef = MFCC.kr(targetfft, numcoeff:42);
 			oMFCCoef = MFCC.kr(offt, numcoeff:42);
 			
 			targetamp = Amplitude.kr(targetsig)+0.0000001;
 			oamp = Amplitude.kr(observedsig)+0.0000001;
 			//check out these fairly arbitrary scaling factors:
-			ampdist = (((targetamp.log)-(oamp.log)).abs*0.25);
+			ampdist = (((targetamp.log)-(oamp.log)).abs*1.25);
 
-			(sigMFCCoef - oMFCCoef).squared.sum + ampdist;
+			totaldist = (targetMFCCoef - oMFCCoef).squared.sum + ampdist;
+			polltrig = Impulse.kr(0.1);//*(totaldist<0.01);
+			Poll.kr(
+				trig: polltrig,
+				in: oMFCCoef,
+				label: 42.collect("obs" ++ _),
+				trigid: (1..42)
+			);
+			Poll.kr(
+				trig: polltrig,
+				in: targetMFCCoef,
+				label: 42.collect("target" ++ _),
+				trigid: (1..42)
+			);
+			totaldist;
 		});
 		/*For debugging, we sometimes wish to return the input.
 		This makes no sense as an actual fitness function, however.*/
