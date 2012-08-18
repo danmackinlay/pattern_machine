@@ -433,7 +433,7 @@ SwarmGraph {
 					//[\ind, ind].postln;
 					[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
 				});
-				plotter.scatter(locs, idhashes);
+				plotter.scatter(locs);
 				//state.locs = locs;
 				(swarm.params.clockRate.reciprocal).yield;
 			};
