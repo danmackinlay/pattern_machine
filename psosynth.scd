@@ -10,14 +10,15 @@ s.waitForBoot({
 	var population = 30;
 	~swarmOut = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
-	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
-	//~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
-	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
-	//~filename = ~zamples +/+ "music/brass/sarah-miniblues-trumpet.aif.wav";
-	//~filename = ~zamples +/+ "music/flute/justflute-chang-cleaned.wav";
-	~filename = ~zamples +/+ "music/flute/mixedflute-chang-cleaned.wav";
-	//~filename = ~zamples +/+ "music/flute/ucdahdahdahdah.aif.asd";
-	~buffer = Buffer.read(s, ~filename, 0);
+	~fileNames = ([
+		"music/flute/mixedflute-chang-cleaned.wav",
+		"music/flute/ucdahdahdahdah.aif",
+		"music/flute/justflute-chang-cleaned.wav",
+		"music/brass/sarah-miniblues-trumpet.aif.wav",
+		"music/26139__wim__gongloop02alleengong.wav",
+		"music/26140__wim__gongloop02alleengong01.wav",
+	]).collect(~zamples +/+ _);
+	~buffers = ~fileNames.collect(Buffer.read(s, _, 0));
 	SynthDef.new(\limi__1, {|outbus, cutoff=50, pregain=1|
 		ReplaceOut.ar(
 			outbus,
@@ -92,7 +93,7 @@ s.waitForBoot({
 	//~synthArgMap[\lforate] = ControlSpec.new(minval: 0.25, maxval: 8, warp: 'exp');
 	//~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
 	~synthArgMap[\gain] = ControlSpec.new(minval: 0.1, maxval: 4.0, warp: 'exp');
-	//~synthArgMap.removeAt[\pitch];//why this no work?
+	//~synthArgMap.remove[\pitch];//why this no work?
 	~synthArgMap[\pitch] = nil;
 	~synthArgMap[\windowSize] = ControlSpec.new(minval: 64.reciprocal, maxval: 2, warp: 'exp');
 	//~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
@@ -107,8 +108,9 @@ s.waitForBoot({
 		leakCoef:0.5,
 		maxPop:population,
 	);
-	~control.extraSynthArgs = [\lagtime, 0.2, \buffer, ~buffer, \pan, {1.0.rand2}];
+	~control.extraSynthArgs = [\lagtime, 0.2, \buffer, ~buffers[0], \pan, {1.0.rand2}];
 	~control.leakCoef = 0.05;
+	~control.setAll(\buffer, ~buffers[2]);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_pitch_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide__1_1;
@@ -155,7 +157,7 @@ s.waitForBoot({
 });
 )
 ~plotState.stop;
-~buffer.plot
+~buffers[0].plot
 //listen for a while.
 //experiment
 ServerTreeGui.makeWindow(s);
