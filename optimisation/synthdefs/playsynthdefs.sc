@@ -236,8 +236,8 @@ PSBasicPlaySynths {
 			}
 		).add;
 		synthArgMaps[\ps_sample_grain_lagged_pan2] = (
-			\pitch: ControlSpec.new(minval: 4.reciprocal, maxval: 4, warp: 'exp', default:1),
-			\ffreq: \midfreq.asSpec,
+			\pitch: ControlSpec.new(minval: 4.reciprocal, maxval: 4, warp: 'exp'),
+			\ffreq: ControlSpec.new(minval: 40, maxval: 8000, warp: 'exp'),
 			\pointer: \unipolar.asSpec,
 			\windowRandRatio: \unipolar.asSpec,
 			\windowSize: ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp'),

@@ -62,10 +62,10 @@ s.waitForBoot({
 		\instrument, \ps_reson_saw,
 		\outbus, ~targetbus,
 		//\ffreq, 800,
-		\ffreq, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*600,
+		\ffreq, Prand([1/6, 1/4, 1,3, 1/2, 2/3, 3/4, 1], inf)*500,
 		\amp, 0.1,
-		\pitch, Prand([2/3, 3/4, 1, 4/3, 3/2, ], inf)*500,
-		\rq, 0.2,
+		\pitch, Prand([1/6, 1/4, 1,3, 1/2, 2/3, 3/4, 1], inf)*400,
+		\rq, 0.5,
 		\dur, Pexprand(5, 20, inf),
 		\group, ~targetGroup,
 		\addAction, 0,
@@ -79,7 +79,8 @@ s.waitForBoot({
 	//limiter, to avoid little accidents
 	~limi = Synth.after(~phenogroup, \limi__2,
 		[\outbus, ~swarmOut,
-		\pregain, population.sqrt.reciprocal]);
+		\pregain, population.sqrt.reciprocal*4,
+		\cutoff, 40]);
 	{
 		//s.volume.gui;
 		s.volume.volume= -6;
