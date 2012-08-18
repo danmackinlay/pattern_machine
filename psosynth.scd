@@ -11,8 +11,12 @@ s.waitForBoot({
 	~swarmOut = Bus.new(\audio, 0, 1, s);
 	~phenogroup = Group.new(s);
 	//~filename = ~zamples +/+ "music/flute/fluebitz.aiff";
-	~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
+	//~filename = ~zamples +/+ "music/26139__wim__gongloop02alleengong.wav";
 	//~filename = ~zamples +/+ "music/26140__wim__gongloop02alleengong01.wav";
+	//~filename = ~zamples +/+ "music/brass/sarah-miniblues-trumpet.aif.wav";
+	//~filename = ~zamples +/+ "music/flute/justflute-chang-cleaned.wav";
+	~filename = ~zamples +/+ "music/flute/mixedflute-chang-cleaned.wav";
+	//~filename = ~zamples +/+ "music/flute/ucdahdahdahdah.aif.asd";
 	~buffer = Buffer.read(s, ~filename, 0);
 	SynthDef.new(\limi__1, {|outbus, cutoff=50, pregain=1|
 		ReplaceOut.ar(
@@ -82,8 +86,14 @@ s.waitForBoot({
 	}.defer;
 	//actual real work now: first choose the controller that will manage the synths
 	~synthName = \ps_sample_grain_lagged_pan2;
-	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName];
+	~synthArgMap = PSBasicPlaySynths.synthArgMaps[~synthName].copy;
+	~synthArgMap.keys;
 	//~synthArgMap[\lforate] = ControlSpec.new(minval: 0.25, maxval: 8, warp: 'exp');
+	//~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
+	~synthArgMap[\gain] = ControlSpec.new(minval: 0.1, maxval: 4.0, warp: 'exp');
+	//~synthArgMap.removeAt[\pitch];//why this no work?
+	~synthArgMap[\pitch] = nil;
+	~synthArgMap[\windowSize] = ControlSpec.new(minval: 64.reciprocal, maxval: 2, warp: 'exp');
 	//~synthArgMap[\lfoamt] = ControlSpec.new(minval: 0.1, maxval: 1);
 	~factory = PSSynthDefPhenotypeFactory.new(
 		synthDef: ~synthName,
