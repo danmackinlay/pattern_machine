@@ -4,6 +4,9 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
+~control.setAll(\buffer, ~buffers[1]);
+~control.setAll(\buffer, ~buffers[7]);
+
 (
 s.waitForBoot({
 	fork {
@@ -15,8 +18,10 @@ s.waitForBoot({
 		"music/flute/ucdahdahdahdah.aif",
 		"music/flute/justflute-chang-cleaned.wav",
 		"music/brass/sarah-miniblues-trumpet.aif.wav",
-		"music/26139__wim__gongloop02alleengong.wav",
 		"music/26140__wim__gongloop02alleengong01.wav",
+		"animal/alice bees2.wav",
+		"animal/swan view squawks-denoise.wav",
+		"animal/driftingchirps.MP3.aiff",
 	]).collect(~zamples +/+ _);
 	~buffers = ~fileNames.collect(Buffer.read(s, _, 0));
 	SynthDef.new(\limi__1, {|outbus, cutoff=50, pregain=1|
@@ -110,7 +115,6 @@ s.waitForBoot({
 	);
 	~control.extraSynthArgs = [\lagtime, 0.2, \buffer, ~buffers[0], \pan, {1.0.rand2}];
 	~control.leakCoef = 0.05;
-	~control.setAll(\buffer, ~buffers[2]);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_pitch_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_fft_distance_wide__1_1;
