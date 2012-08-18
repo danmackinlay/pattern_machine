@@ -353,6 +353,14 @@ PSOptimisingSwarm {
 		});
 		
 	}
+	randomize {|...targets|
+		(targets.size == 0).if({targets = population});
+		targets.postln;
+		targets.do({|phenotype|
+			phenotype.chromosome = {1.0.rand}.dup(phenotype.chromosome.size);
+			controller.updateIndividual(phenotype);
+		});
+	}
 }
 
 PSLocalOptimisingSwarm : PSOptimisingSwarm {
