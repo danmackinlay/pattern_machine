@@ -5,8 +5,10 @@ Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
 ~control.setAll(\buffer, ~buffers[1]);
+~control.setAll(\buffer, ~buffers[4]);
+~control.setAll(\buffer, ~buffers[5]);
 ~control.setAll(\buffer, ~buffers[7]);
-
+~swarm.randomize;
 (
 s.waitForBoot({
 	fork {
@@ -58,13 +60,13 @@ s.waitForBoot({
 	~log.minPriority = 1;
 	s.sync;
 	~targetGroup = Group.head(~phenogroup);
-	//~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
+	~targetbus = Bus.newFrom(s.inputBus, 2, 1); //input 3
 	//~targetbus = Bus.newFrom(s.inputBus, 0, 1); //input 1
-	~targetbus = Bus.audio(s, 1); // internal channel
+	//~targetbus = Bus.audio(s, 1); // internal channel
 	//~targetbus = Bus.new(\audio, 1, 1, s); //right Channel
 	~voxgroup = Group.head(~phenogroup);
 	s.sync;
-	~targetPattern = Pbind(
+	/*~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
 		\outbus, ~targetbus,
 		//\ffreq, 800,
@@ -76,7 +78,7 @@ s.waitForBoot({
 		\group, ~targetGroup,
 		\addAction, 0,
 		\legato, Prand([1/2, 3/4, 1, 3/2, 2,], inf),
-	).play;
+	).play;*/
 	s.sync;
 	//~spy = SpyBus.new.play(~targetGroup, ~targetbus);
 	//~spy.moveAfter(~targetGroup);
@@ -85,11 +87,11 @@ s.waitForBoot({
 	//limiter, to avoid little accidents
 	~limi = Synth.after(~phenogroup, \limi__2,
 		[\outbus, ~swarmOut,
-		\pregain, population.sqrt.reciprocal*4,
+		\pregain, population.sqrt.reciprocal*8,
 		\cutoff, 40]);
 	{
 		//s.volume.gui;
-		s.volume.volume= -6;
+		//s.volume.volume= -6;
 	}.defer;
 	//actual real work now: first choose the controller that will manage the synths
 	~synthName = \ps_sample_grain_lagged_pan2;
@@ -149,7 +151,7 @@ s.waitForBoot({
 	//~swarm.scoreCooker = #[phenosynth, score_cookers, scale_distance_to_similarity];
 	~swarm.scoreCooker = #[phenosynth, score_cookers, invert_distance_to_similarity];
 	//~swarm.scoreCooker = [\phenosynth, \score_cookers, \reverse_ranked];
-	~net = NetAddr("127.0.0.1", 57130);
+	~net = NetAddr("127.0.0.1", 57131);
 	~swarm.net_(~net);
 	~swarm.play(~control);
 	{
@@ -160,6 +162,7 @@ s.waitForBoot({
 };
 });
 )
+
 ~plotState.stop;
 ~buffers[0].plot
 //listen for a while.
