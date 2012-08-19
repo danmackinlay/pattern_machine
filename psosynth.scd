@@ -182,10 +182,11 @@ s.queryAllNodes;
     * pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
 	* say, a live audio input
+	* hot swap tracking input
 * more interesting objective functions:
 	* match a pitch-shifted version of the input
 	* or a delayed version
-	* cepstral measures to favour harmonicity
+	* raw cepstral measures to favour harmonicity
 * meta-optimisation of the meta-heuristic.
 	* annealing schedule
 	* detecting the need to update noise parameters
@@ -196,7 +197,6 @@ s.queryAllNodes;
 	* How can this sound sparser? Reward silence?
 	* some kind of nonlinear feedback situation?
 	* sample recording
-	* kill pitch-shifting?
 * handle feedback in reverberant environments in some smart way
 	* this could be as simple as pitch shifting inputs
 * go to MOL ("many optimising liaisons") 
