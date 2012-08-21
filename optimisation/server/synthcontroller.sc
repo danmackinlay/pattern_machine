@@ -60,13 +60,13 @@ PSSynthController {
 		);
 		setupBundle = server.makeBundle(
 			false,
-			{this.playBundle(server, outbus, *argz);}
+			{this.prPlayBundle(server, outbus, *argz);}
 		);
 		log.log(msgchunks: [setupBundle], tag: \bundling);
 		server.listSendBundle(nil, setupBundle);
 		playing = true;
 	}
-	playBundle {|serverOrGroup, outbus ... argz|
+	prPlayBundle {|serverOrGroup, outbus ... argz|
 		this.outbus = outbus ?? { Bus.audio(server, numChannels)};
 	}
 	prConnect {|newOptimizer|
@@ -79,7 +79,7 @@ PSSynthController {
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
 		try {
-			this.decorateIndividualDict(indDict);
+			this.prDecorateIndividualDict(indDict);
 			log.log(msgchunks: [\ind, indDict], tag: \controlling, priority: -1);
 		} { |error|
 			switch(error.species.name)
@@ -96,7 +96,7 @@ PSSynthController {
 	}
 	prActuallyPlayIndividual {|indDict|
 		// we inject extraSynthArgs in here at initialisation to allow for global buses etc
-		var synthArgs = this.getSynthArgs(indDict);
+		var synthArgs = this.prGetSynthArgs(indDict);
 		log.log(
 			msgchunks: [\synthargs] ++ synthArgs ++ extraSynthArgs,
 			tag: \controlling);
@@ -117,10 +117,10 @@ PSSynthController {
 		indDict.playNode.set(*(phenotype.chromosomeAsSynthArgs));
 		^indDict;
 	}
-	decorateIndividualDict {|indDict|
+	prDecorateIndividualDict {|indDict|
 		indDict.playBus = outbus;
 	}
-	getSynthArgs {|indDict|
+	prGetSynthArgs {|indDict|
 		var playArgs;
 		playArgs = [\outbus, indDict.playBus, \gate, 1] ++ indDict.phenotype.chromosomeAsSynthArgs;
 		^playArgs;
@@ -218,6 +218,10 @@ PSListenSynthController : PSSynthController {
 		maxPop = newMaxPop;
 		busAllocator = Allocator.new(nResources:maxPop);
 	}
+	fitnessPollRate_ {|val|
+		fitnessPollRate = val;
+		clock.notNil.if({clock.tempo=val;});
+	}
 	play {|serverOrGroup, outbus, listenGroup|
 		//set server and group using the parent method
 		super.play(serverOrGroup, outbus, listenGroup);
@@ -229,9 +233,19 @@ PSListenSynthController : PSSynthController {
 			}}).play(clock);
 		};
 	}
-	playBundle {|serverOrGroup, outbus, listenGroup|
+	free {
+		super.free;
+		//listenGroup.free;
+		//listenGroup = nil;
+		//could free the parent group instead.
+		jackNodes.do({|node| node.free;});
+		clock.stop;
+		clock = nil;
+		worker = nil;
+	}
+	prPlayBundle {|serverOrGroup, outbus, listenGroup|
 		//set server and group using the parent method
-		super.playBundle(serverOrGroup, outbus);
+		super.prPlayBundle(serverOrGroup, outbus);
 		listenGroup = listenGroup ?? { Group.after(playGroup);};
 		this.listenGroup = listenGroup;
 		//these next 2 don't seem to do anything server-side. Huh.
@@ -250,21 +264,7 @@ PSListenSynthController : PSSynthController {
 			);
 		});
 	}
-	free {
-		super.free;
-		//listenGroup.free;
-		//listenGroup = nil;
-		//could free the parent group instead.
-		jackNodes.do({|node| node.free;});
-		clock.stop;
-		clock = nil;
-		worker = nil;
-	}
-	fitnessPollRate_ {|val|
-		fitnessPollRate = val;
-		clock.notNil.if({clock.tempo=val;});
-	}
-	decorateIndividualDict {|indDict|
+	prDecorateIndividualDict {|indDict|
 		var offset;
 		offset = busAllocator.alloc;
 		offset.isNil.if({
@@ -277,7 +277,7 @@ PSListenSynthController : PSSynthController {
 	}
 	prActuallyPlayIndividual {|indDict|
 		var listenSynthArgs;
-		listenSynthArgs = this.getListenSynthArgs(indDict);
+		listenSynthArgs = this.prGetListenSynthArgs(indDict);
 		log.log(msgchunks: [\listenSynthArgs] ++ listenSynthArgs, tag: \controlling, priority: -1);
 		//play the synth to which we wish to listen
 		super.prActuallyPlayIndividual(indDict);
@@ -289,7 +289,7 @@ PSListenSynthController : PSSynthController {
 			target: listenGroup);
 		indDict.phenotype.clockOn;
 	}
-	getListenSynthArgs{|indDict|
+	prGetListenSynthArgs{|indDict|
 		var listenArgs;
 		listenArgs = [\observedbus, indDict.playBus,
 			\outbus, indDict.fitnessBus,
@@ -332,13 +332,13 @@ PSCompareSynthController : PSListenSynthController {
 		this.targetbus = targetbus;
 		super.play(serverOrGroup, outbus, listenGroup);
 	}
-	getListenSynthArgs{|indDict|
-		^super.getListenSynthArgs(indDict).addAll([
+	prGetListenSynthArgs{|indDict|
+		^super.prGetListenSynthArgs(indDict).addAll([
 			\targetbus, indDict.targetbus
 		]);
 	}
-	decorateIndividualDict {|indDict|
-		super.decorateIndividualDict(indDict);
+	prDecorateIndividualDict {|indDict|
+		super.prDecorateIndividualDict(indDict);
 		indDict.targetbus = targetbus;
 		^indDict;
 	}
