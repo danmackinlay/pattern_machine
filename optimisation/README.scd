@@ -1,8 +1,10 @@
 /*
- * Phenoynth.
- * ***********
+ * Optimisation algorithms 
+ * ***************************
  *
- * Another bloody genetic algorithm for supercollider.
+ * PhenoSynth and ParticleSwarms, respectively.
+ * 
+ * More bloody nature-inspired optimisation algorithms for supercollider.
  *
  * If you want to do some genetic algorithm business in supercollider there
  * are a lot of better-tested libraries on the market out there, e.g.
@@ -34,7 +36,7 @@
  * This means I can try fun things like niche construction and co-evolution.
  * MCLD's library does this too, and I tried to evolve his code, but it is so
  * Synth-specific that it ended up being simpler to start again, at least for
- * the SCLang bits. I have, however, recycled and updated his lovely SynthDef
+ * the SClang bits. I have, however, recycled and updated his lovely SynthDef
  * library.
  *
  * Additionally, I've written my codebase from the ground up to have nice
@@ -52,7 +54,7 @@
  *
  * Enjoy.
  * Dan MacKinlay
- * 2012-02-01
+ * 2012-08-20
  *
  *
  */
