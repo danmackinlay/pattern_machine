@@ -142,7 +142,7 @@ PSOptimisingSwarm {
 		controller.freeIndividual(phenotype);
 		(exemplar == phenotype).if({exemplar = population.choose;});
 	}
-	populate {
+	prPopulate {
 		params.populationSize.do({
 			var noob, chromosome;
 			chromosome = initialChromosomeFactory.value(params);
@@ -159,9 +159,9 @@ PSOptimisingSwarm {
 		//pass the controller a reference to me so it can push notifications
 		this.controller = controller;
 		rate = params.clockRate ?? {controller.fitnessPollRate ? 1;};
-		controller.connect(this);
+		controller.prConnect(this);
 		controller.fitnessPollRate = rate;
-		this.populate;
+		this.prPopulate;
 		clock = TempoClock.new(rate, 1);
 		params.clockRate = rate;
 		playing = true;
@@ -374,8 +374,8 @@ PSLocalOptimisingSwarm : PSOptimisingSwarm {
 		super.init;
 		neighbourTable = IdentityDictionary.new(100);
 	}
-	populate {
-		super.populate;
+	prPopulate {
+		super.prPopulate;
 		this.createTopology;
 	}
 	getNeighbours {|phenotype|

@@ -33,7 +33,7 @@ PSControllerIsland : PSRealTimeIsland {
 		//A pub-sub solution would scale better to future multi-server parallelism
 		this.controller = controller;
 		params.clockRate ?? {params.clockRate = controller.fitnessPollRate ? 1;};
-		controller.connect(this);
+		controller.prConnect(this);
 		super.play;
 	}
 	free {

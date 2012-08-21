@@ -128,7 +128,7 @@ PSIsland {
 		rawScoreMap.removeAt(phenotype);
 		cookedFitnessMap.removeAt(phenotype);
 	}
-	populate {
+	prPopulate {
 		params.populationSize.do({
 			this.add(individualFactory.value(params, 
 				initialChromosomeFactory.value(params)));
@@ -187,7 +187,7 @@ PSIsland {
 	}
 	play {
 		//The fire button. trigger this, and the simulation will run until it is bored
-		this.populate;
+		this.prPopulate;
 		playing = true;
 		while(
 			{(terminationCondition.value(
@@ -204,7 +204,7 @@ PSIsland {
 	}
 	reset {
 		this.cull(population);
-		this.populate;
+		this.prPopulate;
 		iterations = 0;
 	}
 	rankedPopulation {
@@ -261,7 +261,7 @@ PSRealTimeIsland : PSIsland {
 	}
 	play {
 		/*note this does not call parent. */
-		this.populate;
+		this.prPopulate;
 		clock = TempoClock.new(params.clockRate, 1);
 		playing = true;
 		worker = Routine.new({

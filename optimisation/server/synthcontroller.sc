@@ -69,7 +69,7 @@ PSSynthController {
 	playBundle {|serverOrGroup, outbus ... argz|
 		this.outbus = outbus ?? { Bus.audio(server, numChannels)};
 	}
-	connect {|newOptimizer|
+	prConnect {|newOptimizer|
 		//couple to an optimizer
 		optimizer = newOptimizer;
 	}
@@ -91,11 +91,10 @@ PSSynthController {
 			 	// default condition: unhandled exception, rethrow
 			 	{ error.throw }
 		};
-		this.actuallyPlayIndividual(indDict);
+		this.prActuallyPlayIndividual(indDict);
 		^indDict;
 	}
-	actuallyPlayIndividual {|indDict|
-		//private
+	prActuallyPlayIndividual {|indDict|
 		// we inject extraSynthArgs in here at initialisation to allow for global buses etc
 		var synthArgs = this.getSynthArgs(indDict);
 		log.log(
@@ -276,12 +275,12 @@ PSListenSynthController : PSSynthController {
 		indDict.fitnessBus = Bus.newFrom(fitnessBusses, offset: offset);
 		^indDict;
 	}
-	actuallyPlayIndividual {|indDict|
+	prActuallyPlayIndividual {|indDict|
 		var listenSynthArgs;
 		listenSynthArgs = this.getListenSynthArgs(indDict);
 		log.log(msgchunks: [\listenSynthArgs] ++ listenSynthArgs, tag: \controlling, priority: -1);
 		//play the synth to which we wish to listen
-		super.actuallyPlayIndividual(indDict);
+		super.prActuallyPlayIndividual(indDict);
 		//analyse its output by listening to its bus
 		//we do this dynamically because listensynths can be expensive
 		indDict.listenNode = Synth.new(
