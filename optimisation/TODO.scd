@@ -2,15 +2,14 @@
  * TODO - PSO synths
  **************************
 
-* Shift param ranges live
 * GUI
     * input and output level mix
 		* merge mixerchannelpso in to make the particleswarm thing be a little more friendly
     * "explode" button, scattering the chromosomes
     * pluck individuals out and let them wander back to the swarm
 * update the target to be an evolving synth
-	* say, a live audio input
 	* hot swap tracking input
+	* Shift param ranges live
 * more interesting objective functions:
 	* match a pitch-shifted version of the input
 	* or a delayed version
