@@ -5,16 +5,21 @@ TestPSContext.runAll;
 /*
 This is the API I want to approximate:
 */
+(
+~productions = PSProductionRuleSet.new;
+~productions.add(\a, 2, [\b, \a]);
+~productions.add(\a, 3, [\c, \a]);
 
-productions = PSProductions.new;
-productions.add(\a, 1, [\b, \a]);
-productions.add(\a, 9, [\c, \a]);
-productions.add(\a, 10, [\c, \a], [\c, \d]); //not yet - is this how branching should go? Or should it be
-productions.add(\a, 10, [\[, \c, \a, \], \c, \d); // is this how branching should go? Or
-productions.add(\a, 10, [\c, [\a, \d]]); //I do like that one.
+//productions.add(\a, 10, [\c, [\a, \d]]); // This one should branch.
 
-//productions.chomp([\a]); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
-productions.next(\a); //returns [\b, \a] with probability 0.1, [\c, \a] with probability 0.9
+~productions.rules;
+~productions.weights;
+~productions.next(\a);
+
+~productions.next(\a); //returns [\b, \a] with probability 0.4, [\c, \a] with probability 0.6
+(~productions.rules[\a]).wchoose(~productions.weights[\a]);
+)
+
 
 coding = PSProductionCoding.new;
 //operator coding
@@ -26,21 +31,23 @@ coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
 //coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal? 
 
 /*
-Who knows about terminality? productions or codings?
-Both. A terminal is anything without a rewrite rule. Everything else is a Preterminal.
+Who knows about terminality? ProductionRuleSets or codings?
+By analogy with EBNF, only ProductionRuleSets.
+A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 */
 
 productions.words
 
-context = PSEventContext.new(coding);
+context = PSContext.new(coding);
 context.apply(productions.next(\a));
 
-productionplayer = PSProductionPlayer.new();
+productionplayer = PSProductionSpawner.new;
+
 
 /*
 We will likely need affine transform objects to hold the current transform context.
 This is  so that affine functions can be curried without wasting stack.
-Maybe I can get away without those for now and build somethign optimised for affine transforms as needed.
+Maybe I can get away without those for now and build something optimised for affine transforms as needed.
 
 
 Should we be able to play Patterns in Contexts as well?
