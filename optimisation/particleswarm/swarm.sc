@@ -42,7 +42,10 @@ PSOptimisingSwarm {
 	
 	//flag to stop iterator gracefuly.
 	var playing = false;
-
+	
+	var <>swarmName = "swarm";
+	var netSender = nil;
+	var <netAddr = nil;
 	/*
 	Here are the variables that hold the operator functions.
 	Paths are coerced to functions at instantiation time to avoid problems with
@@ -268,6 +271,7 @@ PSOptimisingSwarm {
 			bestKnownFitnessTable[phenotype] = myBestFitness;			
 		});
 		this.updateStatistics;
+		netSender.value;
 		iterations = iterations + 1;
 	}
 	setParam {|statekey, stateval|
@@ -332,6 +336,30 @@ PSOptimisingSwarm {
 	free {
 		super.free;
 		controller.free;
+	}
+	net_ {|addr|
+		netAddr = addr;
+		netAddr.isNil.if({
+			netSender = nil;
+		}, {
+			netSender = {
+				var path = "/swarm/%".format(swarmName);
+				var i = 0;
+				cookedFitnessMap.keysValuesDo({|agent,fitness|
+					netAddr.sendMsg(path, i, fitness, *(agent.chromosome));
+					i = i+1;
+				});
+			};
+		});
+		
+	}
+	randomize {|...targets|
+		(targets.size == 0).if({targets = population});
+		targets.postln;
+		targets.do({|phenotype|
+			phenotype.chromosome = {1.0.rand}.dup(phenotype.chromosome.size);
+			controller.updateIndividual(phenotype);
+		});
 	}
 }
 
@@ -413,7 +441,7 @@ SwarmGraph {
 					//[\ind, ind].postln;
 					[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
 				});
-				plotter.scatter(locs, idhashes);
+				plotter.scatter(locs);
 				//state.locs = locs;
 				(swarm.params.clockRate.reciprocal).yield;
 			};

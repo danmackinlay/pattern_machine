@@ -156,6 +156,14 @@ PSSynthController {
 			)
 		}).play;
 	}
+	setAll{|key, val|
+		//set a synth value for all  the sundry playthings
+		// this is presumed to be a synth value *not* controlled by chromosme, and
+		// updates will not propgate therein
+		all.values.do({|i|
+			i.playNode.set(key, val);
+		});
+	}
 }
 
 /*

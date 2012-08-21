@@ -196,6 +196,56 @@ PSBasicPlaySynths {
 			\amp: \unipolar.asSpec
 		);
 		SynthDef.new(
+			\ps_sample_grain_lagged_pan2,
+			{ |outbus=0, gate=1, t_reset=0,
+					buffer, pitch=1, ffreq=500,
+					rq=0.5, amp=1.0, pointer=0.5,
+					windowSize=0.1, windowRandRatio=0.5,
+					pan=0, lagtime=0.1|
+				var env;
+				var time = 1;
+				//lag these parameters, but the others are sampled anyway
+				pitch = Lag.kr(pitch, lagtime);
+				ffreq = Lag.kr(ffreq, lagtime);
+				rq = Lag.kr(rq, lagtime);
+				amp = Lag.kr(amp, lagtime);
+				
+				env = EnvGen.kr(
+					Env.asr(time/2, 1, time/2, 'linear'),
+					gate: gate,
+					doneAction: 2
+				);
+				Out.ar(outbus,
+					Pan2.ar(
+						Resonz.ar(
+							Warp1.ar(
+								bufnum: buffer,
+								freqScale: pitch,
+								pointer: pointer,
+								windowSize: windowSize,
+								windowRandRatio: windowRandRatio,
+								overlaps: 2,
+								mul: amp,
+							),
+							ffreq,	 //cutoff
+							rq		 //inverse bandwidth
+						) * env,
+						pos: pan,
+					)
+				);
+			}
+		).add;
+		synthArgMaps[\ps_sample_grain_lagged_pan2] = (
+			\pitch: ControlSpec.new(minval: 4.reciprocal, maxval: 4, warp: 'exp'),
+			\ffreq: ControlSpec.new(minval: 40, maxval: 8000, warp: 'exp'),
+			\pointer: \unipolar.asSpec,
+			\windowRandRatio: \unipolar.asSpec,
+			\windowSize: ControlSpec.new(minval: 4.reciprocal, maxval: 1, warp: 'exp'),
+			\rq: \rq.asSpec,
+			\amp: \unipolar.asSpec
+		);
+		
+		SynthDef.new(
 			\ps_sample_grain_lfo_lagged,
 			{ |outbus=0, gate=1, t_reset=0,
 					buffer, pitch=1, ffreq=500,
