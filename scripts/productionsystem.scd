@@ -1,6 +1,10 @@
- /*
-Server.default = s = ~serverboot.(\internal, \builtin);
-//This is the API I want to approximate:
+Server.default = s = ~serverboot.(\local, \builtin);
+TestPSContext.runAll;
+
+
+/*
+This is the API I want to approximate:
+*/
 
 productions = PSProductions.new;
 productions.add(\a, 1, [\b, \a]);
@@ -19,9 +23,12 @@ coding[\c] = [\operator, Padd(\pitch, 2, _)]
 //coding[\c] = [\operator, PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})]
 //atom coding
 coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
-//coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal? or may we have things be both?
-												// Let's not and say we did. But who knows about terminality? productions or codings?
-												// both. A terminal is anything without a rewrite rule. Everything else is a Preterminal.
+//coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal? 
+
+/*
+Who knows about terminality? productions or codings?
+Both. A terminal is anything without a rewrite rule. Everything else is a Preterminal.
+*/
 
 productions.words
 
@@ -29,41 +36,44 @@ context = PSEventContext.new(coding);
 context.apply(productions.next(\a));
 
 productionplayer = PSProductionPlayer.new();
-Event
-a=_*3; b= _+2;
-c=a<>b;
-c.(3)
-//We will also need affine transform objects to hold the current transform context.
-// These are basically curried functions. maybe I can
-//get away with those for now and build somethign optimised for affine transforms as needed.
-//This is surprisingly fiddly, beacuse Events have default values. see also Pstretch
-//TODO: create a Function subclass, AffineTransform that automatically collapses 
-//simple transforms and also prints a better diagnostic with printOn
-//Should we be able to play Patterns in Contexts as well?
-//Would be lots of work; ignore for now.
-//Work around by playing events with recursive patterns in/
 
-PSContext.test;
-a=2*_+1
-a.(2)
-
-// These operators and atoms will be composed by something like <>?
-// There is an asymmetry here - the (time)shift operator. Since all productions need to schedule themselves
-// (that is, i'd like them to) they need to have an idea of setting a note length
-// Since time passes, that "state" is tracked for us automatically.
-
-// we would like state more generally to collapse for us into polite flat context dictionaries.
-// the context should be enough to know which note to play on next, and what default params to be working with.
-// we can't really keep stacks of the fucking things lying about.
-// although we prolly could if we ditched tail recursion.
-// This will need a StatefulEvent, which should emit a PLazyEnvirN that transforms patterns appropriately.
-// or a PeventMod.
-
-// A pity, because otherwise Environment has great stack push/pop methods that would be
-// easy to work with. Maybe we still could?
+/*
+We will likely need affine transform objects to hold the current transform context.
+This is  so that affine functions can be curried without wasting stack.
+Maybe I can get away without those for now and build somethign optimised for affine transforms as needed.
 
 
-String.rewrite/Plsys
+Should we be able to play Patterns in Contexts as well?
+Would be lots of work; ignore for now.
+Work around by playing events with recursive patterns Prewrite-style
+
+These operators and atoms will be composed by something like <>?
+No, it is close but not right.
+
+There is an asymmetry here - the (time)shift operator.
+Since all productions need to schedule themselves
+(that is, i'd like them to) they need to have an idea of setting a note length
+Since time passes, that "state" is tracked for us automatically.
+
+This is surprisingly fiddly, because Events have default values. see also Pstretch.
+
+We would like state more generally to collapse for us into polite flat context dictionaries.
+The context should be enough to know which note to play on next, and what default params to be working with.
+We can't really keep stacks of the fucking things lying about.
+although we prolly could if we ditched tail recursion.
+This will need a StatefulEvent, which should emit a PLazyEnvirN that transforms patterns appropriately.
+or a PeventMod.
+
+A pity, because otherwise Environment has great stack push/pop methods that would be
+easy to work with. Maybe we still could?
+*/
+
+
+/* 
+ *other implementations
+ */
+String.rewrite
+Plsys
 Prewrite
 Quarks.gui
 redUniverse LSystem
