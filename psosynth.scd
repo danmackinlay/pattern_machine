@@ -22,7 +22,7 @@ s.doWhenBooted  {
 	~swarmOut = Bus.audio(s, 1);
 	~globalOuts = Bus.new(\audio, 0, 2, s);
 	s.sync;
-	~swarmMixer = MixerChannel.new("swarm1",
+	~swarmMixer = MixerChannel.new("swarm1", s,
 		inChannels:1, outChannels:2,
 		inbus:~swarmOut,
 		outbus:~globalOuts);
