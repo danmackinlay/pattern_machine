@@ -3,21 +3,24 @@ TestPSContext.runAll;
 
 
 /*
-This is the API I want to approximate:
+This is the API I want to approximate.
+
+Here I will, for my own sanity, use \CAPITALS for things i intend to be preterminals,
+and \lowercase for terminals (i.e. operators or atoms)
 */
 (
 ~productions = PSProductionRuleSet.new;
-~productions.add(\a, 2, [\b, \a]);
-~productions.add(\a, 3, [\c, \a]);
+~productions.add(\A, 2, [\B, \A]);
+~productions.add(\A, 3, [\c, \A]);
 
-//productions.add(\a, 10, [\c, [\a, \d]]); // This one should branch.
+//productions.add(\A, 10, [\c, [\A, \d]]); // This one should branch.
 
 ~productions.rules;
 ~productions.weights;
-~productions.next(\a);
+~productions.next(\A);
 
-~productions.next(\a); //returns [\b, \a] with probability 0.4, [\c, \a] with probability 0.6
-(~productions.rules[\a]).wchoose(~productions.weights[\a]);
+~productions.next(\A); //returns [\B, \A] with probability 0.4, [\c, \A] with probability 0.6
+(~productions.rules[\A]).wchoose(~productions.weights[\A]);
 )
 
 
@@ -39,7 +42,7 @@ A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 productions.words
 
 context = PSContext.new(coding);
-context.apply(productions.next(\a));
+context.apply(productions.next(\A));
 
 productionplayer = PSProductionSpawner.new;
 
