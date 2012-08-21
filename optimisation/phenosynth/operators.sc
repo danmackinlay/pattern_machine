@@ -108,7 +108,7 @@ PSOperators {
 				cookedFitnessMap;
 			};
 		);
-		/* if score approaches zero for a good result 
+		/* if score approaches zero for a good result
 		but is not guaranteed positive, use this.
 		It incidentally rescales everything to be in the range 0-1,
 		where fitnesss is reported as 1 when it's closest to 1

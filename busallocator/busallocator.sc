@@ -26,7 +26,6 @@ Allocator {
 	printOn { arg stream;
 		stream << this.class.asString <<"(nResources:" << nResources.asString << ", available:" << toAlloc.asString << ")";
 	}
-
 }
 
 BusAllocator : Allocator {
@@ -54,5 +53,4 @@ BusAllocator : Allocator {
 	dealloc {|i|
 		super.dealloc((i.index-busArray.index)/nChans);
 	}
-
 }

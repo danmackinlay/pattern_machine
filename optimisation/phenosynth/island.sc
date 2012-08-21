@@ -130,7 +130,7 @@ PSIsland {
 	}
 	prPopulate {
 		params.populationSize.do({
-			this.add(individualFactory.value(params, 
+			this.add(individualFactory.value(params,
 				initialChromosomeFactory.value(params)));
 		});
 	}

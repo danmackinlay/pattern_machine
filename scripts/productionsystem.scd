@@ -31,7 +31,7 @@ coding[\c] = [\operator, Padd(\pitch, 2, _)]
 //coding[\c] = [\operator, PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})]
 //atom coding
 coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
-//coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal? 
+//coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal?
 
 /*
 Who knows about terminality? ProductionRuleSets or codings?
@@ -79,7 +79,7 @@ easy to work with. Maybe we still could?
 */
 
 
-/* 
+/*
  *other implementations
  */
 String.rewrite

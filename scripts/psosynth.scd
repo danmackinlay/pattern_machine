@@ -104,7 +104,7 @@ s.waitForBoot({
 	//now set up the "swarm" that will control their evolution
 	~swarm = PSLocalOptimisingSwarm(
 	//~swarm = PSOptimisingSwarm(
-		(\populationSize: population, 
+		(\populationSize: population,
 		\initialChromosomeSize: ~synthArgMap.size,
 		\clockRate: 20,
 		\stepSize: 0.02,

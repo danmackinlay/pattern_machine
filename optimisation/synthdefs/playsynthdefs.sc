@@ -9,10 +9,10 @@ PSBasicPlaySynths {
 	/*
 	An attempt to make laggedness in synths, though different arg types and
 	automagic casting messes with this.
-	
+
 	possibly synthArgMaps could make this be sane.
 	*makeLagged { |name, func, synthArgMap|
-		// create an altered, lagged version 
+		// create an altered, lagged version
 		var laggedName = (name ++ \_lagged).asSymbol;
 		SynthDef.new(laggedName, {
 			|outbus=0, gate=1, t_reset=0, lagtime=0.1, ... synthArgs|
@@ -165,7 +165,7 @@ PSBasicPlaySynths {
 				ffreq = Lag.kr(ffreq, lagtime);
 				rq = Lag.kr(rq, lagtime);
 				amp = Lag.kr(amp, lagtime);
-				
+
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
@@ -209,7 +209,7 @@ PSBasicPlaySynths {
 				ffreq = Lag.kr(ffreq, lagtime);
 				rq = Lag.kr(rq, lagtime);
 				amp = Lag.kr(amp, lagtime);
-				
+
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
@@ -244,7 +244,7 @@ PSBasicPlaySynths {
 			\rq: \rq.asSpec,
 			\amp: \unipolar.asSpec
 		);
-		
+
 		SynthDef.new(
 			\ps_sample_grain_lfo_lagged,
 			{ |outbus=0, gate=1, t_reset=0,
@@ -328,7 +328,7 @@ PSBasicPlaySynths {
 						windowSize: windowSize,
 						windowRandRatio: windowRandRatio,
 						overlaps: 2,
-						mul:amp,	
+						mul:amp,
 					),
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth

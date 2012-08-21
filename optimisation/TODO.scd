@@ -1,7 +1,8 @@
 /**************************
  * TODO - PSO synths
  **************************
- 
+
+* Shift param ranges live
 * GUI
     * input and output level mix
 		* merge mixerchannelpso in to make the particleswarm thing be a little more friendly
@@ -24,7 +25,7 @@
 	* How can this sound sparser? Reward silence?
 	* some kind of nonlinear feedback situation?
 	* sample recording
-* go to MOL ("many optimising liaisons") 
+* go to MOL ("many optimising liaisons")
 	* choose random peer as neighbour each time
 	* update only one at each time
 * visualise this using Quartz Composer

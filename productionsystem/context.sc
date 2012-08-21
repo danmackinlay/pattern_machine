@@ -9,7 +9,7 @@ can set defaults.
 */
 PSContext : IdentityDictionary {
 	applyTo {|that|
-		/* 
+		/*
 		<> composition per default operates right to left, but contexts are
 		more intuitively applied left to right, and we don't want to have to patch
 		Event to make this work (Which we would have to do, since that which is
@@ -17,9 +17,9 @@ PSContext : IdentityDictionary {
 		basically <>, but backwards. Additionally, we assume that the values in this
 		guy are functions and that we will compose by partial application instead of
 		by replacing values Be careful with the order when using this guy.
-		
+
 		a b c d E should apply transforms as ((((a)b)c)d)E
-		
+
 		...hmmm. I could totally do this with an environment stack.
 		*/
 		(that.isKindOf(Event)).if({
@@ -28,7 +28,7 @@ PSContext : IdentityDictionary {
 			right now i ignore transforms with nothing to do to them.
 			 that is not quite right, events have defaults. Also, some keys interact.
 			see Pstretch -
-			
+
 			delta = event[\delta];
 			if (delta.notNil) {
 				inevent[\delta] = delta * val;

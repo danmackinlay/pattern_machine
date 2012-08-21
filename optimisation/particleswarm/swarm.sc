@@ -3,12 +3,12 @@ PSOptimisingSwarm {
 	This is a little like PSControllerIsland, but not enough that it is worth it
 	to subclass.
 	There should be some duck-typing possible, though.
-	
-	Also note that unlike the class hierarchy of the GA-type selection, I 
+
+	Also note that unlike the class hierarchy of the GA-type selection, I
 	make no allowance for non-synth-based selection.
 	This is because of Deadlines.
 	*/
-	
+
 	classvar <defaultScoreCooker = #[phenosynth, score_cookers, zero_peak];
 	classvar <defaultInitialChromosomeFactory = #[phenosynth, chromosome_fact, basic];
 	classvar <defaultIndividualFactory = #[phenosynth, individual_fact, defer_to_constructor];
@@ -31,7 +31,7 @@ PSOptimisingSwarm {
 	var <velocityTable;
 	var <bestKnownPosTable;
 	var <bestKnownFitnessTable;
-	
+
 	//tracking convergence
 	var <swarmLagMeanPosition;
 	var <swarmLagPosSpeed=0;
@@ -39,10 +39,10 @@ PSOptimisingSwarm {
 	var <swarmLagMeanFitness=0;
 	var <swarmLagFitnessRate=0;
 	var <swarmLagDispersal=0;
-	
+
 	//flag to stop iterator gracefuly.
 	var playing = false;
-	
+
 	var <>swarmName = "swarm";
 	var netSender = nil;
 	var <netAddr = nil;
@@ -56,7 +56,7 @@ PSOptimisingSwarm {
 	var <scoreEvaluator;
 	var <scoreCooker;
 	var <terminationCondition;
-	
+
 	//we log debug information about one particular particle
 	var <>exemplar;
 
@@ -153,7 +153,7 @@ PSOptimisingSwarm {
 	}
 	setFitness {|phenotype, value|
 		rawScoreMap[phenotype] = value;
-	}	
+	}
 	play {|controller|
 		var clock, rate;
 		//pass the controller a reference to me so it can push notifications
@@ -184,7 +184,7 @@ PSOptimisingSwarm {
 	tend {
 		/* Note there is a potential problem with asynchronous updating:
 		particles modify the bestness tables in situ
-		
+
 		Also fitness is noisy because of a) lags and b) asynchronous fitness polling.
 		*/
 		var logExemplar = {|...args|
@@ -196,7 +196,7 @@ PSOptimisingSwarm {
 		};
 
 		cookedFitnessMap = scoreCooker.value(params, rawScoreMap);
-				
+
 		cookedFitnessMap.keys.do({|phenotype|
 			var myCurrentFitness, myBestFitness, myNeighbourhoodBestFitness;
 			var myCurrentPos, myBestPos, myNeighbourhoodBestPos, myNextPos;
@@ -209,7 +209,7 @@ PSOptimisingSwarm {
 			(phenotype==exemplar).if({maybeLog = logExemplar;});
 
 			vecLen = phenotype.chromosome.size;
-			
+
 			// first, scale down past fitnesses by a decay factor
 			bestKnownFitnessTable.keysValuesDo({|key, val|
 				bestKnownFitnessTable[key] = val*(params.memoryDecay);
@@ -220,7 +220,7 @@ PSOptimisingSwarm {
 			myBestPos = bestKnownPosTable[phenotype] ? myCurrentPos;
 			myBestFitness = bestKnownFitnessTable[phenotype] ? myCurrentFitness;
 			myDelta = (myBestPos - myCurrentPos);
-			
+
 			// now, ask my neighbours
 			myNeighbourhood = this.getNeighbours(phenotype);
 			myBestNeighbour = myNeighbourhood[
@@ -231,10 +231,10 @@ PSOptimisingSwarm {
 			myNeighbourhoodBestPos = bestKnownPosTable[myBestNeighbour];
 			myNeighbourhoodBestFitness = bestKnownFitnessTable[myBestNeighbour];
 			myNeighbourhoodDelta = (myNeighbourhoodBestPos - myCurrentPos);
-			
+
 			//get my velocity, coz we're going to update it
 			myVel = velocityTable[phenotype];
-			
+
 			maybeLog.([\pos] ++ myCurrentPos);
 			maybeLog.([\fitness, myCurrentFitness]);
 			maybeLog.([\mybestpos] ++ myBestPos);
@@ -244,7 +244,7 @@ PSOptimisingSwarm {
 			maybeLog.([\groupbestpos] ++ myNeighbourhoodBestPos);
 			maybeLog.([\groupdelta] ++ myNeighbourhoodDelta);
 			maybeLog.([\vel1] ++ myVel);
-			
+
 			//update
 			myVel = (params.momentum * myVel) +
 				(params.selfTracking * ({1.0.rand}.dup(vecLen)) * myDelta) +
@@ -261,14 +261,14 @@ PSOptimisingSwarm {
 			maybeLog.([\posdelta, (myNextPos - myCurrentPos)]);
 			phenotype.chromosome = myNextPos;
 			controller.updateIndividual(phenotype);
-			
+
 			//Now, update fitness tables to reflect how good that last position was
 			(myCurrentFitness>myBestFitness).if({
 				myBestFitness = myCurrentFitness;
 				myBestPos = myCurrentPos;
 			});
 			bestKnownPosTable[phenotype] = myBestPos;
-			bestKnownFitnessTable[phenotype] = myBestFitness;			
+			bestKnownFitnessTable[phenotype] = myBestFitness;
 		});
 		this.updateStatistics;
 		netSender.value;
@@ -281,18 +281,18 @@ PSOptimisingSwarm {
 	updateStatistics{
 		var lastMeanFitness;
 		var meanChromosome;
-		var lagCoefs; 
+		var lagCoefs;
 		var convLagCoefs;
-		
+
 		//vector of lag coefficients:
 		lagCoefs = [params[\shortLagCoef], params[\longLagCoef]];
 		convLagCoefs = 1.0 - lagCoefs;
-		
+
 		//some state that needs extra work to track
 		lastMeanFitness = swarmMeanFitness;
 		swarmMeanFitness = this.meanFitness;
         meanChromosome = this.meanChromosome;
-		
+
 		//calculate lags
 		swarmLagPosSpeed = (lagCoefs * this.meanVelocity.squared.mean.sqrt) + (convLagCoefs * swarmLagPosSpeed);
 		swarmLagMeanPosition = (lagCoefs *.t meanChromosome) + (swarmLagMeanPosition * convLagCoefs );
@@ -351,7 +351,7 @@ PSOptimisingSwarm {
 				});
 			};
 		});
-		
+
 	}
 	randomize {|...targets|
 		(targets.size == 0).if({targets = population});
@@ -417,7 +417,7 @@ SwarmGraph {
 	var <plotter;
 	var <population;
 	var <idhashes;
-	
+
 	*new {|swarm|
 		^super.newCopyArgs(swarm).init;
 	}
@@ -460,9 +460,9 @@ SwarmGui {
 	var <paramsGuiUpdater;
 	var <window, <widgets;
 	var worker;
-	
+
 	*new{|swarm, pollRate=5, maxFitness=1| ^super.newCopyArgs(swarm, pollRate, maxFitness).initSwarmGui;}
-	
+
 	initSwarmGui {
 		var ezSliderWidth, meterWidth, labelWidth, numberWidth, statsHeight;
 		widgets = ();
@@ -476,7 +476,7 @@ SwarmGui {
 		meterWidth = ezSliderWidth - labelWidth - 8;
 		numberWidth = 60;
 		statsHeight = 30;
-		
+
 		widgets.clockRate = EZSlider.new(
 			parent: window,
 			numberWidth: numberWidth,
@@ -575,7 +575,7 @@ SwarmGui {
 			action: {|view| this.setParam(\memoryDecay, view.value);}
 		);
 		widgets.memoryDecay.numberView.maxDecimals=4;
-		
+
 		widgets.meanPos = MultiSliderView(window, Rect(0,0,ezSliderWidth,100));
 		widgets.meanPos.size = swarm.params[\initialChromosomeSize] ? 7;
 		widgets.meanPos.elasticMode = 1;
@@ -583,9 +583,9 @@ SwarmGui {
 		widgets.meanPos.indexThumbSize = ezSliderWidth/(widgets.meanPos.size);
 		widgets.meanPos.valueThumbSize = 2;
 		widgets.meanPos.value = swarm.meanChromosome;
-		
+
 		window.startRow;
-		
+
 		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="fitness";
 		widgets.fitness = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
 		widgets.fitness.size = 2;
@@ -597,9 +597,9 @@ SwarmGui {
 		widgets.fitness.isFilled = true;
 		widgets.fitness.value = swarm.swarmLagMeanFitness? [0,0];
 		widgets.fitness.reference = [0,0].linlin(0.0, maxFitness, 0.0, 1.0);
-		
+
 		window.startRow;
-		
+
 		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="fitnessrate";
 		widgets.fitnessRate = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
 		widgets.fitnessRate.size = 2;
@@ -615,9 +615,9 @@ SwarmGui {
 			(paramsModel[\stepSize] * maxFitness),
 			0.0, 1.0
 		);
-		
+
 		window.startRow;
-		
+
 		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="dispersal";
 		widgets.dispersal = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
 		widgets.dispersal.size = 2;
@@ -629,9 +629,9 @@ SwarmGui {
 		widgets.dispersal.isFilled = true;
 		widgets.dispersal.value = swarm.swarmLagDispersal? [0,0];
 		widgets.dispersal.reference = [0,0].linlin(0.0, 0.3, 0.0, 1.0);
-		
+
 		window.startRow;
-		
+
 		StaticText.new(window, Rect(0, 0, labelWidth, statsHeight)).string="speed";
 		widgets.posSpeed = MultiSliderView(window, Rect(0, 0, meterWidth, statsHeight));
 		widgets.posSpeed.size = 2;
@@ -643,7 +643,7 @@ SwarmGui {
 		widgets.posSpeed.isFilled = true;
 		widgets.posSpeed.value = swarm.swarmLagPosSpeed? [0,0];
 		widgets.posSpeed.reference = [0,0];
-				
+
 		window.onClose_({
 			paramsModel.removeDependant(paramsGuiUpdater);
 		});

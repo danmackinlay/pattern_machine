@@ -1,9 +1,9 @@
 /*
- * Optimisation algorithms 
+ * Optimisation algorithms
  * ***************************
  *
  * PhenoSynth and ParticleSwarms, respectively.
- * 
+ *
  * More bloody nature-inspired optimisation algorithms for supercollider.
  *
  * If you want to do some genetic algorithm business in supercollider there

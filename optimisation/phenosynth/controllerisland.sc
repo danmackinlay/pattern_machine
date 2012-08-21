@@ -47,5 +47,5 @@ PSControllerIsland : PSRealTimeIsland {
 			{|i| cookedFitnessMap[i].notNil}, Array
 		).sort({|a, b| cookedFitnessMap[a] > cookedFitnessMap[b] });
 	}
-	
+
 }

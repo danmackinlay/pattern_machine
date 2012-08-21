@@ -81,12 +81,12 @@ PSSynthDefPhenotypeFactory {
 	class-free synth phenotype implementation.
 
 	You shouldn't have to subclass things just to override a trivial parameter or two.
-	
+
 	I could probably do this better and eliminate the need for the phenotype class by
 	pushing all instantiation logic into the Controller. This would meet 90% of
 	use cases, and have less code, and that which remained would be more consistent
 	between trivial and that 90% of complex uses.
-	
+
 	For now,
 	*/
 	classvar <>defaultPhenotypeClass;
@@ -114,7 +114,7 @@ PSSynthDefPhenotypeFactory {
 		^phenotypeClass.new(chromosome, synthDef, synthArgMap);
 	}
 
-	newRandom {|initialChromosomeSize|		
+	newRandom {|initialChromosomeSize|
 		^this.new(phenotypeClass.randomChromosome(initialChromosomeSize));
 	}
 	randomChromosome {|initialChromosomeSize|

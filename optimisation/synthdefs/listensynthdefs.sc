@@ -72,9 +72,9 @@ PSBasicListenSynths {
 			testsig = LeakDC.ar(In.ar(observedbus, 1));
 
 			# freq, hasFreq = Pitch.kr(testsig);
-			
+
 			// "1" if hasFreq==false because we don't want to encourage quietness
-			comparison = if(hasFreq, (freq - targetpitch).abs, 1).poll(1, \foo); 
+			comparison = if(hasFreq, (freq - targetpitch).abs, 1).poll(1, \foo);
 
 			// Divide by the server's control rate to bring it within a sensible range.
 			comparison = comparison / ControlRate.ir;

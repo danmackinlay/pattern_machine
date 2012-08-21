@@ -8,7 +8,7 @@ Would be more elegant, I suppose, to implement this as some kind of stream consu
 ValueLag {
     var <>coef;
     var <>state;
-    
+
     *new {|coef=0.1, initial=0|
         ^super.newCopyArgs(coef, initial);
     }

@@ -250,7 +250,7 @@ PSBasicCompareSynths {
 			//rms difference - should log diff? or abs diff?
 			targetMFCCoef = MFCC.kr(targetfft, numcoeff:42);
 			oMFCCoef = MFCC.kr(offt, numcoeff:42);
-			
+
 			targetamp = Amplitude.kr(targetsig)+0.0000001;
 			oamp = Amplitude.kr(observedsig)+0.0000001;
 			//check out these fairly arbitrary scaling factors:

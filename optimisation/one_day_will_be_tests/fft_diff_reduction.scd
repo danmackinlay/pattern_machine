@@ -22,13 +22,13 @@ Log differences?
 	s.sync;
 	comparer = {|leak=0.1|
 		var targetfftchain, obsfftchain, target, observed, localTargetFftBuffer, localObservedFftBuffer;
-		
+
 		target  = In.ar(targetBus, 1);
 		observed = In.ar(observedBus, 1);
 
 		// localTargetFftBuffer = LocalBuf.new(128,1);
 		// localObservedFftBuffer = LocalBuf.new(128,1);
-		
+
 		localTargetFftBuffer = targetFftBuffer;
 		localObservedFftBuffer = observedFftBuffer;
 
@@ -38,14 +38,14 @@ Log differences?
 		// Smear the FFT a little to avoid being trapped in bins
 		// targetfftchain = PV_MagSmear(targetfftchain, 5);
 		// obsfftchain = PV_MagSmear(obsfftchain, 5);
-		
+
 		leak = (leak**(ControlRate.ir.reciprocal));
 		//replace me with a straight 1-pole:
 		Integrator.kr(FFTDiffMags.kr(targetfftchain, obsfftchain) * (1-leak),  leak);
 	}.play(target:s, addAction: \addToTail, outbus: matchOut);
-	
+
 	s.volume.volume = -20;
-	
+
 	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
 		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, delay=0.0|
@@ -63,7 +63,7 @@ Log differences?
 	).add;
 
 	s.sync;
-	
+
 	template = Synth.new(
 		\fft_dist_test_synth,
 		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0],
@@ -76,7 +76,7 @@ Log differences?
 		target: s,
 		addAction: \addToHead
 	);
-	
+
 	Routine.new({
 		while( true, {matchOut.get(_.postln);
 		10.yield;})
@@ -119,7 +119,7 @@ Log differences?
 		~obsfftbufasarraySame = array;
 		~obsfftbufascomplexSame = ~bufToComplex.value(array);
 	});
-	~targetFftBuffer.loadToFloatArray(action: { |array| 
+	~targetFftBuffer.loadToFloatArray(action: { |array|
 		~targetfftbufasarraySame = array;
 		~targetfftbufascomplexSame = ~bufToComplex.value(array);
 	});
@@ -146,7 +146,7 @@ Log differences?
 		~obsfftbufasarrayDiff = array;
 		~obsfftbufascomplexDiff = ~bufToComplex.value(array);
 	});
-	~targetFftBuffer.loadToFloatArray(action: { |array| 
+	~targetFftBuffer.loadToFloatArray(action: { |array|
 		~targetfftbufasarrayDiff = array;
 		~targetfftbufascomplexDiff = ~bufToComplex.value(array);
 	});

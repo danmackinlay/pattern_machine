@@ -13,7 +13,7 @@ TestPSContext : UnitTest {
 		target = PSContext.newFrom((
 			a: _*3,
 			b: {|i| (i+1)*2},
-			c: _*2	
+			c: _*2
 		));
 		testnums=[-1, 0, 0.1, 9.5];
 		testnums.do({|n|
