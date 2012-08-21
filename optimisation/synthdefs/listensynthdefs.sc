@@ -9,13 +9,8 @@ particular signal quality rather than comapring wit with an external signal.
 PSBasicListenSynths {
 	*initClass{
 		StartUp.add({
-			this.classInit;
+			this.loadSynthDefs;
 		});
-	}
-	*classInit{
-		/* I give my *actual* class initialisation the name of classInit, for ease of consistently initialising classes
-		*/
-		this.loadSynthDefs;
 	}
 	*loadSynthDefs {
 		// This judge is one of the simplest I can think of (for demo purposes)

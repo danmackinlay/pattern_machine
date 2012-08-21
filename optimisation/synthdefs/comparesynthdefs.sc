@@ -9,14 +9,8 @@ other, against a reference/template signal
 PSBasicCompareSynths {
 	*initClass{
 		StartUp.add({
-			this.classInit;
+			this.loadSynthDefs;
 		});
-	}
-	*classInit{
-		/* I give my *actual* class initialisation the name of classInit,
-		for ease of consistently initialising classes
-		*/
-		this.loadSynthDefs;
 	}
 	*makeComparer { |name, func, lags|
 		/* A listen synthdef factory, complete with graceful accumulation.

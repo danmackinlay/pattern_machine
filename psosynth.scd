@@ -26,34 +26,6 @@ s.waitForBoot({
 		"animal/driftingchirps.MP3.aiff",
 	]).collect(~zamples +/+ _);
 	~buffers = ~fileNames.collect(Buffer.read(s, _, 0));
-	SynthDef.new(\limi__1, {|outbus, cutoff=50, pregain=1|
-		ReplaceOut.ar(
-			outbus,
-			Limiter.ar(
-				HPF.ar(
-					in: In.ar(outbus, 1),
-					freq: cutoff,
-					mul: pregain
-				),
-				1,
-				0.01
-			)
-		)
-	}).add;
-	SynthDef.new(\limi__2, {|outbus, cutoff=50, pregain=1|
-		ReplaceOut.ar(
-			outbus,
-			Limiter.ar(
-				HPF.ar(
-					in: In.ar(outbus, 2),
-					freq: cutoff,
-					mul: pregain
-				),
-				1,
-				0.01
-			)
-		)
-	}).add;
 	~log = FileLogger.global;
 	~log.reject(\controlling);
 	~log.reject(\moving);
