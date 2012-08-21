@@ -4,6 +4,7 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 Server.default = s = ~serverboot.(\local, \motu);
 Server.default = s = ~serverboot.(\local, \builtin);
 StartUp.run;
+
 (
 s.waitForBoot({
 	fork {
@@ -139,7 +140,7 @@ s.queryAllNodes;
 ~targetbus.free;
 
 /**************************
- * TODO
+ * TODO - PSO synths
  **************************
  
 * multichannel
