@@ -20,7 +20,8 @@ and \lowercase for terminals (i.e. operators or atoms)
 ~productions.next(\A);
 
 ~productions.next(\A); //returns [\B, \A] with probability 0.4, [\c, \A] with probability 0.6
-(~productions.rules[\A]).wchoose(~productions.weights[\A]);
+~productions.next(\A, 0.39);
+~productions.next(\A, 0.99);
 )
 
 

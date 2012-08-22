@@ -1,22 +1,29 @@
 PSProductionRuleSet {
     var <rules;
     var <weights;
-    var <normWeights;
+    var <cdfs;
     *new{
         ^super.new.initPSProductionRuleSet;
     }
     initPSProductionRuleSet {
         rules = ();
         weights = ();
-        normWeights = ();
+        cdfs = ();
     }
 	add {|key, weight=1, expression|
-		rules[key] = (rules[key] ?? Array.new).add(expression);
-		weights[key] = (weights[key] ?? Array.new).add(weight);
-		normWeights[key] = (weights[key])/(weights[key].sum);
+		var ruleset, weightset, cdf;
+		ruleset = (rules[key] ?? Array.new).add(expression);
+		weightset = (weights[key] ?? Array.new).add(weight);
+		cdf = ((weightset)/(weightset.sum)).integrate;
+		//make sure our cdf doesn't panic because of float rounding:
+		cdf[cdf.size-1] = inf;
+		rules[key] = ruleset;
+		weights[key] = weightset;
+		cdfs[key] = cdf;
 	}
-	next {|key|
-		^(rules[key]).wchoose(normWeights[key]);
+	next {|key, omega|
+		//omega is the lookup variable
+		^(rules[key])[cdfs[key].indexOfGreaterThan(omega ?? 1.0.rand)];
 	}
 	seed{|key|
 		/*yield symbols until it is over.*/
