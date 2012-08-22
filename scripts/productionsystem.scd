@@ -1,12 +1,13 @@
 Server.default = s = ~serverboot.(\local, \builtin);
 TestPSContext.runAll;
 
-
 /*
 This is the API I want to approximate.
 
-Here I will, for my own sanity, use \CAPITALS for things i intend to be preterminals,
-and \lowercase for terminals (i.e. operators or atoms)
+Here I will, for my own sanity, use \CAPITALS for things I intend to be preterminals,
+and \lowercase for terminals (i.e. operators or atoms).
+This is not enforced by code; you can use whatever convention you'd like.
+Things that have no rules are terminals.
 */
 (
 ~productions = PSProductionRuleSet.new;
@@ -17,11 +18,28 @@ and \lowercase for terminals (i.e. operators or atoms)
 
 ~productions.rules;
 ~productions.weights;
+~productions.cdfs;
 ~productions.next(\A);
 
 ~productions.next(\A); //returns [\B, \A] with probability 0.4, [\c, \A] with probability 0.6
-~productions.next(\A, 0.39);
-~productions.next(\A, 0.99);
+~productions.next(\A, 0.39);//returns [\B, \A]
+~productions.next(\A, 0.99);//returns [\c, \A]
+~productions.isTerminal(\A); //false
+~productions.isTerminal(\B); //false
+~productions.isTerminal(\c); //true
+
+
+~productions = PSProductionRuleSet.new;
+~productions.add(\A, 1, [\a, \B]);
+~productions.add(\B, 1, [\b, \C]);
+~productions.add(\C, 1, [\c]);
+~stream = ~productions.asStream(\A);
+~stream.next; // \a
+~stream.next; // \b
+~stream.next; // \c
+~stream.next; // nil
+//how does this generalise to polyphony?
+
 )
 
 
@@ -52,7 +70,7 @@ productionplayer = PSProductionSpawner.new;
 We will likely need affine transform objects to hold the current transform context.
 This is  so that affine functions can be curried without wasting stack.
 Maybe I can get away without those for now and build something optimised for affine transforms as needed.
-
+Also, memoisation might get us there (?).
 
 Should we be able to play Patterns in Contexts as well?
 Would be lots of work; ignore for now.
