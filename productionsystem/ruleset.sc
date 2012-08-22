@@ -3,6 +3,7 @@ PSProductionRuleSet {
     var <weights;
     var <cdfs;
 	var <preterminals;
+	var <>defaultStartRule;
     *new{
         ^super.new.initPSProductionRuleSet;
     }
@@ -36,6 +37,10 @@ PSProductionRuleSet {
 		^this.isPreterminal(symbol).not;
 	}
 	asStream{|startRule|
+		//we take a startRule param here. But asStream doesn't normally supply this
+		//so we fall back to some defaults.
+		startRule = startRule ?? defaultStartRule;
+		startRule = startRule ?? {preterminals.choose;};
 		^Routine({
 			this.next(startRule).do({|currentSymbol|
 				this.isTerminal(currentSymbol).if(

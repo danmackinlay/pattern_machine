@@ -28,7 +28,6 @@ Things that have no rules are terminals.
 ~productions.isTerminal(\B); //false
 ~productions.isTerminal(\c); //true
 
-
 ~productions = PSProductionRuleSet.new;
 ~productions.add(\A, 1, [\a, \B]);
 ~productions.add(\B, 1, [\b, \C]);
@@ -38,8 +37,21 @@ Things that have no rules are terminals.
 ~stream.next; // \b
 ~stream.next; // \c
 ~stream.next; // nil
-//how does this generalise to polyphony?
 
+~productions.add(\c, 1, [\d, \A]);
+~stream = ~productions.asStream(\A);
+~stream.next; // \a
+~stream.next; // \b
+~stream.next; // \d
+~stream.next; // \a
+~stream.next; // \b
+~stream.next; // \d
+
+~stream = ~productions.asStream(\A); 
+~manySteps = 999.collect({~stream.next;}); //can we pop the stack by recursing in this fashion?
+[\a, \b, \d].dup(333).flat == ~manySteps; //true
+
+//how does this generalise to polyphony?
 )
 
 
