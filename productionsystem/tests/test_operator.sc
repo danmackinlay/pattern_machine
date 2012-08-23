@@ -1,4 +1,24 @@
 TestPSEventOperator : UnitTest {
+	test_OperatorCreationShortcuts {
+		var createdNewFilled, createdNewFrom, createdNewEmpty;
+		createdNewFrom = PSEventOperator.newFrom((a:1, b:2));
+		createdNewFilled = PSEventOperator(\a,1,\b,2);
+		createdNewEmpty = PSEventOperator.new;
+		createdNewEmpty[\a] = 1;
+		createdNewEmpty[\b] = 2;
+		this.assertEquals(
+			createdNewFrom,
+			createdNewFilled,
+		);
+		this.assertEquals(
+			createdNewFrom,
+			createdNewEmpty,
+		);
+		this.assertEquals(
+			createdNewEmpty,
+			createdNewFilled,
+		);
+	}
 	test_OperatorOperatorApply {
 		var left,right,target,combined,testnums;
 		left = PSEventOperator.newFrom((

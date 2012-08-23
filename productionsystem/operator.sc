@@ -8,6 +8,14 @@ EnvironmentRedirect from JITLib, which dispatches to a wrapped environment but
 can set defaults.
 */
 PSEventOperator : IdentityDictionary {
+	*new {|...listOfPairs|
+		var newCollection;
+		newCollection = super.new(listOfPairs.size);
+		listOfPairs.pairsDo({|k,v, i|
+			newCollection.put(k,v);
+		});
+		^newCollection;
+	}
 	applyTo {|that|
 		/*
 		<> composition per default operates right to left, but contexts are
