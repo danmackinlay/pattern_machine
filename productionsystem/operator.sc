@@ -24,11 +24,11 @@ PSEventOperator : IdentityDictionary {
 		composed *with() gets to define the method.) so we make a new method which is
 		basically <>, but backwards. Additionally, we assume that the values in this
 		guy are functions and that we will compose by partial application instead of
-		by replacing values Be careful with the order when using this guy.
+		by replacing values. Be careful with the order when using this guy.
 
 		a b c d E should apply transforms as ((((a)b)c)d)E
 
-		...hmmm. I could totally do this with an environment stack.
+		...hmmm. I could totally do this with an environment stack. Should.
 		*/
 		(that.isKindOf(Event)).if({
 			/*

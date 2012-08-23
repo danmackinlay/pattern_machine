@@ -12,6 +12,9 @@ Here I will, for my own sanity, use \CAPITALS for things I intend to be pretermi
 and \lowercase for terminals (i.e. operators or atoms).
 This is not enforced by code; you can use whatever convention you'd like.
 Things that have no rules are terminals.
+A terminal is anything without a rewrite rule. Everything else is a Preterminal.
+*/
+
 */
 (
 ~productions = PSProductionRuleSet.new;
@@ -36,50 +39,55 @@ Things that have no rules are terminals.
 ~productions.add(\A, 1, [\a, \B]);
 ~productions.add(\B, 1, [\b, \C]);
 ~productions.add(\C, 1, [\c]);
-~stream = ~productions.asStream(\A);
-~stream.next; // \a
-~stream.next; // \b
-~stream.next; // \c
-~stream.next; // nil
+~symbolStream = ~productions.asStream(\A);
+~symbolStream.next; // \a
+~symbolStream.next; // \b
+~symbolStream.next; // \c
+~symbolStream.next; // nil
 
 ~productions.add(\c, 1, [\d, \A]);
-~stream = ~productions.asStream(\A);
-~stream.next; // \a
-~stream.next; // \b
-~stream.next; // \d
-~stream.next; // \a
-~stream.next; // \b
-~stream.next; // \d
+~symbolStream = ~productions.asStream(\A);
+~symbolStream.next; // \a
+~symbolStream.next; // \b
+~symbolStream.next; // \d
+~symbolStream.next; // \a
+~symbolStream.next; // \b
+~symbolStream.next; // \d
 
-~stream = ~productions.asStream(\A); 
-~manySteps = 999.collect({~stream.next;}); //can we pop the stack by recursing in this fashion?
-[\a, \b, \d].dup(333).flat == ~manySteps; //true
-
+~symbolStream = ~productions.asStream(\A);
+//can we smash the stack by recursing in this fashion?
+~manySteps = 999.collect({~symbolStream.next;});
+[\a, \b, \d].dup(333).flat == ~manySteps; //true. So apparently we cannot.
 //how does this generalise to polyphony?
-)
+~manySteps = nil;
 
-
-coding = PSProductionCoding.new;
-//operator coding
-coding[\c] = [\operator, Pbindf(_, \pitch, Pkey(\pitch) +2)]
-coding[\c] = [\operator, Padd(\pitch, 2, _)]
-//coding[\c] = [\operator, PlazyEnvirN({|dur, pitch| Pbind(\pitch, pitch+1, \dur, dur*2})]
-//atom coding
-coding[\d] = [\atom, Pbind(\pitch, 23, dur, 1)]
-//coding[\a] = [\atom, Pbind(\pitch, 23, dur, 1)] //no coding so not a terminal?
-
+//Now, how to do the next bit?
+//i.e. Turning a stream of symbols into a stream of events with nested context.
+~coding = PSProductionCoding.new;
 /*
-Who knows about terminality? ProductionRuleSets or codings?
-By analogy with EBNF, only ProductionRuleSets.
-A terminal is anything without a rewrite rule. Everything else is a Preterminal.
+////Pattern-style
+//operator coding
+~coding[\a] = [\operator, Pbindf(_, \pitch, Pkey(\pitch) +2)];
+~coding[\b] = [\operator, Padd(\pitch, 3, _)];
+//atom coding
+~coding[\d] = [\atom, (\dur:1, \pitch: 64, \instrument: \test,)];
 */
 
-productions.words
-TestPSEventOperator.runAll;
-context = PSEventOperator.new(coding);
-context.apply(productions.next(\A));
+////pseudoevent-style
+// Feels more natural, but requires more code and is less general
+// What if the alteration to pitch should depend on duration?
 
-productionplayer = PSProductionSpawner.new;
+//operator coding
+~coding[\a] = PSEventOperator(\pitch, _+2);
+~coding[\b] = PSEventOperator(\pitch, _+3);
+//atom coding
+~coding[\d] = (\dur:1, \pitch: 60, \instrument: \test);
+
+
+~context = PSEventOperator.new(coding);
+~context.apply(productions.next(\A));
+
+~productionplayer = PSProductionSpawner.new;
 
 
 /*
@@ -96,17 +104,21 @@ These operators and atoms will be composed by something like <>?
 No, it is close but not right.
 
 There is an asymmetry here - the (time)shift operator.
-Since all productions need to schedule themselves
-(that is, i'd like them to) they need to have an idea of setting a note length
-Since time passes, that "state" is tracked for us automatically.
+Since  productions need to schedule themselves
+they need to have an idea of setting a note length
+Time passes without my help so that "state" is managed,
+after a fashion, automatically.
 
-This is surprisingly fiddly, because Events have default values. see also Pstretch.
+This is surprisingly fiddly, because Events have default values. See also Pstretch for some default value complexities.
+Perhaps those cases could be handled by subclassing PSEventOperator to
+enact more complex behaviour.
 
-We would like state more generally to collapse for us into polite flat context dictionaries.
+We would like state to collapse for us into polite flat context dictionaries.
 The context should be enough to know which note to play on next, and what default params to be working with.
-We can't really keep stacks of the fucking things lying about.
-although we prolly could if we ditched tail recursion.
-This will need a StatefulEvent, which should emit a PLazyEnvirN that transforms patterns appropriately.
+We can't really keep stacks of the fucking things lying about forever,
+so it would be nice to know how much to keep.
+
+This might need a StatefulEvent, which should emit a PLazyEnvirN that transforms patterns appropriately.
 or a PeventMod.
 
 A pity, because otherwise Environment has great stack push/pop methods that would be
