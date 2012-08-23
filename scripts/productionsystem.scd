@@ -1,5 +1,4 @@
 Server.default = s = ~serverboot.(\local, \builtin);
-TestPSContext.runAll;
 
 /*
 This is the API I want to approximate.
@@ -71,8 +70,8 @@ A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 */
 
 productions.words
-
-context = PSContext.new(coding);
+TestPSEventOperator.runAll;
+context = PSEventOperator.new(coding);
 context.apply(productions.next(\A));
 
 productionplayer = PSProductionSpawner.new;

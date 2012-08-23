@@ -1,13 +1,13 @@
 /*
-a PSContext generalises partial application to Events. One may compose
-PSContexts to one another to produce a transformed context, and to Events to
-transform events.
+A PSEventOperator generalises partial application to Events. One may compose
+PSEventOperators to one another to produce a transformed PSEventOperator, and 
+to Events to transform events.
 
 An alternative approach that might work could be to subclass
 EnvironmentRedirect from JITLib, which dispatches to a wrapped environment but
 can set defaults.
 */
-PSContext : IdentityDictionary {
+PSEventOperator : IdentityDictionary {
 	applyTo {|that|
 		/*
 		<> composition per default operates right to left, but contexts are
@@ -27,7 +27,7 @@ PSContext : IdentityDictionary {
 			events get the transform applied to 'em.
 			right now i ignore transforms with nothing to do to them.
 			 that is not quite right, events have defaults. Also, some keys interact.
-			see Pstretch -
+			e.g. Pstretch:
 
 			delta = event[\delta];
 			if (delta.notNil) {
@@ -35,8 +35,8 @@ PSContext : IdentityDictionary {
 			};
 			inevent[\dur] = inevent[\dur] * val;
 			*/
-			var transformedContext = that.class.newFrom(that);
-			transformedContext.keysValuesChange({|key, value|
+			var transformedEvent = that.class.newFrom(that);
+			transformedEvent.keysValuesChange({|key, value|
 				var out;
 				this.at(key).isNil.if({
 					out = value;
@@ -45,27 +45,27 @@ PSContext : IdentityDictionary {
 				});
 				out;
 			});
-			^transformedContext;
+			^transformedEvent;
 		}, {
-			//probably another PSContext. Compose the contents.
+			//probably another PSEventOperator. Compose the contents.
 			var thisKeysOnly,thatKeysOnly,bothKeys;
-			var transformedContext = that.class.new;
+			var transformedOperator = that.class.new;
 			bothKeys = this.keys & that.keys;
 			thisKeysOnly = this.keys - bothKeys;
 			thatKeysOnly = that.keys - bothKeys;
 			//if this has no transformations, take that's
 			thatKeysOnly.do({|key|
-				transformedContext[key] = that[key];
+				transformedOperator[key] = that[key];
 			});
 			//if that has no transformation, take this's
 			thisKeysOnly.do({|key|
-				transformedContext[key] = this[key];
+				transformedOperator[key] = this[key];
 			});
 			//otherwise, compose them
 			bothKeys.do({|key|
-				transformedContext[key] = this[key].value(that[key]);
+				transformedOperator[key] = this[key].value(that[key]);
 			});
-			^transformedContext;
+			^transformedOperator;
 		});
 	}
 }
