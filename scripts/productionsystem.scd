@@ -1,4 +1,9 @@
 Server.default = s = ~serverboot.(\local, \builtin);
+/*
+Some Unit Tests
+*/
+TestPSEventOperator.run(false, false);
+TestPSProductionCoding.run(false, false);
 
 /*
 This is the API I want to approximate.
