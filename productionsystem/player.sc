@@ -5,22 +5,22 @@ PSProductionPlayer {
         ^super.newCopyArgs(symbolStream.asStream, coding);
     }
     asStream{
+		//Should i not rather implement embedInStream as per http://doc.sccode.org/Tutorials/A-Practical-Guide/PG_Ref01_Pattern_Internals.html
 		^Routine({
 	    	var nextSymbol;
 			var context;
-			var contextStack = Array.new;
-			var log = FileLogger.global;
+			var contextStack = contextStack ? PSEventOperator.new;
 		
 			while ({
 				nextSymbol = symbolStream.next;
 				nextSymbol.notNil;
 			}, {
 				//stack operations until we find an atom we can yield.
-				contextStack = contextStack.add(coding[nextSymbol]);
 				coding.isAtom(nextSymbol).if({
-					(contextStack.reduce({|left,right| left.applyTo(right)})).yield;
-					contextStack = Array.new;
-				})
+					contextStack.applyTo(coding[nextSymbol]).yield;
+				}, {
+					contextStack = contextStack.applyTo(coding[nextSymbol]);
+				});
 			});
 			nil;
 		});

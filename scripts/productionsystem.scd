@@ -85,7 +85,13 @@ A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 
 ~eventStream = PSProductionPlayer(~symbolStream, ~coding).asStream;
 ~eventStream.next; //(\dur:1, \pitch: 65, \instrument: \test);
-~eventStream.next; //(\dur:1, \pitch: 65, \instrument: \test);
+~eventStream.next; //(\dur:1, \pitch: 70, \instrument: \test);
+
+/*
+but this isn't quite right, is it? sometimes we have operators applying to Preterminals, and it seems natural in that case that the operations should apply to the whole content, yes? More generally, we want to be able to apply it to a given range. we want a turtle/L-system like push-pop pair of operators. probably '(' and ')' - pity the \ syntax doesn't work for those.
+*/
+
+
 )
 /*
 We will likely need affine transform objects to hold the current transform context.
