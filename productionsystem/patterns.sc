@@ -85,3 +85,15 @@ PSwrand : ListPattern {
 	storeArgs { ^[ list, weights, repeats ] }
 }
 */
+PSwrand {
+	*new {|weightedList, repeats=1|
+		var expressions = Array.new(weightedList.size/2);
+		var weights = Array.new(weightedList.size/2);
+		weightedList.pairsDo({|weight, expression|
+			weights.add(weight);
+			expressions.add(expression);
+		});
+		weights = weights.normalizeSum;
+		^Pwrand.new(expressions, weights, repeats);
+	}
+}

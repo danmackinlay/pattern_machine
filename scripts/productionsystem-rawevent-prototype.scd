@@ -4,7 +4,11 @@
 Pwrand([(foo:\bar), (baz:\bam)], [1,1].normalizeSum, inf).asStream.next(Event.default);
 Pwrand([Pn(5,2), Pn(3,3)], [1,1].normalizeSum, inf).asStream.next(Event.default);
 Pwrand([Pn((note: 65), 2), Pn((note: 60), 3)], [0.5,0.5], inf).play;
-
+PSwrand([
+		1, Pn((note: 65), 2),
+		1, Pn((note: 60), 3),
+	], inf
+).play;
 )
 Plambda versus Penvir
 Probably PlazyEnvir does what we , although some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
