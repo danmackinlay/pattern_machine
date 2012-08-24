@@ -4,6 +4,12 @@ PSProductionCoding : IdentityDictionary {
 	*new{|...args|
 		^super.new(*args).initPSProductionCoding;
 	}
+	isAtom{|symbol|
+		^atoms.findMatch(symbol).notNil;
+	}
+	isOperator{|symbol|
+		^operators.findMatch(symbol).notNil;
+	}
 	initPSProductionCoding{
 		atoms = IdentitySet.new;
 		operators = IdentitySet.new;

@@ -83,13 +83,10 @@ A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 //atom coding
 ~coding[\d] = (\dur:1, \pitch: 60, \instrument: \test);
 
-
-~context = PSEventOperator.new(coding);
-~context.apply(productions.next(\A));
-
-~productionplayer = PSProductionSpawner.new;
-
-
+~eventStream = PSProductionPlayer(~symbolStream, ~coding).asStream;
+~eventStream.next; //(\dur:1, \pitch: 65, \instrument: \test);
+~eventStream.next; //(\dur:1, \pitch: 65, \instrument: \test);
+)
 /*
 We will likely need affine transform objects to hold the current transform context.
 This is  so that affine functions can be curried without wasting stack.
