@@ -23,3 +23,14 @@ PSProductionCoding : IdentityDictionary {
 		^super.put(k, v);
 	}
 }
+PSn {
+	/* The Kleene Star, just a little more general.
+	This guy quantifies the idea of repeating squentially (as opposed to in parallel, which is governed by Arrays)
+	Can I replace these with Pn and Ppar?
+	*/
+	var <expression;
+	var <ref;
+	*new{|expression, rep=inf|
+		^newCopyArgs(expression, rep);
+	}
+}
