@@ -1,10 +1,9 @@
 /*wherein we attempt to build a CFDG using only native pattern primitives*/
 (
 //Pdef()
-Pwrand([(pitch:60), (pitch:64)], [1,1].normalizeSum, inf).play;
-Pwrand([(pitch:60), (pitch:64)], [1,1].normalizeSum, inf).asStream.next;
-Pwrand([(\foo:\bar), 64], [1,1].normalizeSum, inf).asStream.next;
-
+Pwrand([(foo:\bar), (baz:\bam)], [1,1].normalizeSum, inf).asStream.next(Event.default);
+Pwrand([Pn(5,2), Pn(3,3)], [1,1].normalizeSum, inf).asStream.next(Event.default);
+Pwrand([Pn((note: 65), 2), Pn((note: 60), 3)], [0.5,0.5], inf).play;
 
 )
 Plambda versus Penvir
