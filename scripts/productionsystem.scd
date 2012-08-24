@@ -58,6 +58,7 @@ A terminal is anything without a rewrite rule. Everything else is a Preterminal.
 //can we smash the stack by recursing in this fashion?
 ~manySteps = 999.collect({~symbolStream.next;});
 [\a, \b, \d].dup(333).flat == ~manySteps; //true. So apparently we cannot.
+
 //how does this generalise to polyphony?
 ~manySteps = nil;
 
