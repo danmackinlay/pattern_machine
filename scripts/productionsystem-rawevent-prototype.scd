@@ -1,14 +1,162 @@
 /*wherein we attempt to build a CFDG using only native pattern primitives*/
 (
-//Pdef()
-Pwrand([(foo:\bar), (baz:\bam)], [1,1].normalizeSum, inf).asStream.next(Event.default);
-Pwrand([Pn(5,2), Pn(3,3)], [1,1].normalizeSum, inf).asStream.next(Event.default);
-Pwrand([Pn((note: 65), 2), Pn((note: 60), 3)], [0.5,0.5], inf).play;
+PdefAllGui.new;
+//Pdef(\note, (note: 0));
+//Pdef(\note2, (note: 2));
+//native rand style
+Pwrand([Pn((note: 5), 2), Pn((note: 0), 1)], [0.5,0.5], inf).play;
+//my rand style (just a wrapper to native)
+PSwrand([1, Pn((note: 5), 2), 1, Pn((note: 0), 1)], inf).play;
+//my rand style (just a wrapper to native)
+PSwrand([1, Pn((note: 5), 2), 1, Pn((note: 0), 1)], inf).play;
+//my rand style using Pdefs, attempt #1
+Pdef(\basicnote, Pbind(\note, 0));
 PSwrand([
-		1, Pn((note: 65), 2),
-		1, Pn((note: 60), 3),
+		1, Pn(Pdef(\basicnote),2),
+		1, Pn(Pbindf(Pdef(\basicnote),\note, Pkey(\note)+5),1),
 	], inf
 ).play;
+//my rand style using Pdefs, attempt #2
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+PSwrand([
+		1, 
+		Pn(
+			Pdef(\basicnote),
+			2
+		),
+		1,
+		Pn(
+			Pdef(\basicnote2),
+			1
+		),
+	], inf
+).play;
+//my rand style using Pdefs, attempt #3
+Pdef(\basicnote, Pn(Pbind(\note, 0),2));
+Pdef(\basicnote2, Pn(Pbind(\note, 2), 1));
+PSwrand([
+		1, Pdef(\basicnote),
+		1, Pdef(\basicnote2),
+	], inf
+).play;
+//my rand style using Pdefs, attempt #4
+Pdef(\basicnote, Pn(Pbind(\note, 0),2));
+Pdef(\basicnote2, Pn(Pbind(\note, 2), 1));
+Ptrace(Pn(PSwrand([
+		1, Pdef(\basicnote),
+		1, Pdef(\basicnote2),
+	], 1
+), inf)).play;
+//my rand style using Pdefs, attempt #6
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+Ptrace(PSwrand([
+	1, Pbind(
+		\type, \phrase,
+		\instrument, \basicnote,
+	),
+	1, Pbind(
+		\type, \phrase,
+		\instrument, \basicnote2,
+		),
+], inf)).play;
+//my rand style using Pdefs, attempt #7
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+Ptrace(Pwrand(
+	[
+		Pbind(
+			\type, \phrase,
+			\instrument, \basicnote,
+		),
+		Pbind(
+			\type, \phrase,
+			\instrument, \basicnote2,
+		),
+	] , [0.5, 0.5], inf
+)).play;
+//my rand style using Pdefs, attempt #8
+Pdef(\basicnote, Pbind(\note, 0, \dur, 0.5));
+Pdef(\basicnote2, Pbind(\note, 2, \dur, 0.5));
+Ptrace(Pbindf(
+	Pwrand(
+		[
+			Pbind(
+				\type, \phrase,
+				\instrument, \basicnote,
+				\transparency, 0,
+			),
+			Pbind(
+				\type, \phrase,
+				\instrument, \basicnote2,
+				\transparency, 0,
+			),
+		] , [0.5, 0.5], inf
+	),
+	\sustain, 0.5,
+	\delta, 1,
+)).play;
+//Fuck, Pdefs play forever.
+Pn(Pbind(
+	\type, \phrase,
+	\instrument, \basicnote,
+	\sustain, 1
+),1).play;
+//None of this is working; is the secret some weird hack like making inner events into functions?
+Pdef(\sweep, { arg sustain=1, n=8, degree=0, ratio=1;
+Ê Ê Pbind(
+Ê Ê Ê Ê \instrument, \pgrain,
+Ê Ê Ê Ê \dur, sustain.value / n,
+Ê Ê Ê Ê \degree, Pseq((1..n)) * ratio + 1 + degree.value
+Ê Ê )
+});
+//check Pdef.phraseEventFunc to understand the magic here.
+//check also http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/scheduling-patterns-tp7266995p7271549.html
+//my rand style using Pdefs, attempt #9
+Pdef(\basicnote, Pfindur(1, Pbind(\note, 0, \dur, 0.5)));
+Pdef(\basicnote2, Pfindur(1, Pbind(\note, 2, \dur, 0.5)));
+Ptrace(Pbindf(
+	Pwrand(
+		[
+			Pbind(
+				\type, \phrase,
+				\instrument, \basicnote,
+				\transparency, 0,
+			),
+			Pbind(
+				\type, \phrase,
+				\instrument, \basicnote2,
+				\transparency, 0,
+			),
+		] , [0.5, 0.5], inf
+	),
+	\sustain, 0.5,
+	\delta, 1,
+)).play;
+//my rand style using Pdefs, attempt #10
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+Ptrace(
+	Pwrand(
+		[
+			Pfindur(1, Pbind(
+				\type, \phrase,
+				\instrument, \basicnote,
+				\transparency, 0,
+			)),
+			Pfindur(1, Pbind(
+				\type, \phrase,
+				\instrument, \basicnote2,
+				\transparency, 0,
+			)),
+		],
+		[0.5, 0.5],
+		inf
+	),
+).play;
+//Yeah! this one works. Pfindur is necessary to truncate these fucking Pdefs.
+
 )
 Plambda versus Penvir
 Probably PlazyEnvir does what we , although some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
