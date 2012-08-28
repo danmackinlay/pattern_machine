@@ -159,20 +159,17 @@ Ptrace(
 
 )
 Plambda versus Penvir
-Probably PlazyEnvir does what we , although some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
+Probably PlazyEnvir does what we want, although some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
 PG_Cookbook07_Rhythmic_Variations
 PG_Cookbook06_Phrase_Network
 PG_06g_Data_Sharing
 PG_06d_Parallel_Patterns
 PG_06c_Composition_of_Patterns
-Event types
-WeighBag in MathLib
 PG_Ref01_Pattern_Internals (c.f. EventStreamCleanup)
 Understanding Streams, Patterns and Events - Part 6
  - (PStretch and FilterPAttern)
 PG_08_Event_Types_and_Parameters
-Pdef
-recursive_phrasing
+recursive_phrasing (Doesn't implement true arbitrary recursion! is a weird hack that just calls a pattern on itself, and itself *only*)
 
 Once the parallel pattern starts, there is no way to add more streams to it. To keep adding streams, use Pspawner and Pspawn
 
