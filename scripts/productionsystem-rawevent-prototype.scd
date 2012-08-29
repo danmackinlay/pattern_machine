@@ -20,7 +20,7 @@ PSwrand([
 Pdef(\basicnote, Pbind(\note, 0));
 Pdef(\basicnote2, Pbind(\note, 2));
 PSwrand([
-		1, 
+		1,
 		Pn(
 			Pdef(\basicnote),
 			2
@@ -105,11 +105,11 @@ Pn(Pbind(
 ),1).play;
 //None of this is working; is the secret some weird hack like making inner events into functions?
 Pdef(\sweep, { arg sustain=1, n=8, degree=0, ratio=1;
-Ê Ê Pbind(
-Ê Ê Ê Ê \instrument, \pgrain,
-Ê Ê Ê Ê \dur, sustain.value / n,
-Ê Ê Ê Ê \degree, Pseq((1..n)) * ratio + 1 + degree.value
-Ê Ê )
+	Pbind(
+		\instrument, \pgrain,
+		\dur, sustain.value / n,
+		\degree, Pseq((1..n)) * ratio + 1 + degree.value
+	)
 });
 //check Pdef.phraseEventFunc to understand the magic here.
 //check also http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/scheduling-patterns-tp7266995p7271549.html
@@ -172,7 +172,6 @@ PSwrand(
 	],
 	inf
 ).play;
-
 //PatternProxy source implies that this embedding only goes on as long as it the sub-pattern receives input events. So why does Pdef receive infinite sub-events?
 //Does EmbedOnce stop that?
 Pdef(\basicnote, Pbind(\note, 0));
@@ -274,7 +273,7 @@ PSwrand(
 		1, ~basicnote3,
 	],
 	inf
-).play; 
+).play;
 //Let's try untruncated Pdefs. Will this leak?:
 Pdef(\basicnote, (\note: 0));
 Pdef(\basicnote2, Pn((\note: 2, \delta: 1/4), 6));
@@ -327,55 +326,44 @@ Ptrace(PSwrand(
 	inf
 )).play; //yep, that leaks, but not how i thought, very slowly. What is going on?
 /*
- *Summary:
- Pdefs play forever. So you can use them as an inner event, but
- you have to choose beforehand how long they will play for.
- Vanilla events, on the other hand, know how long they go for,
- but only schedule a single "event".
- So, in between we need to know about some events that can schedule themselves
- and have arbitrary length. PlazyEnvirN?
+ * Summary:
  
- Other notes discovered in the course of this:
+Pdefs play forever. So you can use them as an inner event, but
+you have to choose beforehand how long they will play for.
+Vanilla events, on the other hand, know how long they go for,
+but only schedule a single "event".
+So, in between we need to know about some events that can schedule themselves
+and have arbitrary length. PlazyEnvirN?
  
- Plambda creates a scope for embedded patterns. Hmmmm. (How does it
- compare to Penvir?)
- PlazyEnvirN allows parallel expansion of event patterns.
- Parallelisation:
- 	Understanding Streams, Patterns and Events - Part 6
- 	PG_06d_Parallel_Patterns
- 
- List of event keys of note:
- 	PG_08_Event_Types_and_Parameters
- 	Pbind
- 	Event
- 
- Replicating Pset/Padd/Pmul with Pbindf:
- 	Padd(name, value, pattern)
- 		Pbindf(pattern, name, Pkey(name) + value)
- Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
- 	Paddpre(name, value, pattern)
- 		pattern <> Pbindf(pattern, name, Pkey(name) + value)
+ * Other notes discovered in the course of this:
 
+Plambda creates a scope for embedded patterns. Hmmmm. (How does it
+compare to Penvir?)
+PlazyEnvirN allows parallel expansion of event patterns.
+
+Parallelisation:
+	Understanding Streams, Patterns and Events - Part 6
+	PG_06d_Parallel_Patterns
+List of event keys of note:
+	PG_08_Event_Types_and_Parameters
+	Pbind
+	Event
+Replicating Pset/Padd/Pmul with Pbindf:
+	Padd(name, value, pattern)
+		Pbindf(pattern, name, Pkey(name) + value)
+Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
+	Paddpre(name, value, pattern)
+		pattern <> Pbindf(pattern, name, Pkey(name) + value)
  */
-
 )
-
-
 http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Pfindur-with-a-Pattern-for-the-duration-tp7579205p7579235.html
 */
-
-
 ////////// Other learning examples
-
 //native pspawn
-
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
 Unlike Ppar, which could handle a fixed number before stopping, Pspawner can keep going indefinitely.*/
-
-
-
 (
-p = Pspawner({ |sp| 	// sp = the Spawner object
+p = Pspawner({ |sp|	// sp = the Spawner object
 	loop {
 			// run a new pattern in parallel
 			// the pattern is finite
@@ -383,7 +371,7 @@ p = Pspawner({ |sp| 	// sp = the Spawner object
 		sp.par(Pbind(
 			\degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
 			\pan, rrand(-1.0, 1.0),
-			\dur, rrand(0.1, 0.3) 		// duration is chosen once for each pattern
+			\dur, rrand(0.1, 0.3)		// duration is chosen once for each pattern
 		));
 			// tell the Spawner to wait a bit before the next pattern goes
 			// DO NOT use numBeats.wait for this!
@@ -392,12 +380,11 @@ p = Pspawner({ |sp| 	// sp = the Spawner object
 	}
 }).play;
 )
-
 p.stop;
 The same, written using Pspawn :
 (
 p = Pspawn(Pbind(
-	\method, \par, 	// embed patterns in parallel
+	\method, \par,	// embed patterns in parallel
 		// generate the subpattern in a Pfunc (so there's a new pattern each time)
 		// Pfunc returns the pattern without rendering the stream
 		// -- important for Pspawn
@@ -413,6 +400,4 @@ p = Pspawn(Pbind(
 	\delta, Pwhite(1, 4, inf) * 0.25
 )).play;
 )
-
 p.stop;
-
