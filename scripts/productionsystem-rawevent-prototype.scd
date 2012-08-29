@@ -112,7 +112,6 @@ Pdef(\sweep, { arg sustain=1, n=8, degree=0, ratio=1;
 	)
 });
 //check Pdef.phraseEventFunc to understand the magic here.
-//check also http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/scheduling-patterns-tp7266995p7271549.html
 //my rand style using Pdefs, attempt #9
 Pdef(\basicnote, Pfindur(1, Pbind(\note, 0, \dur, 0.5)));
 Pdef(\basicnote2, Pfindur(1, Pbind(\note, 2, \dur, 0.5)));
@@ -157,6 +156,8 @@ Ptrace(
 ).play;
 //Yeah! this one works. Pfindur is necessary to truncate these fucking Pdefs.
 //my rand style using Pdefs, more succinct using my own classes - attempt #11
+//Note the Pfindur's parameter is in some sense "special" - it can use a sptream but not an argument, for Deep Reasons.
+//http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Pfindur-with-a-Pattern-for-the-duration-td7579205.html#a7579235
 Pdef(\basicnote, Pbind(\note, 0));
 Pdef(\basicnote2, Pbind(\note, 2));
 PSwrand(
@@ -298,7 +299,7 @@ PSwrand(
 	],
 	inf
 ).play; //yep, that leaks, fast
-//Let's try untruncated Pdefs. Will this leak?:
+//Let's try untruncated Pdefs plus \sustain. Will this leak?:
 Pdef(\basicnote, (\note: 0, \sustain: 1));
 Pdef(\basicnote2, Pn((\note: 2, \delta: 1/4, \sustain: 1), 6));
 Pdef(\basicnote3, Pn((\note: 5, \delta: 1/2, \sustain: 1), 4));
@@ -349,6 +350,8 @@ List of event keys of note:
 	PG_08_Event_Types_and_Parameters
 	Pbind
 	Event
+		~delta defaults to ~dur * ~stretch
+		~sustain defaults to ~dur * ~stretch * ~legato
 Replicating Pset/Padd/Pmul with Pbindf:
 	Padd(name, value, pattern)
 		Pbindf(pattern, name, Pkey(name) + value)
@@ -357,12 +360,48 @@ Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
 		pattern <> Pbindf(pattern, name, Pkey(name) + value)
  */
 )
-http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Pfindur-with-a-Pattern-for-the-duration-tp7579205p7579235.html
+(
+//PLazyEnvirN/Penvir excercises
+
+x = (a:8);
+y = Penvir(
+Ê Ê x,
+Ê Ê Pfunc { ~a * 2 }
+);
+5.do({y.asStream.next.postln});
+)
+
+(
+x=(\delta: 1);
+y=Ptrace(Penvir(
+	x,
+	Pn(Pbind(
+		\delta, {~delta/2},
+		\note, 0,
+	), 5)
+));
+5.do({y.asStream.next(Event.default).postln});
+y.play;
+)
+(
+x=(\delta: 1);
+y=Ptrace(Penvir(
+	x,
+	Pn(Pbind(
+		\delta, Prout {~delta/2},
+		\note, 0,
+	), 5)
+));
+5.do({y.asStream.next(Event.default).postln});
+y.play;
+)
 */
 ////////// Other learning examples
 //native pspawner
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
-Unlike Ppar, which could handle a fixed number before stopping, Pspawner can keep going indefinitely.*/
+Unlike Ppar, which could handle a fixed number before stopping, Pspawner can keep going indefinitely.
+See ddw on Pspawn hacks: http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/scheduling-patterns-td7266995.html#a7271549
+*/
 (
 p = Pspawner({ |sp|	// sp = the Spawner object
 	loop {
