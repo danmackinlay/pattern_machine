@@ -156,34 +156,216 @@ Ptrace(
 	),
 ).play;
 //Yeah! this one works. Pfindur is necessary to truncate these fucking Pdefs.
+//my rand style using Pdefs, more succinct using my own classes - attempt #11
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+PSwrand(
+	[
+		1, Pfindur(1, Pbind(
+			\type, \phrase,
+			\instrument, \basicnote,
+		)),
+		1, Pfindur(1, Pbind(
+			\type, \phrase,
+			\instrument, \basicnote2,
+		)),
+	],
+	inf
+).play;
+
+//PatternProxy source implies that this embedding only goes on as long as it the sub-pattern receives input events. So why does Pdef receive infinite sub-events?
+//Does EmbedOnce stop that?
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+PSwrand(
+	[
+		1, EmbedOnce(Pbind(
+			\type, \phrase,
+			\instrument, \basicnote,
+		)),
+		1, EmbedOnce(Pbind(
+			\type, \phrase,
+			\instrument, \basicnote2,
+		)),
+	],
+	inf
+).play;//nope
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+PSwrand(
+	[
+		1, OneShotStream((
+			\type: \phrase,
+			\instrument: \basicnote,
+			\delta: 1,
+		)),
+		1, OneShotStream((
+			\type: \phrase,
+			\instrument: \basicnote2,
+			\delta: 1,
+		)),
+	],
+	5
+).play;//explodes if you set repeats to inf, also only repeats each once.
+//
+Pdef(\basicnote, Pbind(\note, 0));
+Pdef(\basicnote2, Pbind(\note, 2));
+PSwrand(
+	[
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote2,
+		),
+	],
+	inf
+).play;
+//oh shit, Pbind *sometimes* plays forever.
+Pbind(\note, 0).play;
+//So this works:
+Pdef(\basicnote, (\note: 0));
+Pdef(\basicnote2, (\note: 2));
+PSwrand(
+	[
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote2,
+		),
+	],
+	inf
+).play;
+//Thus:
+Pdef(\basicnote, (\note: 0));
+Pdef(\basicnote2, (\note: 2));
+Pdef(\basicnote3, Pn((\note: 5, \delta: 1/2), 4));
+PSwrand(
+	[
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote2,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote3,
+		),
+	],
+	inf
+).play; //Doesn't work in full generality
+// \basicnote3 truncates to 2 instead of 4 notes
+//Compare with Pdef-freeness, which doesn't need to know how long to play for, but can't repeat within the patterns:
+~basicnote = (\note: 0);
+~basicnote2 = (\note: 2);
+~basicnote3 = (\note: 5, \delta: 1/2);
+PSwrand(
+	[
+		1, ~basicnote,
+		1, ~basicnote2,
+		1, ~basicnote3,
+	],
+	inf
+).play; 
+//Let's try untruncated Pdefs. Will this leak?:
+Pdef(\basicnote, (\note: 0));
+Pdef(\basicnote2, Pn((\note: 2, \delta: 1/4), 6));
+Pdef(\basicnote3, Pn((\note: 5, \delta: 1/2), 4));
+PSwrand(
+	[
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote,
+			\sustain: inf,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote2,
+			\sustain: inf,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote3,
+			\sustain: inf,
+		),
+	],
+	inf
+).play; //yep, that leaks, fast
+//Let's try untruncated Pdefs. Will this leak?:
+Pdef(\basicnote, (\note: 0, \sustain: 1));
+Pdef(\basicnote2, Pn((\note: 2, \delta: 1/4, \sustain: 1), 6));
+Pdef(\basicnote3, Pn((\note: 5, \delta: 1/2, \sustain: 1), 4));
+Ptrace(PSwrand(
+	[
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote,
+			\sustain: inf,
+			\transparency: 0,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote2,
+			\sustain: inf,
+			\transparency: 0,
+		),
+		1, (
+			\type: \phrase,
+			\instrument: \basicnote3,
+			\sustain: inf,
+			\transparency: 0,
+		),
+	],
+	inf
+)).play; //yep, that leaks, but not how i thought, very slowly. What is going on?
+/*
+ *Summary:
+ Pdefs play forever. So you can use them as an inner event, but
+ you have to choose beforehand how long they will play for.
+ Vanilla events, on the other hand, know how long they go for,
+ but only schedule a single "event".
+ So, in between we need to know about some events that can schedule themselves
+ and have arbitrary length. PlazyEnvirN?
+ 
+ Other notes discovered in the course of this:
+ 
+ Plambda creates a scope for embedded patterns. Hmmmm. (How does it
+ compare to Penvir?)
+ PlazyEnvirN allows parallel expansion of event patterns.
+ Parallelisation:
+ 	Understanding Streams, Patterns and Events - Part 6
+ 	PG_06d_Parallel_Patterns
+ 
+ List of event keys of note:
+ 	PG_08_Event_Types_and_Parameters
+ 	Pbind
+ 	Event
+ 
+ Replicating Pset/Padd/Pmul with Pbindf:
+ 	Padd(name, value, pattern)
+ 		Pbindf(pattern, name, Pkey(name) + value)
+ Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
+ 	Paddpre(name, value, pattern)
+ 		pattern <> Pbindf(pattern, name, Pkey(name) + value)
+
+ */
 
 )
-Plambda versus Penvir
-Probably PlazyEnvir does what we want, although some parameters, like duration, cannot be used in the form of an array in the Pbind. For full parallel expansion see PlazyEnvirN.
-PG_Cookbook07_Rhythmic_Variations
-PG_Cookbook06_Phrase_Network
-PG_06g_Data_Sharing
-PG_06d_Parallel_Patterns
-PG_06c_Composition_of_Patterns
-PG_Ref01_Pattern_Internals (c.f. EventStreamCleanup)
-Understanding Streams, Patterns and Events - Part 6
- - (PStretch and FilterPAttern)
-PG_08_Event_Types_and_Parameters
-recursive_phrasing (Doesn't implement true arbitrary recursion! is a weird hack that just calls a pattern on itself, and itself *only*)
 
-Once the parallel pattern starts, there is no way to add more streams to it. To keep adding streams, use Pspawner and Pspawn
-
-These patterns remain in the library mainly for reasons of backward compatibility, since their behavior can be replicated easily using Pbindf.
-Pset(name, value, pattern)	Pbindf(pattern, name, value)
-Padd(name, value, pattern)	Pbindf(pattern, name, Pkey(name) + value)
-Pmul(name, value, pattern)	Pbindf(pattern, name, Pkey(name) * value)
-The patterns Psetpre, Paddpre, and Pmulpre reverse the order of evaluation. Pchain is able to duplicate this functionality.
 
 http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Pfindur-with-a-Pattern-for-the-duration-tp7579205p7579235.html
 */
 
 
-////////// recursion learning examples
+////////// Other learning examples
 
 //native pspawn
 
@@ -234,69 +416,3 @@ p = Pspawn(Pbind(
 
 p.stop;
 
-
-//dewdrop
-(
-p = Ppar(
-    { |i|
-        Pbind(
-            \pan, i*2 - 1,
-            [\dur, \level], PpatRewrite(
-                Pn([4, 0], 1),  // input pattern
-                Pseries(1+i, 1, inf).fold(1, 4),
-                [
-                    nil -> { |item, level|
-                        var    subdiv = rrand(2, 5);
-                        if(0.75.coin) {
-                            Ptuple([
-                                Pseq(item[0] / subdiv *
-                                    subdiv.partition((subdiv * 0.7)
-                                        .roundUp.asInteger, 1), 1),
-                                Pseq([item[1], Pn(level, inf)])
-                            ])
-                        } { Pn(item, 1) }
-                    }
-                ]
-            ),
-            \freq, Pexprand(100, 220, inf) * (2 ** (Pkey(\level) - 1)),
-            \sustain, 2 ** (Pkey(\level).neg)
-        )
-    } ! 2
-).play(quant: 1);
-)
-
-
-(
-var	intervals = Pseries(
-	0,
-	Pwrand(#[-2, -1, 1, 2], #[0.1, 0.2, 0.4, 0.3], inf),
-	Pwrand(#[2, 3, 4, 5], #[0.4, 0.3, 0.2, 0.1], inf).asStream
-);
-p = Pbind(
-	\root, 7,
-	[\degree, \level], PpatRewrite(
-		Ptuple([Pseq(#[2, 5, 4], 1), 0]),
-		Pseries(0, 1, 5),
-		[
-			// intervals is biased upward, so this should tend to rise
-			{ |item| item[0] <= 0 } -> { |item, level|
-				Ptuple([
-					item[0] + intervals,
-					Pseq([item[1], Pn(level, inf)])
-				])
-			},
-			// and '-', applied to a higher note, should tend to fall
-			{ |item| item[0] > 0 } -> { |item, level|
-				Ptuple([
-					item[0] - intervals,
-					Pseq([item[1], Pn(level, inf)])
-				])
-			},
-		]
-	),
-	// 2**(1-0) = 2, 2**(1-1) = 1, 2**(1-2) = 0.5 etc.
-	\dur, 2 ** (1 - Pkey(\level)),
-	\amp, (Pkey(\level) + 1).reciprocal * 0.5,
-	\octave, Pkey(\level) + 3
-).play;
-)
