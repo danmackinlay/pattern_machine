@@ -325,6 +325,7 @@ Ptrace(PSwrand(
 	],
 	inf
 )).play; //yep, that leaks, but not how i thought, very slowly. What is going on?
+
 /*
  * Summary:
  
@@ -359,7 +360,7 @@ Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
 http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Pfindur-with-a-Pattern-for-the-duration-tp7579205p7579235.html
 */
 ////////// Other learning examples
-//native pspawn
+//native pspawner
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
 Unlike Ppar, which could handle a fixed number before stopping, Pspawner can keep going indefinitely.*/
 (
@@ -381,7 +382,7 @@ p = Pspawner({ |sp|	// sp = the Spawner object
 }).play;
 )
 p.stop;
-The same, written using Pspawn :
+//The same, written using Pspawn :
 (
 p = Pspawn(Pbind(
 	\method, \par,	// embed patterns in parallel
@@ -401,3 +402,27 @@ p = Pspawn(Pbind(
 )).play;
 )
 p.stop;
+//PLazyEnvirN:
+(
+SynthDef(\help_sinegrain,
+Ê Ê { arg out=0, freq=440, sustain=0.05, pan=0;
+Ê Ê Ê Ê var env;
+Ê Ê Ê Ê env = EnvGen.kr(Env.perc(0.01, sustain, 0.2), doneAction:2);
+Ê Ê Ê Ê Out.ar(out, Pan2.ar(SinOsc.ar(freq, 0, env), pan))
+Ê Ê }).add;
+
+a = PlazyEnvirN({ arg g=0, h=0, dur=1;
+Ê Ê postf("g: %, h: %, dur: %\n", g, h, dur);
+
+Ê Ê Pbind(
+Ê Ê Ê Ê \instrument, \help_sinegrain,
+Ê Ê Ê Ê \dur, dur,
+Ê Ê Ê Ê \degree, Pseq([g, g, h, g, h], 2)
+Ê Ê )
+});
+)
+// different variants
+(a <> (g: 0, h: 3, dur:0.2)).play; // single stream
+(a <> (g: [0, 4], h: [3, -1], dur:0.2)).play; // same durations, two streams
+(a <> (g: [0, 4], h: [3, -1], dur: [0.2, 0.3])).play; // different durations, two streams
+//Damn, but this function composition business makes this all look very much like functional programming. What is the relationship between CFDG and functors operating on the nested phrases?
