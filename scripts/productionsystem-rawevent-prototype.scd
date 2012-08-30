@@ -1,8 +1,5 @@
 /*wherein we attempt to build a CFDG using only native pattern primitives*/
 (
-PdefAllGui.new;
-//Pdef(\note, (note: 0));
-//Pdef(\note2, (note: 2));
 //native rand style
 Pwrand([Pn((note: 5), 2), Pn((note: 0), 1)], [0.5,0.5], inf).play;
 //my rand style (just a wrapper to native)
@@ -362,7 +359,7 @@ Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
 )
 (
 //PLazyEnvirN/Penvir excercises
-
+//Pfunc is nice enough - you can get at Penvir environment using ~ syntax.
 x = (a:8);
 y = Penvir(
 Ê Ê x,
@@ -370,7 +367,7 @@ y = Penvir(
 );
 5.do({y.asStream.next.postln});
 )
-
+//Can we just use functions?
 (
 x=(\delta: 1);
 y=Ptrace(Penvir(
@@ -381,21 +378,100 @@ y=Ptrace(Penvir(
 	), 5)
 ));
 5.do({y.asStream.next(Event.default).postln});
-y.play;
+y.play; //apparently not; this only plays once. \delta 0?
 )
+// how about Prout?
 (
 x=(\delta: 1);
-y=Ptrace(Penvir(
+y=Penvir(
 	x,
 	Pn(Pbind(
-		\delta, Prout {~delta/2},
+		\delta, Prout {(~delta/2).yield},
 		\note, 0,
 	), 5)
-));
+);
 5.do({y.asStream.next(Event.default).postln});
 y.play;
+//Well, that was OK.
 )
+(
+//But inside the routine, can we embed nested patterns in a natural fashion?
+(
+x=(\delta: 1);
+y=Penvir(
+	x,
+	Pn(
+		Prout({
+			2.do({currentEnvironment.postln;~delta.postln;x.yield;});
+		}),
+		2
+	)
+);
+//The events postln'd inside each of these are ()
+//it seems that currentEnvironemnt don't work. I think it is being Environment.use'd.
+y.asStream.next(Event.default);
+y.play(nil, Event.default);
+)
+(
+w=Prout {(~delta/2).yield};
+v=Penvir(
+	currentEnvironment,
+	Pn(w, 5)
+);
+)
+(
+//Fuck it, PlazyEnvirN, then.
+x=PlazyEnvirN({|pat, rate=1|
+	[\x, pat, rate].postln;
+	Pstretch(rate,
+		Pseq([
+			(\delta:1),
+			Pbindf(pat, \note, Pkey(\note) +2)
+		])
+	);
+});
+y=PSwrand([
+	2, x,
+	1, (note:0)
+]);
+(y <> (rate: 0.5, pat: y)).play;
+//Doesn't get stretched on successive applications! Piss and fury.
+)
+/*Argh, OK the contortions my brain is going through to make this go are ill omens for this approach.
+Trying from a different angle, let's think about behaviours of the state machine which makes a hypothetical sequence go. */
+~doubleSpeed = {|i| i.put(\delta, i[\delta]*2);};
+~machine = ProductionMachine(
+	transformMap:(\z: ~halfStep),
+	atomMap:(
+		\a: (note: 0, sustain:1, dur:1),
+		\b: Rest(1),
+	),
+	ruleMap:(),
+);
+~machine.produce([\z, \b, \a]); //should play \a, \b, in order at double speed
+//(aside: when does time advance?
+~machine.produce([\z, \b, \a], [\C]); //should play \a, \b, in order at double speed, and, concurrently, C.
+/*
+If we want nice things like specifiable associativity, Kleene stars and the like, we are building a DSL already. Could be worth building operators as functions.
+
+~doubleSpeed.(\a,\b,\c) lazily applys ~doubleSpeed to all of the functions.But then it's just patterns again, except with operators we don't *quite* have yet
+changeTick(ratio, subrule), transpose(transposition, subrule)
+We *nearly* have those things, though. there is a close correspondence between Terminals, and Events, and between Preterminals and Patterns. A CFDG looks like it *should* be a Pattern. But it doesn't *quite* work at the moment
+
+Let's define some transforms and atoms as if that were going to work:
 */
+~transpose = {|interval, pattern| Pbindf(pattern, \note, Pkey(\note)+interval);};
+~stretch = {|ratio, pattern| Pstretch(ratio, pattern);};
+~repeat = {|reps, pattern| Pn(pattern, reps);};//for consistency
+~aNote = (note:0, dur:1);
+~aRest = Rest(1);
+~repeat.(4, ~aNote).play;
+~repeat.(4, ~stretch.(0.5, ~aNote)).play;//gets stuck forever! (Pstretch doesn't work on events?) TODO: fix Pstretch
+~stretch.(0.5, ~repeat.(4, ~aNote)).play;//works fine
+//Then we want some rules:
+Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf).play;//also gets stuck forever - Events get cast to infinite streams?
+~aNote = Pn((note:0, dur:1),1);
+Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf).play;//doesn't get stuck, but doesn't timestretch.
 ////////// Other learning examples
 //native pspawner
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
