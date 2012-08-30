@@ -362,8 +362,8 @@ Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
 //Pfunc is nice enough - you can get at Penvir environment using ~ syntax.
 x = (a:8);
 y = Penvir(
-Ê Ê x,
-Ê Ê Pfunc { ~a * 2 }
+	x,
+	Pfunc { ~a * 2 }
 );
 5.do({y.asStream.next.postln});
 )
@@ -520,20 +520,20 @@ p.stop;
 //PLazyEnvirN:
 (
 SynthDef(\help_sinegrain,
-Ê Ê { arg out=0, freq=440, sustain=0.05, pan=0;
-Ê Ê Ê Ê var env;
-Ê Ê Ê Ê env = EnvGen.kr(Env.perc(0.01, sustain, 0.2), doneAction:2);
-Ê Ê Ê Ê Out.ar(out, Pan2.ar(SinOsc.ar(freq, 0, env), pan))
-Ê Ê }).add;
+	{ arg out=0, freq=440, sustain=0.05, pan=0;
+		var env;
+		env = EnvGen.kr(Env.perc(0.01, sustain, 0.2), doneAction:2);
+		Out.ar(out, Pan2.ar(SinOsc.ar(freq, 0, env), pan))
+	}).add;
 
 a = PlazyEnvirN({ arg g=0, h=0, dur=1;
-Ê Ê postf("g: %, h: %, dur: %\n", g, h, dur);
+	postf("g: %, h: %, dur: %\n", g, h, dur);
 
-Ê Ê Pbind(
-Ê Ê Ê Ê \instrument, \help_sinegrain,
-Ê Ê Ê Ê \dur, dur,
-Ê Ê Ê Ê \degree, Pseq([g, g, h, g, h], 2)
-Ê Ê )
+	Pbind(
+		\instrument, \help_sinegrain,
+		\dur, dur,
+		\degree, Pseq([g, g, h, g, h], 2)
+	)
 });
 )
 // different variants
