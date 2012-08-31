@@ -471,12 +471,32 @@ Let's define some transforms and atoms as if that were going to work:
 //Then we want some rules:
 Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf).play;//also gets stuck forever - Events get cast to infinite streams?
 ~aNote = Pn((note:0, dur:1),1);
-Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf).play;//doesn't get stuck, but doesn't timestretch.
+~aNoteDelta = Pn((note:0, dur:1),1);
+Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf).play;//works OK but…
+Pstretch(0.5, Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf)).play;//doesn't get stuck, but doesn't timestretch.
+~stretchdelta = {|ratio, pattern| Ptrace(Pbindf(pattern, \delta, Pkey(\delta)*ratio), prefix: \inner);};//bah! Pstretch isn't working...
+Ptrace(~stretchdelta.(0.5, Ptrace(Pn(Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest]),inf)))).play;//doesn't work. Is silent. Piffle
+Ptrace(~stretchdelta.(0.5, Pseq([Pbind(\note, 0.5, \delta, 0.5), Rest(1)],4))).play; //works OK
+Pstretch(0.5, Pseq([Pbind(\note, 0.5, \delta, 0.5), Rest(1)],4)).play; //works at half the rate of the above.
+~stretchall = {|ratio, pattern| Pbindf(pattern, \delta, Pkey(\delta)*ratio, \dur, Pkey(\dur)*ratio);};
+Ptrace(~stretchall.(0.5, Pseq([Pbind(\note, 0.5, \delta, 0.5), Rest(1)],4))).play; //halves tempo
+Ptrace(Pstretch(0.5, Pseq([Pbind(\note, 0.5, \delta, 0.5), Rest(1)],4))).play; //works OK
+Ptrace(Pstretch(0.5, Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4))).play; //works OK
+Ptrace(Pstretch(0.25, Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4))).play; //works OK
+Ptrace(~stretchdelta.(0.25, Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4))).play; //Why does this no work?
+Ptrace(~stretchdelta.(0.25, Pseq([~aNoteDelta, ~aRest, ~transpose.(3, ~aNoteDelta), ~aRest],4))).play; //Why does this no work?
+~stretchdelta.(0.25, Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4)).asStream.next(Event.default);
+Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4).asStream.next(Event.default).play;
+
+//FINE! Pspawner! But how do we pass in a context array to such a spawner?
+//Not ethere is some good material about this in the Psawn help files, whcih refers to Preterminal and Terminal events as Parent and Child events.
+
+
 ////////// Other learning examples
 //native pspawner
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
 Unlike Ppar, which could handle a fixed number before stopping, Pspawner can keep going indefinitely.
-See ddw on Pspawn hacks: http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/scheduling-patterns-td7266995.html#a7271549
+See ddw on Pspawner hacks: http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/scheduling-patterns-td7266995.html#a7271549
 */
 (
 p = Pspawner({ |sp|	// sp = the Spawner object
