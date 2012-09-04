@@ -332,7 +332,7 @@ you have to choose beforehand how long they will play for.
 Vanilla events, on the other hand, know how long they go for,
 but only schedule a single "event".
 So, in between we need to know about some events that can schedule themselves
-and have arbitrary length. PlazyEnvirN?
+and have arbitrary length not decided in advance. PlazyEnvirN?
  
  * Other notes discovered in the course of this:
 
@@ -414,10 +414,10 @@ y.play(nil, Event.default);
 )
 (
 w=Prout {(~delta/2).yield};
-v=Penvir(
-	currentEnvironment,
+v=Ptrace(Penvir(
+	(note:0, delta:1),
 	Pn(w, 5)
-);
+)).play; //yields only numbers. no easy way to get the defaultenv.
 )
 (
 //Fuck it, PlazyEnvirN, then.
@@ -489,8 +489,19 @@ Ptrace(~stretchdelta.(0.25, Pseq([~aNoteDelta, ~aRest, ~transpose.(3, ~aNoteDelt
 Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4).asStream.next(Event.default).play;
 
 //FINE! Pspawner! But how do we pass in a context array to such a spawner?
-//Not ethere is some good material about this in the Psawn help files, whcih refers to Preterminal and Terminal events as Parent and Child events.
-
+//Note there is some good material about this in the Pspawn help files, which refers to Preterminal and Terminal events as Parent and Child events. (or, one might almost say, Pattern and Event)
+//There is not even really a reason to have the same transforms applied to each type of event. We might want to trigger the patterns more closely together but leave the notes the same length. Hmm.
+//How do we do this? Do we pass in a context to each rule expressor to which everything below is relative?
+(
+p = Pspawner({ |sp|
+	loop {
+		sp.par(PContext(
+			(\delta: 1, note:0),
+			Pn(_, 4)
+		));
+		sp.wait(rrand(1, 4) * 0.25);
+	}
+}).play;
 
 ////////// Other learning examples
 //native pspawner
