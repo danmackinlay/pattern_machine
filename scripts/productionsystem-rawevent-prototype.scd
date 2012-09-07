@@ -354,7 +354,7 @@ Replicating Pset/Padd/Pmul with Pbindf:
 		Pbindf(pattern, name, Pkey(name) + value)
 Replicating Psetpre/Paddpre/Pmulpre with Pbindf: (something like this)
 	Paddpre(name, value, pattern)
-		pattern <> Pbindf(pattern, name, Pkey(name) + value)
+		pattern <> Pbind(name, Pkey(name) + value)
  */
 )
 (
@@ -489,8 +489,23 @@ Ptrace(~stretchdelta.(0.25, Pseq([~aNoteDelta, ~aRest, ~transpose.(3, ~aNoteDelt
 Pseq([~aNote, ~aRest, ~transpose.(3, ~aNote), ~aRest],4).asStream.next(Event.default).play;
 
 //FINE! Pspawner! But how do we pass in a context array to such a spawner?
-//Not ethere is some good material about this in the Psawn help files, whcih refers to Preterminal and Terminal events as Parent and Child events.
+//Note there is some good material about this in the Pspawn help files, which refers to Preterminal and Terminal events as Parent and Child events.
+//So to make this work with Pspawner, we want to know about the default event passed in to EventStreamPLayer, and have it operate upon that
+// it will play "patterns" nominally, but in practice it seems to be ok with things that respond to "asStream" or "embedInStream".
+// I might be able ot get there with discipline and Pchain (which will also cast Events). The problem is then how to embed Pspawners in each other. Pfunc?
+(Pbind(\delta, Pkey(\delta) / Prand([1,2,3], inf) <> (\delta: 1))).play;
+//So I find myself unexpectely back with Pchain after all, as it turns out that Pbind+Pkey+Pchain gets us
+// a composed transform. We can even build chains of transforms of partially applied functions.
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+//Or, complimentarily and in a different style: - http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/filter-patterns-and-Pkey-td6277050.html
+~halfSpeed = Pfunc {~delta = ~delta * 2};
+~changingSpeed = Ptrace(PSwrand([1, ~doubleSpeed, 1, ~halfSpeed]) <> Pn((\delta:1),inf)).play;
+~changingSpeed = Ptrace(PSwrand([1, ~doubleSpeed, 1, ~halfSpeed]) <> Pn((\delta:1),inf)).play;
+//But how does one know when a measure is completed? How does one know when to spawn something new? These all modify events, but we want to modify events and also gestures/phrases.
 
+//Sounds like I'm still going to need to write my own scheduler? Although I think Pspawner can be imposed upon to do the right compositing.
+Spawner
+PSpawner
 
 ////////// Other learning examples
 //native pspawner
@@ -501,9 +516,9 @@ See ddw on Pspawner hacks: http://new-supercollider-mailing-lists-forums-use-the
 (
 p = Pspawner({ |sp|	// sp = the Spawner object
 	loop {
-			// run a new pattern in parallel
-			// the pattern is finite
-			// after a few events, it stops and the Pspawner forgets about it
+		// run a new pattern in parallel
+		// the pattern is finite
+		// after a few events, it stops and the Pspawner forgets about it
 		sp.par(Pbind(
 			\degree, Pseries(rrand(-5, 7), #[-1, 1].choose, rrand(4, 7)),
 			\pan, rrand(-1.0, 1.0),
