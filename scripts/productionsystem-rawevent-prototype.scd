@@ -4,8 +4,6 @@
 Pwrand([Pn((note: 5), 2), Pn((note: 0), 1)], [0.5,0.5], inf).play;
 //my rand style (just a wrapper to native)
 PSwrand([1, Pn((note: 5), 2), 1, Pn((note: 0), 1)], inf).play;
-//my rand style (just a wrapper to native)
-PSwrand([1, Pn((note: 5), 2), 1, Pn((note: 0), 1)], inf).play;
 //my rand style using Pdefs, attempt #1
 Pdef(\basicnote, Pbind(\note, 0));
 PSwrand([
@@ -513,12 +511,25 @@ it operate upon that
 ~halfSpeed = Pfunc {~delta = ~delta * 2};
 ~changingSpeed = Ptrace(PSwrand([1, ~doubleSpeed, 1, ~halfSpeed]) <> Pn((\delta:1),inf)).play;
 ~changingSpeed = Ptrace(PSwrand([1, ~doubleSpeed, 1, ~halfSpeed]) <> Pn((\delta:1),inf)).play;
-//But how does one know when a measure is completed? How does one know when to spawn something new? These all modify events, but we want to modify events and also gestures/phrases.
+//But how does one know when a measure is completed? How does one know when to spawn something new? These all modify events, but we want to modify events and also gestures/phrases. (Pspawn help has some word of wisdom her - search for "hint"
 
 //Sounds like I'm still going to need to write my own scheduler? Although I think Pspawner can be imposed upon to do the right compositing.
-Spawner
-PSpawner
 
+//In fact, Pspawn can probably be so imposed also - it makes new patterns, right?
+
+(
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq(~bar);
+		iter = iter +1;
+		iter.postln;
+		//sp.wait(rrand(1, 4) * 0.25);
+	}
+});
+~root.play;
+)
 ////////// Other learning examples
 //native pspawner
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
@@ -564,6 +575,40 @@ p = Pspawn(Pbind(
 )).play;
 )
 p.stop;
+// More instructive:
+// Play parallel scales in the left channel and sequentially-arranged scales in the right
+// This means parallelizing (Ppar) the child streams; thus Ppar surrounds a pair of Pspawns
+
+// Handling of \pan is interesting: \pan needs to be a property of the patternChoices items
+// It is NOT a property of the spawning events
+// To reuse patternChoices, the Pspawns wrap the base patterns in a Pbindf, which adds new values
+
+(
+var Ê ÊpatternChoices = (
+Ê Ê up: { Pbind(\degree, Pseries(rrand(-4, 5), 1, rrand(4, 10)), \dur, 0.125) },
+Ê Ê down: { Pbind(\degree, Pseries(rrand(4, 11), -1, rrand(4, 10)), \dur, 0.125 * 4/3) }
+);
+
+p = Ppar([
+Ê Ê Pspawn(Pbind(
+Ê Ê Ê Ê Ê Ê // intermediate value
+Ê Ê Ê Ê \patternKey, Prand([\up, \down], inf),
+Ê Ê Ê Ê Ê Ê // pattern is selected and pan applied here
+Ê Ê Ê Ê \pattern, Pfunc { |ev| Pbindf(ev.dict[ev.patternKey].value, \pan, -1) },
+Ê Ê Ê Ê \delta, Pwhite(1, 5, inf) * 0.125,
+Ê Ê Ê Ê \method, \par
+Ê Ê ), (dict: patternChoices)),
+Ê Ê Pspawn(Pbind(
+Ê Ê Ê Ê \patternKey, Prand([\up, \down], inf),
+Ê Ê Ê Ê \pattern, Pfunc { |ev| Pbindf(ev.dict[ev.patternKey].value, \pan, 1) },
+Ê Ê Ê Ê \delta, Pwhite(1, 5, inf) * 0.125,
+Ê Ê Ê Ê \method, \seq
+Ê Ê ), (dict: patternChoices)),
+]).play;
+)
+
+p.stop;
+
 //PLazyEnvirN:
 (
 SynthDef(\help_sinegrain,
