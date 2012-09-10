@@ -500,7 +500,6 @@ p = Pspawner({ |sp|
 		sp.wait(rrand(1, 4) * 0.25);
 	}
 }).play;
-it operate upon that
 // it will play "patterns" nominally, but in practice it seems to be ok with things that respond to "asStream" or "embedInStream".
 // I might be able ot get there with discipline and Pchain (which will also cast Events). The problem is then how to embed Pspawners in each other. Pfunc?
 (Pbind(\delta, Pkey(\delta) / Prand([1,2,3], inf) <> (\delta: 1))).play;
@@ -511,7 +510,7 @@ it operate upon that
 ~halfSpeed = Pfunc {~delta = ~delta * 2};
 ~changingSpeed = Ptrace(PSwrand([1, ~doubleSpeed, 1, ~halfSpeed]) <> Pn((\delta:1),inf)).play;
 ~changingSpeed = Ptrace(PSwrand([1, ~doubleSpeed, 1, ~halfSpeed]) <> Pn((\delta:1),inf)).play;
-//But how does one know when a measure is completed? How does one know when to spawn something new? These all modify events, but we want to modify events and also gestures/phrases. (Pspawn help has some word of wisdom her - search for "hint"
+//But how does one know when a measure is completed? How does one know when to spawn something new? These all modify events, but we want to modify events and also gestures/phrases. (Pspawn help has some word of wisdom - search for "hint")
 
 //Sounds like I'm still going to need to write my own scheduler? Although I think Pspawner can be imposed upon to do the right compositing.
 
@@ -522,7 +521,20 @@ it operate upon that
 ~root = Pspawner({ |sp|	// sp = the Spawner object
 	var iter = 0;
 	loop {
-		sp.seq(~bar);
+		sp.seq(Prand([~bar, ~doubleSpeed.(~bar)]));
+		iter = iter +1;
+		iter.postln;
+		//sp.wait(rrand(1, 4) * 0.25);
+	}
+});
+~root.play; //never changes speed!
+)
+(
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq([~bar, ~doubleSpeed.(~bar)].choose);
 		iter = iter +1;
 		iter.postln;
 		//sp.wait(rrand(1, 4) * 0.25);
