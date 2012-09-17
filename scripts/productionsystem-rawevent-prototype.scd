@@ -517,11 +517,12 @@ p = Pspawner({ |sp|
 //In fact, Pspawn can probably be so imposed also - it makes new patterns, right?
 
 (
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
 ~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
 ~root = Pspawner({ |sp|	// sp = the Spawner object
 	var iter = 0;
 	loop {
-		sp.seq(Prand([~bar, ~doubleSpeed.(~bar)]));
+		sp.seq(Prand([~bar, ~doubleSpeed <> ~bar]));
 		iter = iter +1;
 		iter.postln;
 		//sp.wait(rrand(1, 4) * 0.25);
@@ -530,17 +531,126 @@ p = Pspawner({ |sp|
 ~root.play; //never changes speed!
 )
 (
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+~halfSpeed = Pfunc {~delta = ~delta * 2};
 ~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
 ~root = Pspawner({ |sp|	// sp = the Spawner object
 	var iter = 0;
 	loop {
-		sp.seq([~bar, ~doubleSpeed.(~bar)].choose);
+		0.5.coin.if({
+			\normal.postln;
+			sp.seq(Ptrace(~bar));
+		}, {
+			\double.postln;
+			sp.seq(Ptrace(~doubleSpeed <> ~bar));
+		});
+		//sp.seq(Ptrace([~bar, ~doubleSpeed.(~bar)].choose));
 		iter = iter +1;
 		iter.postln;
 		//sp.wait(rrand(1, 4) * 0.25);
 	}
 });
 ~root.play;
+)
+(
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+~halfSpeed = Pfunc {~delta = ~delta * 2};
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq([{
+			\normal.postln;
+			Ptrace(~bar);
+		}, {
+			\double.postln;
+			Ptrace(~doubleSpeed <> ~bar);
+		}].choose.value);
+ 		iter = iter +1;
+		iter.postln;
+		//sp.wait(rrand(1, 4) * 0.25);
+	}
+});
+~root.play;
+)
+(
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+~halfSpeed = Pfunc {~delta = ~delta * 2};
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq([{
+			\normal.postln;
+			Ptrace(~bar);
+		}, {
+			\double.postln;
+			Ptrace(~doubleSpeed <> ~bar);
+		}].choose.value);
+ 		iter = iter +1;
+		iter.postln;
+	}
+});
+~root.play;//works!
+)
+(
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+~halfSpeed = Pfunc {~delta = (~delta ? 1) * 2};
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq([
+			Ptrace(~bar),
+			Ptrace(~doubleSpeed <> ~bar)
+		].choose);
+ 		iter = iter +1;
+		iter.postln;
+	}
+});
+~root.play;//works!
+)
+(
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+~halfSpeed = Pbind(\delta, Pkey(\delta) * 2);
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq([
+			Ptrace(~bar),
+			Ptrace(~doubleSpeed <> ~root),
+			Ptrace(~halfSpeed <> ~root),
+		].choose);
+ 		iter = iter +1;
+		iter.postln;
+	}
+});
+~root.play;//explodes.
+)
+(
+~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+//~halfSpeed = Pfunc {~delta = ~delta * 2};
+~halfSpeed = Pbind(\delta, Pkey(\delta) * 2);
+~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+~root = Pspawner({ |sp|	// sp = the Spawner object
+	var iter = 0;
+	loop {
+		sp.seq([{
+			\actuallyplay.postln;
+			Ptrace(~bar);
+		}, {
+			\double.postln;
+			Ptrace(~doubleSpeed <> ~bar);
+		}, {
+			\half.postln;
+			Ptrace(~halfSpeed <> ~bar);
+		}].choose.value);
+ 		iter = iter +1;
+		iter.postln;
+	}
+});
+~root.play;//works!
 )
 ////////// Other learning examples
 //native pspawner
@@ -644,4 +754,9 @@ a = PlazyEnvirN({ arg g=0, h=0, dur=1;
 (a <> (g: 0, h: 3, dur:0.2)).play; // single stream
 (a <> (g: [0, 4], h: [3, -1], dur:0.2)).play; // same durations, two streams
 (a <> (g: [0, 4], h: [3, -1], dur: [0.2, 0.3])).play; // different durations, two streams
-//Damn, but this function composition business makes this all look very much like functional programming. What is the relationship between CFDG and functors operating on the nested phrases?
+/*
+The function composition business makes this all look very much like functional programming. What is the relationship between CFDG and functors operating on the nested phrases?
+Pbinddef
+PbindProxy
+http://blog.carltesta.net/post/21145244657/approach-to-working-with-supercollider-in
+*/
