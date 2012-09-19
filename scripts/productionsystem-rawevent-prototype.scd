@@ -655,7 +655,7 @@ p = Pspawner({ |sp|
 //Summary of all that: we can make this sequencer go using the Pspawner machinery. Some wrapping might be required to make it elegant, either a handy initialisation class, or Pspawn.
 //So we have Terminals as patterns, but some terminals, Atoms, are composed with their predecessors.
 (
-var rules, terminalMap, preterminalMap, ruleMaker;
+var terminalMap, preterminalMap, ruleMaker;
 ruleMaker = {|weightedList, repeats=10|
 	//NB repeats can't be a pattern in this context.
 	var expressions = Array.new(weightedList.size/2);
@@ -694,6 +694,45 @@ preterminalMap = (
 	]);
 );
 preterminalMap[\root].play;
+)
+(
+var ruleMap, preterminalMaker;
+preterminalMaker = {|weightedList, repeats=10|
+	//NB repeats can't be a pattern in this context.
+	var expressions = Array.new(weightedList.size/2);
+	var weights = Array.new(weightedList.size/2);
+	weightedList.pairsDo({|weight, expression|
+		weights.add(weight.postln);
+		expressions.add(expression.postln);
+	});
+	weights = weights.normalizeSum;
+	Pspawner({ |sp|
+		var iter = 0;
+		repeats.value.do {
+			sp.seq({
+				var ruleSymbols, rulePatternList;
+				ruleSymbols = expressions.wchoose(weights);
+				rulePatternList = ruleSymbols.collect({|i|
+					ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;};
+				});
+				Ptrace(Pchain(*rulePatternList));
+			}.value);
+			iter = iter +1;
+			iter.postln;
+		}
+	});
+};
+ruleMap = (
+	doubleSpeed: Pbind(\delta, Pkey(\delta) / 2),
+	halfSpeed: Pbind(\delta, Pkey(\delta) * 2),
+	bar: Pbind(\note, Pseq([1,2,3]), \delta, 1),
+	root: preterminalMaker.value([
+		1, [\doubleSpeed, \root],
+		1, [\halfSpeed, \root],
+		1, [\bar],
+	]);
+);
+ruleMap[\root].play; //doesn't work
 )
 (
 //Pspawn version
