@@ -454,7 +454,7 @@ If we want nice things like specifiable associativity, Kleene stars and the like
 
 ~doubleSpeed.(\a,\b,\c) lazily applys ~doubleSpeed to all of the functions.But then it's just patterns again, except with operators we don't *quite* have yet
 changeTick(ratio, subrule), transpose(transposition, subrule)
-We *nearly* have those things, though. there is a close correspondence between Terminals, and Events, and between Preterminals and Patterns. A CFDG looks like it *should* be a Pattern. But it doesn't *quite* work at the moment
+We *nearly* have those things, though. there is an approximate correspondence between Terminals, and Events, and between Preterminals and Patterns. A CFDG looks like it *should* be a Pattern. But it doesn't *quite* work at the moment
 
 Let's define some transforms and atoms as if that were going to work:
 */
@@ -646,13 +646,55 @@ p = Pspawner({ |sp|
 			\half.postln;
 			Ptrace(~halfSpeed <> ~bar);
 		}].choose.value);
- 		iter = iter +1;
+		iter = iter +1;
 		iter.postln;
 	}
 });
 ~root.play;//works!
 )
 //Summary of all that: we can make this sequencer go using the Pspawner machinery. Some wrapping might be required to make it elegant, either a handy initialisation class, or Pspawn.
+//So we have Terminals as patterns, but some terminals, Atoms, are composed with their predecessors.
+(
+var rules, terminalMap, preterminalMap, ruleMaker;
+ruleMaker = {|weightedList, repeats=10|
+	//NB repeats can't be a pattern in this context.
+	var expressions = Array.new(weightedList.size/2);
+	var weights = Array.new(weightedList.size/2);
+	weightedList.pairsDo({|weight, expression|
+		weights.add(weight.postln);
+		expressions.add(expression.postln);
+	});
+	weights = weights.normalizeSum;
+	Pspawner({ |sp|
+		var iter = 0;
+		repeats.value.do {
+			sp.seq({
+				var ruleSymbols, rulePatternList;
+				ruleSymbols = expressions.wchoose(weights);
+				rulePatternList = ruleSymbols.collect({|i|
+					terminalMap.at(i) ?? {"terminal '%' not found".format(i).throw;};
+				});
+				Ptrace(Pchain(*rulePatternList));
+			}.value);
+ 			iter = iter +1;
+			iter.postln;
+		}
+	});
+};
+terminalMap = (
+	doubleSpeed: Pbind(\delta, Pkey(\delta) / 2),
+	halfSpeed: Pbind(\delta, Pkey(\delta) * 2),
+	bar: Pbind(\note, Pseq([1,2,3]), \delta, 1),
+);
+preterminalMap = (
+	\root: ruleMaker.value([
+		1, [\doubleSpeed, \bar],
+		1, [\halfSpeed, \bar],
+		1, [\bar],
+	]);
+);
+preterminalMap[\root].play;
+)
 (
 //Pspawn version
 ~patts = Environment.make({
