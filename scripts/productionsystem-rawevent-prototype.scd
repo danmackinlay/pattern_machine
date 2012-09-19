@@ -652,6 +652,29 @@ p = Pspawner({ |sp|
 });
 ~root.play;//works!
 )
+//Summary of all that: we can make this sequencer go using the Pspawner machinery. Some wrapping might be required to make it elegant, either a handy initialisation class, or Pspawn.
+(
+//Pspawn version
+~patts = Environment.make({
+	~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2);
+	~halfSpeed = Pbind(\delta, Pkey(\delta) * 2);
+	~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1);
+	~root = Pspawn({ |sp|	// sp = the Spawner object
+		loop {
+			sp.seq([{
+				\actuallyplay.postln;
+				Ptrace(~bar);
+			}, {
+				\double.postln;
+				Ptrace(~doubleSpeed <> ~bar);
+			}, {
+				\half.postln;
+				Ptrace(~halfSpeed <> ~bar);
+			}].choose.value);
+		}
+	});
+});
+)
 ////////// Other learning examples
 //native pspawner
 /*This example uses Pspawner to trigger overlapping scale segments at different speeds.
