@@ -695,10 +695,11 @@ preterminalMap = (
 );
 preterminalMap[\root].play;
 )
+//but does it work with recursion?
 (
 var ruleMap, preterminalMaker;
 preterminalMaker = {|weightedList, repeats=10|
-	//NB repeats can't be a pattern in this context.
+	//NB: repeats can't be a pattern in this context.
 	var expressions = Array.new(weightedList.size/2);
 	var weights = Array.new(weightedList.size/2);
 	weightedList.pairsDo({|weight, expression|
@@ -732,7 +733,54 @@ ruleMap = (
 		1, [\bar],
 	]);
 );
-ruleMap[\root].play; //doesn't work
+ruleMap[\root].play; //explodey
+)
+//Once more, with the function wrapper in a new weird place.
+(
+var ruleMap, preterminalMaker;
+preterminalMaker = {|weightedList, repeats=2|
+	//Hack this guy to return a function that returns what we want.
+	//NB: repeats can't be a pattern in this context.
+	{
+		var expressions = Array.new(weightedList.size/2);
+		var weights = Array.new(weightedList.size/2);
+		
+		weightedList.pairsDo({|weight, expression|
+			weights.add(weight);
+			expressions.add(expression);
+		});
+		weights = weights.normalizeSum;
+		\weights.postln;
+		weights.postln;
+		Pspawner({ |sp|
+			\inpspawn.postln;
+			repeats.value.do {|iter|
+				var ruleSymbols, rulePatternList, nextPhrase;
+				ruleSymbols = expressions.wchoose(weights);
+				ruleSymbols.postln;
+				rulePatternList = ruleSymbols.collect({|i|
+					(ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;}).value;
+				});
+				\rulePatternList.postln;
+				rulePatternList.postln;
+				nextPhrase = Ptrace(Pchain(*rulePatternList));
+				sp.seq(nextPhrase);
+				[\iter,iter].postln;
+			};
+		});
+	};
+};
+ruleMap = (
+	doubleSpeed: Pbind(\delta, Pkey(\delta) / 2),
+	halfSpeed: Pbind(\delta, Pkey(\delta) * 2),
+	bar: Pbind(\note, Pseq([1,2,3]), \delta, 1),
+	root: preterminalMaker.value([
+		1, [\doubleSpeed, \root],
+		1, [\halfSpeed, \root],
+		1, [\bar],
+	]);
+);
+ruleMap[\root].value.play; //still explodey.
 )
 (
 //Pspawn version
