@@ -733,14 +733,13 @@ ruleMap = (
 		1, [\bar],
 	]);
 );
-ruleMap[\root].play; //explodey
+ruleMap[\root].play; //explodey. So, no, not recursion-happy.
 )
-//Once more, with the function wrapper in a new weird place.
+//Once more, with the function wrappers in new weird places, and repeats taken out of the recursion.
 (
 var ruleMap, preterminalMaker;
-preterminalMaker = {|weightedList, repeats=2|
+preterminalMaker = {|weightedList|
 	//Hack this guy to return a function that returns what we want.
-	//NB: repeats can't be a pattern in this context.
 	{
 		var expressions = Array.new(weightedList.size/2);
 		var weights = Array.new(weightedList.size/2);
@@ -753,35 +752,45 @@ preterminalMaker = {|weightedList, repeats=2|
 		\weights.postln;
 		weights.postln;
 		Pspawner({ |sp|
-			\inpspawn.postln;
-			repeats.value.do {|iter|
-				var ruleSymbols, rulePatternList, nextPhrase;
-				ruleSymbols = expressions.wchoose(weights);
-				ruleSymbols.postln;
-				rulePatternList = ruleSymbols.collect({|i|
-					(ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;}).value;
-				});
-				\rulePatternList.postln;
-				rulePatternList.postln;
-				nextPhrase = Ptrace(Pchain(*rulePatternList));
-				sp.seq(nextPhrase);
-				[\iter,iter].postln;
-			};
+			var ruleSymbols, rulePatternList, nextPhrase, nextStream;
+			var streams = Array.new;
+			ruleSymbols = expressions.wchoose(weights);
+			\ruleSymbols.postln;
+			ruleSymbols.postln;
+			rulePatternList = ruleSymbols.collect({|i|
+				(ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;}).value;
+			});
+			\rulePatternList.postln;
+			rulePatternList.postln;
+			rulePatternList.collect(_.identityHash).postln;
+			nextPhrase = Pchain(*rulePatternList);
+			nextStream = sp.seq(nextPhrase);
+			streams = streams.add(nextStream);
+			\streams.postln;
+			streams.collect(_.identityHash).postln;
 		});
 	};
 };
-ruleMap = (
-	doubleSpeed: Pbind(\delta, Pkey(\delta) / 2),
-	halfSpeed: Pbind(\delta, Pkey(\delta) * 2),
-	bar: Pbind(\note, Pseq([1,2,3]), \delta, 1),
-	root: preterminalMaker.value([
-		1, [\doubleSpeed, \root],
-		1, [\halfSpeed, \root],
+ruleMap = Environment.make({
+	~doubleSpeed = { Pbind(\delta, Pkey(\delta) / 2) }; //don't know if this function wrapping is helpful
+	~halfSpeed = { Pbind(\delta, Pkey(\delta) * 2) };
+	~bar = { Pbind(\note, Pseq([1,2,3]), \delta, 1) };
+	~phrase = preterminalMaker.value([
+		1, [\doubleSpeed, \phrase],
+		1, [\halfSpeed, \phrase],
 		1, [\bar],
-	]);
-);
-ruleMap[\root].value.play; //still explodey.
+	], 1);
+	~root = Pn(~phrase.value, 5);//function wrapping leads to weird asymmetry here
+});
+Ptrace(ruleMap[\root].value).play;
+//OK, so this actually works beautifully, apart from copious debugging. can we eliminate some od the function wrapping?
+~ruleMap = ruleMap;
 )
+
+
+//Once more, getting rid of abstraction and going back to basics.
+///////////// 
+
 (
 //Pspawn version
 ~patts = Environment.make({
