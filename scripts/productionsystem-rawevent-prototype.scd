@@ -783,14 +783,141 @@ ruleMap = Environment.make({
 	~root = Pn(~phrase.value, 5);//function wrapping leads to weird asymmetry here
 });
 Ptrace(ruleMap[\root].value).play;
-//OK, so this actually works beautifully, apart from copious debugging. can we eliminate some od the function wrapping?
+//OK, so this actually works beautifully, apart from copious debugging. can we eliminate some of the function wrapping?
 ~ruleMap = ruleMap;
 )
-
-
-//Once more, getting rid of abstraction and going back to basics.
-///////////// 
-
+//Less wrapping?
+(
+var ruleMap, preterminalMaker;
+preterminalMaker = {|weightedList|
+	var expressions = Array.new(weightedList.size/2);
+	var weights = Array.new(weightedList.size/2);
+	
+	weightedList.pairsDo({|weight, expression|
+		weights.add(weight);
+		expressions.add(expression);
+	});
+	weights = weights.normalizeSum;
+	\weights.postln;
+	weights.postln;
+	Pspawner({ |sp|
+		var ruleSymbols, rulePatternList, nextPhrase, nextStream;
+		var streams = Array.new;
+		ruleSymbols = expressions.wchoose(weights);
+		\ruleSymbols.postln;
+		ruleSymbols.postln;
+		rulePatternList = ruleSymbols.collect({|i|
+			ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;};
+		});
+		\rulePatternList.postln;
+		rulePatternList.postln;
+		rulePatternList.collect(_.identityHash).postln;
+		nextPhrase = Pchain(*rulePatternList);
+		nextStream = sp.seq(nextPhrase);
+		streams = streams.add(nextStream);
+		\streams.postln;
+		streams.collect(_.identityHash).postln;
+	});
+};
+ruleMap = Environment.make({
+	~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2) ;
+	~halfSpeed = Pbind(\delta, Pkey(\delta) * 2) ;
+	~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1) ;
+	~phrase = preterminalMaker.value([
+		1, [\doubleSpeed, \phrase],
+		1, [\halfSpeed, \phrase],
+		1, [\bar],
+	], 1);
+	~root = Pn(~phrase, 10);
+});
+Ptrace(ruleMap[\root]).play; //actually also works great.
+~ruleMap = ruleMap;
+)
+//verbosity optional
+(
+var ruleMap, preterminalMaker, logger = PostLogger.new;
+preterminalMaker = {|weightedList, logger|
+	var expressions = Array.new(weightedList.size/2);
+	var weights = Array.new(weightedList.size/2);
+	weightedList.pairsDo({|weight, expression|
+		weights.add(weight);
+		expressions.add(expression);
+	});
+	weights = weights.normalizeSum;
+	Pspawner({ |sp|
+		var ruleSymbols, rulePatternList, nextPhrase, nextStream;
+		var spawnlogger = logger ?? {NullLogger.new};
+		var streams = Array.new;
+		ruleSymbols = expressions.wchoose(weights);
+		spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
+		rulePatternList = ruleSymbols.collect({|i|
+			ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;};
+		});
+		nextPhrase = Pchain(*rulePatternList);
+		nextStream = sp.seq(nextPhrase);
+		streams = streams.add(nextStream);
+	});
+};
+ruleMap = Environment.make({
+	~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2) ;
+	~halfSpeed = Pbind(\delta, Pkey(\delta) * 2) ;
+	~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1) ;
+	~phrase = preterminalMaker.value([
+		1, [\doubleSpeed, \phrase],
+		1, [\halfSpeed, \phrase],
+		1, [\bar],
+	], logger: logger);
+	~root = Pn(~phrase, 10);
+});
+Ptrace(ruleMap[\root]).play;
+~ruleMap = ruleMap;
+)
+//scurrilously import some context
+(
+var ruleMap, preterminalMaker, logger = PostLogger.new;
+preterminalMaker = {|weightedList, logger|
+	var expressions = Array.new(weightedList.size/2);
+	var weights = Array.new(weightedList.size/2);
+	var sneakyInvocationCounter = 0;
+	weightedList.pairsDo({|weight, expression|
+		weights.add(weight);
+		expressions.add(expression);
+	});
+	weights = weights.normalizeSum;
+	Pspawner({ |sp|
+		var ruleSymbols, rulePatternList, nextPhrase, nextStream;
+		var spawnlogger = logger ?? {NullLogger.new};
+		var streams = Array.new;
+		sneakyInvocationCounter = sneakyInvocationCounter + 1;
+		ruleSymbols = expressions.wchoose(weights);
+		spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
+		rulePatternList = ruleSymbols.collect({|i|
+			ruleMap.at(i) ?? {"terminal '%' not found".format(i).throw;};
+		});
+		nextPhrase = Pchain(*rulePatternList);
+		//both these seem not to work. Darn it.
+		//nextPhrase = Pchain(Pbind(\depth, Pkey(\depth) + 1), *rulePatternList);
+		//nextPhrase = Pbindf(Pchain(*rulePatternList), \depth, Pkey(\depth) + 1);
+		nextStream = sp.seq(nextPhrase);
+		streams = streams.add(nextStream);
+		spawnlogger.log(tag: \depth, msgchunks: [sneakyInvocationCounter], priority: 1);
+	});
+};
+ruleMap = Environment.make({
+	~doubleSpeed = Pbind(\delta, Pkey(\delta) / 2) ;
+	~halfSpeed = Pbind(\delta, Pkey(\delta) * 2) ;
+	~bar = Pbind(\note, Pseq([1,2,3]), \delta, 1) ;
+	~phrase = preterminalMaker.value([
+		1, [\doubleSpeed, \phrase],
+		1, [\halfSpeed, \phrase],
+		1, [\bar],
+	], logger: logger);
+	~root = Pn(~phrase, 10);
+});
+Ptrace(ruleMap[\root]).play;
+~ruleMap = ruleMap;
+)
+//////////////////////////
 (
 //Pspawn version
 ~patts = Environment.make({
