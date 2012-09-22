@@ -5,7 +5,8 @@ flexible loggers, because
 2 turning logging streams on and off is necessary
 3 supercollider ain't acquiring a real interactive debugger any time soon
 
-TODO: have instances with different default tags but stil central master control of filtering
+TODO: have instances with different default tags but still central master control
+of filtering.
 */
 
 NullLogger {
