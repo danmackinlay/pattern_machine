@@ -1,27 +1,31 @@
+/*
+ * OK, the proxyspace stuff is overkill at the moment, but I think that I still need to be able to look up things lazily. this could haooen in the makePreTerminal thing.
+ */
 PSProductionSystem {
 	var <>logger;
 	var <ruleMap;
 	
-	*new{|logger|
-		^super.newCopyArgs(logger ?? NullLogger.new).initPSProductionSystem;
+	*new{|logger, ruleMap|
+		^super.newCopyArgs(
+			logger ?? {NullLogger.new},
+			ruleMap ?? {Environment.new},
+		).initPSProductionSystem;
 	}
 	initPSProductionSystem {
-		ruleMap = Environment.new;
+		//nothing, anymore
 	}
-	makePreTerminal {|name, weightedList|
+	putPreTerminal {|name, weightedList|
 		var expressions = Array.new(weightedList.size/2);
 		var weights = Array.new(weightedList.size/2);
-		var sneakyInvocationCounter = 0;
 		weightedList.pairsDo({|weight, expression|
 			weights.add(weight);
 			expressions.add(expression);
 		});
 		weights = weights.normalizeSum;
-		^Pspawner({ |sp|
+		ruleMap[name] = Pspawner({ |sp|
 			var ruleSymbols, rulePatternList, nextPhrase, nextStream;
 			var spawnlogger = this.logger ?? {NullLogger.new};
 
-			sneakyInvocationCounter = sneakyInvocationCounter + 1;
 			ruleSymbols = expressions.wchoose(weights);
 			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
 			rulePatternList = ruleSymbols.collect({|i|
@@ -29,10 +33,16 @@ PSProductionSystem {
 			});
 			nextPhrase = Pchain(*rulePatternList);
 			nextStream = sp.seq(nextPhrase);
-			spawnlogger.log(tag: \depth, msgchunks: [sneakyInvocationCounter], priority: 1);
 		});
 	}
-	putRule{|name, pattern|
+	put{|name, pattern|
 		ruleMap.put(name, pattern);
+	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		ruleMap.associationsDo({|i|
+			stream << i
+		});
+		stream << ")";
 	}
 }

@@ -12,4 +12,5 @@ ps.makePreTerminal(\phrase, [
         	]);
 //ps.putRule(\root, Pn(\phrase, 10);
 //Ptrace(ruleMap[\root]).play(TempoClock.new(10));
-)
+);
+p=PSProductionSystem
