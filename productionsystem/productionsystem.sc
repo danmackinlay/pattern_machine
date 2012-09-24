@@ -1,7 +1,8 @@
 PSProductionSystem {
 	var <>logger;
 	var <ruleMap;
-	*new{|symbolStream, coding|
+	
+	*new{|logger|
 		^super.newCopyArgs(logger ?? NullLogger.new).initPSProductionSystem;
 	}
 	initPSProductionSystem {
@@ -30,7 +31,7 @@ PSProductionSystem {
 			nextStream = sp.seq(nextPhrase);
 			spawnlogger.log(tag: \depth, msgchunks: [sneakyInvocationCounter], priority: 1);
 		});
-	};
+	}
 	putRule{|name, pattern|
 		ruleMap.put(name, pattern);
 	}
