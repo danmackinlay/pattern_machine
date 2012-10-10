@@ -95,9 +95,21 @@ PSProductionSystem {
 	}
 	printOn { arg stream;
 		stream << this.class.asString <<"(" ;
+		stream << "preterminals: [";
 		preTerminalMap.associationsDo({|i|
-			stream << i
+			stream << i << ", "
 		});
+		stream << "], ";
+		stream << "operators: [";
+		terminalOpMap.associationsDo({|i|
+			stream << i << ", "
+		});
+		stream << "], ";
+		stream << "events:";
+		terminalEventMap.associationsDo({|i|
+			stream << i << ", "
+		});
+		stream << "], ";
 		stream << ")";
 	}
 }
