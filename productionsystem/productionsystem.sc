@@ -64,7 +64,9 @@ PSProductionSystem {
 			[\ruleSymbols, ruleSymbols].postln;
 			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
 			rulePatternList = ruleSymbols.collect({|i|
-				preTerminalMap.at(i) ?? {"symbol '%' not found".format(i).throw;};
+				var ruleType;
+				ruleType = this.patternTypeBySymbol(i) ?? {"symbol '%' not found".format(i).throw;};
+				ruleType[0];
 			});
 			///this assumes that all rules are 
 			nextPhrase = Pchain(*rulePatternList);
@@ -85,6 +87,7 @@ PSProductionSystem {
 		^pattern;
 	}
 	patternTypeBySymbol{|name|
+		//this automagically returns nil for not found
 		^case 
 			{ preTerminalMap.includesKey(name) }	{ [preTerminalMap[name], \rule] }
 			{ terminalOpMap.includesKey(name) }	{ [terminalOpMap[name], \op] }
