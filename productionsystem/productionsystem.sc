@@ -99,7 +99,15 @@ PSProductionSystem {
 			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
 			{ eventMap.includesKey(name) }	{ [eventMap[name], \event] };
 	}
-	
+	at{|name|
+		//this automagically returns nil for not found
+		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { eventMap.at(name) });
+	}
+	removeAt{|name|
+		ruleMap.removeAt(name);
+		opMap.removeAt(name);
+		eventMap.removeAt(name);
+	}
 	printOn { arg stream;
 		stream << this.class.asString <<"(" ;
 		stream << "preterminals: [";
