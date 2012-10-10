@@ -1,5 +1,3 @@
-//This API is still not quite how I want it, as there is no natural way to refer to rules ahead of their definition yet.
-//Unless I have the production system keep a set of rules? JITlib style even?
 (
 var root, ps = PSProductionSystem(PostLogger.new);
 ps.putTerminalOp(\doubleSpeed, Pbind(\delta, Pkey(\delta) / 2)) ;

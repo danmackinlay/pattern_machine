@@ -1,7 +1,7 @@
 /*
  * OK, the proxyspace stuff is overkill at the moment,
  but I think that I still need to be able to look up things lazily. 
- This could happen in the makePreTerminal thing, in which case it would need to output
+ This could happen in the makeRule thing, in which case it would need to output
  rules with the dynamic lookup thing baked in.
  
  Two approaches to rule management:
@@ -25,25 +25,30 @@
  Vices of 2:
  * Silly debugging and reference business because that is how proxyspace rolls
  
- The names of methods here are awful. Improving them is necessary.
+ maybe this should mirror the interface of a Dictionary a little more closely?
  
  */
 
 PSProductionSystem {
 	var <>logger;
-	var <preTerminalMap;
-	var <terminalOpMap;
-	var <terminalEventMap;
+	var <ruleMap;
+	var <opMap;
+	var <eventMap;
+	/* Glossary:
+	A Rule is a preterminal symbol.
+	Terminal symbols are either Op(erator)s or Events.
+	Later, we might have StackOperations, or whatever you call L-systems brackets
+	*/
 	
-	*new{|logger, preTerminalMap, terminalOpMap, terminalEventMap|
+	*new{|logger, ruleMap, opMap, eventMap|
 		^super.newCopyArgs(
 			logger ?? {NullLogger.new},
-			preTerminalMap ?? {Environment.new},
-			terminalOpMap ?? {Environment.new},
-			terminalEventMap ?? {Environment.new},
+			ruleMap ?? {Environment.new},
+			opMap ?? {Environment.new},
+			eventMap ?? {Environment.new},
 		);
 	}
-	putPreTerminal {|name, weightedList|
+	putRule {|name, weightedList|
 		var rule;
 		var expressions = Array.new(weightedList.size/2);
 		var weights = Array.new(weightedList.size/2);
@@ -72,41 +77,42 @@ PSProductionSystem {
 			nextPhrase = Pchain(*rulePatternList);
 			nextStream = sp.seq(nextPhrase);
 		});
-		preTerminalMap[name] = rule;
+		ruleMap[name] = rule;
 		^rule;
 	}
-	putTerminalEvent{|name, pattern|
-		terminalEventMap.put(name, pattern);
-		//For symmetry with putPreTerminal, we return the pattern
+	putEvent{|name, pattern|
+		eventMap.put(name, pattern);
+		//For symmetry with putRule, we return the pattern
 		^pattern;
 	}
-	putTerminalOp{|name, pattern|
+	putOp{|name, pattern|
 		//should we be checking for duplicate symbols here?
-		terminalOpMap.put(name, pattern);
-		//For symmetry with putPreTerminal, we return the pattern
+		opMap.put(name, pattern);
+		//For symmetry with putRule, we return the pattern
 		^pattern;
 	}
 	patternTypeBySymbol{|name|
 		//this automagically returns nil for not found
 		^case 
-			{ preTerminalMap.includesKey(name) }	{ [preTerminalMap[name], \rule] }
-			{ terminalOpMap.includesKey(name) }	{ [terminalOpMap[name], \op] }
-			{ terminalEventMap.includesKey(name) }	{ [terminalEventMap[name], \event] };
+			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
+			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
+			{ eventMap.includesKey(name) }	{ [eventMap[name], \event] };
 	}
+	
 	printOn { arg stream;
 		stream << this.class.asString <<"(" ;
 		stream << "preterminals: [";
-		preTerminalMap.associationsDo({|i|
+		ruleMap.associationsDo({|i|
 			stream << i << ", "
 		});
 		stream << "], ";
 		stream << "operators: [";
-		terminalOpMap.associationsDo({|i|
+		opMap.associationsDo({|i|
 			stream << i << ", "
 		});
 		stream << "], ";
 		stream << "events:";
-		terminalEventMap.associationsDo({|i|
+		eventMap.associationsDo({|i|
 			stream << i << ", "
 		});
 		stream << "], ";
