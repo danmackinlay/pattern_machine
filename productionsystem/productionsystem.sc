@@ -68,14 +68,15 @@ PSProductionSystem {
 			ruleSymbols = expressions.wchoose(weights);
 			[\ruleSymbols, ruleSymbols].postln;
 			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
-			rulePatternList = ruleSymbols.collect({|i|
-				var ruleType;
-				ruleType = this.patternTypeBySymbol(i) ?? {"symbol '%' not found".format(i).throw;};
-				ruleType[0];
+			nextPhrase = List.new;
+			ruleSymbols.do({|name|
+				var rule, type;
+				# rule, type = this.patternTypeBySymbol(name) ?? {"symbol '%' not found".format(name).throw;};
+				nextPhrase.add(rule);
+				((type==\rule)||(type==\event)).if({
+					nextStream = sp.seq(Pchain(*nextPhrase));
+				});
 			});
-			///this assumes that all rules are 
-			nextPhrase = Pchain(*rulePatternList);
-			nextStream = sp.seq(nextPhrase);
 		});
 		ruleMap[name] = rule;
 		^rule;
