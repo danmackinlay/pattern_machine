@@ -38,7 +38,7 @@ PSProductionSystem {
 	/* Glossary:
 	A Rule is a preterminal symbol.
 	Terminal symbols are either Op(erator)s or Atoms, which are Patterns that express actual musical events.
-	Later, we might have StackOperations, or whatever you call L-systems brackets
+	Later, we might have StackOperations, or whatever you call L-systems brackets, and Kleene stars, and applications
 	*/
 	
 	*new{|logger, ruleMap, opMap, atomMap|
