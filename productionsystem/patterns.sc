@@ -97,3 +97,12 @@ PSwrand {
 		^Pwrand.new(expressions, weights, repeats);
 	}
 }
+Pob {
+	//P-one-bind embeds the arguments as a single eventin the stream ONCE
+	//(events embed perpetually per default.)
+	//note events with better defaults, or an event subclass,
+	// might be able to avoid that
+	*new { arg ... pairs;
+		^Pfin(1, Pbind(*pairs))
+	}
+}

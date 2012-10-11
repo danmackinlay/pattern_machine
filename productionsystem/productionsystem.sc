@@ -33,19 +33,20 @@ PSProductionSystem {
 	var <>logger;
 	var <ruleMap;
 	var <opMap;
-	var <eventMap;
+	var <atomMap;
+	var <>rootSymbol=\root;
 	/* Glossary:
 	A Rule is a preterminal symbol.
-	Terminal symbols are either Op(erator)s or Events.
+	Terminal symbols are either Op(erator)s or Atoms, which are Patterns that express actual musical events.
 	Later, we might have StackOperations, or whatever you call L-systems brackets
 	*/
 	
-	*new{|logger, ruleMap, opMap, eventMap|
+	*new{|logger, ruleMap, opMap, atomMap|
 		^super.newCopyArgs(
 			logger ?? {NullLogger.new},
 			ruleMap ?? {Environment.new},
 			opMap ?? {Environment.new},
-			eventMap ?? {Environment.new},
+			atomMap ?? {Environment.new},
 		);
 	}
 	putRule {|name, weightedList|
@@ -81,8 +82,8 @@ PSProductionSystem {
 		ruleMap[name] = rule;
 		^rule;
 	}
-	putEvent{|name, pattern|
-		eventMap.put(name, pattern);
+	putAtom{|name, pattern|
+		atomMap.put(name, pattern);
 		//For symmetry with putRule, we return the pattern
 		^pattern;
 	}
@@ -97,16 +98,19 @@ PSProductionSystem {
 		^case 
 			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
 			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
-			{ eventMap.includesKey(name) }	{ [eventMap[name], \event] };
+			{ atomMap.includesKey(name) }	{ [atomMap[name], \event] };
 	}
 	at{|name|
 		//this automagically returns nil for not found
-		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { eventMap.at(name) });
+		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { atomMap.at(name) });
+	}
+	root{
+		^this.ruleMap[rootSymbol]
 	}
 	removeAt{|name|
 		ruleMap.removeAt(name);
 		opMap.removeAt(name);
-		eventMap.removeAt(name);
+		atomMap.removeAt(name);
 	}
 	printOn { arg stream;
 		stream << this.class.asString <<"(" ;
@@ -121,10 +125,15 @@ PSProductionSystem {
 		});
 		stream << "], ";
 		stream << "events:";
-		eventMap.associationsDo({|i|
+		atomMap.associationsDo({|i|
 			stream << i << ", "
 		});
 		stream << "], ";
 		stream << ")";
+	}
+	//delegate pattern-like business to the root rule (called \root per default)
+	asStream { ^Routine({ arg inval; this.embedInStream(inval) }) }
+	embedInStream{|inval|
+		^this.root.embedInStream(inval);
 	}
 }
