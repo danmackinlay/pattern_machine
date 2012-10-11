@@ -140,3 +140,17 @@ PSProductionSystem {
 		^this.root.embedInStream(inval);
 	}
 }
+PSParen {
+	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSParen
+	var <symbols;
+	*new {|...symbols|
+		^super.newCopyArgs(symbols)
+	}
+}
+PSBracket {
+	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSBracket
+	var <symbols;
+	*new {|...symbols|
+		^super.newCopyArgs(symbols)
+	}
+}
