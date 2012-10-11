@@ -49,7 +49,7 @@ PSProductionSystem {
 			atomMap ?? {Environment.new},
 		);
 	}
-	putRule {|name, weightedList|
+	putRule {|ruleName, weightedList|
 		var rule;
 		var expressions = Array.new(weightedList.size/2);
 		var weights = Array.new(weightedList.size/2);
@@ -62,24 +62,27 @@ PSProductionSystem {
 		this.logger.log(tag: \expressions, msgchunks: expressions, priority: 1);
 		
 		rule = Pspawner({ |sp|
-			var ruleSymbols, rulePatternList, nextPhrase, nextStream;
+			var ruleSymbols, nextPhrase, nextStream;
 			var spawnlogger = this.logger ?? {NullLogger.new};
-			[\check, name].postln;
+			spawnlogger.log(tag: \rule, msgchunks: [ruleName], priority: 1);
 
 			ruleSymbols = expressions.wchoose(weights);
-			[\ruleSymbols, ruleSymbols].postln;
 			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
 			nextPhrase = List.new;
-			ruleSymbols.do({|name|
+			ruleSymbols.do({|symbol|
 				var rule, type;
-				# rule, type = this.patternTypeBySymbol(name) ?? {"symbol '%' not found".format(name).throw;};
+				# rule, type = this.patternTypeBySymbol(symbol) ?? {"symbol '%' not found".format(symbol).throw;};
 				nextPhrase.add(rule);
+				spawnlogger.log(tag: \sym, msgchunks: [symbol], priority: 1);
 				((type==\rule)||(type==\event)).if({
+					//apply operators to event. note that Pchain applies RTL and L-systems LTR, so we need to reverse these
+					spawnlogger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
 					nextStream = sp.seq(Pchain(*nextPhrase));
+					nextPhrase = List.new;
 				});
 			});
 		});
-		ruleMap[name] = rule;
+		ruleMap[ruleName] = rule;
 		^rule;
 	}
 	putAtom{|name, pattern|
