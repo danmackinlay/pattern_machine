@@ -149,8 +149,8 @@ PSParen {
 		^super.newCopyArgs(symbols)
 	}
 }
-PSBracket {
-	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSBracket
+PSBranch {
+	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSBranch
 	var <symbols;
 	*new {|...symbols|
 		^super.newCopyArgs(symbols)
