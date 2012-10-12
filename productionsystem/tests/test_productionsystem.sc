@@ -25,7 +25,7 @@ TestPS : UnitTest {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, [1, [\halfspeed, \bar, \bar, \halfspeed, \halfspeed, \bar]]);
+		ps.putRule(\root, [1, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]]);
 		steps = this.class.expressSystem(ps);
 		fork {this.assertEquals(steps.size, 3, "correct number of steps");
 			this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
