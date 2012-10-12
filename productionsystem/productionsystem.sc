@@ -72,7 +72,7 @@ PSProductionSystem {
 			ruleSymbols.do({|symbol|
 				var rule, type, ruleType;
 				//# rule, type = this.patternTypeBySymbol(symbol) ?? {"symbol '%' not found".format(symbol).throw;};
-				ruleType = this.patternTypeBySymbol(symbol) ?? {"symbol '%' not found".format(symbol).throw;};
+				ruleType = this.patternTypeBySymbol(symbol);
 				spawnlogger.log(tag: \phrasestate, msgchunks: nextPhrase, priority: 1);
 				# rule, type = ruleType;
 				nextPhrase.add(rule);
@@ -101,13 +101,14 @@ PSProductionSystem {
 		^pattern;
 	}
 	patternTypeBySymbol{|name|
-		//this automagically returns nil for not found
+		//this throws an error for not found
 		var found = case 
 			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
 			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
 			{ atomMap.includesKey(name) }	{ [atomMap[name], \event] };
 		[ruleMap, opMap, atomMap].postln;
 		([name] ++ found).postln;
+		found.isNil.if({"symbol '%' not found".format(name).throw});
 		this.logger.log(tag: \found, msgchunks: ([name] ++ found), priority: 1);
 		^found
 	}
