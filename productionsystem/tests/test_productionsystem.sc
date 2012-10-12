@@ -42,9 +42,10 @@ TestPS : UnitTest {
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, [1, [\halfspeed, \bar, \bar, \halfspeed, \halfspeed, \bar]]);
 		steps = this.class.expressSystem(ps);
-		this.assertEquals(steps.size, 3, "correct number of steps");
-		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
-		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1));
-		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4));
+		fork {this.assertEquals(steps.size, 3, "correct number of steps");
+			this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
+			this.assertAContainsB(steps[1], ('note': 1, 'delta': 1));
+			this.assertAContainsB(steps[2], ('note': 1, 'delta': 4));
+		}
 	}
 }
