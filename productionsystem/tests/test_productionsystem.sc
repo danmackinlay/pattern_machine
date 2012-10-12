@@ -12,13 +12,9 @@ TestPS : UnitTest {
 		^steps;
 	}
 	assertAContainsB{|a,b|
-		[\A, a].postln;
-		[\B, b].postln;
 		//makes sure that A contains all the keys that B does, with the same values
-		b.keysDo({|key, bval|
+		b.pairsDo({|key, bval|
 			var aval;
-			[\a, a].postln;
-			[\b, b].postln;
 			this.assert(a.includesKey(key), "key % found".format(key), onFailure: {"key '%' not found in %".format(key, a).postln});
 			aval = a.at(key);
 			this.assertEquals(aval, bval, "key % equal in both (%,%)".format(key, aval, bval));
