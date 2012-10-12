@@ -14,7 +14,7 @@ TestPS : UnitTest {
 	}
 	assertAContainsB{|a,b|
 		//makes sure that A contains all the keys that B does, with the same values
-		b.keysDo({|key, bval|
+		b.pairsDo({|key, bval|
 			var aval;
 			this.assert(a.includesKey(key), "key % found".format(key), onFailure: {"key '%' not found in %".format(key, a).postln});
 			aval = a[key];
