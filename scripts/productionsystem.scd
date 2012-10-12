@@ -12,3 +12,4 @@ ps.putRule(\phrase, [
 Ptrace(~root).play(TempoClock.new(3));
 );
 ~root.play;
+TestPS.run

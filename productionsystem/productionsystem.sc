@@ -62,31 +62,33 @@ PSProductionSystem {
 		this.logger.log(tag: \expressions, msgchunks: expressions, priority: 1);
 		
 		rule = Pspawner({ |sp|
-			var ruleSymbols, nextPhrase, nextStream;
+			var ruleTokens, nextPhrase, nextStream;
 			var spawnlogger = this.logger ?? {NullLogger.new};
 			spawnlogger.log(tag: \rule, msgchunks: [ruleName], priority: 1);
 
-			ruleSymbols = expressions.wchoose(weights);
-			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
-			//Here beginneth the symbol parsing state-machine. This should be abstracted at some point.
-			//[
-			nextPhrase = List.new;
-			ruleSymbols.do({|symbol|
-				var rule, type;
-				# rule, type = this.patternTypeBySymbol(symbol);
-				nextPhrase.add(rule);
-				spawnlogger.log(tag: \sym, msgchunks: [symbol], priority: 1);
-				((type==\rule)||(type==\event)).if({
-					//apply operators to event. note that Pchain applies RTL and L-systems LTR, so we need to reverse these
-					spawnlogger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
-					nextStream = sp.seq(Pchain(*nextPhrase));
-					nextPhrase = List.new;
-				});
-			});
-			//]
+			ruleTokens = expressions.wchoose(weights);
+			spawnlogger.log(tag: \ruleTokens, msgchunks: ruleTokens, priority: 1);
+			this.expressWithContext(sp, List.new, ruleTokens);
 		});
 		ruleMap[ruleName] = rule;
 		^rule;
+	}
+	expressWithContext{|sp, opStack, nextTokens|
+		//Here beginneth the symbol parsing state-machine.
+		var nextPhrase, nextStream;
+		nextPhrase = List.new;
+		nextTokens.do({|token|
+			var rule, type;
+			# rule, type = this.patternTypeBySymbol(token);
+			nextPhrase.add(rule);
+			this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
+			((type==\rule)||(type==\event)).if({
+				//apply operators to event. note that Pchain applies RTL and L-systems LTR, so think carefully. but this does what we expect for the moment.
+				this.logger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
+				nextStream = sp.seq(Pchain(*nextPhrase));
+				nextPhrase = List.new;
+			});
+		});
 	}
 	putAtom{|name, pattern|
 		atomMap.put(name, pattern);
@@ -147,15 +149,15 @@ PSProductionSystem {
 }
 PSParen {
 	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSParen
-	var <symbols;
-	*new {|...symbols|
-		^super.newCopyArgs(symbols)
+	var <tokens;
+	*new {|...tokens|
+		^super.newCopyArgs(tokens)
 	}
 }
 PSBranch {
 	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSBranch
-	var <symbols;
-	*new {|...symbols|
-		^super.newCopyArgs(symbols)
+	var <tokens;
+	*new {|...tokens|
+		^super.newCopyArgs(tokens)
 	}
 }
