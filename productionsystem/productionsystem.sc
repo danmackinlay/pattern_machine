@@ -70,9 +70,13 @@ PSProductionSystem {
 			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
 			nextPhrase = List.new;
 			ruleSymbols.do({|symbol|
-				var rule, type;
-				# rule, type = this.patternTypeBySymbol(symbol) ?? {"symbol '%' not found".format(symbol).throw;};
+				var rule, type, ruleType;
+				//# rule, type = this.patternTypeBySymbol(symbol) ?? {"symbol '%' not found".format(symbol).throw;};
+				ruleType = this.patternTypeBySymbol(symbol) ?? {"symbol '%' not found".format(symbol).throw;};
+				spawnlogger.log(tag: \phrasestate, msgchunks: nextPhrase, priority: 1);
+				# rule, type = ruleType;
 				nextPhrase.add(rule);
+				spawnlogger.log(tag: \phrasestate2, msgchunks: nextPhrase, priority: 1);
 				spawnlogger.log(tag: \sym, msgchunks: [symbol], priority: 1);
 				((type==\rule)||(type==\event)).if({
 					//apply operators to event. note that Pchain applies RTL and L-systems LTR, so we need to reverse these
@@ -98,10 +102,14 @@ PSProductionSystem {
 	}
 	patternTypeBySymbol{|name|
 		//this automagically returns nil for not found
-		^case 
+		var found = case 
 			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
 			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
 			{ atomMap.includesKey(name) }	{ [atomMap[name], \event] };
+		[ruleMap, opMap, atomMap].postln;
+		([name] ++ found).postln;
+		this.logger.log(tag: \found, msgchunks: ([name] ++ found), priority: 1);
+		^found
 	}
 	at{|name|
 		//this automagically returns nil for not found

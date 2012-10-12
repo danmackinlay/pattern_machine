@@ -12,15 +12,13 @@ ps.putRule(\phrase, [
 Ptrace(~root).play(TempoClock.new(3));
 );
 ~root.play;
-Padd
-Pchain
 
 //Testing doesn't work at the moment. But here's some work towards that:
-TestPS.run;
 (
 var steps, ps = PSProductionSystem.new(PostLogger.new);
 ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+//ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+ps.putAtom(\bar, Pbind(\note, Pseq([1]), \delta, 1)) ;
 ps.putRule(\root, [1, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]]);
 Ptrace(ps.root).play(TempoClock.new(3));
 )
@@ -28,3 +26,4 @@ Ptrace(ps.root).play(TempoClock.new(3));
 var steps = TestPS.expressSystem(~root);
 ~root.asStream.nextN(100, Event.default).select(_.notNil);
 )
+TestPS.run;

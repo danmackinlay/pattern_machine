@@ -22,13 +22,20 @@ TestPS : UnitTest {
 	}
 	test_unittest {
 		var steps, ps, halfSpeed, bar;
+		var spawnlogger = PostLogger.new;
 		halfSpeed = Pbind(\delta, Pkey(\delta) * 2);
 		bar = Pob(\note, 1, \delta, 1);
 		ps = Pspawner({ |sp|
-			var nextStream;
-			nextStream = sp.seq(Pchain(halfSpeed, bar));
-			nextStream = sp.seq(Pchain(bar));
-			nextStream = sp.seq(Pchain(halfSpeed, halfSpeed, bar));
+			var nextStream, nextPhrase;
+			spawnlogger.log(tag: \rule, msgchunks: [1], priority: 1);
+			nextPhrase = List.newUsing([halfSpeed, bar]);
+			nextStream = sp.seq(Pchain(*nextPhrase));
+			spawnlogger.log(tag: \rule, msgchunks: [2], priority: 1);
+			nextPhrase = List.newUsing([bar]);
+			nextStream = sp.seq(Pchain(*nextPhrase));
+			spawnlogger.log(tag: \rule, msgchunks: [3], priority: 1);
+			nextPhrase = List.newUsing([halfSpeed, halfSpeed, bar]);
+			nextStream = sp.seq(Pchain(*nextPhrase));
 		});
 		steps = this.class.expressSystem(ps);
 		this.assertEquals(steps.size, 3, "correct number of steps");
