@@ -1,11 +1,10 @@
 TestPS : UnitTest {
 	*expressSystem {|ps, defaultEv, limit=100|
 		var stream, steps;
-		//stream = ps.asStream;
-		stream = Pbind(\note, Pseq([1,2,3], \delta, 1)).asStream;
+		stream = ps.asStream;
+		//stream = Pbind(\note, Pseq([1,2,3], \delta, 1)).asStream;
 		"TESTEST2.2".postln;
 		//The test hangs here. Why?
-		//steps = stream.nextN(limit, Event.default);
 		//because PSpawner rules explode UnitTest
 		steps = stream.nextN(limit, defaultEv ? Event.default);
 		"TESTEST2.3".postln;
@@ -21,11 +20,12 @@ TestPS : UnitTest {
 			this.assertEquals(aval, bval, "key % equal in both (%=%)".format(key, aval, bval));
 		});
 	}
-	test_interleaved_events_and_ops {
-		var steps, ps = PSProductionSystem.new(NullLogger.new);
-		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, [1, [\halfspeed, \bar, \bar, \halfspeed, \halfspeed, \bar]]);
+	test_unittest {
+		var steps, ps;
+		ps = Pspawner({ |sp|
+			var nextStream;
+			3.do({nextStream =sp.seq(Pbind(\note, Pseq([1,2,3]), \dur, 0.5));});
+		});
 		steps = this.class.expressSystem(ps);
 		this.assertEquals(steps.size, 3, "correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
