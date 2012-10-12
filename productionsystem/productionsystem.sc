@@ -72,7 +72,6 @@ PSProductionSystem {
 			ruleSymbols.do({|symbol|
 				var rule, type;
 				# rule, type = this.patternTypeBySymbol(symbol);
-				ruleType = this.patternTypeBySymbol(symbol);
 				nextPhrase.add(rule);
 				spawnlogger.log(tag: \sym, msgchunks: [symbol], priority: 1);
 				((type==\rule)||(type==\event)).if({
