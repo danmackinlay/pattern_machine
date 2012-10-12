@@ -68,6 +68,8 @@ PSProductionSystem {
 
 			ruleSymbols = expressions.wchoose(weights);
 			spawnlogger.log(tag: \ruleSymbols, msgchunks: ruleSymbols, priority: 1);
+			//Here beginneth the symbol parsing state-machine. This should be abstracted at some point.
+			//[
 			nextPhrase = List.new;
 			ruleSymbols.do({|symbol|
 				var rule, type;
@@ -81,6 +83,7 @@ PSProductionSystem {
 					nextPhrase = List.new;
 				});
 			});
+			//]
 		});
 		ruleMap[ruleName] = rule;
 		^rule;
