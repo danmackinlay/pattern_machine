@@ -48,7 +48,7 @@ PSSynthController {
 	}
 	play {|serverOrGroup, outbus ... argz|
 		var setupBundle;
-		serverOrGroup.isNil.if({"need a target".throw;});
+		serverOrGroup.isNil.if({MissingError("need a target").throw;});
 		serverOrGroup.isKindOf(Group).if(
 			{
 				server = serverOrGroup.server;
@@ -75,7 +75,7 @@ PSSynthController {
 	}
 	playIndividual {|phenotype|
 		var indDict;
-		playing.not.if({"Controller is not playing!".throw});
+		playing.not.if({InvalidError("Controller is not playing!").throw});
 		indDict = (\phenotype: phenotype);
 		all.put(indDict.phenotype.identityHash, indDict);
 		try {
@@ -110,7 +110,7 @@ PSSynthController {
 	updateIndividual {|phenotype|
 		var indDict;
 		// we do not inject extraSynthArgs here; they are presumed already set
-		playing.not.if({"Controller is not playing!".throw});
+		playing.not.if({InvalidError("Controller is not playing!").throw});
 		indDict = all.at(phenotype.identityHash);
 		log.log(msgchunks:[\update_synth_args] ++ phenotype.chromosomeAsSynthArgs,
 			tag:\controlling);
@@ -268,7 +268,7 @@ PSListenSynthController : PSSynthController {
 		var offset;
 		offset = busAllocator.alloc;
 		offset.isNil.if({
-			OutOfResources.new("out of busses"+ busAllocator).throw;
+			OutOfResources("out of busses"+ busAllocator).throw;
 		});
 		indDict.busOffset = offset;
 		indDict.playBus = Bus.newFrom(playBusses, offset: offset*numChannels, numChannels: numChannels);

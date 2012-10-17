@@ -212,9 +212,9 @@ Ohm64 {
 		var foundNote, foundControl;
 		outchan = outchan ? chan;
 		foundControl = noteMap[controlName];
-		foundControl.isNil.if({("no such controlName" + controlName).throw;});
+		foundControl.isNil.if({MissingError("no such controlName" + controlName).throw;});
 		foundNote = foundControl[idx];
-		foundNote.isNil.if({("no such index" +idx.asString + "for control" ++ controlName).throw;});
+		foundNote.isNil.if({MissingError("no such index" +idx.asString + "for control" ++ controlName).throw;});
 		on = on ? (val>0);
 		on.if(
 			{outPort.noteOn(outchan,foundNote,val);},

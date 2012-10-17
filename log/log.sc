@@ -86,7 +86,7 @@ FileLogger : NullLogger {
 		var thisLogPath;
 		thisLogPath = PathName(logpath);
 		fn.isNil.if({
-			"No log name supplied".throw;
+			MissingError("No log name supplied").throw;
 		});
 		File.exists(thisLogPath.fullPath).not.if({
 			File.mkdir(thisLogPath.fullPath);

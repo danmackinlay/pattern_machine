@@ -81,7 +81,7 @@ PSProductionSystem {
 		nextTokens.do({|token|
 			case
 				{token.isKindOf(PSParen)} {
-					//Parenthetical list of tokens that should share transforms
+					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: token.tokens, priority: 1);
 					this.expressWithContext(sp, opStack, token.tokens);
 				}
@@ -121,7 +121,7 @@ PSProductionSystem {
 			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
 			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
 			{ atomMap.includesKey(name) }	{ [atomMap[name], \event] };
-		found.isNil.if({"symbol '%' not found".format(name).throw});
+		found.isNil.if({MissingError("symbol '%' not found".format(name)).throw});
 		^found
 	}
 	at{|name|

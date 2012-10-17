@@ -1,14 +1,8 @@
 TestPS : UnitTest {
 	*expressSystem {|ps, defaultEv, limit=100|
 		var stream, steps;
-		//stream = ps.asStream;
-		stream = Pbind(\note, Pseq([1,2,3], \delta, 1)).asStream;
-		"TESTEST2.2".postln;
-		//The test hangs here. Why?
-		//steps = stream.nextN(limit, Event.default);
-		//because PSpawner rules explode UnitTest
+		stream = ps.asStream;
 		steps = stream.nextN(limit, defaultEv ? Event.default);
-		"TESTEST2.3".postln;
 		steps = steps.select(_.notNil);
 		^steps;
 	}

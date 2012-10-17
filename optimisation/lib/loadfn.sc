@@ -13,12 +13,12 @@ LoadLibraryFunction {
 			{
 				candidate = Library.atList(nameOrFunction);
 				candidate.isNil.if({
-					("Nothing found at %".format(nameOrFunction.cs)).throw;
+					MissingError("Nothing found at %".format(nameOrFunction.cs)).throw;
 				});
 				candidate.isFunction.not.if({
-					("Non-function found at % (%)".format(
+					InvalidError("Non-function found at % (%)".format(
 						nameOrFunction.cs, candidate.cs)
-				).throw;
+					).throw;
 				});
 				^candidate;
 			}
