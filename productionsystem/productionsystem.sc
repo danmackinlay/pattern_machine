@@ -75,19 +75,33 @@ PSProductionSystem {
 	}
 	expressWithContext{|sp, opStack, nextTokens|
 		//Here beginneth the symbol parsing state-machine.
+		//opStack content is applied to all symbols
 		var nextPhrase, nextStream;
 		nextPhrase = List.new;
 		nextTokens.do({|token|
-			var rule, type;
-			# rule, type = this.patternTypeBySymbol(token);
-			nextPhrase.add(rule);
-			this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
-			((type==\rule)||(type==\event)).if({
-				//apply operators to event. note that Pchain applies RTL and L-systems LTR, so think carefully. but this does what we expect for the moment.
-				this.logger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
-				nextStream = sp.seq(Pchain(*nextPhrase));
-				nextPhrase = List.new;
-			});
+			case
+				{token.isKindOf(PSParen)} {
+					//Parenthetical list of tokens that should share transforms
+					this.logger.log(tag: \paren, msgchunks: token.tokens, priority: 1);
+					this.expressWithContext(sp, opStack, token.tokens);
+				}
+				{true} {
+					var rule, type;
+					//standard symbol token.
+					//accumulate Ops until we hit an event then express it.
+					# rule, type = this.patternTypeBySymbol(token);
+					nextPhrase.add(rule);
+					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
+					((type==\rule)||(type==\event)).if({
+						//apply operators to event. or rule.
+						//note that Pchain applies RTL and L-systems LTR, so think carefully.
+						//Do we really want rule application to implicitly group ops?
+						this.logger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
+						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
+						nextPhrase = List.new;
+					});
+					
+				};
 		});
 	}
 	putAtom{|name, pattern|
