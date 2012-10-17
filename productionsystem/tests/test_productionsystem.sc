@@ -26,4 +26,17 @@ TestPS : UnitTest {
 		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1));
 		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4));
 	}
+	test_parens {
+		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
+		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		ps.putRule(\root, [1, [
+			\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar]]);
+		steps = this.class.expressSystem(ps);
+		this.assertEquals(steps.size, 4, "correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 2));
+		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4));
+		this.assertAContainsB(steps[3], ('note': 1, 'delta': 1));
+	}
 }

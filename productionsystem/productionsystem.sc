@@ -74,7 +74,7 @@ PSProductionSystem {
 		^rule;
 	}
 	expressWithContext{|sp, opStack, nextTokens|
-		//Here beginneth the symbol parsing state-machine.
+		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
 		var nextPhrase, nextStream;
 		nextPhrase = List.new;
@@ -83,7 +83,8 @@ PSProductionSystem {
 				{token.isKindOf(PSParen)} {
 					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: token.tokens, priority: 1);
-					this.expressWithContext(sp, opStack, token.tokens);
+					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens);
+					nextPhrase = List.new;
 				}
 				{true} {
 					var rule, type;
