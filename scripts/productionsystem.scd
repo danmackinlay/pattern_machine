@@ -13,5 +13,25 @@ Ptrace(~root).play(TempoClock.new(3));
 );
 ~root.play;
 
+//Examples
+(
+var ps = PSProductionSystem(PostLogger.new);
+ps.putOp(\doubleSpeed, Pbind(\delta, Pkey(\delta) / 2)) ;
+ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
+ps.putOp(\upThird, Pbind(\note, Pkey(\note) + 4)) ;
+ps.putOp(\upFifth, Pbind(\note, Pkey(\note) + 5)) ;
+ps.putAtom(\bar, Pbind(\note, Pseq([1,2,3]), \delta, 1)) ;
+ps.putRule(\phrase, [
+	1, [\doubleSpeed, \phrase],
+	1, [\halfSpeed, \phrase],
+	1, [\upThird, \phrase],
+	1, [\upFifth, \phrase],
+	1, [\bar],
+]);
+~root = ps.putRule(\root, [1, \phrase.dup(3)]);
+Ptrace(Pn(~root,10)).play(TempoClock.new(3));
+)
+
+
 //Testing:
 TestPS.run;
