@@ -170,9 +170,11 @@ PSParen {
 	}
 }
 PSBranch {
-	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSBranch
-	var <tokens;
-	*new {|...tokens|
-		^super.newCopyArgs(tokens)
+	//we use this to indicate that the list of branches here should be executed in parallel.
+	//not yet implemented.
+	var <branches;
+	*new {|...branches|
+		NotYetImplementedError("Branching doesn't work yet").throw;
+		^super.newCopyArgs(branches)
 	}
 }
