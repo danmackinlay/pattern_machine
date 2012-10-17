@@ -1,1 +1,1 @@
-TestUnitTestErrorHandling.run;
+TestUnitTestErrorHandling.run(report:true);
