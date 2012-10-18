@@ -49,62 +49,6 @@ PSProductionSystem {
 			atomMap ?? {Environment.new},
 		);
 	}
-	putRule {|ruleName, weightedList|
-		var rule;
-		var expressions = Array.new(weightedList.size/2);
-		var weights = Array.new(weightedList.size/2);
-		weightedList.pairsDo({|weight, expression|
-			weights.add(weight);
-			expressions.add(expression);
-		});
-		weights = weights.normalizeSum;
-		this.logger.log(tag: \weights, msgchunks: weights, priority: 1);
-		this.logger.log(tag: \expressions, msgchunks: expressions, priority: 1);
-		
-		rule = Pspawner({ |sp|
-			var ruleTokens, nextPhrase, nextStream;
-			var spawnlogger = this.logger ?? {NullLogger.new};
-			spawnlogger.log(tag: \rule, msgchunks: [ruleName], priority: 1);
-
-			ruleTokens = expressions.wchoose(weights);
-			spawnlogger.log(tag: \ruleTokens, msgchunks: ruleTokens, priority: 1);
-			this.expressWithContext(sp, List.new, ruleTokens);
-		});
-		ruleMap[ruleName] = rule;
-		^rule;
-	}
-	expressWithContext{|sp, opStack, nextTokens|
-		//Here is the symbol parsing state-machine.
-		//opStack content is applied to all symbols
-		var nextPhrase, nextStream;
-		nextPhrase = List.new;
-		nextTokens.do({|token|
-			case
-				{token.isKindOf(PSParen)} {
-					//Parenthetical list of tokens that should share a transform stack
-					this.logger.log(tag: \paren, msgchunks: token.tokens, priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens);
-					nextPhrase = List.new;
-				}
-				{true} {
-					var rule, type;
-					//standard symbol token.
-					//accumulate Ops until we hit an event then express it.
-					# rule, type = this.patternTypeBySymbol(token);
-					nextPhrase.add(rule);
-					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
-					((type==\rule)||(type==\event)).if({
-						//apply operators to event. or rule.
-						//note that Pchain applies RTL and L-systems LTR, so think carefully.
-						//Do we really want rule application to implicitly group ops?
-						this.logger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
-						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
-						nextPhrase = List.new;
-					});
-					
-				};
-		});
-	}
 	putAtom{|name, pattern|
 		atomMap.put(name, pattern);
 		//For symmetry with putRule, we return the pattern
@@ -137,6 +81,54 @@ PSProductionSystem {
 		opMap.removeAt(name);
 		atomMap.removeAt(name);
 	}
+	
+	putRule {|ruleName, wlist|
+		var rule;
+		rule = Pspawner({ |sp|
+			var ruleTokens, nextPhrase, nextStream;
+			var spawnlogger = this.logger ?? {NullLogger.new};
+			spawnlogger.log(tag: \rule, msgchunks: [ruleName], priority: 1);
+			ruleTokens = wlist.choose;
+			spawnlogger.log(tag: \ruleTokens, msgchunks: ruleTokens, priority: 1);
+			this.expressWithContext(sp, List.new, ruleTokens);
+		});
+		ruleMap[ruleName] = rule;
+		^rule;
+	}
+	expressWithContext{|sp, opStack, nextTokens|
+		//Here is the symbol parsing state-machine.
+		//opStack content is applied to all symbols
+		var nextPhrase, nextStream;
+		nextPhrase = List.new;
+		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens), priority: 1);
+		nextTokens.do({|token|
+			case
+				{token.isKindOf(PSParen)} {
+					//Parenthetical list of tokens that should share a transform stack
+					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
+					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens);
+					nextPhrase = List.new;
+				}
+				{true} {
+					var rule, type;
+					//standard symbol token.
+					//accumulate Ops until we hit an event then express it.
+					# rule, type = this.patternTypeBySymbol(token);
+					nextPhrase.add(rule);
+					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
+					((type==\rule)||(type==\event)).if({
+						//apply operators to event. or rule.
+						//note that Pchain applies RTL and L-systems LTR, so think carefully.
+						//Do we really want rule application to implicitly group ops?
+						this.logger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
+						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
+						nextPhrase = List.new;
+					});
+
+				};
+		});
+	}
+
 	printOn { arg stream;
 		stream << this.class.asString <<"(" ;
 		stream << "preterminals: [";
@@ -160,6 +152,24 @@ PSProductionSystem {
 	asStream { ^Routine({ arg inval; this.embedInStream(inval) }) }
 	embedInStream{|inval|
 		^this.root.embedInStream(inval);
+	}
+}
+PSWlist {
+	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSParen
+	var <weights;
+	var <expressions;
+	*new {|...weightedList|
+		var expressions = Array.new(weightedList.size/2);
+		var weights = Array.new(weightedList.size/2);
+		weightedList.pairsDo({|weight, expression|
+			weights.add(weight);
+			expressions.add(expression);
+		});
+		weights = weights.normalizeSum;
+		^super.newCopyArgs(weights, expressions);
+	}
+	choose {
+		^expressions.wchoose(weights) ?? {Array.new};
 	}
 }
 PSParen {
