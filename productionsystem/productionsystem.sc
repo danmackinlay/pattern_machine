@@ -74,26 +74,28 @@ PSProductionSystem {
 		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { atomMap.at(name) });
 	}
 	root{
-		^this.ruleMap[rootSymbol]
+		^this.asPattern(rootSymbol);
 	}
 	removeAt{|name|
 		ruleMap.removeAt(name);
 		opMap.removeAt(name);
 		atomMap.removeAt(name);
 	}
-	
 	putRule {|ruleName, wlist|
-		var rule;
-		rule = Pspawner({ |sp|
+		wlist = this.asPattern(wlist);
+		ruleMap[ruleName] = wlist;
+		^wlist;
+	}
+	asPattern {|...symbols|
+		var wlist = ruleMap[symbol] ?? {MissingError("rule '%' not found".format(ruleName)).throw};
+		^Pspawner({ |sp|
 			var ruleTokens, nextPhrase, nextStream;
 			var spawnlogger = this.logger ?? {NullLogger.new};
-			spawnlogger.log(tag: \rule, msgchunks: [ruleName], priority: 1);
+			spawnlogger.log(tag: \rule, msgchunks: [symbol], priority: 1);
 			ruleTokens = wlist.choose;
 			spawnlogger.log(tag: \ruleTokens, msgchunks: ruleTokens, priority: 1);
 			this.expressWithContext(sp, List.new, ruleTokens);
 		});
-		ruleMap[ruleName] = rule;
-		^rule;
 	}
 	expressWithContext{|sp, opStack, nextTokens|
 		//Here is the symbol parsing state-machine.
@@ -110,11 +112,11 @@ PSProductionSystem {
 					nextPhrase = List.new;
 				}
 				{true} {
-					var rule, type;
+					var patt, type;
 					//standard symbol token.
 					//accumulate Ops until we hit an event then express it.
-					# rule, type = this.patternTypeBySymbol(token);
-					nextPhrase.add(rule);
+					# patt, type = this.patternTypeBySymbol(token);
+					nextPhrase.add(patt);
 					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
 					((type==\rule)||(type==\event)).if({
 						//apply operators to event. or rule.
@@ -124,7 +126,6 @@ PSProductionSystem {
 						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
 						nextPhrase = List.new;
 					});
-
 				};
 		});
 	}
