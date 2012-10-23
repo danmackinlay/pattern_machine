@@ -70,7 +70,7 @@ PSProductionSystem {
 		^found
 	}
 	at{|name|
-		//this automagically returns nil for not found
+		//this returns nil for not found
 		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { atomMap.at(name) });
 	}
 	root{
