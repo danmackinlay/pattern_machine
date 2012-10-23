@@ -8,11 +8,11 @@ ps.putRule(\phrase, PSWlist(
 	1, [\halfSpeed, \phrase],
 	1, [\bar],
 ));
-ps.putRule(\root, PSWlist(1, \phrase.dup(3)));
+ps.putRule(\root, \phrase.dup(3));
+~ps=ps;
 Ptrace(ps.root).play(TempoClock.new(3));
 );
-~root.play;
-
+~ps.ruleMap;
 //Examples
 (
 var patt, ps = PSProductionSystem(PostLogger.new);
@@ -28,7 +28,7 @@ ps.putRule(\phrase, PSWlist(
 	1, [\upFifth, \phrase],
 	2, [\riff],
 ));
-~root = ps.putRule(\root, PSWlist(1, \phrase.dup(3)));
+~root = ps.putRule(\root, \phrase.dup(3));
 //We want to have this pattern restart every bar, but the Pfindur pattern does not compose; it take a pattern as an argument; thus it is imposed from outside;
 //this feels a little unsatisfactory
 //Ptrace(Pn(Pfindur(4,~root),10)).play(TempoClock.new(3));

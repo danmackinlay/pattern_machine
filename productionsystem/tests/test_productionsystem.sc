@@ -19,7 +19,7 @@ TestPS : UnitTest {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, PSWlist(1, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]));
+		ps.putRule(\root, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]);
 		steps = this.class.expressSystem(ps);
 		this.assertEquals(steps.size, 3, "correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
@@ -30,8 +30,8 @@ TestPS : UnitTest {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, PSWlist(1, [
-			\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar]));
+		ps.putRule(\root, 
+			[\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar]);
 		steps = this.class.expressSystem(ps);
 		this.assertEquals(steps.size, 4, "correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));

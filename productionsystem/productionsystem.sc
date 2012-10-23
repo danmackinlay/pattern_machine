@@ -81,20 +81,15 @@ PSProductionSystem {
 		opMap.removeAt(name);
 		atomMap.removeAt(name);
 	}
-	putRule {|ruleName, wlist|
-		wlist = this.asPattern(wlist);
-		ruleMap[ruleName] = wlist;
-		^wlist;
+	putRule {|ruleName, tokens|
+		ruleMap[ruleName] = tokens;
+		^this.asPattern(tokens);
 	}
 	asPattern {|...symbols|
-		var wlist = ruleMap[symbol] ?? {MissingError("rule '%' not found".format(ruleName)).throw};
 		^Pspawner({ |sp|
-			var ruleTokens, nextPhrase, nextStream;
 			var spawnlogger = this.logger ?? {NullLogger.new};
-			spawnlogger.log(tag: \rule, msgchunks: [symbol], priority: 1);
-			ruleTokens = wlist.choose;
-			spawnlogger.log(tag: \ruleTokens, msgchunks: ruleTokens, priority: 1);
-			this.expressWithContext(sp, List.new, ruleTokens);
+			spawnlogger.log(tag: \asPattern, msgchunks: [symbols], priority: 1);
+			this.expressWithContext(sp, List.new, symbols);
 		});
 	}
 	expressWithContext{|sp, opStack, nextTokens|
@@ -111,21 +106,45 @@ PSProductionSystem {
 					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens);
 					nextPhrase = List.new;
 				}
+				{token.isKindOf(PSWlist)} {
+					var next;
+					// Random branch.
+					// choose one from this list.
+					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
+					next = token.choose;
+					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
+					this.expressWithContext(sp, opStack ++ nextPhrase, next);
+					nextPhrase = List.new;
+				}
 				{true} {
 					var patt, type;
-					//standard symbol token.
+					//default case.
+					//standard symbol token, to be expanded.
 					//accumulate Ops until we hit an event then express it.
 					# patt, type = this.patternTypeBySymbol(token);
-					nextPhrase.add(patt);
 					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
-					((type==\rule)||(type==\event)).if({
+					type.switch(
+					\op, {
+						//accumulate ops
+						nextPhrase.add(patt);
+						this.logger.log(tag: \accumulation, msgchunks: nextPhrase, priority: 1);
+					},
+					\event, {
 						//apply operators to event. or rule.
-						//note that Pchain applies RTL and L-systems LTR, so think carefully.
-						//Do we really want rule application to implicitly group ops?
-						this.logger.log(tag: \application, msgchunks: nextPhrase.reverse, priority: 1);
+						//note that Pchain applies RTL, and L-systems LTR, so think carefully.
+						nextPhrase.add(patt);
+						this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
 						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
 						nextPhrase = List.new;
-					});
+					},
+					\rule, {
+						// A rule. Expand it and recurse.
+						//Do we really want rule application to implicitly group ops?
+						this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
+						this.expressWithContext(sp, opStack ++ nextPhrase, patt);
+						nextPhrase = List.new;
+					}
+					);
 				};
 		});
 	}
