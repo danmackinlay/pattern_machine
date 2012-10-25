@@ -124,26 +124,26 @@ PSProductionSystem {
 					# patt, type = this.patternTypeBySymbol(token);
 					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
 					type.switch(
-					\op, {
-						//accumulate ops
-						nextPhrase.add(patt);
-						this.logger.log(tag: \accumulation, msgchunks: nextPhrase, priority: 1);
-					},
-					\event, {
-						//apply operators to event. or rule.
-						//note that Pchain applies RTL, and L-systems LTR, so think carefully.
-						nextPhrase.add(patt);
-						this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
-						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
-						nextPhrase = List.new;
-					},
-					\rule, {
-						// A rule. Expand it and recurse.
-						//Do we really want rule application to implicitly group ops?
-						this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-						this.expressWithContext(sp, opStack ++ nextPhrase, patt);
-						nextPhrase = List.new;
-					}
+						\op, {
+							//accumulate ops
+							nextPhrase.add(patt);
+							this.logger.log(tag: \accumulation, msgchunks: nextPhrase, priority: 1);
+						},
+						\event, {
+							//apply operators to event. or rule.
+							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
+							nextPhrase.add(patt);
+							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
+							nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
+							nextPhrase = List.new;
+						},
+						\rule, {
+							// A rule. Expand it and recurse.
+							//Do we really want rule application to implicitly group ops?
+							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
+							this.expressWithContext(sp, opStack ++ nextPhrase, patt);
+							nextPhrase = List.new;
+						}
 					);
 				};
 		});
