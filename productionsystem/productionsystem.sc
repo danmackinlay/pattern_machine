@@ -95,7 +95,7 @@ PSProductionSystem {
 	expressWithContext{|sp, opStack, nextTokens|
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
-		var nextPhrase, nextStream;
+		var nextPhrase, nextStreams;
 		nextPhrase = List.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens), priority: 1);
 		nextTokens.do({|token|
@@ -108,12 +108,23 @@ PSProductionSystem {
 				}
 				{token.isKindOf(PSWlist)} {
 					var next;
-					// Random branch.
+					// Random choice.
 					// choose one from this list.
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
 					this.expressWithContext(sp, opStack ++ nextPhrase, next);
+					nextPhrase = List.new;
+				}
+				{token.isKindOf(PSBranch)} {
+					// branch into parallel streams
+					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.branches), priority: 1);
+					nextStreams = token.branches.collect({|nextTokens|
+						this.logger.log(tag: \branching, msgchunks: ([\chose] ++ nextTokens), priority: 1);
+						sp.par({
+							this.expressWithContext(sp, opStack, this.asPattern(nextTokens));
+						});
+					});
 					nextPhrase = List.new;
 				}
 				{true} {
@@ -134,7 +145,7 @@ PSProductionSystem {
 						//note that Pchain applies RTL, and L-systems LTR, so think carefully.
 						nextPhrase.add(patt);
 						this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
-						nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
+						nextStreams = [sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)))];
 						nextPhrase = List.new;
 					},
 					\rule, {
@@ -204,7 +215,6 @@ PSBranch {
 	//not yet implemented.
 	var <branches;
 	*new {|...branches|
-		NotYetImplementedError("Branching doesn't work yet").throw;
 		^super.newCopyArgs(branches)
 	}
 }
