@@ -34,6 +34,7 @@ PSProductionSystem {
 	var <ruleMap;
 	var <opMap;
 	var <atomMap;
+	var <>trace;
 	var <>rootSymbol=\root;
 	/* Glossary:
 	A Rule is a preterminal symbol.
@@ -41,12 +42,13 @@ PSProductionSystem {
 	Later, we might have StackOperations, or whatever you call L-systems brackets, and Kleene stars, and applications
 	*/
 	
-	*new{|logger, ruleMap, opMap, atomMap|
+	*new{|logger, ruleMap, opMap, atomMap, trace=false|
 		^super.newCopyArgs(
 			logger ?? {NullLogger.new},
 			ruleMap ?? {Environment.new},
 			opMap ?? {Environment.new},
 			atomMap ?? {Environment.new},
+			trace
 		);
 	}
 	putAtom{|name, pattern|
@@ -74,7 +76,7 @@ PSProductionSystem {
 		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { atomMap.at(name) });
 	}
 	root{
-		^this.asPattern(rootSymbol);
+		^this.asPattern([rootSymbol]);
 	}
 	removeAt{|name|
 		ruleMap.removeAt(name);
@@ -85,36 +87,54 @@ PSProductionSystem {
 		ruleMap[ruleName] = tokens;
 		^this.asPattern(tokens);
 	}
-	asPattern {|...symbols|
+	asPattern {|symbols, context, depth=0|
 		^Pspawner({ |sp|
-			var spawnlogger = this.logger ?? {NullLogger.new};
-			spawnlogger.log(tag: \asPattern, msgchunks: [symbols], priority: 1);
-			this.expressWithContext(sp, List.new, symbols);
+			this.logger.log(tag: \asPattern, msgchunks: symbols++ [\myspawner, sp.identityHash], priority: 1);
+			this.expressWithContext(sp, opStack: context ?? Array.new, nextTokens: symbols, depth: depth+1);
 		});
 	}
-	expressWithContext{|sp, opStack, nextTokens|
+	expressWithContext{|sp, opStack, nextTokens, depth=0|
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
-		var nextPhrase, nextStream;
-		nextPhrase = List.new;
-		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens), priority: 1);
+		var nextPhraseStack = List.new;
+		var nextPhraseTokens = List.new;
+		var nextStreams = Array.new;
+		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
 			case
 				{token.isKindOf(PSParen)} {
 					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens);
-					nextPhrase = List.new;
+					this.expressWithContext(sp, opStack ++ nextPhraseStack, token.tokens, depth: depth+1);
+					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
 				}
 				{token.isKindOf(PSWlist)} {
 					var next;
-					// Random branch.
+					// Random choice.
 					// choose one from this list.
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, next);
-					nextPhrase = List.new;
+					nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
+					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
+				}
+				{token.isKindOf(PSBranch)} {
+					var branches = Array.new;
+					// branch into parallel streams
+					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
+					token.branches.do({|nextTokens|
+						var branchpatt = this.asPattern(symbols: nextTokens, context:  opStack, depth: depth+1);
+						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
+						branches = branches.add(sp.par(
+							trace.if({Ptrace(branchpatt, prefix: \depth ++ depth)}, {branchpatt});
+						));
+					});
+					nextStreams = nextStreams ++ branches;
+					this.logger.log(tag: \okgohomenow, msgchunks: nextStreams, priority: 1);
+					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
 				}
 				{true} {
 					var patt, type;
@@ -126,27 +146,40 @@ PSProductionSystem {
 					type.switch(
 						\op, {
 							//accumulate ops
-							nextPhrase.add(patt);
-							this.logger.log(tag: \accumulation, msgchunks: nextPhrase, priority: 1);
+							nextPhraseStack.add(patt);
+							nextPhraseTokens.add(token);
+							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							this.logger.log(tag: \accumulation, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 						},
 						\event, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
-							nextPhrase.add(patt);
-							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
-							nextStream = sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)));
-							nextPhrase = List.new;
+							var squashedPat, wholecontext, nextbit;
+							nextPhraseStack.add(patt);
+							nextPhraseTokens.add(token);
+							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
+							wholecontext = (opStack ++ nextPhraseStack).asArray;
+							this.logger.log(tag: \application, msgchunks: [\ct] ++ nextPhraseTokens, priority: 1);
+							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
+							squashedPat = Pchain(*wholecontext);
+							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
+							nextbit = [sp.seq(squashedPat)];
+							nextPhraseStack = List.new;
+							nextPhraseTokens = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
-							//Do we really want rule application to implicitly group ops?
+							// Do we want rule application to implicitly group ops? it does ATM.
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							this.expressWithContext(sp, opStack ++ nextPhrase, patt);
-							nextPhrase = List.new;
+							nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
+							nextPhraseStack = List.new;
+							nextPhraseTokens = List.new;
 						}
 					);
 				};
 		});
+		^sp;
 	}
 
 	printOn { arg stream;
@@ -201,10 +234,8 @@ PSParen {
 }
 PSBranch {
 	//we use this to indicate that the list of branches here should be executed in parallel.
-	//not yet implemented.
 	var <branches;
 	*new {|...branches|
-		NotYetImplementedError("Branching doesn't work yet").throw;
 		^super.newCopyArgs(branches)
 	}
 }

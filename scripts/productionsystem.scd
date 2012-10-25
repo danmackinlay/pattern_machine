@@ -11,7 +11,9 @@ ps.putRule(\phrase, PSWlist(
 ps.putRule(\root, \phrase.dup(3));
 ~ps=ps;
 Ptrace(ps.root).play(TempoClock.new(3));
-);
+~steps = TestPS.expressPattern(ps.root);
+)
+~steps;
 ~ps.ruleMap;
 //Examples
 (
@@ -34,8 +36,30 @@ ps.putRule(\phrase, PSWlist(
 //Ptrace(Pn(Pfindur(4,~root),10)).play(TempoClock.new(3));
 //patt = Ptrace(Pn(Pfindur(4,ps.root),10));
 patt = Ptrace(ps.root,10);
-~notes = TestPS.expressSystem(patt);
+~steps = TestPS.expressPattern(patt);
+~patt=patt;
 )
-
+~patt.play;
+(
+var steps, ps, firstpair, lastpair;
+ps = PSProductionSystem.new(PostLogger.new);
+ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
+ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
+ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
+~ps=ps;
+~steps = TestPS.expressPattern(ps);
+//~firstpair = (~steps[0..1]).collect(_.note);
+//~lastpair = (~steps[2..3]).collect(_.note);
+)
+~steps[0];
+~ps.root.class.dumpInterface;
+~ps.root.asStream.nextN(100,Event.default);
+~ps.allStreams[0].next;
+~steps = TestPS.expressPattern(~ps);
+~steps[0..1]
+~steps.size;
+~ps.root.play;
+Pevent
 //Testing:
+UnitTest.runTest("TestPS:test_branching");
 TestPS.run;

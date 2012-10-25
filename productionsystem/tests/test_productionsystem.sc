@@ -1,9 +1,25 @@
 TestPS : UnitTest {
-	*expressPattern {|ps, defaultEv, limit=100|
-		var stream, steps;
+	*expressPattern {|ps, defaultEv, limit=100, suppressZeroRests=true|
+		var stream, accept, steps=Array.new;
+		defaultEv = defaultEv ? Event.default;
 		stream = ps.asStream;
-		steps = stream.nextN(limit, defaultEv ? Event.default);
+		steps = stream.nextN(limit*2, defaultEv.copy);
 		steps = steps.select(_.notNil);
+		accept = {|ev| true;};
+		//"acceptor" function for non-zero-length-rest events, which proliferate with branching
+		suppressZeroRests.if({
+			accept = {|ev|
+				(ev[\isRest] ? false).if(
+					{
+						(ev[\delta] == 0).if({false}, {true});
+					}, {
+						true
+					};
+				);
+			};
+		});
+		steps = steps.select(accept);
+		steps = steps[0..limit.min(steps.size)];
 		^steps;
 	}
 	assertAContainsB{|a,b|
@@ -44,9 +60,26 @@ TestPS : UnitTest {
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		steps = this.class.expressPattern(ps.asPattern(\halfSpeed, \bar, \bar));
+		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
 		this.assertEquals(steps.size, 2, "correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
 		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1));
+	}
+	test_branching {
+		var steps, ps, firstpair, lastpair;
+		ps = PSProductionSystem.new(NullLogger.new);
+		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
+		ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
+		ps.putAtom(\three, Pob(\note, 3, \delta, 1)) ;
+		ps.putAtom(\four, Pob(\note, 4, \delta, 1)) ;
+		ps.putRule(\root, PSBranch([\one, \three], [\two, \four]));
+		steps = this.class.expressPattern(ps);
+		this.assertEquals(steps.size, 4, "correct number of steps");
+		firstpair = (steps[0..1]).collect(_.note);
+		lastpair = (steps[2..3]).collect(_.note);
+		this.assert(firstpair.includes(1), "note 1 in first pair");
+		this.assert(firstpair.includes(2), "note 2 in first pair");
+		this.assert(lastpair.includes(3), "note 3 in last pair");
+		this.assert(lastpair.includes(4), "note 4 in last pair");
 	}
 }
