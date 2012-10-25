@@ -95,7 +95,7 @@ PSProductionSystem {
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
-		var nextPhrase, nextStreams;
+		var nextPhrase, nextStreams=Array.new;
 		nextPhrase = List.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
@@ -118,8 +118,8 @@ PSProductionSystem {
 				}
 				{token.isKindOf(PSBranch)} {
 					// branch into parallel streams
-					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.branches), priority: 1);
-					nextStreams = token.branches.collect({|nextTokens|
+					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
+					nextStreams = nextStreams ++ token.branches.collect({|nextTokens|
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
 						sp.par(
 							this.expressWithContext(sp, opStack, this.asPattern(*nextTokens));
@@ -145,21 +145,30 @@ PSProductionSystem {
 						\event, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
+							var squashedPat, listy;
 							nextPhrase.add(patt);
 							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
-							nextStreams = [sp.seq(Pchain(*((opStack ++ nextPhrase).asArray)))];
+							listy = (opStack ++ nextPhrase).asArray;
+							listy = [Pset(\depth, depth)] ++ listy;
+							([\listy] ++ listy).postln;
+							squashedPat = Ptrace(Pchain(*listy));
+							nextStreams = nextStreams ++ [sp.seq(squashedPat)];
+							([\nextStreamsEvent] ++ nextStreams).postln;
 							nextPhrase = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
 							//Do we really want rule application to implicitly group ops?
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							this.expressWithContext(sp, opStack ++ nextPhrase, patt);
+							([\ruled] ++ (this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1))).postln;
 							nextPhrase = List.new;
 						}
 					);
 				};
+			([\nextPhrase] ++nextPhrase).postln;
+			([\nextStreams]++nextStreams).postln;
 		});
+		^nextStreams;
 	}
 
 	printOn { arg stream;
