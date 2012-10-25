@@ -120,11 +120,13 @@ PSProductionSystem {
 					// branch into parallel streams
 					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.branches), priority: 1);
 					nextStreams = token.branches.collect({|nextTokens|
-						this.logger.log(tag: \branching, msgchunks: ([\chose] ++ nextTokens), priority: 1);
-						sp.par({
-							this.expressWithContext(sp, opStack, this.asPattern(nextTokens));
-						});
+						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
+						sp.par(
+							this.expressWithContext(sp, opStack, this.asPattern(*nextTokens));
+						);
+						this.logger.log(tag: \branched, msgchunks: (nextTokens), priority: 1);
 					});
+					this.logger.log(tag: \okgohomenow, msgchunks: [], priority: 1);
 					nextPhrase = List.new;
 				}
 				{true} {

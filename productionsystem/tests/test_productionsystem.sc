@@ -53,7 +53,7 @@ TestPS : UnitTest {
 		var steps, ps, firstpair, lastpair;
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
-		ps.putAtom(\one, Pob(\note, 2, \delta, 1)) ;
+		ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
 		ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "correct number of steps");
