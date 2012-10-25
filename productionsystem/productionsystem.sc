@@ -87,9 +87,8 @@ PSProductionSystem {
 	}
 	asPattern {|symbols, depth=0|
 		^Pspawner({ |sp|
-			var spawnlogger = this.logger ?? {NullLogger.new};
-			spawnlogger.log(tag: \asPattern, msgchunks: [symbols], priority: 1);
-			this.expressWithContext(sp, List.new, symbols);
+			this.logger.log(tag: \asPattern, msgchunks: symbols, priority: 1);
+			this.expressWithContext(sp, List.new, symbols, depth: depth+1);
 		});
 	}
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
@@ -223,7 +222,6 @@ PSParen {
 }
 PSBranch {
 	//we use this to indicate that the list of branches here should be executed in parallel.
-	//not yet implemented.
 	var <branches;
 	*new {|...branches|
 		^super.newCopyArgs(branches)
