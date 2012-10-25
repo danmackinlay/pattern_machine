@@ -44,7 +44,7 @@ TestPS : UnitTest {
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		steps = this.class.expressPattern(ps.asPattern(\halfSpeed, \bar, \bar));
+		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
 		this.assertEquals(steps.size, 2, "correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2));
 		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1));

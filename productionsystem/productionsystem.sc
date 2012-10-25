@@ -74,7 +74,7 @@ PSProductionSystem {
 		^({ ruleMap.at(name) } ?? { opMap.at(name) } ?? { atomMap.at(name) });
 	}
 	root{
-		^this.asPattern(rootSymbol);
+		^this.asPattern([rootSymbol]);
 	}
 	removeAt{|name|
 		ruleMap.removeAt(name);
@@ -85,25 +85,25 @@ PSProductionSystem {
 		ruleMap[ruleName] = tokens;
 		^this.asPattern(tokens);
 	}
-	asPattern {|...symbols|
+	asPattern {|symbols, depth=0|
 		^Pspawner({ |sp|
 			var spawnlogger = this.logger ?? {NullLogger.new};
 			spawnlogger.log(tag: \asPattern, msgchunks: [symbols], priority: 1);
 			this.expressWithContext(sp, List.new, symbols);
 		});
 	}
-	expressWithContext{|sp, opStack, nextTokens|
+	expressWithContext{|sp, opStack, nextTokens, depth=0|
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
 		var nextPhrase, nextStreams;
 		nextPhrase = List.new;
-		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens), priority: 1);
+		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
 			case
 				{token.isKindOf(PSParen)} {
 					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens);
+					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens, depth: depth+1);
 					nextPhrase = List.new;
 				}
 				{token.isKindOf(PSWlist)} {
