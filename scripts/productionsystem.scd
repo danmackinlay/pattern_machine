@@ -51,6 +51,6 @@ lastpair = (steps[2..3]).collect(_.note);
 ~steps = TestPS.expressPattern(~ps);
 ~steps[0..1]
 ~steps.size;
-
+~ps.root.play;
 //Testing:
 TestPS.run;

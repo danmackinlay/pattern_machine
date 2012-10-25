@@ -112,7 +112,7 @@ PSProductionSystem {
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, next);
+					this.expressWithContext(sp, opStack ++ nextPhrase, next, depth: depth+1);
 					nextPhrase = List.new;
 				}
 				{token.isKindOf(PSBranch)} {
@@ -120,10 +120,9 @@ PSProductionSystem {
 					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
 					nextStreams = nextStreams ++ token.branches.collect({|nextTokens|
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
-						sp.par(
-							this.expressWithContext(sp, opStack, this.asPattern(*nextTokens));
-						);
-						this.logger.log(tag: \branched, msgchunks: (nextTokens), priority: 1);
+						sp.par(Pspawner({|parsp|
+							this.expressWithContext(parsp, opStack, nextTokens, depth: depth+1);
+						}));
 					});
 					this.logger.log(tag: \okgohomenow, msgchunks: [], priority: 1);
 					nextPhrase = List.new;
