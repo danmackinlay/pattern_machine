@@ -47,10 +47,48 @@ ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
 //~firstpair = (~steps[0..1]).collect(_.note);
 //~lastpair = (~steps[2..3]).collect(_.note);
 )
-~ps;
+~ps.allStreams[0].next;
 ~steps = TestPS.expressPattern(~ps);
 ~steps[0..1]
 ~steps.size;
 ~ps.root.play;
+Pevent
+(
+~outer = Ptrace(Pspawner({|sp|
+	sp.par(Pob(\note, 2, \delta, 1));
+	sp.par(Pob(\note, 3, \delta, 1/2));
+}));
+~outer.play;
+)
+(
+~inner = Ptrace(Pspawner({|sp|
+	sp.seq(Pob(\note, 2, \delta, 1));
+	sp.seq(Pob(\note, 3, \delta, 1/2));
+}));
+~outer = Ptrace(Pspawner({|sp| 
+	sp.par(~inner);
+	sp.par(~inner);
+}));
+~outer.play;
+)
+(
+~inner1 = Ptrace(Pspawner({|sp|
+	sp.seq(Pob(\note, 1, \delta, 1));
+	sp.seq(Pob(\note, 5, \delta, 1/2));
+}));
+~inner2 = Ptrace(Pspawner({|sp|
+	sp.seq(Pob(\note, 2, \delta, 1));
+	sp.seq(Pob(\note, 3, \delta, 1/2));
+}));
+~outer = //Ptrace(
+  Pspawner({|sp|
+	sp.par(~inner2);
+	sp.par(~inner1);
+  })
+//)
+;
+~outer.play();
+)
+
 //Testing:
 TestPS.run;
