@@ -34,6 +34,7 @@ PSProductionSystem {
 	var <ruleMap;
 	var <opMap;
 	var <atomMap;
+	var <>trace;
 	var <allStreams;
 	var <>rootSymbol=\root;
 	/* Glossary:
@@ -42,12 +43,13 @@ PSProductionSystem {
 	Later, we might have StackOperations, or whatever you call L-systems brackets, and Kleene stars, and applications
 	*/
 	
-	*new{|logger, ruleMap, opMap, atomMap|
+	*new{|logger, ruleMap, opMap, atomMap, trace=false|
 		^super.newCopyArgs(
 			logger ?? {NullLogger.new},
 			ruleMap ?? {Environment.new},
 			opMap ?? {Environment.new},
 			atomMap ?? {Environment.new},
+			trace,
 			Array.new
 		);
 	}
@@ -125,7 +127,7 @@ PSProductionSystem {
 						var branchpatt = this.asPattern(symbols: nextTokens, context:  opStack, depth: depth+1);
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
 						branches = branches.add(sp.par(
-							Ptrace(branchpatt, prefix: \depth ++ depth)
+							trace.if({Ptrace(branchpatt, prefix: \depth ++ depth)}, {branchpatt});
 						));
 					});
 					nextStreams = nextStreams ++ branches;
@@ -155,7 +157,8 @@ PSProductionSystem {
 							listy = (opStack ++ nextPhrase).asArray;
 							//listy = [Pset(\depth, depth)] ++ listy;
 							([\listy] ++ listy).postln;
-							squashedPat = Ptrace(Pchain(*listy), prefix: \depth ++ depth);
+							squashedPat = Pchain(*listy);
+							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
 							[\squashedPat, squashedPat].postln;
 							nextbit = [sp.seq(squashedPat)];
 							nextStreams = nextStreams ++ nextbit;
