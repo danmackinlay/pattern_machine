@@ -156,28 +156,22 @@ PSProductionSystem {
 							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
 							listy = (opStack ++ nextPhrase).asArray;
 							//listy = [Pset(\depth, depth)] ++ listy;
-							([\listy] ++ listy).postln;
 							squashedPat = Pchain(*listy);
 							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
-							[\squashedPat, squashedPat].postln;
 							nextbit = [sp.seq(squashedPat)];
 							nextStreams = nextStreams ++ nextbit;
 							allStreams = allStreams ++ nextbit;
-							([\nextStreamsEvent] ++ nextStreams).postln;
 							nextPhrase = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
 							// Do we really want rule application to implicitly group ops?
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							([\ruled] ++ (this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1))).postln;
+							this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1);
 							nextPhrase = List.new;
 						}
 					);
 				};
-			([\nextPhrase] ++nextPhrase).postln;
-			([\nextStreams]++ nextStreams.collect({|st| [st, st.identityHash]})).postln;
-			([\allStreams]++ allStreams.collect({|st| [st, st.identityHash]})).postln;
 		});
 		^nextStreams;
 	}
