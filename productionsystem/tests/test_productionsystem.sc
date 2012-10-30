@@ -1,9 +1,13 @@
 TestPS : UnitTest {
 	*expressPattern {|ps, defaultEv, limit=100|
-		var stream, steps;
+		var next, stream, steps=Array.new;
 		stream = ps.asStream;
-		steps = stream.nextN(limit, defaultEv ? Event.default);
-		steps = steps.select(_.notNil);
+		next = (stream).next(Event.default.copy);
+		steps = steps.add(next);
+		{steps.size<100 && next.notNil}.while({
+			next = (stream).next(Event.default.copy);
+			steps = steps.add(next);
+		});
 		^steps;
 	}
 	assertAContainsB{|a,b|
