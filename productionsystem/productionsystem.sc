@@ -153,7 +153,7 @@ PSProductionSystem {
 							nextPhrase.add(patt);
 							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
 							listy = (opStack ++ nextPhrase).asArray;
-							listy = [Pset(\depth, depth)] ++ listy;
+							//listy = [Pset(\depth, depth)] ++ listy;
 							([\listy] ++ listy).postln;
 							squashedPat = Ptrace(Pchain(*listy), prefix: \depth ++ depth);
 							[\squashedPat, squashedPat].postln;
