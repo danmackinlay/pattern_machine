@@ -114,7 +114,7 @@ PSProductionSystem {
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, next, depth: depth+1);
+					nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhrase, next, depth: depth+1);
 					nextPhrase = List.new;
 				}
 				{token.isKindOf(PSBranch)} {
@@ -156,21 +156,19 @@ PSProductionSystem {
 							squashedPat = Pchain(*listy);
 							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
 							nextbit = [sp.seq(squashedPat)];
-							nextStreams = nextStreams ++ nextbit;
-							allStreams = allStreams ++ nextbit;
 							nextPhrase = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
-							// Do we really want rule application to implicitly group ops?
+							// Do we want rule application to implicitly group ops? it does ATM.
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1);
+							nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1);
 							nextPhrase = List.new;
 						}
 					);
 				};
 		});
-		^nextStreams;
+		^sp;
 	}
 
 	printOn { arg stream;
