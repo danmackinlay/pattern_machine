@@ -123,12 +123,7 @@ PSProductionSystem {
 					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
 					branches = token.branches.collect({|nextTokens|
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
-						sp.par(Pspawner({|parsp|
-							this.logger.log(tag: \branched, msgchunks: ([\ops] ++ opStack++ [\branch] ++ nextTokens ++ [\myspawner, parsp.identityHash]), priority: 1);
-							//this.expressWithContext(parsp, opStack.deepCopy, nextTokens, depth: depth+1);
-							this.expressWithContext(parsp, [], nextTokens, depth: depth+1);
-							//parsp.seq(Ptrace(Pfin(1, Pbind(\note, depth))));
-						}));
+						sp.par(this.asPattern(nextTokens, context:  opStack, depth: depth+1));
 					});
 					nextStreams = nextStreams ++ branches;
 					allStreams = allStreams ++ branches;
