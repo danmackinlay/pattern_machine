@@ -35,7 +35,6 @@ PSProductionSystem {
 	var <opMap;
 	var <atomMap;
 	var <>trace;
-	var <allStreams;
 	var <>rootSymbol=\root;
 	/* Glossary:
 	A Rule is a preterminal symbol.
@@ -49,8 +48,7 @@ PSProductionSystem {
 			ruleMap ?? {Environment.new},
 			opMap ?? {Environment.new},
 			atomMap ?? {Environment.new},
-			trace,
-			Array.new
+			trace
 		);
 	}
 	putAtom{|name, pattern|
@@ -131,7 +129,6 @@ PSProductionSystem {
 						));
 					});
 					nextStreams = nextStreams ++ branches;
-					allStreams = allStreams ++ branches;
 					this.logger.log(tag: \okgohomenow, msgchunks: nextStreams, priority: 1);
 					nextPhrase = List.new;
 				}
