@@ -1,12 +1,15 @@
 TestPS : UnitTest {
-	*expressPattern {|ps, defaultEv, limit=100, suppressZeroRests=true|
-		var next, stream, accept, steps=Array.new;
-		defaultEv = defaultEv ?? {Event.default};
+	*expressPattern {|ps, defaultEv, limit=100, suppressZeroRests=false|
+		var stream, accept, steps=Array.new;
+		defaultEv = defaultEv ? Event.default;
+		stream = ps.asStream;
+		steps = stream.nextN(limit*2, defaultEv.copy);
+		steps = steps.select(_.notNil);
+		/*
+		accept = {|ev| true;};
 		//"acceptor" function for non-zero-length-rest events, which proliferate with branching
-		accept = {|ev| ev.isEmpty.not;};
 		suppressZeroRests.if({
 			accept = {|ev|
-				ev.isEmpty.not &&
 				(ev[\isRest] ? false).if(
 					{
 						(ev[\delta] == 0).if({false}, {true});
@@ -16,12 +19,9 @@ TestPS : UnitTest {
 				);
 			};
 		});
-		stream = ps.asStream;
-		next = ();
-		{steps.size<100 && next.notNil}.while({
-			(accept.value(next)).if({steps = steps.add(next);});
-			next = (stream).next(defaultEv.copy);
-		});
+		steps = steps.select(accept);
+		*/
+		steps = steps[0..limit.min(steps.size)];
 		^steps;
 	}
 	assertAContainsB{|a,b|
