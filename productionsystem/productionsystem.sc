@@ -90,7 +90,7 @@ PSProductionSystem {
 	asPattern {|symbols, context, depth=0|
 		^Pspawner({ |sp|
 			this.logger.log(tag: \asPattern, msgchunks: symbols++ [\myspawner, sp.identityHash], priority: 1);
-			this.expressWithContext(sp, context ?? Array.new, symbols, depth: depth+1);
+			this.expressWithContext(sp, opStack: context ?? Array.new, nextTokens: symbols, depth: depth+1);
 		});
 	}
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
@@ -118,12 +118,15 @@ PSProductionSystem {
 					nextPhrase = List.new;
 				}
 				{token.isKindOf(PSBranch)} {
-					var branches;
+					var branches = Array.new;
 					// branch into parallel streams
 					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
-					branches = token.branches.collect({|nextTokens|
+					token.branches.do({|nextTokens|
+						var branchpatt = this.asPattern(symbols: nextTokens, context:  opStack, depth: depth+1);
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
-						sp.par(this.asPattern(nextTokens, context:  opStack, depth: depth+1));
+						branches = branches.add(sp.par(
+							Ptrace(branchpatt, prefix: \depth ++ depth)
+						));
 					});
 					nextStreams = nextStreams ++ branches;
 					allStreams = allStreams ++ branches;
@@ -152,7 +155,7 @@ PSProductionSystem {
 							listy = (opStack ++ nextPhrase).asArray;
 							listy = [Pset(\depth, depth)] ++ listy;
 							([\listy] ++ listy).postln;
-							squashedPat = Ptrace(Pchain(*listy));
+							squashedPat = Ptrace(Pchain(*listy), prefix: \depth ++ depth);
 							[\squashedPat, squashedPat].postln;
 							nextbit = [sp.seq(squashedPat)];
 							nextStreams = nextStreams ++ nextbit;

@@ -35,7 +35,9 @@ ps.putRule(\phrase, PSWlist(
 //patt = Ptrace(Pn(Pfindur(4,ps.root),10));
 patt = Ptrace(ps.root,10);
 ~notes = TestPS.expressPattern(patt);
+~patt=patt;
 )
+~patt.play;
 (
 var steps, ps, firstpair, lastpair;
 ps = PSProductionSystem.new(PostLogger.new);
@@ -47,6 +49,8 @@ ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
 //~firstpair = (~steps[0..1]).collect(_.note);
 //~lastpair = (~steps[2..3]).collect(_.note);
 )
+~ps.root.class.dumpInterface;
+~ps.root.asStream.next(Event.default);
 ~ps.allStreams[0].next;
 ~steps = TestPS.expressPattern(~ps);
 ~steps[0..1]
@@ -89,6 +93,34 @@ Pevent
 ;
 ~outer.play();
 )
+(
+~boss = ();
+~boss[\innermost] = Ptrace(Pspawner({|sp|
+	sp.seq(Pob(\note, 16, \delta, 1/4));
+	sp.seq(Pob(\note, 13, \delta, 1/4));
+	sp.seq(Pob(\note, 10, \delta, 1/4));
+	sp.seq(Pob(\note, 9, \delta, 1/4));
+}), prefix: \innermost);
+~boss[\inner1] = Ptrace(Pspawner({|sp|
+	sp.seq(Pob(\note, 0, \delta, 1));
+	sp.seq(Pob(\note, 5, \delta, 1));
+	sp.seq(~boss[\innermost]);
+}), prefix: \inner1);
+~boss[\inner2] = Ptrace(Pspawner({|sp|
+	sp.seq(Pob(\note, 3, \delta, 1));
+	sp.seq(Pob(\note, 2, \delta, 1/2));
+	sp.seq(~boss[\innermost]);
 
+}), prefix: \inner2);
+~boss[\outer] = Ptrace(
+	Pspawner({|sp|
+		~boss[\inner2].class.postln;
+		sp.par(~boss[\inner2]);
+		sp.par(~boss[\inner1]);
+	}),
+	prefix: \outer
+);
+~boss.[\outer].play();
+)
 //Testing:
 TestPS.run;
