@@ -51,13 +51,27 @@ ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
 //~firstpair = (~steps[0..1]).collect(_.note);
 //~lastpair = (~steps[2..3]).collect(_.note);
 )
+~steps[0];
 ~ps.root.class.dumpInterface;
-~ps.root.asStream.next(Event.default);
+~ps.root.asStream.nextN(100,Event.default);
 ~ps.allStreams[0].next;
 ~steps = TestPS.expressPattern(~ps);
 ~steps[0..1]
 ~steps.size;
 ~ps.root.play;
 Pevent
+//The broken bit
+(
+		var steps, ps = PSProductionSystem.new(PostLogger.new);
+		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
+		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		ps.putRule(\root, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]);
+		~steps = TestPS.expressPattern(ps);
+		~ps=ps;
+)
+~steps;
+~ps.root.asStream.nextN(5, Event.default);
+~ps.root.play;
 //Testing:
 TestPS.run;
+UnitTest.runTest("TestPS:test_op_association");
