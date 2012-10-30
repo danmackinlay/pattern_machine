@@ -34,6 +34,7 @@ PSProductionSystem {
 	var <ruleMap;
 	var <opMap;
 	var <atomMap;
+	var <allStreams;
 	var <>rootSymbol=\root;
 	/* Glossary:
 	A Rule is a preterminal symbol.
@@ -47,6 +48,7 @@ PSProductionSystem {
 			ruleMap ?? {Environment.new},
 			opMap ?? {Environment.new},
 			atomMap ?? {Environment.new},
+			Array.new
 		);
 	}
 	putAtom{|name, pattern|
@@ -85,17 +87,17 @@ PSProductionSystem {
 		ruleMap[ruleName] = tokens;
 		^this.asPattern(tokens);
 	}
-	asPattern {|symbols, depth=0|
+	asPattern {|symbols, context, depth=0|
 		^Pspawner({ |sp|
-			this.logger.log(tag: \asPattern, msgchunks: symbols, priority: 1);
-			this.expressWithContext(sp, List.new, symbols, depth: depth+1);
+			this.logger.log(tag: \asPattern, msgchunks: symbols++ [\myspawner, sp.identityHash], priority: 1);
+			this.expressWithContext(sp, context ?? Array.new, symbols, depth: depth+1);
 		});
 	}
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
-		var nextPhrase, nextStreams=Array.new;
-		nextPhrase = List.new;
+		var nextPhrase = Array.new;
+		var nextStreams = Array.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
 			case
@@ -116,15 +118,21 @@ PSProductionSystem {
 					nextPhrase = List.new;
 				}
 				{token.isKindOf(PSBranch)} {
+					var branches;
 					// branch into parallel streams
 					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
-					nextStreams = nextStreams ++ token.branches.collect({|nextTokens|
+					branches = token.branches.collect({|nextTokens|
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
 						sp.par(Pspawner({|parsp|
-							this.expressWithContext(parsp, opStack, nextTokens, depth: depth+1);
+							this.logger.log(tag: \branched, msgchunks: ([\ops] ++ opStack++ [\branch] ++ nextTokens ++ [\myspawner, parsp.identityHash]), priority: 1);
+							//this.expressWithContext(parsp, opStack.deepCopy, nextTokens, depth: depth+1);
+							this.expressWithContext(parsp, [], nextTokens, depth: depth+1);
+							//parsp.seq(Ptrace(Pfin(1, Pbind(\note, depth))));
 						}));
 					});
-					this.logger.log(tag: \okgohomenow, msgchunks: [], priority: 1);
+					nextStreams = nextStreams ++ branches;
+					allStreams = allStreams ++ branches;
+					this.logger.log(tag: \okgohomenow, msgchunks: nextStreams, priority: 1);
 					nextPhrase = List.new;
 				}
 				{true} {
@@ -143,20 +151,23 @@ PSProductionSystem {
 						\event, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
-							var squashedPat, listy;
+							var squashedPat, listy, nextbit;
 							nextPhrase.add(patt);
 							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
 							listy = (opStack ++ nextPhrase).asArray;
 							listy = [Pset(\depth, depth)] ++ listy;
 							([\listy] ++ listy).postln;
 							squashedPat = Ptrace(Pchain(*listy));
-							nextStreams = nextStreams ++ [sp.seq(squashedPat)];
+							[\squashedPat, squashedPat].postln;
+							nextbit = [sp.seq(squashedPat)];
+							nextStreams = nextStreams ++ nextbit;
+							allStreams = allStreams ++ nextbit;
 							([\nextStreamsEvent] ++ nextStreams).postln;
 							nextPhrase = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
-							//Do we really want rule application to implicitly group ops?
+							// Do we really want rule application to implicitly group ops?
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
 							([\ruled] ++ (this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1))).postln;
 							nextPhrase = List.new;
@@ -164,7 +175,8 @@ PSProductionSystem {
 					);
 				};
 			([\nextPhrase] ++nextPhrase).postln;
-			([\nextStreams]++nextStreams).postln;
+			([\nextStreams]++ nextStreams.collect({|st| [st, st.identityHash]})).postln;
+			([\allStreams]++ allStreams.collect({|st| [st, st.identityHash]})).postln;
 		});
 		^nextStreams;
 	}

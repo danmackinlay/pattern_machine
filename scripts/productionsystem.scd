@@ -43,9 +43,9 @@ ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
 ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
 ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
 ~ps=ps;
-steps = TestPS.expressPattern(ps);
-firstpair = (steps[0..1]).collect(_.note);
-lastpair = (steps[2..3]).collect(_.note);
+~steps = TestPS.expressPattern(ps);
+//~firstpair = (~steps[0..1]).collect(_.note);
+//~lastpair = (~steps[2..3]).collect(_.note);
 )
 ~ps;
 ~steps = TestPS.expressPattern(~ps);
