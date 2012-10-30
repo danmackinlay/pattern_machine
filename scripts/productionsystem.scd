@@ -11,7 +11,9 @@ ps.putRule(\phrase, PSWlist(
 ps.putRule(\root, \phrase.dup(3));
 ~ps=ps;
 Ptrace(ps.root).play(TempoClock.new(3));
-);
+~steps = TestPS.expressPattern(ps.root);
+)
+~steps;
 ~ps.ruleMap;
 //Examples
 (
@@ -34,7 +36,7 @@ ps.putRule(\phrase, PSWlist(
 //Ptrace(Pn(Pfindur(4,~root),10)).play(TempoClock.new(3));
 //patt = Ptrace(Pn(Pfindur(4,ps.root),10));
 patt = Ptrace(ps.root,10);
-~notes = TestPS.expressPattern(patt);
+~steps = TestPS.expressPattern(patt);
 ~patt=patt;
 )
 ~patt.play;
