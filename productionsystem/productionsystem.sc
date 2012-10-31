@@ -96,7 +96,7 @@ PSProductionSystem {
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
-		var nextPhrase = Array.new;
+		var nextPhraseStack = List.new;
 		var nextStreams = Array.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
@@ -104,8 +104,8 @@ PSProductionSystem {
 				{token.isKindOf(PSParen)} {
 					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhrase, token.tokens, depth: depth+1);
-					nextPhrase = List.new;
+					this.expressWithContext(sp, opStack ++ nextPhraseStack, token.tokens, depth: depth+1);
+					nextPhraseStack = List.new;
 				}
 				{token.isKindOf(PSWlist)} {
 					var next;
@@ -114,8 +114,8 @@ PSProductionSystem {
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhrase, next, depth: depth+1);
-					nextPhrase = List.new;
+					nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
+					nextPhraseStack = List.new;
 				}
 				{token.isKindOf(PSBranch)} {
 					var branches = Array.new;
@@ -130,7 +130,7 @@ PSProductionSystem {
 					});
 					nextStreams = nextStreams ++ branches;
 					this.logger.log(tag: \okgohomenow, msgchunks: nextStreams, priority: 1);
-					nextPhrase = List.new;
+					nextPhraseStack = List.new;
 				}
 				{true} {
 					var patt, type;
@@ -142,28 +142,28 @@ PSProductionSystem {
 					type.switch(
 						\op, {
 							//accumulate ops
-							nextPhrase.add(patt);
-							this.logger.log(tag: \accumulation, msgchunks: nextPhrase, priority: 1);
+							nextPhraseStack.add(patt);
+							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
 						},
 						\event, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
-							var squashedPat, listy, nextbit;
-							nextPhrase.add(patt);
-							this.logger.log(tag: \application, msgchunks: nextPhrase, priority: 1);
-							listy = (opStack ++ nextPhrase).asArray;
-							//listy = [Pset(\depth, depth)] ++ listy;
-							squashedPat = Pchain(*listy);
+							var squashedPat, wholecontext, nextbit;
+							nextPhraseStack.add(patt);
+							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							wholecontext = (opStack ++ nextPhraseStack).asArray;
+							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
+							squashedPat = Pchain(*wholecontext);
 							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
 							nextbit = [sp.seq(squashedPat)];
-							nextPhrase = List.new;
+							nextPhraseStack = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
 							// Do we want rule application to implicitly group ops? it does ATM.
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhrase, patt, depth: depth+1);
-							nextPhrase = List.new;
+							nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
+							nextPhraseStack = List.new;
 						}
 					);
 				};
