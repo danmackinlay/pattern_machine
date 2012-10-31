@@ -97,6 +97,7 @@ PSProductionSystem {
 		//Here is the symbol parsing state-machine.
 		//opStack content is applied to all symbols
 		var nextPhraseStack = List.new;
+		var nextPhraseTokens = List.new;
 		var nextStreams = Array.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
@@ -106,6 +107,7 @@ PSProductionSystem {
 					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
 					this.expressWithContext(sp, opStack ++ nextPhraseStack, token.tokens, depth: depth+1);
 					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
 				}
 				{token.isKindOf(PSWlist)} {
 					var next;
@@ -116,6 +118,7 @@ PSProductionSystem {
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
 					nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
 					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
 				}
 				{token.isKindOf(PSBranch)} {
 					var branches = Array.new;
@@ -131,6 +134,7 @@ PSProductionSystem {
 					nextStreams = nextStreams ++ branches;
 					this.logger.log(tag: \okgohomenow, msgchunks: nextStreams, priority: 1);
 					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
 				}
 				{true} {
 					var patt, type;
@@ -143,20 +147,26 @@ PSProductionSystem {
 						\op, {
 							//accumulate ops
 							nextPhraseStack.add(patt);
+							nextPhraseTokens.add(token);
 							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							this.logger.log(tag: \accumulation, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 						},
 						\event, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
 							var squashedPat, wholecontext, nextbit;
 							nextPhraseStack.add(patt);
+							nextPhraseTokens.add(token);
 							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 							wholecontext = (opStack ++ nextPhraseStack).asArray;
+							this.logger.log(tag: \application, msgchunks: [\ct] ++ nextPhraseTokens, priority: 1);
 							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
 							squashedPat = Pchain(*wholecontext);
 							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
 							nextbit = [sp.seq(squashedPat)];
 							nextPhraseStack = List.new;
+							nextPhraseTokens = List.new;
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
@@ -164,6 +174,7 @@ PSProductionSystem {
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
 							nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
 							nextPhraseStack = List.new;
+							nextPhraseTokens = List.new;
 						}
 					);
 				};
