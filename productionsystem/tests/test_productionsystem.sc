@@ -70,14 +70,16 @@ TestPS : UnitTest {
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
 		ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
-		ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
+		ps.putAtom(\three, Pob(\note, 3, \delta, 1)) ;
+		ps.putAtom(\four, Pob(\note, 4, \delta, 1)) ;
+		ps.putRule(\root, PSBranch([\one, \three], [\two, \four]));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "correct number of steps");
 		firstpair = (steps[0..1]).collect(_.note);
 		lastpair = (steps[2..3]).collect(_.note);
-		this.assert(firstpair.includes(1));
-		this.assert(firstpair.includes(2));
-		this.assert(lastpair.includes(1));
-		this.assert(lastpair.includes(2));
+		this.assert(firstpair.includes(1), "note 1 in first pair");
+		this.assert(firstpair.includes(2), "note 2 in first pair");
+		this.assert(lastpair.includes(3), "note 3 in last pair");
+		this.assert(lastpair.includes(4), "note 4 in last pair");
 	}
 }
