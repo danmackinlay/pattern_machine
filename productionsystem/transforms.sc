@@ -2,6 +2,7 @@ Transform : AbstractFunction {
 	//Abstract transform class. Exists for ease of detecting straight transforms
 	//We require these to be deterministic, side-effect free, and possessed only of one (non-init-time)
 	//argument, i.e. be unary.
+	// We presume them to be linear too.
 	//This makes them compose nicely.
 	//Should this subclass UnaryOpFunction?
 	//Should these compose using FunctionLists?
