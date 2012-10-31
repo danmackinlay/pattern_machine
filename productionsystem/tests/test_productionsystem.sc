@@ -1,11 +1,10 @@
 TestPS : UnitTest {
-	*expressPattern {|ps, defaultEv, limit=100, suppressZeroRests=false|
+	*expressPattern {|ps, defaultEv, limit=100, suppressZeroRests=true|
 		var stream, accept, steps=Array.new;
 		defaultEv = defaultEv ? Event.default;
 		stream = ps.asStream;
 		steps = stream.nextN(limit*2, defaultEv.copy);
 		steps = steps.select(_.notNil);
-		/*
 		accept = {|ev| true;};
 		//"acceptor" function for non-zero-length-rest events, which proliferate with branching
 		suppressZeroRests.if({
@@ -20,7 +19,6 @@ TestPS : UnitTest {
 			};
 		});
 		steps = steps.select(accept);
-		*/
 		steps = steps[0..limit.min(steps.size)];
 		^steps;
 	}
