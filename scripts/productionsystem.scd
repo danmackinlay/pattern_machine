@@ -60,18 +60,6 @@ ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
 ~steps.size;
 ~ps.root.play;
 Pevent
-//The broken bit
-(
-		var steps, ps = PSProductionSystem.new(PostLogger.new);
-		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]);
-		~steps = TestPS.expressPattern(ps);
-		~ps=ps;
-)
-~steps;
-~ps.root.asStream.nextN(5, Event.default);
-~ps.root.play;
 //Testing:
+UnitTest.runTest("TestPS:test_branching");
 TestPS.run;
-UnitTest.runTest("TestPS:test_op_association");
