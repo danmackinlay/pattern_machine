@@ -37,4 +37,76 @@ TestAffine1 : UnitTest {
 			);
 		})
 	}
+	test_addition {
+		3.do({
+			var a, b, c, trans1, trans2;
+			# a, b, c = 3.collect({10.rand2});
+			trans1 = Affine1(a, b);
+			trans2 = trans1 + c;
+			this.assertEquals(
+				trans1.mul,
+				trans2.mul,
+				"%.mul==(%+%).mul==%".format(trans1,trans1,c,trans1.mul)
+			);
+			this.assertEquals(
+				trans1.add + c,
+				trans2.add,
+				"%.add+%==(%+%).add==%".format(trans1,c,trans1,c,trans1.add+c)
+			);
+		})
+	}
+	test_subtraction {
+		2.do({
+			var a, b, c, trans1, trans2;
+			# a, b, c = 3.collect({10.rand2});
+			trans1 = Affine1(a, b);
+			trans2 = trans1 - c;
+			this.assertEquals(
+				trans1.mul,
+				trans2.mul,
+				"%.mul==(%-%).mul==%".format(trans1,trans1,c,trans1.mul)
+			);
+			this.assertEquals(
+				trans1.add - c,
+				trans2.add,
+				"%.add-%==(%-%).add==%".format(trans1,c,trans1,c,trans1.add-c)
+			);
+		})
+	}
+	test_multiplication {
+		2.do({
+			var a, b, c, trans1, trans2;
+			# a, b, c = 3.collect({10.rand2});
+			trans1 = Affine1(a, b);
+			trans2 = trans1 * c;
+			this.assertEquals(
+				trans1.mul*c,
+				trans2.mul,
+				"%.mul*%==(%*%).mul==%".format(trans1,c,trans1,c,trans2.mul)
+			);
+			this.assertEquals(
+				trans1.add * c,
+				trans2.add,
+				"%.add*%==(%*%).add==%".format(trans1,c,trans1,c,trans2.add)
+			);
+		})
+	}
+	test_division {
+		2.do({
+			var a, b, c, trans1, trans2;
+			# a, b, c = 3.collect({10.rand + 1});
+			trans1 = Affine1(a, b);
+			trans2 = trans1 / c;
+			this.assertFloatEquals(
+				trans1.mul/c,
+				trans2.mul,
+				"%.mul/%==(%/%).mul==%".format(trans1,c,trans1,c,trans2.mul)
+			);
+			this.assertFloatEquals(
+				trans1.add / c,
+				trans2.add,
+				"%.add/%==(%/%).add==%".format(trans1,c,trans1,c,trans2.add)
+			);
+		})
+	}
 }
