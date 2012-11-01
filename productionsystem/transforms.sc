@@ -26,9 +26,10 @@ Affine1 : Transform {
 				stream << "(%x+%)".format(mul, add);
 			}
 		)
-	}
-	
+	}	
 	storeArgs { ^[add, mul] }
+	hash { ^([this.class.name] ++ this.storeArgs).hash }
+	== {|other| ^((other.storeArgs == this.storeArgs) && (this.class==other.class))}
 	/*
 	composeBinaryOp { arg aSelector, something, adverb;
 		^BinaryOpFunction.new(aSelector, this, something, adverb);
