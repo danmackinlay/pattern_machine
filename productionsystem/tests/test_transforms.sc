@@ -8,14 +8,24 @@ TestAffine1 : UnitTest {
 		})
 	}
 	test_affaff_equality {
-			var a, b, trans1, trans2;
+			var a, b, trans1, trans2, trans3, trans4;
 			# a, b = 2.collect({10.rand2});
 			trans1 = Affine1(a, b);
 			trans2 = Affine1(a, b);
+			trans3 = Affine1(a+1, b);
+			trans4 = Affine1(a+1, b+1);
 			this.assertEquals(
 				trans1,
 				trans2,
 				"Two Affines are equal if their params are: %==%".format(trans1,trans2)
+			);
+			this.assert(
+				trans1 != trans3,
+				"Two Affines are unequal if their params are: %==%".format(trans1,trans2)
+			);
+			this.assert(
+				trans1 != trans4,
+				"Two Affines are unequal if their params are: %==%".format(trans1,trans2)
 			);
 	}
 	test_affaff_composition {
