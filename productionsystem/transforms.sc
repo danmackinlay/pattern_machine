@@ -20,7 +20,12 @@ Affine1 : Transform {
 	value{|in| ^((in * mul) + add)}
 	
 	printOn { arg stream;
-		stream << "((_*%)+%)".format(mul, add);
+		(add==0).if({
+				stream << "(%x)".format(mul);
+			}, {
+				stream << "(%x+%)".format(mul, add);
+			}
+		)
 	}
 	
 	storeArgs { ^[add, mul] }
@@ -33,11 +38,11 @@ Affine1 : Transform {
 	}
 	*/
 	composeAffine1{|otherMul=1, otherAdd=0|
-		//creates a new Affine1 equivalent to applying this one on the left to the other on the right
+		//creates a new Affine1 equivalent to applying the other one on the left to this on the right
 		^this.class.new(mul*otherMul, (otherMul*add)+otherAdd)
 	}
 	reverseComposeAffine1{|otherMul=1, otherAdd=0|
-		//creates a new Affine1 equivalent to applying the other one on the left to this on the right
+		//creates a new Affine1 equivalent to applying this one on the left to the other on the right
 		^this.class.new(mul*otherMul, (mul*otherAdd)+add)
 	}
 	neg { ^this.composeAffine1(-1) }
