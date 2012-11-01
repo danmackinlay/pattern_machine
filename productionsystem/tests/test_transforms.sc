@@ -28,12 +28,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul,
 				trans2.mul.neg,
-				"%.mul==%.neg.mul.neg==%".format(trans1,trans1,trans1.mul)
+				"%.mul==%.neg==%".format(trans1,trans2,trans1.mul)
 			);
 			this.assertEquals(
 				trans1.add,
 				trans2.add.neg,
-				"%.add==%.neg.add.neg==%".format(trans1,trans1,trans1.add)
+				"%.add==%.neg==%".format(trans1,trans2,trans1.add)
 			);
 		})
 	}
@@ -46,12 +46,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul,
 				trans2.mul,
-				"%.mul==(%+%).mul==%".format(trans1,trans1,c,trans1.mul)
+				"%.mul==(%).mul==%".format(trans1,trans2,trans1.mul)
 			);
 			this.assertEquals(
 				trans1.add + c,
 				trans2.add,
-				"%.add+%==(%+%).add==%".format(trans1,c,trans1,c,trans1.add+c)
+				"%.add+%==(%).add==%".format(trans1,c,trans2,trans1.add+c)
 			);
 		})
 	}
@@ -64,12 +64,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul,
 				trans2.mul,
-				"%.mul==(%-%).mul==%".format(trans1,trans1,c,trans1.mul)
+				"%.mul==(%).mul==%".format(trans1,trans2,trans1.mul)
 			);
 			this.assertEquals(
 				trans1.add - c,
 				trans2.add,
-				"%.add-%==(%-%).add==%".format(trans1,c,trans1,c,trans1.add-c)
+				"%.add-%==(%).add==%".format(trans1,c,trans2,trans1.add-c)
 			);
 		})
 	}
@@ -82,12 +82,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul*c,
 				trans2.mul,
-				"%.mul*%==(%*%).mul==%".format(trans1,c,trans1,c,trans2.mul)
+				"%.mul*%==%.mul==%".format(trans1,c,trans2,trans2.mul)
 			);
 			this.assertEquals(
 				trans1.add * c,
 				trans2.add,
-				"%.add*%==(%*%).add==%".format(trans1,c,trans1,c,trans2.add)
+				"%.add*%==%.add==%".format(trans1,c,trans2,trans2.add)
 			);
 		})
 	}
@@ -100,12 +100,12 @@ TestAffine1 : UnitTest {
 			this.assertFloatEquals(
 				trans1.mul/c,
 				trans2.mul,
-				"%.mul/%==(%/%).mul==%".format(trans1,c,trans1,c,trans2.mul)
+				"%.mul/%==%.mul==%".format(trans1,c,trans2,trans2.mul)
 			);
 			this.assertFloatEquals(
 				trans1.add / c,
 				trans2.add,
-				"%.add/%==(%/%).add==%".format(trans1,c,trans1,c,trans2.add)
+				"%.add/%==%.add==%".format(trans1,c,trans2,trans2.add)
 			);
 		})
 	}
