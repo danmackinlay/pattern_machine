@@ -239,3 +239,20 @@ PSBranch {
 		^super.newCopyArgs(branches)
 	}
 }
+PSStar {
+	//A generalised Kleene star, accepting limits.
+	//We use this to indicate that previous phrase should be repeated
+	// To be well-defined this must have finite limits
+	var <min, <max;
+	*new {|min=0, max=4|
+		^super.newCopyArgs(min, max);
+	}
+}
+PSExpStar {
+	//A generalised Kleene star, with exponential decay, accepting a mean.
+	//We use this to indicate that previous phrase should be repeated
+	var <chanceofStop;
+	*new {|mean|
+		^super.newCopyArgs(mean.reciprocal);
+	}
+}
