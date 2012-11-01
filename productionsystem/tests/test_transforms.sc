@@ -17,6 +17,23 @@ TestAffine1 : UnitTest {
 				"%==%".format(trans1,trans2)
 			);
 	}
+	test_affaff_composition {
+		5.do({
+			var a, b, c, d, x, ycomp, yapp, trans1, trans2, transcomp, transapp;
+			# a, b, c, d, x = 5.collect({10.rand2});
+			trans1 = Affine1(a, b);
+			trans2 = Affine1(c, d);
+			transcomp = trans1 <> trans2;
+			transapp = {|in| trans1.(trans2.(in))};
+			ycomp = transcomp.(x);
+			yapp = transapp.(x);
+			this.assertEquals(
+				yapp,
+				ycomp,
+				"%.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapp)
+			);
+		})
+	}
 	test_negation {
 		3.do({
 			var a, b, trans1, trans2;
