@@ -1,4 +1,4 @@
-TestPSEventOperator : UnitTest {
+TestPSEventOperator : TestPSPattern {
 	test_OperatorCreationShortcuts {
 		var createdNewFilled, createdNewFrom, createdNewEmpty;
 		createdNewFrom = PSEventOperator.newFrom((a:1, b:2));
@@ -71,7 +71,7 @@ TestPSEventOperator : UnitTest {
 	}
 }
 
-TestPOp : UnitTest {
+TestPOp : TestPSPattern {
 	test_op_equality {
 		var pop1, pop2, trans1, trans2;
 		trans1 = _+1;

@@ -1,8 +1,8 @@
-TestPS : UnitTest {
-	*expressPattern {|ps, defaultEv, limit=100, suppressZeroRests=true|
+TestPSPattern : UnitTest {
+	*expressPattern {|patt, defaultEv, limit=100, suppressZeroRests=true|
 		var stream, accept, steps=Array.new;
 		defaultEv = defaultEv ? Event.default;
-		stream = ps.asStream;
+		stream = patt.asStream;
 		steps = stream.nextN(limit*2, defaultEv.copy);
 		steps = steps.select(_.notNil);
 		accept = {|ev| true;};
@@ -31,6 +31,8 @@ TestPS : UnitTest {
 			this.assertEquals(aval, bval, "key % equal in both (%=%)".format(key, aval, bval));
 		});
 	}
+}
+TestPS : TestPSPattern {
 	test_op_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
