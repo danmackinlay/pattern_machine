@@ -86,5 +86,41 @@ POp : Pbind {
 	hash { ^([this.class.name] ++ this.storeArgs).hash }
 	== {|that| 
 		^(this.class==that.class) && (this.storeArgs == that.storeArgs)
-	}	
+	}
+	embedInStream { arg inevent;
+		var event;
+		var sawNil = false;
+		var streampairs = patternpairs.copy;
+		var endval = streampairs.size - 1;
+
+		forBy (1, endval, 2) { arg i;
+			streampairs.put(i, streampairs[i].asStream);
+		};
+
+		loop {
+			if (inevent.isNil) { ^nil.yield };
+			event = inevent.copy;
+			forBy (0, endval, 2) { arg i;
+				var name = streampairs[i];
+				var transform = streampairs[i+1];
+				var inval = event[name];
+				var transformed = transform.value(inval);
+				//at this point, Pbind handles multichannel expansion. Should I?
+				/*
+				if (name.isSequenceableCollection) {
+					if (name.size > transformed.size) {
+						("the pattern is not providing enough values to assign to the key set:" + name).warn;
+						^inevent
+					};
+					name.do { arg key, i;
+						event.put(key, transformed[i]);
+					};
+				}{*/
+					event.put(name, transformed);
+				/*};*/
+
+			};
+			inevent = event.yield;
+		}
+	}
 }

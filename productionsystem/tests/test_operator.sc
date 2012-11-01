@@ -97,7 +97,15 @@ TestPOp : TestPSPattern {
 			pop1!=pop2,
 			"POps that are the different compare so: %!=%".format(pop1,pop2)
 		);
-		
+	}
+	test_basic_application {
+		var op, ev, patt, steps;
+		op=POp(\delta, Affine1(2,1));
+		ev=Pob(\note,1,\delta,2);
+		patt = op <> ev;
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 1, "correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 5));
 	}
 	/*test_OperatorOperatorApply {
 		var left,right,target,combined,testnums;
