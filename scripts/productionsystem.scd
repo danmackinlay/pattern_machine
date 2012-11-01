@@ -30,7 +30,6 @@ ps.putRule(\phrase, PSWlist(
 	1, [\upFifth, \phrase],
 	2, [\riff],
 ));
-~root = ps.putRule(\root, \phrase.dup(3));
 //We want to have this pattern restart every bar, but the Pfindur pattern does not compose, I think.
 //this feels a little unsatisfactory
 //Ptrace(Pn(Pfindur(4,~root),10)).play(TempoClock.new(3));
@@ -40,26 +39,10 @@ patt = Ptrace(ps.root,10);
 ~patt=patt;
 )
 ~patt.play;
-(
-var steps, ps, firstpair, lastpair;
-ps = PSProductionSystem.new(PostLogger.new);
-ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
-ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
-ps.putRule(\root, PSBranch([\one, \one], [\two, \two]));
-~ps=ps;
-~steps = TestPS.expressPattern(ps);
-//~firstpair = (~steps[0..1]).collect(_.note);
-//~lastpair = (~steps[2..3]).collect(_.note);
-)
-~steps[0];
-~ps.root.class.dumpInterface;
-~ps.root.asStream.nextN(100,Event.default);
-~ps.allStreams[0].next;
-~steps = TestPS.expressPattern(~ps);
-~steps[0..1]
-~steps.size;
-~ps.root.play;
-Pevent
+~steps = TestPSPattern.expressPattern(~patt);
+
 //Testing:
-UnitTest.runTest("TestPS:test_branching");
+TestAffine1.run;
+TestPOp.run;
 TestPS.run;
+UnitTest.runTest("TestPS:test_branching");
