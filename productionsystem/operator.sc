@@ -79,19 +79,20 @@ PSEventOperator : IdentityDictionary {
 }
 
 POp : Pattern {
-	var <opDict;
-	*new {|...listOfPairs|
-		if (pairs.size.odd, { Error("Pbind should have even number of args.\n").throw; });
-		^super.newCopyArgs(Event.newFrom(listOfPairs));
+	//closely cribbed from Pbind, but more convenient for fn application
+	var <patternpairs;
+	*new {|...patternpairs|
+		if (patternpairs.size.odd, { Error("Pbind should have even number of args.\n").throw; });
+		^super.newCopyArgs(patternpairs);
 	}
 	printOn { arg stream;
-		stream << "%%".format(this.class, opDict);
+		stream << "%(%)".format(this.class, patternpairs.join(","));
 	}	
-	storeArgs { ^[opDict] }
+	storeArgs { ^patternpairs }
 	hash { ^([this.class.name] ++ this.storeArgs).hash }
 	== {|that| 
 		//compare only opDict, because that is simple, and,
 		// compare it as a pairs array, because Dictionary comparison ignores keys.
-		^(this.class==that.class) && ((opDict.getPairs) == (that.opDict.getPairs))
+		^(this.class==that.class) && (this.storeArgs == that.storeArgs)
 	}
 }
