@@ -107,54 +107,15 @@ TestPOp : TestPSPattern {
 		this.assertEquals(steps.size, 1, "correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 5));
 	}
-	/*test_OperatorOperatorApply {
-		var left,right,target,combined,testnums;
-		left = POp.newFrom((
-			a: _*3,
-			b: _*2
-		));
-		right = POp.newFrom((
-			b: _+1,
-			c: _*2
-		));
-		combined = left.applyTo(right);
-		target = POp.newFrom((
-			a: _*3,
-			b: {|i| (i+1)*2},
-			c: _*2
-		));
-		testnums=[-1, 0, 0.1, 9.5];
-		testnums.do({|n|
-			[\a,\b,\c].do({|key|
-				this.assertFloatEquals(
-					combined.at(key).value(n),
-					target.at(key).value(n),
-					//"failure of Operator-Operator composition at key:\n\t" + key + "\nwith test input:\n\t"+n
-				);
-			});
-		});
+	test_basic_composition {
+		var op1, op2, ev, patt, steps;
+		op1=POp(\delta, Affine1(2,1), \note, Affine1(1,1));
+		op2=POp(\delta, Affine1(3,1), \dur, Affine1(2,2));
+		ev=Pob(\note,1,\delta,2,\dur, 3);
+		patt = op1 <> op2;
+		patt = patt <> ev;
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 1, "correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 2, 'delta': 15, 'dur': 8));
 	}
-	test_OperatorEventApply {
-		var left,right,target,combined;
-		left = POp.newFrom((
-			a: _*3,
-			b: _+2
-		));
-		right = (
-			b: 2.5,
-			c: 3.25
-		);
-		combined = left.applyTo(right);
-		target = POp.newFrom((
-			b: 4.5,
-			c: 3.25
-		));
-		[\a,\b,\c].do({|key|
-			this.assertEquals(
-				combined.at(key),
-				target.at(key),
-				//"failure of Operator-Event composition at key:\n\t" + key + "\nwith test input:\n\t"+n
-			);
-		});
-		}*/
 }

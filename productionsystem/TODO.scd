@@ -9,4 +9,5 @@
    * this is implicit at the moment, actually, since transforms are applied whenever one hits an Event or Rule, then the stack is cleared.
    	 * FunctionList looks like it's designed for precisely this.
  * Stochastic factories, producing Affine transforms (or, more conveniently, POps) to desired specs
+ * Refactor POp to us a dict internally, since I end up casting to it all the time anyway.
  */

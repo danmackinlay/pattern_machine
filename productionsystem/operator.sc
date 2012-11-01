@@ -123,4 +123,27 @@ POp : Pbind {
 			inevent = event.yield;
 		}
 	}
+	at{|...args|
+		^Event.newFrom(patternpairs).at(*args)
+	}
+	// compose POps
+	<> { arg that;
+		^(that.isKindOf(this.class).not).if(
+			{
+				//This is the implementation from Pattern
+				//am not sure how to call super with weird method names like <>
+				Pchain(this, that)
+			}, {
+				//First, copy 'im.
+				var composedPOp = Event.newFrom(that.patternpairs);
+				//now, compose all sub operations
+				patternpairs.pairsDo({|key, transform|
+					var intransform = composedPOp.at(key);
+					var composedTransform = transform <> (intransform ?? {Affine1(1)});
+					composedPOp.put(key, composedTransform);
+				});
+				that.class.new(*(composedPOp.getPairs.flat));
+			}
+		);
+	}
 }
