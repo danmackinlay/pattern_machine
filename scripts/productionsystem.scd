@@ -31,7 +31,7 @@ ps.putRule(\phrase, PSWlist(
 	2, [\riff],
 ));
 ~root = ps.putRule(\root, \phrase.dup(3));
-//We want to have this pattern restart every bar, but the Pfindur pattern does not compose; it take a pattern as an argument; thus it is imposed from outside;
+//We want to have this pattern restart every bar, but the Pfindur pattern does not compose, I think.
 //this feels a little unsatisfactory
 //Ptrace(Pn(Pfindur(4,~root),10)).play(TempoClock.new(3));
 //patt = Ptrace(Pn(Pfindur(4,ps.root),10));
