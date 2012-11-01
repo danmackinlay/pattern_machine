@@ -15,7 +15,7 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1,
 				trans2,
-				"%==%".format(trans1,trans2)
+				"Two Affines are equal if their params are: %==%".format(trans1,trans2)
 			);
 	}
 	test_affaff_composition {
@@ -53,7 +53,7 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				yapp,
 				ycomp,
-				"%.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapp)
+				"Affine transforms produce correct result when composed with others: %.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapp)
 			);
 			transcomprev = trans1 <> trans2;
 			transapprev = {|in| trans1.(trans2.(in))};
@@ -75,12 +75,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul,
 				trans2.mul.neg,
-				"%.mul==%.neg==%".format(trans1,trans2,trans1.mul)
+				"Affine transforms closed under negation: %.mul==%.neg==%".format(trans1,trans2,trans1.mul)
 			);
 			this.assertEquals(
 				trans1.add,
 				trans2.add.neg,
-				"%.add==%.neg==%".format(trans1,trans2,trans1.add)
+				"Affine transforms closed under negation: %.add==%.neg==%".format(trans1,trans2,trans1.add)
 			);
 		})
 	}
@@ -93,12 +93,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul,
 				trans2.mul,
-				"%.mul==(%).mul==%".format(trans1,trans2,trans1.mul)
+				"Affine transforms closed under scalar addition: %.mul==(%).mul==%".format(trans1,trans2,trans1.mul)
 			);
 			this.assertEquals(
 				trans1.add + c,
 				trans2.add,
-				"%.add+%==(%).add==%".format(trans1,c,trans2,trans1.add+c)
+				"Affine transforms closed under scalar addition: %.add+%==(%).add==%".format(trans1,c,trans2,trans1.add+c)
 			);
 		})
 	}
@@ -111,12 +111,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul,
 				trans2.mul,
-				"%.mul==(%).mul==%".format(trans1,trans2,trans1.mul)
+				"Affine transforms closed under scalar subtraction: %.mul==(%).mul==%".format(trans1,trans2,trans1.mul)
 			);
 			this.assertEquals(
 				trans1.add - c,
 				trans2.add,
-				"%.add-%==(%).add==%".format(trans1,c,trans2,trans1.add-c)
+				"Affine transforms closed under scalar subtraction: %.add-%==(%).add==%".format(trans1,c,trans2,trans1.add-c)
 			);
 		})
 	}
@@ -129,12 +129,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				trans1.mul*c,
 				trans2.mul,
-				"%.mul*%==%.mul==%".format(trans1,c,trans2,trans2.mul)
+				"Affine transforms closed under scalar multiplication: %.mul*%==%.mul==%".format(trans1,c,trans2,trans2.mul)
 			);
 			this.assertEquals(
 				trans1.add * c,
 				trans2.add,
-				"%.add*%==%.add==%".format(trans1,c,trans2,trans2.add)
+				"Affine transforms closed under scalar multiplication: %.add*%==%.add==%".format(trans1,c,trans2,trans2.add)
 			);
 		})
 	}
@@ -147,12 +147,12 @@ TestAffine1 : UnitTest {
 			this.assertFloatEquals(
 				trans1.mul/c,
 				trans2.mul,
-				"%.mul/%==%.mul==%".format(trans1,c,trans2,trans2.mul)
+				"Affine transforms closed under scalar division: %.mul/%==%.mul==%".format(trans1,c,trans2,trans2.mul)
 			);
 			this.assertFloatEquals(
 				trans1.add / c,
 				trans2.add,
-				"%.add/%==%.add==%".format(trans1,c,trans2,trans2.add)
+				"Affine transforms closed under scalar division: %.add/%==%.add==%".format(trans1,c,trans2,trans2.add)
 			);
 		})
 	}
