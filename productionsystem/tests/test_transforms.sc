@@ -1,4 +1,5 @@
 TestAffine1 : UnitTest {
+	var randomReps = 2;
 	test_application {
 		[[-1,0,1,10],[-3,0,3],[-5,0,5]].allTuples(12).do({|abc|
 			var a, b, c;
@@ -18,7 +19,7 @@ TestAffine1 : UnitTest {
 			);
 	}
 	test_affaff_composition {
-		5.do({
+		randomReps.do({
 			var a, b, c, d, x, ycomp, yapp, trans1, trans2, transcomp, transapp;
 			# a, b, c, d, x = 5.collect({10.rand2});
 			trans1 = Affine1(a, b);
@@ -40,7 +41,7 @@ TestAffine1 : UnitTest {
 		})
 	}
 	test_affother_composition {
-		5.do({
+		randomReps.do({
 			var a, b, c, d, x, trans1, trans2, ycomp, yapp, transcomp, transapp, ycomprev, yapprev, transcomprev, transapprev;
 			# a, b, c, d, x = 5.collect({10.rand2});
 			trans1 = Affine1(a, b);
@@ -61,12 +62,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				yapprev,
 				ycomprev,
-				"%.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapprev)
+				"Affine transforms produce correct result when composed with others, backwards: %.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapprev)
 			);
 		})
 	}
 	test_negation {
-		3.do({
+		randomReps.do({
 			var a, b, trans1, trans2;
 			# a, b = 2.collect({10.rand2});
 			trans1 = Affine1(a, b);
@@ -84,7 +85,7 @@ TestAffine1 : UnitTest {
 		})
 	}
 	test_addition {
-		3.do({
+		randomReps.do({
 			var a, b, c, trans1, trans2;
 			# a, b, c = 3.collect({10.rand2});
 			trans1 = Affine1(a, b);
@@ -102,7 +103,7 @@ TestAffine1 : UnitTest {
 		})
 	}
 	test_subtraction {
-		2.do({
+		randomReps.do({
 			var a, b, c, trans1, trans2;
 			# a, b, c = 3.collect({10.rand2});
 			trans1 = Affine1(a, b);
@@ -120,7 +121,7 @@ TestAffine1 : UnitTest {
 		})
 	}
 	test_multiplication {
-		2.do({
+		randomReps.do({
 			var a, b, c, trans1, trans2;
 			# a, b, c = 3.collect({10.rand2});
 			trans1 = Affine1(a, b);
@@ -138,7 +139,7 @@ TestAffine1 : UnitTest {
 		})
 	}
 	test_division {
-		2.do({
+		randomReps.do({
 			var a, b, c, trans1, trans2;
 			# a, b, c = 3.collect({10.rand + 1});
 			trans1 = Affine1(a, b);
