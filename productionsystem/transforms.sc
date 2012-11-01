@@ -27,37 +27,43 @@ Affine1 : Transform {
 			}
 		)
 	}	
-	storeArgs { ^[add, mul] }
+	storeArgs { ^[mul, add] }
 	hash { ^([this.class.name] ++ this.storeArgs).hash }
 	== {|other| ^((other.storeArgs == this.storeArgs) && (this.class==other.class))}
-	/*
-	composeBinaryOp { arg aSelector, something, adverb;
-		^BinaryOpFunction.new(aSelector, this, something, adverb);
+	
+	<> { arg that;
+		^(that.isKindOf(this.class)).if(
+			{
+				this.reverseComposeAffineFromArgs(*(that.storeArgs))
+			}, {
+				//This is the implementation from AbstractFunction
+				//am not sure how to call super with weird method names like <>
+				{|...args| 
+					this.value(that.value(*args))
+				}
+			}
+		);
 	}
-	reverseComposeBinaryOp { arg aSelector, something, adverb;
-		^BinaryOpFunction.new(aSelector, something, this, adverb);
-	}
-	*/
-	composeAffine1{|otherMul=1, otherAdd=0|
+	composeAffineFromArgs{|otherMul=1, otherAdd=0|
 		//creates a new Affine1 equivalent to applying the other one on the left to this on the right
 		^this.class.new(mul*otherMul, (otherMul*add)+otherAdd)
 	}
-	reverseComposeAffine1{|otherMul=1, otherAdd=0|
+	reverseComposeAffineFromArgs{|otherMul=1, otherAdd=0|
 		//creates a new Affine1 equivalent to applying this one on the left to the other on the right
 		^this.class.new(mul*otherMul, (mul*otherAdd)+add)
 	}
-	neg { ^this.composeAffine1(-1) }
+	neg { ^this.composeAffineFromArgs(-1) }
 	
 	+ { arg other, adverb;
 		^other.isKindOf(Number).if({
-			this.composeAffine1(1, other)
+			this.composeAffineFromArgs(1, other)
 		},{
 			this.composeBinaryOp('-', other, adverb)
 		})
 	}
 	- { arg other, adverb;
 		^other.isKindOf(Number).if({
-			this.composeAffine1(1, other.neg)
+			this.composeAffineFromArgs(1, other.neg)
 		},{
 			this.composeBinaryOp('-', other, adverb)
 		})
@@ -65,14 +71,14 @@ Affine1 : Transform {
 	
 	* { arg other, adverb;
 		^other.isKindOf(Number).if({
-			this.composeAffine1(other, 0)
+			this.composeAffineFromArgs(other, 0)
 		},{
 			this.composeBinaryOp('-', other, adverb)
 		})
 	}
 	/ { arg other, adverb;
 		^other.isKindOf(Number).if({
-			this.composeAffine1(other.reciprocal, 0)
+			this.composeAffineFromArgs(other.reciprocal, 0)
 		},{
 			this.composeBinaryOp('-', other, adverb)
 		})

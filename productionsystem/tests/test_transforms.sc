@@ -30,7 +30,12 @@ TestAffine1 : UnitTest {
 			this.assertEquals(
 				yapp,
 				ycomp,
-				"%.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapp)
+				"Affine transforms composed are the same as applied: %<>%.(%)==%.(%)==%".format(trans1,trans2,x,transcomp,x,yapp)
+			);
+			this.assertEquals(
+				transcomp.class,
+				trans1.class,
+				"Affine transforms closed under composition: %.class(==%)==%.class(==%)".format(transcomp,transcomp.class,trans1,trans1.class)
 			);
 		})
 	}
