@@ -34,6 +34,32 @@ TestAffine1 : UnitTest {
 			);
 		})
 	}
+	test_affother_composition {
+		5.do({
+			var a, b, c, d, x, trans1, trans2, ycomp, yapp, transcomp, transapp, ycomprev, yapprev, transcomprev, transapprev;
+			# a, b, c, d, x = 5.collect({10.rand2});
+			trans1 = Affine1(a, b);
+			trans2 = (c*_ + d);
+			transcomp = trans2 <> trans1;
+			transapp = {|in| trans2.(trans1.(in))};
+			ycomp = transcomp.(x);
+			yapp = transapp.(x);
+			this.assertEquals(
+				yapp,
+				ycomp,
+				"%.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapp)
+			);
+			transcomprev = trans1 <> trans2;
+			transapprev = {|in| trans1.(trans2.(in))};
+			ycomprev = transcomprev.(x);
+			yapprev = transapprev.(x);
+			this.assertEquals(
+				yapprev,
+				ycomprev,
+				"%.(%.(%))==%<>%.(%)==%".format(trans1,trans2,x,trans1,trans2,x, yapprev)
+			);
+		})
+	}
 	test_negation {
 		3.do({
 			var a, b, trans1, trans2;
