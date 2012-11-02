@@ -30,11 +30,11 @@ TestAffine1 : UnitTest {
 			);
 			this.assert(
 				trans1 != trans3,
-				"Two Affines are unequal if their params are: %==%".format(trans1,trans2)
+				"Two Affines are unequal if their params are: %==%".format(trans1,trans3)
 			);
 			this.assert(
 				trans1 != trans4,
-				"Two Affines are unequal if their params are: %==%".format(trans1,trans2)
+				"Two Affines are unequal if their params are: %==%".format(trans1,trans4)
 			);
 	}
 	test_affaff_composition {
