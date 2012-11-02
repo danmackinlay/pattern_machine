@@ -19,6 +19,7 @@ ps.putRule(\phrase, PSWlist(
 //patt = Ptrace(Pn(Pfindur(4,ps.root),10));
 patt = Ptrace(ps.root,10);
 ~steps = TestPS.expressPattern(patt);
+~steps.postln;
 ~patt=patt;
 )
 ~patt.play;
@@ -27,5 +28,5 @@ patt = Ptrace(ps.root,10);
 ////Testing:
 TestAffine1.run;
 TestPOp.run;
-TestPS.run;
 UnitTest.runTest("TestPS:test_branching");
+TestPS.run;
