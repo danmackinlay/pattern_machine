@@ -25,7 +25,7 @@ PoRest {
 	//(events embed perpetually per default.)
 	//note events with better defaults, or an event subclass,
 	// might be able to avoid that
-	*new { arg ... pairs;
-		^Pfin(1, Rest(*pairs))
+	*new { arg dur;
+		^Pfin(1, Rest(dur))
 	}
 }
