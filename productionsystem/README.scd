@@ -1,5 +1,18 @@
-/*************
- * TODO
+/*************************
+ * PS Production System
+ *************************
+ 
+Multidimensional time-bound grammars for your pleasure and diversion.
+ 
+ Gotchas
+ *************
+
+Event and Rests and Pbinds with constants in the values, per default, embed infinitely often.
+That is not what we usually want here.
+Pobind and PoRest are convenient classes that embed a Pbind or a Rest JUST ONCE.
+
+ 
+ TODO
  *************
 
  * Use my lovely POp class's ability to collapse

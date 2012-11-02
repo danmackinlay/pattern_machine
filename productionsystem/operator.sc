@@ -2,7 +2,7 @@
 A POp is a normal pattern, but it composes nicely, for ease of legibility.
 It covers the special case where you would like to have a pattern than applies unary
 operations on the values of keys in the incoming stream.
-Approximately, Pob(\delta, 2*_) is the same as Pbind(\delta, 2*Pkey(\delta))
+Approximately, Pobind(\delta, 2*_) is the same as Pbind(\delta, 2*Pkey(\delta))
 */
 POp : Pbind {
 	//closely cribbed from Pbind, but more convenient for fn application

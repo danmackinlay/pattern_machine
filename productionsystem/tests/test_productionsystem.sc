@@ -34,10 +34,21 @@ TestPSPattern : UnitTest {
 	}
 }
 TestPS : TestPSPattern {
+	test_long_rules {
+		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
+		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
+		ps.putRule(\root, \halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar);
+		steps = this.class.expressPattern(ps);
+		this.assertEquals(steps.size, 3, "Op/Atom association: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Op/Atom association");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Op/Atom association");
+		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4), "Op/Atom association");
+	}
 	test_op_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, \halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 3, "Op/Atom association: correct number of steps");
@@ -48,7 +59,7 @@ TestPS : TestPSPattern {
 	test_parens {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, 
 			\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar);
 		steps = this.class.expressPattern(ps);
@@ -60,7 +71,7 @@ TestPS : TestPSPattern {
 	}
 	test_stars {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
-		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
+		ps.putAtom(\one, Pobind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, PSStarN(4, \one));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Kleene stars: correct number of steps");
@@ -73,7 +84,7 @@ TestPS : TestPSPattern {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
 		this.assertEquals(steps.size, 2, "Arbitrary symbols in asPattern: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Arbitrary symbols in asPattern");
@@ -82,10 +93,10 @@ TestPS : TestPSPattern {
 	test_branching {
 		var steps, ps, firstpair, lastpair;
 		ps = PSProductionSystem.new(NullLogger.new);
-		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
-		ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
-		ps.putAtom(\three, Pob(\note, 3, \delta, 1)) ;
-		ps.putAtom(\four, Pob(\note, 4, \delta, 1)) ;
+		ps.putAtom(\one, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\two, Pobind(\note, 2, \delta, 1)) ;
+		ps.putAtom(\three, Pobind(\note, 3, \delta, 1)) ;
+		ps.putAtom(\four, Pobind(\note, 4, \delta, 1)) ;
 		ps.putRule(\root, PSBranch([\one, \three], [\two, \four]));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Branching: correct number of steps");
@@ -100,7 +111,7 @@ TestPS : TestPSPattern {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, {Pbind(\delta, Pkey(\delta) * 2)}) ;
-		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
 		this.assertEquals(steps.size, 2, "Callable terminals: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Callable terminals");
@@ -109,7 +120,7 @@ TestPS : TestPSPattern {
 	test_callable_tokens_in_rules {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
-		ps.putAtom(\note, Pob(\note, 1, \delta, 1));
+		ps.putAtom(\note, Pobind(\note, 1, \delta, 1));
 		ps.putRule(\root, \note, {\note}, \note);
 		steps = this.class.expressPattern(ps.root);
 		this.assertEquals(steps.size, 3, "Callable tokens: correct number of steps");

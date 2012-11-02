@@ -28,7 +28,7 @@ TestPOp : TestPSPattern {
 	test_basic_application {
 		var op, ev, patt, steps;
 		op=POp(\delta, Affine1(2,1));
-		ev=Pob(\note,1,\delta,2);
+		ev=Pobind(\note,1,\delta,2);
 		patt = op <> ev;
 		steps = this.class.expressPattern(patt);
 		this.assertEquals(steps.size, 1, "correct number of steps");
@@ -38,7 +38,7 @@ TestPOp : TestPSPattern {
 		var op1, op2, ev, patt, steps;
 		op1=POp(\delta, Affine1(2,1), \note, Affine1(1,1));
 		op2=POp(\delta, Affine1(3,1), \dur, Affine1(2,2));
-		ev=Pob(\note,1,\delta,2,\dur, 3);
+		ev=Pobind(\note,1,\delta,2,\dur, 3);
 		patt = op1 <> op2;
 		patt = patt <> ev;
 		steps = this.class.expressPattern(patt);
