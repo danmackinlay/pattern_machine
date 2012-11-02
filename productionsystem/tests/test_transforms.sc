@@ -7,6 +7,15 @@ TestAffine1 : UnitTest {
 			this.assertEquals(Affine1(a, b).value(c), (c*a)+b, "Affine1(%,%).value(%)==(%*%)+%".format(a,b,c,c,a,b));
 		})
 	}
+	test_nilsafe {
+		this.assertEquals(Affine1(1, 2).value(nil), nil, "Affine1(1,2).value(nil)==nil (no Exception thrown)");
+		{
+			var tmp=Affine1(1, 2,nilSafe:false).value(nil);
+			this.assert(false, "Affine1 is nilSafe when it shouldn't be");
+		}.try({|err|
+			this.assert(true, "Affine1 is not nilSafe when it shouldn't be, as desired");
+		});
+	}
 	test_affaff_equality {
 			var a, b, trans1, trans2, trans3, trans4;
 			# a, b = 2.collect({10.rand2});
