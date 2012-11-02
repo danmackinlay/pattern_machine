@@ -57,6 +57,17 @@ TestPS : TestPSPattern {
 		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4));
 		this.assertAContainsB(steps[3], ('note': 1, 'delta': 1));
 	}
+	test_stars {
+		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
+		ps.putRule(\root, [PSStarN(4, \one)]);
+		steps = this.class.expressPattern(ps);
+		this.assertEquals(steps.size, 4, "correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1));
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1));
+		this.assertAContainsB(steps[2], ('note': 1, 'delta': 1));
+		this.assertAContainsB(steps[3], ('note': 1, 'delta': 1));
+	}
 	test_arbitrary_symbols {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);

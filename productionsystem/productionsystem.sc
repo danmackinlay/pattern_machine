@@ -136,6 +136,16 @@ PSProductionSystem {
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
 				}
+				{token.isKindOf(PSStar)} {
+					// repeat this stream for a while
+					this.logger.log(tag: \star, msgchunks: ([\ops] ++ opStack++ [\star] ++ token), priority: 1);
+					token.iterator.do({|next, i|
+						this.logger.log(tag: \starring, msgchunks: [i]++next, priority: 1);
+						nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth);
+					});
+					nextPhraseStack = List.new;
+					nextPhraseTokens = List.new;
+				}
 				{true} {
 					var patt, type;
 					//default case.
@@ -241,20 +251,79 @@ PSBranch {
 		^super.newCopyArgs(branches)
 	}
 }
+//Kleene stars and things inspired by them. Syntactic sugar to handle repetition without duplicating things manually.
 PSStar {
-	//A generalised Kleene star, accepting limits.
-	//We use this to indicate that previous phrase should be repeated
-	// To be well-defined this must have finite limits
-	var <min, <max;
-	*new {|min=0, max=4|
-		^super.newCopyArgs(min, max);
+	//A Kleene star, repeating something forever.
+	var <tokens;
+	*new {|...tokens|
+		^super.newCopyArgs(tokens);
+	}
+	iterator {
+		^Routine({
+			loop {
+				tokens.yield;
+			}
+		});
 	}
 }
-PSExpStar {
-	//A generalised Kleene star, with exponential decay, accepting a mean.
-	//We use this to indicate that previous phrase should be repeated
-	var <chanceofStop;
-	*new {|mean|
-		^super.newCopyArgs(mean.reciprocal);
+PSStarN : PSStar {
+	//A Kleene star, repeating something N times.
+	var <n;
+	*new {|n ...tokens|
+		^super.newCopyArgs(tokens, n);
+	}
+	iterator {
+		^Routine({
+			n.do({
+				tokens.yield;
+			})
+		});
+	}
+}
+PSStarRange : PSStar {
+	//A Kleene star, accepting limits.
+	// To be well-defined this must have finite limits
+	var <min, <max;
+	*new {|min=0, max=4 ...tokens|
+		^super.newCopyArgs(tokens, min, max);
+	}
+	iterator {
+		^Routine({
+			rrand(min,max).do({
+				tokens.yield;
+			});
+		});
+	}
+}
+PSStarGeom : PSStar {
+	//A Kleene star, with geometric (i.e. unbounded) distribution, accepting a mean.
+	//
+	var <chanceofRepeat;
+	*new {|mean ...tokens|
+		^super.newCopyArgs(tokens, 1-(mean.reciprocal));
+	}
+	iterator {
+		^Routine({
+			({chanceofRepeat.coin}).while({
+				tokens.yield
+			});
+		});
+	}
+}
+PSStarGen : PSStar {
+	//A generalised Kleene star, accepting an arbitray distribution of repetitions.
+	var <rng;
+	*new {|rng ...tokens|
+		^super.newCopyArgs(tokens, rng);
+	}
+	value {
+		^tokens.dup(rng.value)
+	}
+	iterator {
+		^Routine({
+			rng.value.do({
+				tokens.yield;
+			});
+		});
 	}
 }
