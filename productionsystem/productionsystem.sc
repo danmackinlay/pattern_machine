@@ -1,8 +1,6 @@
 /*
  * OK, the proxyspace stuff is overkill at the moment,
- but I think that I still need to be able to look up things lazily. 
- This could happen in the makeRule thing, in which case it would need to output
- rules with the dynamic lookup thing baked in.
+ but I think that I still need to be able to look up things lazily.
  
  Two approaches to rule management:
  1) symbols in a dict
@@ -23,10 +21,8 @@
  * Easy references to undefined rules
  
  Vices of 2:
- * Silly debugging and reference business because that is how proxyspace rolls
- 
- maybe this should mirror the interface of a Dictionary a little more closely?
- 
+ * Tedious and painful debugging of confusing code structures because that is how the oddball world of proxyspace rolls
+  
  */
 
 PSProductionSystem {
@@ -199,7 +195,7 @@ PSProductionSystem {
 
 	printOn { arg stream;
 		stream << this.class.asString <<"(" ;
-		stream << "preterminals: [";
+		stream << "rules: [";
 		ruleMap.associationsDo({|i|
 			stream << i << ", "
 		});
@@ -209,7 +205,7 @@ PSProductionSystem {
 			stream << i << ", "
 		});
 		stream << "], ";
-		stream << "events:";
+		stream << "atoms:";
 		atomMap.associationsDo({|i|
 			stream << i << ", "
 		});
