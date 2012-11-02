@@ -38,7 +38,7 @@ TestPS : TestPSPattern {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, [\halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar]);
+		ps.putRule(\root, \halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 3, "Op/Atom association: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Op/Atom association");
@@ -50,7 +50,7 @@ TestPS : TestPSPattern {
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, 
-			[\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar]);
+			\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Parentheses: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Parentheses");
@@ -61,7 +61,7 @@ TestPS : TestPSPattern {
 	test_stars {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putAtom(\one, Pob(\note, 1, \delta, 1)) ;
-		ps.putRule(\root, [PSStarN(4, \one)]);
+		ps.putRule(\root, PSStarN(4, \one));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Kleene stars: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1), "Kleene stars");
@@ -86,7 +86,7 @@ TestPS : TestPSPattern {
 		ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
 		ps.putAtom(\three, Pob(\note, 3, \delta, 1)) ;
 		ps.putAtom(\four, Pob(\note, 4, \delta, 1)) ;
-		ps.putRule(\root, [PSBranch([\one, \three], [\two, \four])]);
+		ps.putRule(\root, PSBranch([\one, \three], [\two, \four]));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Branching: correct number of steps");
 		firstpair = (steps[0..1]).collect(_.note);
@@ -110,7 +110,7 @@ TestPS : TestPSPattern {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putAtom(\note, Pob(\note, 1, \delta, 1));
-		ps.putRule(\root, [\note, {\note}, \note]);
+		ps.putRule(\root, \note, {\note}, \note);
 		steps = this.class.expressPattern(ps.root);
 		this.assertEquals(steps.size, 3, "Callable tokens: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1), "Callable tokens");

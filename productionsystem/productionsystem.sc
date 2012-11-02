@@ -49,14 +49,13 @@ PSProductionSystem {
 	}
 	putAtom{|name, pattern|
 		atomMap.put(name, pattern);
-		//For symmetry with putRule, we return the pattern
-		^pattern;
 	}
 	putOp{|name, pattern|
 		//should we be checking for duplicate symbols here?
 		opMap.put(name, pattern);
-		//For symmetry with putRule, we return the pattern
-		^pattern;
+	}
+	putRule {|ruleName ...tokens|
+		ruleMap[ruleName] = tokens;
 	}
 	tokenValueAndType{|name|
 		//this throws an error for not found
@@ -78,10 +77,6 @@ PSProductionSystem {
 		ruleMap.removeAt(name);
 		opMap.removeAt(name);
 		atomMap.removeAt(name);
-	}
-	putRule {|ruleName, tokens|
-		ruleMap[ruleName] = tokens;
-		^this.asPattern(tokens);
 	}
 	asPattern {|symbols, context, depth=0|
 		^Pspawner({ |sp|
