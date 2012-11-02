@@ -62,7 +62,7 @@ PSProductionSystem {
 		//For symmetry with putRule, we return the pattern
 		^pattern;
 	}
-	patternTypeBySymbol{|name|
+	tokenValueAndType{|name|
 		//this throws an error for not found
 		var found = case 
 			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
@@ -101,6 +101,10 @@ PSProductionSystem {
 		var nextStreams = Array.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
+			//secret bonus feature: you can pass in callables.
+			this.logger.log(tag: \token, msgchunks: [\before, token], priority: 1);
+			token = token.value;
+			this.logger.log(tag: \token, msgchunks: [\after, token], priority: 1);
 			case
 				{token.isKindOf(PSParen)} {
 					//Parenthetical list of tokens that should share a transform stack
@@ -151,8 +155,12 @@ PSProductionSystem {
 					//default case.
 					//standard symbol token, to be expanded.
 					//accumulate Ops until we hit an event then express it.
-					# patt, type = this.patternTypeBySymbol(token);
 					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
+					# patt, type = this.tokenValueAndType(token);
+					//secret bonus feature: you can pass in callables.
+					this.logger.log(tag: \patt, msgchunks: [\before, patt], priority: 1);
+					patt = patt.value;
+					this.logger.log(tag: \patt, msgchunks: [\after, patt], priority: 1);
 					type.switch(
 						\op, {
 							//accumulate ops

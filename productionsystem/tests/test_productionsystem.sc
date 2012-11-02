@@ -86,7 +86,7 @@ TestPS : TestPSPattern {
 		ps.putAtom(\two, Pob(\note, 2, \delta, 1)) ;
 		ps.putAtom(\three, Pob(\note, 3, \delta, 1)) ;
 		ps.putAtom(\four, Pob(\note, 4, \delta, 1)) ;
-		ps.putRule(\root, PSBranch([\one, \three], [\two, \four]));
+		ps.putRule(\root, [PSBranch([\one, \three], [\two, \four])]);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Branching: correct number of steps");
 		firstpair = (steps[0..1]).collect(_.note);
@@ -96,4 +96,26 @@ TestPS : TestPSPattern {
 		this.assert(lastpair.includes(3), "Branching: note 3 in last pair");
 		this.assert(lastpair.includes(4), "Branching: note 4 in last pair");
 	}
+	test_callable_terminals {
+		var steps, ps;
+		ps = PSProductionSystem.new(NullLogger.new);
+		ps.putOp(\halfSpeed, {Pbind(\delta, Pkey(\delta) * 2)}) ;
+		ps.putAtom(\bar, Pob(\note, 1, \delta, 1)) ;
+		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
+		this.assertEquals(steps.size, 2, "Callable terminals: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Callable terminals");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Callable terminals");
+	}
+	test_callable_tokens_in_rules {
+		var steps, ps;
+		ps = PSProductionSystem.new(NullLogger.new);
+		ps.putAtom(\note, Pob(\note, 1, \delta, 1));
+		ps.putRule(\root, [\note, {\note}, \note]);
+		steps = this.class.expressPattern(ps.root);
+		this.assertEquals(steps.size, 3, "Callable tokens: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1), "Callable tokens");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Callable tokens");
+		this.assertAContainsB(steps[2], ('note': 1, 'delta': 1), "Callable tokens");
+	}
+	
 }
