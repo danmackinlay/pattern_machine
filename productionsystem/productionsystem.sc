@@ -98,7 +98,6 @@ PSProductionSystem {
 		//opStack content is applied to all symbols
 		var nextPhraseStack = List.new;
 		var nextPhraseTokens = List.new;
-		var nextStreams = Array.new;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
 		nextTokens.do({|token|
 			//secret bonus feature: you can pass in callables.
@@ -120,7 +119,7 @@ PSProductionSystem {
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
+					this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
 				}
@@ -135,8 +134,6 @@ PSProductionSystem {
 							trace.if({Ptrace(branchpatt, prefix: \depth ++ depth)}, {branchpatt});
 						));
 					});
-					nextStreams = nextStreams ++ branches;
-					this.logger.log(tag: \okgohomenow, msgchunks: nextStreams, priority: 1);
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
 				}
@@ -145,7 +142,7 @@ PSProductionSystem {
 					this.logger.log(tag: \star, msgchunks: ([\ops] ++ opStack++ [\star] ++ token), priority: 1);
 					token.iterator.do({|next, i|
 						this.logger.log(tag: \starring, msgchunks: [i]++next, priority: 1);
-						nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth);
+						this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth);
 					});
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
@@ -190,7 +187,7 @@ PSProductionSystem {
 							// A rule. Expand it and recurse.
 							// Do we want rule application to implicitly group ops? it does ATM.
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							nextStreams = nextStreams ++ this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
+							this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
 							nextPhraseStack = List.new;
 							nextPhraseTokens = List.new;
 						}
