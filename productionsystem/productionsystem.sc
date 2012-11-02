@@ -219,8 +219,9 @@ PSProductionSystem {
 }
 //// These are all just processing tokens.
 // They are not designed to have general use outside of PSProductionSystem state machines.
+
 PSWlist {
-	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSParen
+	//Choose a random sub-option at this point.
 	var <weights;
 	var <expressions;
 	*new {|...weightedList|
@@ -252,6 +253,7 @@ PSBranch {
 	}
 }
 //Kleene stars and things inspired by them. Syntactic sugar to handle repetition without duplicating things manually.
+
 PSStar {
 	//A Kleene star, repeating something forever.
 	var <tokens;
