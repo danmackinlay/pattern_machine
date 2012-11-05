@@ -205,7 +205,7 @@ PSProductionSystem {
 			stream << i << ", "
 		});
 		stream << "], ";
-		stream << "atoms:";
+		stream << "atoms: [";
 		atomMap.associationsDo({|i|
 			stream << i << ", "
 		});
@@ -238,12 +238,26 @@ PSWlist {
 	choose {
 		^expressions.wchoose(weights) ?? {Array.new};
 	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << "[";
+		weights.size.do({|i|
+			stream << weights[i] << ": " << expressions[i] << "; "
+		});
+		stream << "], ";
+		stream << ")";
+	}
 }
 PSParen {
 	//we use this to indicate that the preceeding transforms should be applied to ALL the contents of this PSParen
 	var <tokens;
 	*new {|...tokens|
 		^super.newCopyArgs(tokens)
+	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << tokens.asCompileString;
+		stream << ")";
 	}
 }
 PSBranch {
@@ -252,9 +266,13 @@ PSBranch {
 	*new {|...branches|
 		^super.newCopyArgs(branches)
 	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << branches.asCompileString;
+		stream << ")";
+	}
 }
 //Kleene stars and things inspired by them. Syntactic sugar to handle repetition without duplicating things manually.
-
 PSStar {
 	//A Kleene star, repeating something forever.
 	var <tokens;
@@ -267,6 +285,11 @@ PSStar {
 				tokens.yield;
 			}
 		});
+	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << tokens.asCompileString << "*";
+		stream << ")";
 	}
 }
 PSStarN : PSStar {
@@ -281,6 +304,11 @@ PSStarN : PSStar {
 				tokens.yield;
 			})
 		});
+	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << tokens.asCompileString << "{" << n <<"}";
+		stream << ")";
 	}
 }
 PSStarRange : PSStar {
@@ -297,13 +325,18 @@ PSStarRange : PSStar {
 			});
 		});
 	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << tokens.asCompileString << "{" << min << ", " << max <<"}";
+		stream << ")";
+	}
 }
 PSStarGeom : PSStar {
 	//A Kleene star, with geometric (i.e. unbounded) distribution, accepting a mean.
 	//
-	var <chanceofRepeat;
+	var <mean, <chanceofRepeat;
 	*new {|mean ...tokens|
-		^super.newCopyArgs(tokens, 1-(mean.reciprocal));
+		^super.newCopyArgs(tokens, mean, 1-(mean.reciprocal));
 	}
 	iterator {
 		^Routine({
@@ -312,9 +345,14 @@ PSStarGeom : PSStar {
 			});
 		});
 	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << tokens.asCompileString << "*{mean: " << mean <<"}";
+		stream << ")";
+	}
 }
 PSStarGen : PSStar {
-	//A generalised Kleene star, accepting an arbitray distribution of repetitions.
+	//A generalised Kleene star, accepting an arbitrary distribution of repetitions.
 	var <rng;
 	*new {|rng ...tokens|
 		^super.newCopyArgs(tokens, rng);
@@ -328,5 +366,10 @@ PSStarGen : PSStar {
 				tokens.yield;
 			});
 		});
+	}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" ;
+		stream << tokens.asCompileString << "*{rng: " << rng.asCompileString <<"}";
+		stream << ")";
 	}
 }
