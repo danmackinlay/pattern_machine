@@ -31,13 +31,8 @@ PSMCCore {
 
 	*initClass{
 		StartUp.add({
-			this.classInit
+			this.loadSynthDefs;
 		});
-	}
-	*classInit{
-		/* I give my *actual* class initialisation the name of classInit, for ease of consistently initialising classes
-		*/
-		this.loadSynthDefs;
 	}
 	*loadSynthDefs {
 		//a simple connector to siphon one bus into another, for a few channels.
