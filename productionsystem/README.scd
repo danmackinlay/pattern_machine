@@ -51,4 +51,5 @@ ps.putRule(\root, \part1, \part2);
  * a pattern library for PSProductionSystem
  * accept naked patterns instead of tokens for convenience
  * create a reporter function that will send OSC messages when an Atom is expressed, so that it might be visualised or whatever
+ * replace Pobind and other ad hoc patterns with real classes not factories so that they are not opaque.
  */
