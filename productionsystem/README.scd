@@ -13,8 +13,11 @@ Pobind and PoRest are convenient classes that embed a Pbind or a Rest JUST ONCE.
 
 PSBranches take a little thinking about.
 Since a PSBranch causes an immediate parallelisation, anything in the PRSBranch is executed with whatever comes AFTER the branch.
-You are likley to want SOMETHING to come after, since that after-thing will determine the duration of the current phrase.
+You are likely to want SOMETHING to come after.
 Parallel branches have no length of their own.
+So that after-thing will determine the duration of the current phrase, and you don't want all the music happening at once. 
+*Usually* you don't.
+
  
  TODO
  *************
@@ -28,4 +31,5 @@ Parallel branches have no length of their own.
  * make moombahton
  * a pattern library for PSProductionSystem
  * accept naked patterns instead of tokens for convenience
+ * create a reporter function that will send OSC messages when an Atom is expressed, so that it might be visualised or whatever
  */

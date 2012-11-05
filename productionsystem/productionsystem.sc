@@ -107,7 +107,7 @@ PSProductionSystem {
 					var next;
 					// Random choice.
 					// choose one from this list.
-					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choise] ++ token.weights ++ token.expressions), priority: 1);
+					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choice] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
 					this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
