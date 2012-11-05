@@ -89,8 +89,11 @@ PSProductionSystem {
 		//opStack content is applied to all symbols
 		var nextPhraseStack = List.new;
 		var nextPhraseTokens = List.new;
+		var token;
+		nextTokens = nextTokens.as(LinkedList);
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
-		nextTokens.do({|token|
+		token = nextTokens.popFirst;
+		({token.notNil}).while({
 			//secret bonus feature: you can pass in callables.
 			this.logger.log(tag: \token, msgchunks: [\before, token], priority: 1);
 			token = token.value;
@@ -176,7 +179,8 @@ PSProductionSystem {
 						},
 						\rule, {
 							// A rule. Expand it and recurse.
-							// Do we want rule application to implicitly group ops? it does ATM.
+							// Do we want rule application to implicitly group ops? it does not ATM.
+							// Use PSParen if you want that behaviour.
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
 							this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
 							nextPhraseStack = List.new;
@@ -184,6 +188,7 @@ PSProductionSystem {
 						}
 					);
 				};
+			token = nextTokens.popFirst;
 		});
 		^sp;
 	}
