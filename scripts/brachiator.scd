@@ -47,4 +47,3 @@ patt = ps.root;
 ~patt=patt;
 ~patt.play(~clock);
 )
-~ps.at(\transform);

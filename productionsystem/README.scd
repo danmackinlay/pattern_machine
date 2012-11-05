@@ -18,6 +18,25 @@ Parallel branches have no length of their own.
 So that after-thing will determine the duration of the current phrase, and you don't want all the music happening at once. 
 *Usually* you don't.
 
+A rule does not start a new context, it simply expands some symbols.
+This means that the following are equivalent:
+
+(
+var ps = PSProductionSystem.new;
+ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
+ps.putAtom(\note, Pobind(\note, 0, \dur, 1));
+ps.putRule(\root, \doubleSpeed, \note, \doubleSpeed, \note, \doubleSpeed, \note);
+)
+and
+(
+var ps = PSProductionSystem.new;
+ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
+ps.putAtom(\note, Pobind(\note, 0, \dur, 1));
+ps.putRule(\part1, \doubleSpeed, \note, \doubleSpeed);
+ps.putRule(\part2, \note, \doubleSpeed, \note);
+ps.putRule(\root, \part1, \part2);
+)
+
  
  TODO
  *************

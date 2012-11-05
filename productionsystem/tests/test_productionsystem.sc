@@ -45,7 +45,7 @@ TestPS : TestPSPattern {
 		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Op/Atom association");
 		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4), "Op/Atom association");
 	}
-	test_op_association {
+	test_op_atom_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
@@ -55,6 +55,35 @@ TestPS : TestPSPattern {
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Op/Atom association");
 		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Op/Atom association");
 		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4), "Op/Atom association");
+	}
+	test_op_rule_association {
+		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		//Do operators bind across the boundaries of rules?
+		// (Extra credit: SHOULD they?)
+		//This buys us the ability to have rules at are only operators,
+		// but at the expense of having trailing operators applied in weird contexts 
+		ps.putOp(\halfSpeed, POp(\stretch, Affine1(2))) ;
+		ps.putAtom(\note, Pobind(\note, 1, \dur, 1)) ;
+		ps.putRule(\op, \halfSpeed);
+		ps.putRule(\atom, \note);
+		ps.putRule(\root, \op, \atom, \op, \op, \atom);
+		steps = this.class.expressPattern(ps.root);
+		this.assertEquals(steps.size, 2, "Op/Rule association: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'dur': 2), "Op/Rule association");
+		this.assertAContainsB(steps[1], ('note': 1, 'dur': 4), "Op/Rule association");
+	}
+	test_rule_rule_association {
+		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		ps.putOp(\halfSpeed, POp(\stretch, Affine1(2)));
+		ps.putAtom(\note, Pobind(\note, 1, \dur, 1));
+		ps.putRule(\part1, \halfSpeed, \note, \halfSpeed);
+		ps.putRule(\part2, \note, \halfSpeed, \note);
+		ps.putRule(\root, \part1, \part2);
+		steps = this.class.expressPattern(ps.root);
+		this.assertEquals(steps.size, 2, "Rule/Rule association: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'dur': 2), "Rule/Rule association");
+		this.assertAContainsB(steps[1], ('note': 1, 'dur': 2), "Rule/Rule association");
+		this.assertAContainsB(steps[2], ('note': 1, 'dur': 2), "Rule/Rule association");
 	}
 	test_parens {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);

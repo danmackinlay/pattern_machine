@@ -178,16 +178,15 @@ PSProductionSystem {
 							nextPhraseTokens = List.new;
 						},
 						\rule, {
-							// A rule. Expand it and recurse.
+							// A rule. Expand it and continue.
 							// Do we want rule application to implicitly group ops? it does not ATM.
 							// Use PSParen if you want that behaviour.
 							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							this.expressWithContext(sp, opStack ++ nextPhraseStack, patt, depth: depth+1);
-							nextPhraseStack = List.new;
-							nextPhraseTokens = List.new;
+							patt.reverseDo({|t| nextTokens.addFirst(t)});
 						}
 					);
 				};
+			this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 			token = nextTokens.popFirst;
 		});
 		^sp;
