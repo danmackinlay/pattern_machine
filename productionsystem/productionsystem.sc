@@ -154,16 +154,17 @@ PSProductionSystem {
 						\event, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL.
-							var squashedPat, wholecontext, nextbit;
+							var squashedPat, wholecontext;
 							nextPhraseStack.add(tokencontent);
 							nextPhraseTokens.add(token);
 							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
 							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 							wholecontext = (opStack ++ nextPhraseStack).asArray;
 							this.logger.log(tag: \application, msgchunks: [\ct] ++ nextPhraseTokens, priority: 1);
+							//this explodes things:
 							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
 							squashedPat = Pchain(*wholecontext);
-							nextbit = [sp.seq(squashedPat)];
+							sp.seq(squashedPat);
 							nextPhraseStack = List.new;
 							nextPhraseTokens = List.new;
 						},
