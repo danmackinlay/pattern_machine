@@ -88,10 +88,12 @@ PSProductionSystem {
 		var nextPhraseStack = List.new;
 		var nextPhraseTokens = List.new;
 		var token;
-		nextTokens = nextTokens.as(LinkedList);
+		var nextTokensIterator;
 		this.logger.log(tag: \ewc, msgchunks: (opStack++ [\nt] ++ nextTokens ++ [\depth, depth]), priority: 1);
-		token = nextTokens.popFirst;
-		({token.notNil}).while({
+		//To handle algorithmic expansion, we have our incoming symbols as a Stream
+		nextTokensIterator = PSIterator(nextTokens);
+		token = nextTokensIterator.next;
+		{token.notNil}.while({
 			//secret bonus feature: you can pass in callables.
 			this.logger.log(tag: \token, msgchunks: [\before, token], priority: 1);
 			token = token.value;
@@ -112,16 +114,16 @@ PSProductionSystem {
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
 					this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
-					next.reverseDo({|t| nextTokens.addFirst(t)});
+					nextTokensIterator = PSIterator(next) ++ nextTokensIterator;
 					this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 				}
 				{token.isKindOf(PSBranch)} {
 					var branches = Array.new;
 					// branch into parallel streams
 					this.logger.log(tag: \branch, msgchunks: ([\ops] ++ opStack++ [\branches] ++ token.branches), priority: 1);
-					token.branches.do({|nextTokens|
-						var branchpatt = this.asPattern(symbols: nextTokens, context:  opStack, depth: depth+1);
-						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
+					token.branches.do({|branch|
+						var branchpatt = this.asPattern(symbols: branch, context:  opStack, depth: depth+1);
+						this.logger.log(tag: \branching, msgchunks: (branch), priority: 1);
 						branches = branches.add(sp.par(branchpatt));
 					});
 					//should this actually reset the opStack?
@@ -180,14 +182,14 @@ PSProductionSystem {
 							// Use PSParen if you want that behaviour.
 							this.logger.log(tag: \expansion, msgchunks: tokencontent, priority: 1);
 							this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
-							tokencontent.reverseDo({|t| nextTokens.addFirst(t)});
+							nextTokensIterator = PSIterator(tokencontent) ++ nextTokensIterator;
 							this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 							
 						}
 					);
 				};
+			token = nextTokensIterator.next;
 			this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
-			token = nextTokens.popFirst;
 		});
 		^sp;
 	}
