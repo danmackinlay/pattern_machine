@@ -142,20 +142,20 @@ PSProductionSystem {
 					nextPhraseTokens = List.new;
 				}
 				{true} {
-					var patt, type;
+					var tokencontent, type;
 					//default case.
 					//standard symbol token, to be expanded.
 					//accumulate Ops until we hit an event then express it.
 					this.logger.log(tag: \sym, msgchunks: [token], priority: 1);
-					# patt, type = this.tokenValueAndType(token);
+					# tokencontent, type = this.tokenValueAndType(token);
 					//secret bonus feature: you can pass in callables.
-					this.logger.log(tag: \patt, msgchunks: [\before, patt], priority: 1);
-					patt = patt.value;
-					this.logger.log(tag: \patt, msgchunks: [\after, patt], priority: 1);
+					this.logger.log(tag: \tokencontent, msgchunks: [\before, tokencontent], priority: 1);
+					tokencontent = tokencontent.value;
+					this.logger.log(tag: \tokencontent, msgchunks: [\after, tokencontent], priority: 1);
 					type.switch(
 						\op, {
 							//accumulate ops
-							nextPhraseStack.add(patt);
+							nextPhraseStack.add(tokencontent);
 							nextPhraseTokens.add(token);
 							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
 							this.logger.log(tag: \accumulation, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
@@ -164,7 +164,7 @@ PSProductionSystem {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
 							var squashedPat, wholecontext, nextbit;
-							nextPhraseStack.add(patt);
+							nextPhraseStack.add(tokencontent);
 							nextPhraseTokens.add(token);
 							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
 							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
@@ -181,8 +181,8 @@ PSProductionSystem {
 							// A rule. Expand it and continue.
 							// Do we want rule application to implicitly group ops? it does not ATM.
 							// Use PSParen if you want that behaviour.
-							this.logger.log(tag: \expansion, msgchunks: patt, priority: 1);
-							patt.reverseDo({|t| nextTokens.addFirst(t)});
+							this.logger.log(tag: \expansion, msgchunks: tokencontent, priority: 1);
+							tokencontent.reverseDo({|t| nextTokens.addFirst(t)});
 						}
 					);
 				};
