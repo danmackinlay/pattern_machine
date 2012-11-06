@@ -30,12 +30,3 @@ TestAffine1.run;
 TestPOp.run;
 UnitTest.runTest("TestPS:test_branching");
 TestPS.run;
-(
-	var steps, ps = PSProductionSystem.new(PostLogger.new);
-	ps.putOp(\halfSpeed, POp(\stretch, Affine1(2)));
-	ps.putAtom(\note, Pobind(\note, 1, \dur, 1));
-	ps.putRule(\part1, \halfSpeed, \note, \halfSpeed);
-	ps.putRule(\part2, \note, \halfSpeed, \note);
-	ps.putRule(\root, \part1, \part2);
-	steps = this.class.expressPattern(ps.root);
-)

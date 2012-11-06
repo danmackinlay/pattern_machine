@@ -110,20 +110,20 @@ TestPS : TestPSPattern {
 		this.assertAContainsB(steps[3], ('note': 1, 'delta': 1), "Parentheses");
 	}
 	test_stars_extend {
-		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		var steps, ps = PSProductionSystem.new;
 		ps.putAtom(\one, Pobind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, PSStarN(4, \one));
 		steps = this.class.expressPattern(ps);
-		this.assertEquals(steps.size, 4, "Kleene stars: correct number of steps");
-		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1), "Kleene stars");
-		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Kleene stars");
-		this.assertAContainsB(steps[2], ('note': 1, 'delta': 1), "Kleene stars");
-		this.assertAContainsB(steps[3], ('note': 1, 'delta': 1), "Kleene stars");
+		this.assertEquals(steps.size, 4, "Kleene starred atoms: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1), "Kleene starred atoms");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Kleene starred atoms");
+		this.assertAContainsB(steps[2], ('note': 1, 'delta': 1), "Kleene starred atoms");
+		this.assertAContainsB(steps[3], ('note': 1, 'delta': 1), "Kleene starred atoms");
 	}
 	test_star_association {
-		var steps, ps = PSProductionSystem.new(NullLogger.new);
-		ps.putAtom(\starop, Pobind(\note, 1, \delta, 1)) ;
-		ps.putAtom(\note, POp(\note, Affine1(1,1)));
+		var steps, ps = PSProductionSystem.new;
+		ps.putOp(\starop, POp(\note, Affine1(1,1)));
+		ps.putAtom(\note, Pobind(\note, 1, \delta, 1));
 		ps.putRule(\root, PSStarN(2, \starop), \note, \note);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 2, "Kleene starred ops: correct number of steps");

@@ -133,13 +133,7 @@ PSProductionSystem {
 				{token.isKindOf(PSStar)} {
 					// repeat this stream for a while
 					this.logger.log(tag: \star, msgchunks: ([\ops] ++ opStack++ [\star] ++ token), priority: 1);
-					token.iterator.do({|next, i|
-						this.logger.log(tag: \starring, msgchunks: [i]++next, priority: 1);
-						this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth);
-					});
-					//should this actually reset the opStack?
-					nextPhraseStack = List.new;
-					nextPhraseTokens = List.new;
+					nextTokensIterator = (token.iterator) ++ nextTokensIterator;
 				}
 				{true} {
 					var tokencontent, type;
@@ -283,7 +277,7 @@ PSStar {
 	iterator {
 		^Routine({
 			loop {
-				tokens.yield;
+				tokens.do(_.yield);
 			}
 		});
 	}
@@ -302,7 +296,7 @@ PSStarN : PSStar {
 	iterator {
 		^Routine({
 			n.do({
-				tokens.yield;
+				tokens.do(_.yield);
 			})
 		});
 	}
@@ -322,7 +316,7 @@ PSStarRange : PSStar {
 	iterator {
 		^Routine({
 			rrand(min,max).do({
-				tokens.yield;
+				tokens.do(_.yield);
 			});
 		});
 	}
@@ -334,7 +328,6 @@ PSStarRange : PSStar {
 }
 PSStarGeom : PSStar {
 	//A Kleene star, with geometric (i.e. unbounded) distribution, accepting a mean.
-	//
 	var <mean, <chanceofRepeat;
 	*new {|mean ...tokens|
 		^super.newCopyArgs(tokens, mean, 1-(mean.reciprocal));
@@ -342,7 +335,7 @@ PSStarGeom : PSStar {
 	iterator {
 		^Routine({
 			({chanceofRepeat.coin}).while({
-				tokens.yield
+				tokens.do(_.yield);
 			});
 		});
 	}
