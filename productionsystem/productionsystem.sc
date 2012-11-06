@@ -126,9 +126,6 @@ PSProductionSystem {
 						this.logger.log(tag: \branching, msgchunks: (branch), priority: 1);
 						branches = branches.add(sp.par(branchpatt));
 					});
-					//should this actually reset the opStack?
-					nextPhraseStack = List.new;
-					nextPhraseTokens = List.new;
 				}
 				{token.isKindOf(PSStar)} {
 					// repeat this stream for a while
