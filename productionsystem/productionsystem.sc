@@ -111,9 +111,9 @@ PSProductionSystem {
 					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choice] ++ token.weights ++ token.expressions), priority: 1);
 					next = token.choose;
 					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth+1);
-					nextPhraseStack = List.new;
-					nextPhraseTokens = List.new;
+					this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
+					next.reverseDo({|t| nextTokens.addFirst(t)});
+					this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 				}
 				{token.isKindOf(PSBranch)} {
 					var branches = Array.new;
@@ -124,6 +124,7 @@ PSProductionSystem {
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
 						branches = branches.add(sp.par(branchpatt));
 					});
+					//should this actually reset the opStack?
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
 				}
@@ -134,6 +135,7 @@ PSProductionSystem {
 						this.logger.log(tag: \starring, msgchunks: [i]++next, priority: 1);
 						this.expressWithContext(sp, opStack ++ nextPhraseStack, next, depth: depth);
 					});
+					//should this actually reset the opStack?
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
 				}
@@ -158,7 +160,7 @@ PSProductionSystem {
 						},
 						\event, {
 							//apply operators to event. or rule.
-							//note that Pchain applies RTL, and L-systems LTR, so think carefully.
+							//note that Pchain applies RTL.
 							var squashedPat, wholecontext, nextbit;
 							nextPhraseStack.add(tokencontent);
 							nextPhraseTokens.add(token);
@@ -177,7 +179,10 @@ PSProductionSystem {
 							// Do we want rule application to implicitly group ops? it does not ATM.
 							// Use PSParen if you want that behaviour.
 							this.logger.log(tag: \expansion, msgchunks: tokencontent, priority: 1);
+							this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 							tokencontent.reverseDo({|t| nextTokens.addFirst(t)});
+							this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
+							
 						}
 					);
 				};
