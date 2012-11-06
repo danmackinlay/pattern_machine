@@ -56,7 +56,7 @@ TestPS : TestPSPattern {
 		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Op/Atom association");
 		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4), "Op/Atom association");
 	}
-	test_op_rule_association {
+	test_rule_op_rule_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		//Do operators bind across the boundaries of rules?
 		// (Extra credit: SHOULD they?)
@@ -68,9 +68,9 @@ TestPS : TestPSPattern {
 		ps.putRule(\atom, \note);
 		ps.putRule(\root, \op, \atom, \op, \op, \atom);
 		steps = this.class.expressPattern(ps.root);
-		this.assertEquals(steps.size, 2, "Op/Rule association: correct number of steps");
-		this.assertAContainsB(steps[0], ('note': 1, 'dur': 2), "Op/Rule association");
-		this.assertAContainsB(steps[1], ('note': 1, 'dur': 4), "Op/Rule association");
+		this.assertEquals(steps.size, 2, "RuleOp/Rule association: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "RuleOp/Rule association");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 4), "RuleOp/Rule association");
 	}
 	test_rule_rule_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
@@ -80,10 +80,21 @@ TestPS : TestPSPattern {
 		ps.putRule(\part2, \note, \halfSpeed, \note);
 		ps.putRule(\root, \part1, \part2);
 		steps = this.class.expressPattern(ps.root);
-		this.assertEquals(steps.size, 2, "Rule/Rule association: correct number of steps");
-		this.assertAContainsB(steps[0], ('note': 1, 'dur': 2), "Rule/Rule association");
-		this.assertAContainsB(steps[1], ('note': 1, 'dur': 2), "Rule/Rule association");
-		this.assertAContainsB(steps[2], ('note': 1, 'dur': 2), "Rule/Rule association");
+		this.assertEquals(steps.size, 3, "Rule/Rule association: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Rule/Rule association");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 2), "Rule/Rule association");
+		this.assertAContainsB(steps[2], ('note': 1, 'delta': 2), "Rule/Rule association");
+	}
+	test_rule_op_atom_association {
+		var steps, ps = PSProductionSystem.new(NullLogger.new);
+		ps.putOp(\halfSpeed, POp(\stretch, Affine1(2))) ;
+		ps.putAtom(\note, Pobind(\note, 1, \dur, 1)) ;
+		ps.putRule(\op, \halfSpeed);
+		ps.putRule(\root, \op, \note, \op, \op, \note);
+		steps = this.class.expressPattern(ps.root);
+		this.assertEquals(steps.size, 2, "RuleOp/Atom association: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "RuleOp/Atom association");
+		this.assertAContainsB(steps[1], ('note': 1, 'delta': 4), "RuleOp/Atom association");
 	}
 	test_parens {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
