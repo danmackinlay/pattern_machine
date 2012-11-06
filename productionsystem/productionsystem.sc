@@ -60,7 +60,7 @@ PSProductionSystem {
 		var found = case 
 			{ ruleMap.includesKey(name) }	{ [ruleMap[name], \rule] }
 			{ opMap.includesKey(name) }	{ [opMap[name], \op] }
-			{ atomMap.includesKey(name) }	{ [atomMap[name], \event] };
+			{ atomMap.includesKey(name) }	{ [atomMap[name], \atom] };
 		found.isNil.if({MissingError("symbol '%' not found".format(name)).throw});
 		^found
 	}
@@ -151,7 +151,7 @@ PSProductionSystem {
 							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
 							this.logger.log(tag: \accumulation, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 						},
-						\event, {
+						\atom, {
 							//apply operators to event. or rule.
 							//note that Pchain applies RTL.
 							var squashedPat, wholecontext;
