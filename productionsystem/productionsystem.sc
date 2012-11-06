@@ -30,7 +30,6 @@ PSProductionSystem {
 	var <ruleMap;
 	var <opMap;
 	var <atomMap;
-	var <>trace;
 	var <>rootSymbol=\root;
 	/* Glossary:
 	A Rule is a preterminal symbol.
@@ -38,13 +37,12 @@ PSProductionSystem {
 	Later, we might have StackOperations, or whatever you call L-systems brackets, and Kleene stars, and applications
 	*/
 	
-	*new{|logger, ruleMap, opMap, atomMap, trace=false|
+	*new{|logger, ruleMap, opMap, atomMap|
 		^super.newCopyArgs(
 			logger ?? {NullLogger.new},
 			ruleMap ?? {Environment.new},
 			opMap ?? {Environment.new},
-			atomMap ?? {Environment.new},
-			trace
+			atomMap ?? {Environment.new}
 		);
 	}
 	putAtom{|name, pattern|
@@ -85,7 +83,7 @@ PSProductionSystem {
 		});
 	}
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
-		//Here is the symbol parsing state-machine.
+		//Here is the symbol parsing recursive state-machine.
 		//opStack content is applied to all symbols
 		var nextPhraseStack = List.new;
 		var nextPhraseTokens = List.new;
@@ -124,9 +122,7 @@ PSProductionSystem {
 					token.branches.do({|nextTokens|
 						var branchpatt = this.asPattern(symbols: nextTokens, context:  opStack, depth: depth+1);
 						this.logger.log(tag: \branching, msgchunks: (nextTokens), priority: 1);
-						branches = branches.add(sp.par(
-							trace.if({Ptrace(branchpatt, prefix: \depth ++ depth)}, {branchpatt});
-						));
+						branches = branches.add(sp.par(branchpatt));
 					});
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
@@ -172,7 +168,6 @@ PSProductionSystem {
 							this.logger.log(tag: \application, msgchunks: [\ct] ++ nextPhraseTokens, priority: 1);
 							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
 							squashedPat = Pchain(*wholecontext);
-							trace.if({Ptrace(squashedPat, prefix: \depth ++ depth)});
 							nextbit = [sp.seq(squashedPat)];
 							nextPhraseStack = List.new;
 							nextPhraseTokens = List.new;
