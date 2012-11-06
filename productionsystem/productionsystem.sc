@@ -324,13 +324,13 @@ PSStarRange : PSStar {
 }
 PSStarGeom : PSStar {
 	//A Kleene star, with geometric (i.e. unbounded) distribution, accepting a mean.
-	var <mean, <chanceofRepeat;
+	var <mean, <p;
 	*new {|mean ...tokens|
-		^super.newCopyArgs(tokens, mean, 1-(mean.reciprocal));
+		^super.newCopyArgs(tokens, mean, (mean+1).reciprocal);
 	}
 	iterator {
 		^Routine({
-			({chanceofRepeat.coin}).while({
+			({p.coin}).while({
 				tokens.do(_.yield);
 			});
 		});
