@@ -145,7 +145,7 @@ TestPS : TestPSPattern {
 		//This test isn't deterministic (wel, it is up to 1 in 2^20). How could it be made so?
 		ps = PSProductionSystem.new;
 		deltasfound = Set.new;
-		ps.putRule(\changeSpeed, PSWlist(1, [\half, \note], 1, [\third, \note]));
+		ps.putRule(\changeSpeed, PSChoice(1, [\half, \note], 1, [\third, \note]));
 		ps.putOp(\half, POp(\stretch, Affine1(2)));
 		ps.putOp(\third, POp(\stretch, Affine1(3)));
 		ps.putAtom(\note, Pobind(\note, 1, \delta, 1)) ;
@@ -154,17 +154,17 @@ TestPS : TestPSPattern {
 				deltasfound.add(step[\stretch])
 			});
 		});
-		this.assertEquals(deltasfound, Set[2,3], "PSWlist selects at random.");
+		this.assertEquals(deltasfound, Set[2,3], "PSChoice selects at random.");
 	}
 	test_token_choice_in_current_context {
 		var ps, steps;
 		ps = PSProductionSystem.new;
-		ps.putRule(\changeSpeed, PSWlist(1, [\half], 1, [\half]));
+		ps.putRule(\changeSpeed, PSChoice(1, [\half], 1, [\half]));
 		ps.putOp(\half, POp(\stretch, Affine1(2)));
 		ps.putAtom(\note, Pobind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\changeSpeed, \note]));
-		this.assertEquals(steps.size, 1, "PSWlist expands in current context: correct number of steps");
-		this.assertAContainsB(steps[0], ('note': 1, 'stretch': 2), "PSWlist expands in current context");
+		this.assertEquals(steps.size, 1, "PSChoice expands in current context: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'stretch': 2), "PSChoice expands in current context");
 	}
 	test_branching {
 		var steps, ps, firstpair, lastpair;

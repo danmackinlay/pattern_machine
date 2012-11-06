@@ -33,8 +33,10 @@ PSProductionSystem {
 	var <>rootSymbol=\root;
 	/* Glossary:
 	A Rule is a preterminal symbol.
-	Terminal symbols are either Op(erator)s or Atoms, which are Patterns that express actual musical events.
-	Later, we might have StackOperations, or whatever you call L-systems brackets, and Kleene stars, and applications
+	Terminal symbols are either Op(erator)s or Atoms, which are Patterns that
+	express actual musical events.
+	Non-symbols can occur in rules; they are invisible to the grammar as such, but instruct the state machine
+	to do various things: iteration, branching, randomly choosing the next set.
 	*/
 	
 	*new{|logger, ruleMap, opMap, atomMap|
@@ -106,16 +108,14 @@ PSProductionSystem {
 					nextPhraseStack = List.new;
 					nextPhraseTokens = List.new;
 				}
-				{token.isKindOf(PSWlist)} {
-					var next;
+				{token.isKindOf(PSChoice)} {
+					var choice;
 					// Random choice.
 					// choose one from this list.
-					this.logger.log(tag: \wlist, msgchunks: ([\ops] ++ opStack++ [\choice] ++ token.weights ++ token.expressions), priority: 1);
-					next = token.choose;
-					this.logger.log(tag: \wlist, msgchunks: ([\chose] ++ next), priority: 1);
-					this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
-					nextTokensIterator = PSIterator(next) ++ nextTokensIterator;
-					this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
+					this.logger.log(tag: \pschoice, msgchunks: ([\ops] ++ opStack++ [\choice] ++ token.weights ++ token.expressions), priority: 1);
+					choice = token.choose;
+					this.logger.log(tag: \pschoice, msgchunks: ([\chose] ++ choice), priority: 1);
+					nextTokensIterator = PSIterator(choice) ++ nextTokensIterator;
 				}
 				{token.isKindOf(PSBranch)} {
 					var branches = Array.new;
@@ -173,9 +173,7 @@ PSProductionSystem {
 							// Do we want rule application to implicitly group ops? it does not ATM.
 							// Use PSParen if you want that behaviour.
 							this.logger.log(tag: \expansion, msgchunks: tokencontent, priority: 1);
-							this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 							nextTokensIterator = PSIterator(tokencontent) ++ nextTokensIterator;
-							this.logger.log(tag: \remaining, msgchunks: nextTokens, priority: 1);
 							
 						}
 					);
@@ -214,7 +212,7 @@ PSProductionSystem {
 //// These are all just processing tokens.
 // They are not designed to have general use outside of PSProductionSystem state machines.
 
-PSWlist {
+PSChoice {
 	//Choose a random sub-option at this point.
 	var <weights;
 	var <expressions;

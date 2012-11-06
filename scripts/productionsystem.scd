@@ -6,7 +6,7 @@ ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
 ps.putOp(\upThird, Pbind(\note, Pkey(\note) + 4)) ;
 ps.putOp(\upFifth, Pbind(\note, Pkey(\note) + 5)) ;
 ps.putAtom(\riff, Pbind(\note, Pseq([1,2,3]), \delta, 1)) ;
-ps.putRule(\phrase, PSWlist(
+ps.putRule(\phrase, PSChoice(
 	1, [\doubleSpeed, \phrase],
 	1, [\halfSpeed, \phrase],
 	1, [\upThird, \phrase],
