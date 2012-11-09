@@ -41,13 +41,16 @@ ps.putRule(\root, \part1, \part2);
  TODO
  *************
 
- * Use my lovely POp class's ability to collapse
- * Should collections be a synonym for PSBranch?
+ * Use my lovely POp class's ability to telescope
+ * Should collections be a synonym for PSBranch, by analgoy with normal parallel expansion?
  * Stochastic factories, producing Affine transforms (or, more conveniently, POps) to desired specs
  * make POp editable
  	* Refactor POp to use a dict internally, since I end up casting to it all the time anyway.
  * pump events to some external OSC thing for visualising, perhaps with a PFunc
- * make moombahton
+ * make some examples
+   * moombahton, or a samba
+   * breakbeat cuts
+ * guis for Ops and PSChoices, maybe even rules.
  * a pattern library for PSProductionSystem
  * accept naked patterns instead of tokens for convenience
  * create a reporter function that will send OSC messages when an Atom is expressed, so that it might be visualised or whatever
