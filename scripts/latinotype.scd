@@ -1,78 +1,61 @@
 ///
 /// Leverage General MIDI to get a rapid demonstration piece
 ///
-
+(
+//understand
+Event.partialEvents[\pitchEvent].pairsDo({|k,v|[k,v].postln;});
 Event.partialEvents[\midiEvent].pairsDo({|k,v|[k,v].postln;});
 Event.partialEvents[\midiEvent][\midiEventFunctions].pairsDo({|k,v|[k,v.asCompileString].postln;"====".postln;});
-MIDIClient.init
-MIDIClient.destinations
+26.asMIDINote
+)
+(
+//init
+MIDIClient.init;
+MIDIClient.destinations;
 m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
-m.asCompileString
 //m = MIDIOut.newByName("SimpleSynth virtual input", "SimpleSynth virtual input");
 //m.latency=0;
+)
+
+(
+//test
 a = Ptrace(Pbind(
-	\degree, Prand([1, 2, 3, [0, 5]], inf),
+	\degree, Pseq([1, 2, 3, [0, 5]], inf),
 	//\bend, Pwhite(0, 76, inf),
 	\amp, 1.0));
 (a <> (type: \midi, midiout: m, \chan: 0)).play;
-//m.noteOn (chan:0, note: 62, veloc: 127);
+)
 
 (
 var ps;
-~logger = PostLogger.new();
-ps = PSProductionSystem(~logger, trace:true);
-~clock=TempoClock.new(108/60);
+~logger = PostLogger.new;
+ps = PSProductionSystem(~logger);
+~clock=TempoClock.new(150/60);
 ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
 ps.putOp(\halfSpeed, POp(\stretch, Affine1(2)));
 ps.putOp(\thirdSpeed, POp(\stretch, Affine1(1/3)));
 ps.putOp(\tripleSpeed, POp(\stretch, Affine1(3)));
-ps.putOp(\h3on2, POp(\harmonic, Affine1(3/2)));
-ps.putOp(\h4on3, POp(\harmonic, Affine1(4/3)));
-ps.putOp(\h2on3, POp(\harmonic, Affine1(2/3)));
-ps.putOp(\h3on4, POp(\harmonic, Affine1(3/4)));
-ps.putOp(\rotateRight, POp(\pan, (_+0.25).wrap(-1,1)));
-ps.putOp(\rotateLeft, POp(\pan, (_-0.25).wrap(-1,1)));
-
+ps.putOp(\upmin3, POp(\note, Affine1(1, 3)));
+ps.putOp(\upmaj3, POp(\note, Affine1(1, 4)));
+ps.putOp(\downmin3, POp(\note, Affine1(1, -3)));
+ps.putOp(\downmaj3, POp(\note, Affine1(1, -4)));
+//SambaTwoPart.mid
+ps.putAtom(\samba1, Pbind(\note, 39, \dur, Pseq([1/2, 1/4, 1/4, 1/2, 1/4, 1/2, 1/2, 1/4, 1/2, 1/2])));
+ps.putAtom(\samba2, Pbind(
+	\note, Pseq([23, 26, 26, 23, 26, 26, 23, 23, 26, 26, 23, 26, 26, 23]),
+	\dur, Pseq([3/4, 1/4, 1, 3/4, 1/4, 1/2, 1/2, 3/4, 1/4, 1, 3/4, 1/4, 1, 3/4, 1/4, 1/2, 1/2]))
+);
 ps.putAtom(\note, Pobind(\note, 0, \harmonic, 1, \legato, 2, \dur, 1, \pan, 0));
 ps.putAtom(\onebeatrest, PoRest(1));
 
-ps.putRule(\ornament,
-	PSChoice(
-		1, [\note],
-		2, [\timetransform, \freqtransform, \rotate, PSParen(\note, \ornament)]
-	)
-);
-ps.putRule(\timetransform,
-	PSChoice(
-		2, [\doubleSpeed],
-		1, [\halfSpeed],
-		2, [\tripleSpeed],
-		1, [\thirdSpeed],
-	)
-);
-ps.putRule(\freqtransform,
-	PSStarN(1, PSChoice(
-		4, [\h3on2],
-		2, [\h4on3],
-		4, [\h2on3],
-		2, [\h3on4],
-	))
-);
-ps.putRule(\rotate,
-	PSChoice(
-		1, [\rotateRight],
-		1, [\rotateLeft],
-	)
-);
 ps.putRule(\bar,
 	PSBranch(
-		[\ornament],
+		[\samba1, \samba1],
 	),
-	\onebeatrest, \onebeatrest);
+	\samba2);
 ps.putRule(\root, PSStar(\bar));
 ~ps=ps;
-//~patt=Ptrace(ps.root);
-~patt=ps.root;
+~patt=Ptrace(Pbind(\midinote, Pkey(\note)+12)<> ps.root <> (amp: 1, type: \midi, midiout: m, \chan: 9));
 ~logger.minPriority = 2;
 ~patt.play(~clock);
 )
