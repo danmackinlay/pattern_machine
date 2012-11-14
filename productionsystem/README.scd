@@ -12,8 +12,8 @@ That is not what we usually want here.
 Pobind and PoRest are convenient classes that embed a Pbind or a Rest JUST ONCE.
 
 PSBranches take a little thinking about.
-Since a PSBranch causes an immediate parallelisation, anything in the PRSBranch is executed with whatever comes AFTER the branch.
-You are likely to want SOMETHING to come after.
+Since a PSBranch causes an immediate parallelisation, anything in the PSBranch is executed concurrently with whatever comes AFTER the branch.
+You are likely to want SOMETHING to come "after" a branch, even if only a rest, so that everything doesn't happen at once. 
 Parallel branches have no length of their own.
 So that after-thing will determine the duration of the current phrase, and you don't want all the music happening at once. 
 *Usually* you don't.
@@ -41,12 +41,11 @@ ps.putRule(\root, \part1, \part2);
  TODO
  *************
 
- * Use my lovely POp class's ability to telescope
- * Should collections be a synonym for PSBranch, by analgoy with normal parallel expansion?
+ * Actually use my lovely POp class's ability to telescope
+ * Should collections be a synonym for PSBranch, by analogy with normal parallel expansion?
  * Stochastic factories, producing Affine transforms (or, more conveniently, POps) to desired specs
  * make POp editable
  	* Refactor POp to use a dict internally, since I end up casting to it all the time anyway.
- * pump events to some external OSC thing for visualising, perhaps with a PFunc
  * make some examples
    * moombahton, or a samba
    * breakbeat cuts
@@ -54,5 +53,7 @@ ps.putRule(\root, \part1, \part2);
  * a pattern library for PSProductionSystem
  * accept naked patterns instead of tokens for convenience
  * create a reporter function that will send OSC messages when an Atom is expressed, so that it might be visualised or whatever
- * replace Pobind and other ad hoc patterns with real classes not factories so that they are not opaque.
+	* pump events to some external OSC thing for visualising, perhaps with a PFunc
+  	* Note that to get note OFF events this requires hooking in to the EventStreamCleanup/EventTypesWithCleanup infrastructure. NodeWatcher might be able to do this. I Think Pproto has examples of how to do all this.
+ * replace Pobind and other ad hoc patterns with real classes, not factories, so that they are not opaque.
  */

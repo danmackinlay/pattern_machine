@@ -6,6 +6,9 @@ Transform : AbstractFunction {
 	//This makes them compose nicely.
 	//Should this subclass UnaryOpFunction?
 	//Should these compose using FunctionLists?
+	//
+	//I'm sure that real lazy-functional-language jockeys are facepalming at this, and fair enough.
+	//
 	isTransform{^true}
 }
 Affine1 : Transform {
