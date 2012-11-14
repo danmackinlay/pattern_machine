@@ -1,4 +1,4 @@
-PSGMPerc {
+MIDIPercMap {
 	//Playing MIDI percussion? look up its note number by name here
 	classvar <map;
 	*initClass {
@@ -51,5 +51,8 @@ PSGMPerc {
 			\mute_triangle: 80,
 			\open_triangle: 81,
 		);
+	}
+	*doesNotUnderstand {|selector ... args|
+		^map[selector]
 	}
 }
