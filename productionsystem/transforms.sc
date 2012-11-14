@@ -54,6 +54,7 @@ Affine1 : Transform {
 		//creates a new Affine1 equivalent to applying the other one on the left to this on the right
 		^this.class.new(mul*otherMul, (otherMul*add)+otherAdd)
 	}
+	///Not sure this method is necessary
 	reverseComposeAffineFromArgs{|otherMul=1, otherAdd=0|
 		//creates a new Affine1 equivalent to applying this one on the left to the other on the right
 		^this.class.new(mul*otherMul, (mul*otherAdd)+add)
@@ -64,7 +65,7 @@ Affine1 : Transform {
 		^other.isKindOf(Number).if({
 			this.composeAffineFromArgs(1, other)
 		},{
-			this.composeBinaryOp('-', other, adverb)
+			this.composeBinaryOp('+', other, adverb)
 		})
 	}
 	- { arg other, adverb;
@@ -79,14 +80,14 @@ Affine1 : Transform {
 		^other.isKindOf(Number).if({
 			this.composeAffineFromArgs(other, 0)
 		},{
-			this.composeBinaryOp('-', other, adverb)
+			this.composeBinaryOp('*', other, adverb)
 		})
 	}
 	/ { arg other, adverb;
 		^other.isKindOf(Number).if({
 			this.composeAffineFromArgs(other.reciprocal, 0)
 		},{
-			this.composeBinaryOp('-', other, adverb)
+			this.composeBinaryOp('/', other, adverb)
 		})
 	}
 }

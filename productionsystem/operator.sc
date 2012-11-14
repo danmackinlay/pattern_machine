@@ -11,7 +11,7 @@ POp : Pbind {
 	}	
 	hash { ^([this.class.name] ++ this.storeArgs).hash }
 	== {|that| 
-		^(this.class==that.class) && (this.storeArgs == that.storeArgs)
+		^(this.hash==that.hash)
 	}
 	embedInStream { arg inevent;
 		var event;
@@ -62,10 +62,15 @@ POp : Pbind {
 			}, {
 				//First, copy 'im.
 				var composedPOp = Event.newFrom(that.patternpairs);
-				//now, compose all sub operations
-				patternpairs.pairsDo({|key, transform|
-					var intransform = composedPOp.at(key);
-					var composedTransform = transform <> (intransform ?? {Affine1(1)});
+				//now, compose all sub operations.
+				patternpairs.pairsDo({|key, lefttransform|
+					var righttransform = composedPOp.at(key) ?? {Affine1(1)};
+					//Special case non-composable things here by presuming them constant.
+					//This gives us a convenient way to straight-out overwriting keys with constants.
+					var composedTransform = case
+						 { lefttransform.respondsTo('<>').not } {lefttransform}
+						 { righttransform.respondsTo('<>').not} {lefttransform.value(righttransform)}
+						 { true } {lefttransform <> righttransform };
 					composedPOp.put(key, composedTransform);
 				});
 				that.class.new(*(composedPOp.getPairs.flat));
