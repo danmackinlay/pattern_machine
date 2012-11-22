@@ -23,7 +23,8 @@ patt = Ptrace(ps.root,10);
 ~patt=patt;
 )
 ~patt.play;
-~steps = TestPSPattern.expressPattern(~patt);
+~steps = PSTestPattern.expressPattern(~patt);
+(_*2).value(Pseq([1,2],1));
 
 ////Testing:
 TestAffine1.run;

@@ -1,4 +1,4 @@
-TestPOp : TestPSPattern {
+TestPOp : PSTestPattern {
 	test_op_equality {
 		var pop1, pop2, trans1, trans2;
 		trans1 = _+1;
