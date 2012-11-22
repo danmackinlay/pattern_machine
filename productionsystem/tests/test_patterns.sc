@@ -35,11 +35,25 @@ PSTestPattern : UnitTest {
 }
 TestDropdur : PSTestPattern {
 	test_basic_drop {
-		var steps, patt = PDropdur(Pbind(\note, Pseq([1,2,3,4], \delta, 1)));
+		var steps, patt = Pdropdur(2, Pbind(\note, Pseq([1,2,3,4]), \delta, 1));
 		steps = this.class.expressPattern(patt);
-		this.assertEquals(steps.size, 3, "Op/Atom association: correct number of steps");
-		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Op/Atom association");
-		this.assertAContainsB(steps[1], ('note': 1, 'delta': 1), "Op/Atom association");
-		this.assertAContainsB(steps[2], ('note': 1, 'delta': 4), "Op/Atom association");
+		this.assertEquals(steps.size, 2, "basic Dropdur: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 3, 'delta': 1), "basic Dropdur");
+		this.assertAContainsB(steps[1], ('note': 4, 'delta': 1), "basic Dropdur");
+	}
+	test_rounded_drop {
+		var steps, patt = Pdropdur(1, Pbind(\note, Pseq([1,2,3,4,5,6]), \delta, 1/3));
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 3, "rounded Dropdur: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 4, 'delta': 1/3), "rounded Dropdur");
+		this.assertAContainsB(steps[1], ('note': 5, 'delta': 1/3), "rounded Dropdur");
+		this.assertAContainsB(steps[2], ('note': 6, 'delta': 1/3), "rounded Dropdur");
+	}
+	test_rest_drop {
+		var steps, patt = Pdropdur(2.5, Pbind(\note, Pseq([1,2,3,4]), \delta, 1));
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 2, "rest Dropdur: correct number of steps");
+		this.assertAContainsB(steps[0], ('dur': 0.5, 'delta': 0.5, 'isRest': true), "rest Dropdur");
+		this.assertAContainsB(steps[1], ('note': 4, 'delta': 1), "rest Dropdur");
 	}
 }
