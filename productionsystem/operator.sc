@@ -1,7 +1,22 @@
 /*
+Unlike normal patterns, which special-case event patterns and do weird operations on keys,
+Ppop composes plain-old-functional-style with even event patterns.
+This is useful for composing unary operations acting on whole streams (e.g. Pfindur) 
+with the streams and getting the right behaviour.
+*/
+Ppop : Pattern {
+	var fn;//a function wrapping a pattern, e.g. Pfindur(2,_)
+	*new {|fn|
+		^super.newCopyArgs(fn)
+	}
+	<> {|that|
+		^fn.value(that)
+	}
+}
+/*
 A POp is a normal pattern, but it composes nicely, for ease of legibility.
 It covers the special case where you would like to have a pattern than applies unary
-operations on the values of keys in the incoming stream.
+operations on the *values of keys* in the incoming stream.
 Approximately, Pobind(\delta, 2*_) is the same as Pbind(\delta, 2*Pkey(\delta))
 */
 POp : Pbind {
