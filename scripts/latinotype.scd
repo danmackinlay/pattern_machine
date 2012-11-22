@@ -16,6 +16,7 @@ m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 //m = MIDIOut.newByName("SimpleSynth virtual input", "SimpleSynth virtual input");
 //m.latency=0;
 )
+POp(\a, Affine1(2)) <> POp(\a, Affine1(2,1)) <> POp(\a, 1)
 
 (
 //test
@@ -25,7 +26,7 @@ a = Ptrace(Pbind(
 	\amp, 1.0));
 (a <> (type: \midi, midiout: m, \chan: 0)).play;
 )
-
+MIDIPercMap.low_tom_1
 (
 var ps;
 ~logger = PostLogger.new;
@@ -40,19 +41,25 @@ ps.putOp(\upmaj3, POp(\note, Affine1(1, 4)));
 ps.putOp(\downmin3, POp(\note, Affine1(1, -3)));
 ps.putOp(\downmaj3, POp(\note, Affine1(1, -4)));
 //SambaTwoPart.mid
-ps.putAtom(\samba1, Pbind(\note, 39, \dur, Pseq([1/2, 1/4, 1/4, 1/2, 1/4, 1/2, 1/2, 1/4, 1/2, 1/2])));
-ps.putAtom(\samba2, Pbind(
+ps.putAtom(\sambarhythm1, Pbind(\midinote, MIDIPercMap.cabasa, \dur, Pseq([1/2, 1/4, 1/4, 1/2, 1/4, 1/2, 1/2, 1/4, 1/2, 1/2])));
+ps.putAtom(\sambarhythm2, Pbind(
 	\note, Pseq([23, 26, 26, 23, 26, 26, 23, 23, 26, 26, 23, 26, 26, 23]),
 	\dur, Pseq([3/4, 1/4, 1, 3/4, 1/4, 1/2, 1/2, 3/4, 1/4, 1, 3/4, 1/4, 1, 3/4, 1/4, 1/2, 1/2]))
 );
+//http://www.sambatida.co.uk/The%20music/index.html
+ps.putAtom(\surdorhythm1,
+	Pbind(\midinote, Pseq([MIDIPercMap.low_tom_1, MIDIPercMap.mid_tom_1]), \dur, 2));
+//see also
+//http://www.artdrum.com/RHYTHMS_SAMBA_FOR_KIDS.htm
+//http://www.littledrum.co.uk/batucada.htm
 ps.putAtom(\note, Pobind(\note, 0, \harmonic, 1, \legato, 2, \dur, 1, \pan, 0));
 ps.putAtom(\onebeatrest, PoRest(1));
 
 ps.putRule(\bar,
 	PSBranch(
-		[\samba1, \samba1],
+		[\sambarhythm1, \sambarhythm1],
 	),
-	\samba2);
+	\sambarhythm2);
 ps.putRule(\root, PSStar(\bar));
 ~ps=ps;
 ~patt=Ptrace(Pbind(\midinote, Pkey(\note)+12)<> ps.root <> (amp: 1, type: \midi, midiout: m, \chan: 9));

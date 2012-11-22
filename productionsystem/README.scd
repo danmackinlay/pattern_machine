@@ -13,7 +13,7 @@ Pobind and PoRest are convenient classes that embed a Pbind or a Rest JUST ONCE.
 
 PSBranches take a little thinking about.
 Since a PSBranch causes an immediate parallelisation, anything in the PSBranch is executed concurrently with whatever comes AFTER the branch.
-You are likely to want SOMETHING to come "after" a branch, even if only a rest, so that everything doesn't happen at once. 
+You are likely to want SOMETHING to come syntactically "after" (and therefore concurrently with) a branch, even if only a rest, so that everything doesn't happen at once. 
 Parallel branches have no length of their own.
 So that after-thing will determine the duration of the current phrase, and you don't want all the music happening at once. 
 *Usually* you don't.
