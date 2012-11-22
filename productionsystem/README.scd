@@ -49,6 +49,7 @@ ps.putRule(\root, \part1, \part2);
  * make some examples
    * moombahton, or a samba
    * breakbeat cuts
+ * swing.shuffle patterns(Jitlib has examples of clock-sensitive alteration)
  * guis for Ops and PSChoices, maybe even rules.
  * a pattern library for PSProductionSystem
  * accept naked patterns instead of tokens for convenience
