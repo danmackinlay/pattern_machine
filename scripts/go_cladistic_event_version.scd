@@ -1,4 +1,5 @@
 //This one is trying to be a breakbeat guy.
+/NB - am not sure that the \truncatetobar operator is behaving from within the pattern. should test.
 (
 //init
 MIDIClient.init;
@@ -8,7 +9,6 @@ m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 //m.latency=0;
 
 ~pm = MIDIPercMap;
-~clock=TempoClock.new(136/60);
 ~amen_break = Ppar([
 	Pser([Pobind(\midinote, ~pm.ride_cymbal_1, \dur, 1/2, \amp, 1/2)],8),
 	Pbind(
@@ -18,20 +18,25 @@ m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 ]);
 )
 (
+~clock=TempoClock.new(136/60);
 ~patt=Ptrace(~amen_break <> (amp: 1, type: \midi, midiout: m, \chan: 9));
 ~patt.play(~clock);
 )
 (
 var ps;
-~logger = PostLogger.new();
+~clock=TempoClock.new(136/60);
+~logger = FileLogger.global;
 ps = PSProductionSystem(~logger);
 ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
 ps.putOp(\halfSpeed, POp(\stretch, Affine1(2)));
 ps.putOp(\thirdSpeed, POp(\stretch, Affine1(1/3)));
 ps.putOp(\tripleSpeed, POp(\stretch, Affine1(3)));
-ps.putOp(\truncToBar, Ppop(Pfindur(4, _)));
+ps.putOp(\truncToBar, Pcomp(Pfindur(4, _)));
+ps.putOp(\slice, Pcomp(Pcutdur({16.rand/4}, {16.rand/4}, _)));
 ps.putAtom(\amen_break, ~amen_break);
+ps.putAtom(\hat, Pobind(\midinote, ~pm.closed_hi_hat));
 ps.putAtom(\onebeatrest, PoRest(1));
+ps.putAtom(\onebarrest, PoRest(4));
 ps.putRule(\timetransform,
 	PSChoice(
 		2, [\doubleSpeed],
@@ -40,13 +45,17 @@ ps.putRule(\timetransform,
 		1, [\thirdSpeed],
 	)
 );
-ps.putRule(\cut, \timetransform, \amen_break);
-ps.putRule(\bar, \truncToBar, PSStarN(4,\cut));
+ps.putRule(\cut, \slice, \amen_break);
+ps.putRule(\rush, \timetransform, PSParen(PSStarGeom(3,\cut)));
+ps.putRule(\bar, PSBranch(
+	[\truncToBar, PSStar(\rush)],
+	[\truncToBar, PSStar(\hat)]
+), \onebarrest);
 ps.putRule(\root, PSStarN(4, \bar));
 ~ps=ps;
 //~patt=Ptrace(ps.root);
 ~patt=ps.root;
-~logger.minPriority = 2;
+~logger.minPriority = 0;
 ~patt=Ptrace(ps.root <> (amp: 1, type: \midi, midiout: m, \chan: 9));
 ~patt.play(~clock);
 )
