@@ -41,7 +41,6 @@ ps.putRule(\root, \part1, \part2);
  TODO
  *************
 
- * Actually use my lovely POp class's ability to telescope
  * Should collections be a synonym for PSBranch, by analogy with normal parallel expansion?
  * Stochastic factories, producing Affine transforms (or, more conveniently, POps) to desired specs
  * make POp editable

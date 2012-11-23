@@ -87,7 +87,7 @@ PSProductionSystem {
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
 		//Here is the symbol parsing recursive state-machine.
 		//opStack content is applied to all symbols
-		var nextPhraseStack = List.new;
+		var nextPhraseContext = POp.new;
 		var nextPhraseTokens = List.new;
 		var token;
 		var nextTokensIterator;
@@ -104,8 +104,8 @@ PSProductionSystem {
 				{token.isKindOf(PSParen)} {
 					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
-					this.expressWithContext(sp, opStack ++ nextPhraseStack, token.tokens, depth: depth+1);
-					nextPhraseStack = List.new;
+					this.expressWithContext(sp, opStack <> nextPhraseContext, token.tokens, depth: depth+1);
+					nextPhraseContext = List.new;
 					nextPhraseTokens = List.new;
 				}
 				{token.isKindOf(PSChoice)} {
@@ -146,26 +146,20 @@ PSProductionSystem {
 					type.switch(
 						\op, {
 							//accumulate ops
-							nextPhraseStack.add(tokencontent);
+							nextPhraseContext.add(tokencontent);
 							nextPhraseTokens.add(token);
-							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseContext, priority: 1);
 							this.logger.log(tag: \accumulation, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 						},
 						\atom, {
 							//apply operators to event. or rule.
-							//note that Pchain applies RTL.
-							var squashedPat, wholecontext;
-							nextPhraseStack.add(tokencontent);
+							nextPhraseContext.add(tokencontent);
 							nextPhraseTokens.add(token);
-							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
+							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseContext, priority: 1);
 							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
-							wholecontext = (opStack ++ nextPhraseStack).asArray;
 							this.logger.log(tag: \application, msgchunks: [\ct] ++ nextPhraseTokens, priority: 1);
-							//this explodes things:
-							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
-							squashedPat = Pchain(*wholecontext);
-							sp.seq(squashedPat);
-							nextPhraseStack = List.new;
+							sp.seq(opStack <> nextPhraseContext);
+							nextPhraseContext = POp.new;
 							nextPhraseTokens = List.new;
 						},
 						\rule, {
