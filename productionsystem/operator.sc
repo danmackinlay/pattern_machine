@@ -92,4 +92,7 @@ POp : Pbind {
 			}
 		);
 	}
+	add {arg that;
+		patternpairs = (this<>that).patternpairs;
+	}
 }

@@ -61,4 +61,14 @@ TestPOp : PSTestPattern {
 		this.assertEquals(op3[\delta], 57, "Composed Affine1 with constant");
 		this.assertEquals(op4[\delta], 7, "Composed constant with Affine1");
 	}
+	test_stacking {
+		var op1, op2, op3;
+		op1=POp(\delta, Affine1(8,1));
+		op2=POp(\delta, 7);
+		op3=op1<>op2;
+		op1.add(op2);
+		this.assertEquals(op1, op3, "stacked and composed ops are equal");
+		this.assertEquals(op1[\delta], 57, "stacked and composed ops are equal");
+		this.assertEquals(op3[\delta], 57, "stacked and composed ops are equal");
+	}
 }
