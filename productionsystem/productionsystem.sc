@@ -153,17 +153,22 @@ PSProductionSystem {
 						},
 						\atom, {
 							//apply operators to event. or rule.
-							//note that Pchain applies RTL.
 							var squashedPat, wholecontext;
 							nextPhraseStack.add(tokencontent);
 							nextPhraseTokens.add(token);
 							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseStack, priority: 1);
 							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 							wholecontext = (opStack ++ nextPhraseStack).asArray;
-							this.logger.log(tag: \application, msgchunks: [\ct] ++ nextPhraseTokens, priority: 1);
 							//this explodes things:
 							//wholecontext = [Pset(\depth, depth)] ++ wholecontext;
-							squashedPat = Pchain(*wholecontext);
+							// We can't use PChain here as it presupposes how the list items compose;
+							// If they are chainable patterns such as Pbind or operators, fine
+							// But if they are Pcomps, boom.
+							// Unfortunately this is very inefficient for conventionally composable patterns.
+							//squashedPat = Pchain(*wholecontext);
+							squashedPat = wholecontext.reverseReduce('<>');
+							this.logger.log(tag: \application, msgchunks: [\wc] ++ [wholecontext.asCompileString], priority: 1);
+							this.logger.log(tag: \application, msgchunks: [\sp] ++ squashedPat, priority: 1);
 							sp.seq(squashedPat);
 							nextPhraseStack = List.new;
 							nextPhraseTokens = List.new;

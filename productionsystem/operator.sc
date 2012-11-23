@@ -12,6 +12,15 @@ Pcomp : Pattern {
 	<> {|that|
 		^fn.value(that)
 	}
+	printOn { arg stream;
+		stream << "%(%)".format(this.class, fn);
+	}	
+	hash { ^([this.class.name] ++ this.storeArgs).hash }
+	== {|that| 
+		^(this.hash==that.hash)
+	}
+	storeArgs { ^[fn] }
+	
 }
 /*
 A POp is a normal pattern, but it composes nicely, for ease of legibility.
