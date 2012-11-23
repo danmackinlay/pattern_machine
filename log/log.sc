@@ -74,7 +74,7 @@ FileLogger : NullLogger {
 	*global {
 		/* a shared, appendable log that all local supercollider procs
 		can write to. */
-		global.isNil.if({global = this.new("_global")});
+		global.isNil.if({global = this.new("_global.log")});
 		^global;
 	}
 	*default {
