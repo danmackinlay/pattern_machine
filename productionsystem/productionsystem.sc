@@ -81,7 +81,7 @@ PSProductionSystem {
 	asPattern {|symbols, context, depth=0|
 		^Pspawner({ |sp|
 			this.logger.log(tag: \asPattern, msgchunks: symbols++ [\myspawner, sp.identityHash], priority: 1);
-			this.expressWithContext(sp, opStack: context ?? Array.new, nextTokens: symbols, depth: depth+1);
+			this.expressWithContext(sp, opStack: context ?? POp.new, nextTokens: symbols, depth: depth+1);
 		});
 	}
 	expressWithContext{|sp, opStack, nextTokens, depth=0|
@@ -105,7 +105,7 @@ PSProductionSystem {
 					//Parenthetical list of tokens that should share a transform stack
 					this.logger.log(tag: \paren, msgchunks: (opStack++ [\nt] ++ token.tokens), priority: 1);
 					this.expressWithContext(sp, opStack <> nextPhraseContext, token.tokens, depth: depth+1);
-					nextPhraseContext = List.new;
+					nextPhraseContext = POp.new;
 					nextPhraseTokens = List.new;
 				}
 				{token.isKindOf(PSChoice)} {
@@ -146,14 +146,14 @@ PSProductionSystem {
 					type.switch(
 						\op, {
 							//accumulate ops
-							nextPhraseContext.add(tokencontent);
+							nextPhraseContext = nextPhraseContext <> tokencontent;
 							nextPhraseTokens.add(token);
 							this.logger.log(tag: \accumulation, msgchunks: [\pt] ++ nextPhraseContext, priority: 1);
 							this.logger.log(tag: \accumulation, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
 						},
 						\atom, {
 							//apply operators to event. or rule.
-							nextPhraseContext.add(tokencontent);
+							nextPhraseContext = nextPhraseContext <> tokencontent;
 							nextPhraseTokens.add(token);
 							this.logger.log(tag: \application, msgchunks: [\pt] ++ nextPhraseContext, priority: 1);
 							this.logger.log(tag: \application, msgchunks: [\nt] ++ nextPhraseTokens, priority: 1);
