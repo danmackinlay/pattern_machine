@@ -1,10 +1,10 @@
 /*
-Unlike normal patterns, which special-case event patterns and do weird operations on keys,
-Ppop composes plain-old-functional-style with even event patterns.
+Unlike normal patterns, which special-case event patterns to do particular operations on keys, rather than composing.
+Pcomp composes event patterns in a plain-old-functional-style with other event patterns.
 This is useful for composing unary operations acting on whole streams (e.g. Pfindur) 
 with the streams and getting the right behaviour.
 */
-Ppop : Pattern {
+Pcomp : Pattern {
 	var fn;//a function wrapping a pattern, e.g. Pfindur(2,_)
 	*new {|fn|
 		^super.newCopyArgs(fn)

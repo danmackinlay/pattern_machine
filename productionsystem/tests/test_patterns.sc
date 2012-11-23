@@ -29,11 +29,15 @@ PSTestPattern : UnitTest {
 			var aval;
 			this.assert(a.includesKey(key), message ++ "key % found".format(key), onFailure: {"key '%' not found in %".format(key, a).postln});
 			aval = a[key];
-			this.assertEquals(aval, bval, message ++ "key % equal in both (%=%)".format(key, aval, bval));
+			aval.isFloat.if({
+				this.assertFloatEquals(aval, bval, message ++ "key % equal in both (%=%)".format(key, aval, bval));
+			}, {
+				this.assertEquals(aval, bval, message ++ "key % equal in both (%=%)".format(key, aval, bval));					
+			});
 		});
 	}
 }
-TestDropdur : PSTestPattern {
+TestPdropdur : PSTestPattern {
 	test_basic_drop {
 		var steps, patt = Pdropdur(2, Pbind(\note, Pseq([1,2,3,4]), \delta, 1));
 		steps = this.class.expressPattern(patt);
@@ -55,5 +59,36 @@ TestDropdur : PSTestPattern {
 		this.assertEquals(steps.size, 2, "rest Dropdur: correct number of steps");
 		this.assertAContainsB(steps[0], ('dur': 0.5, 'delta': 0.5, 'isRest': true), "rest Dropdur");
 		this.assertAContainsB(steps[1], ('note': 4, 'delta': 1), "rest Dropdur");
+	}
+}
+TestPslicedur : PSTestPattern {
+	test_basic_slice {
+		var steps, patt = Pslicedur(1, 2, Pbind(\note, Pseq([0,1,2,3,4]), \delta, 1));
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 2, "basic slicedur: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 1, 'delta': 1), "basic slicedur");
+		this.assertAContainsB(steps[1], ('note': 2, 'delta': 1), "basic slicedur");
+	}
+	test_rounded_slice {
+		var steps, patt = Pslicedur(1, 1, Pbind(\note, Pseq([1,2,3,4,5,6,7,8,9]), \delta, 1/3));
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 3, "rounded slicedur: correct number of steps");
+		this.assertAContainsB(steps[0], ('note': 4, 'delta': 1/3), "rounded slicedur");
+		this.assertAContainsB(steps[1], ('note': 5, 'delta': 1/3), "rounded slicedur");
+		this.assertAContainsB(steps[2], ('note': 6, 'delta': 1/3), "rounded slicedur");
+	}
+	test_rest_slice {
+		var steps, patt = Pslicedur(1.5,1, Pbind(\note, Pseq([1,2,3,4]), \delta, 1));
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 2, "rest slicedur: correct number of steps");
+		this.assertAContainsB(steps[0], ('dur': 0.5, 'delta': 0.5, 'isRest': true), "rest slicedur");
+		this.assertAContainsB(steps[1], ('note': 3, 'delta': 0.5), "rest slicedur");
+	}
+	test_rest_only_slice {
+		var steps, patt = Pslicedur(1.25,0.5, Pbind(\note, Pseq([1,2,3,4]), \delta, 1));
+		steps = this.class.expressPattern(patt);
+		this.assertEquals(steps.size, 1, "rest-only slicedur: correct number of steps");
+		//note that \dur is still 0.75. Does this matter?
+		this.assertAContainsB(steps[0], ('delta': 0.5, 'isRest': true), "rest-only slicedur");
 	}
 }

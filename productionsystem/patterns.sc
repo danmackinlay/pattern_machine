@@ -86,27 +86,75 @@ Pfindur : FilterPattern {
 	}
 }*/
 Pdropdur : FilterPattern {
-	var <>dur, <>tolerance;
-	*new { arg dur, pattern, tolerance = 0.001;
-		^super.new(pattern).dur_(dur).tolerance_(tolerance)
+	var <>start, <>tolerance;
+	*new { arg start, pattern, tolerance = 0.001;
+		^super.new(pattern).start_(start).tolerance_(tolerance)
 	}
-	storeArgs { ^[dur,pattern,tolerance] }
+	storeArgs { ^[start,pattern,tolerance] }
 	//asStream { | cleanup| ^Routine({ arg inval; this.embedInStream(inval, cleanup) }) }
 
 	embedInStream { arg event;
 		var item, delta, elapsed = 0.0, nextElapsed = 0.0, inevent,
-			localdur = dur.value(event);
+			localstart = start.value(event);
 		var stream = pattern.asStream;
 		//scroll through the skippable part
-		{nextElapsed.roundDown(tolerance) < localdur}.while({
+		{nextElapsed.roundDown(tolerance) < localstart}.while({
 			inevent = stream.next(event).asEvent ?? { ^event };
 			delta = inevent.delta;
 			nextElapsed = nextElapsed + delta;
 		});
-		event = Event.silent(nextElapsed-localdur).yield;
+		//handle an offset-rest.
+		event = Event.silent(nextElapsed-localstart).yield;
 		loop {
 			inevent = stream.next(event).asEvent ?? { ^event };
 			event = inevent.yield;
+		}
+	}
+}
+Pslicedur : FilterPattern {
+	var <>start,<>dur,<>tolerance;
+	*new { arg start, dur, pattern, tolerance = 0.001;
+		^super.new(pattern).start_(start).dur_(dur).tolerance_(tolerance)
+	}
+	storeArgs { ^[start,dur,pattern,tolerance] }
+	asStream { | cleanup| ^Routine({ arg inval; this.embedInStream(inval, cleanup) }) }
+
+	embedInStream { arg event, cleanup;
+		var item, delta, elapsed = 0.0, nextElapsed = 0.0, inevent,
+			localstart = start.value(event),
+			localdur = dur.value(event);
+		var stream = pattern.asStream;
+
+		cleanup ?? { cleanup = EventStreamCleanup.new };
+
+		//scroll through the skippable part
+		{nextElapsed.roundDown(tolerance) < localstart}.while({
+			inevent = stream.next(event).asEvent ?? { ^event };
+			delta = inevent.delta;
+			nextElapsed = nextElapsed + delta;
+		});
+		//handle an offset-rest, and reset all counters for the duration count.
+		delta = nextElapsed-localstart;
+		inevent = Event.silent(delta);
+		nextElapsed = delta;
+		elapsed  = 0.0;
+		cleanup.update(inevent);
+
+		loop {
+			if (nextElapsed.roundUp(tolerance) >= localdur) {
+				// must always copy an event before altering it.
+				// fix delta time and yield to play the event.
+				inevent = inevent.copy.put(\delta, localdur - elapsed).yield;
+				^cleanup.exit(inevent);
+			};
+
+			elapsed = nextElapsed;
+			event = inevent.yield;
+
+			inevent = stream.next(event).asEvent ?? { ^event };
+			cleanup.update(inevent);
+			delta = inevent.delta;
+			nextElapsed = elapsed + delta;
 		}
 	}
 }
