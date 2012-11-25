@@ -23,14 +23,14 @@ This means that the following are equivalent:
 
 (
 var ps = PSProductionSystem.new;
-ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
+ps.putOp(\doubleSpeed, Pop(\stretch, Affine1(1/2)));
 ps.putAtom(\note, Pobind(\note, 0, \dur, 1));
 ps.putRule(\root, \doubleSpeed, \note, \doubleSpeed, \note, \doubleSpeed, \note);
 )
 and
 (
 var ps = PSProductionSystem.new;
-ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
+ps.putOp(\doubleSpeed, Pop(\stretch, Affine1(1/2)));
 ps.putAtom(\note, Pobind(\note, 0, \dur, 1));
 ps.putRule(\part1, \doubleSpeed, \note, \doubleSpeed);
 ps.putRule(\part2, \note, \doubleSpeed, \note);
@@ -41,11 +41,11 @@ ps.putRule(\root, \part1, \part2);
  TODO
  *************
 
- * Actually use my lovely POp class's ability to telescope
+ * Actually use my lovely Pop class's ability to telescope
  * Should collections be a synonym for PSBranch, by analogy with normal parallel expansion?
- * Stochastic factories, producing Affine transforms (or, more conveniently, POps) to desired specs
- * make POp editable
- 	* Refactor POp to use a dict internally, since I end up casting to it all the time anyway.
+ * Stochastic factories, producing Affine transforms (or, more conveniently, Pops) to desired specs
+ * make Pop editable
+ 	* Refactor Pop to use a dict internally, since I end up casting to it all the time anyway.
  * make some examples
    * moombahton, or a samba
    * breakbeat cuts

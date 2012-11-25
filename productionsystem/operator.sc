@@ -23,12 +23,12 @@ Pcomp : Pattern {
 	
 }
 /*
-A POp is a normal pattern, but it composes nicely, for ease of legibility.
+A Pop is a normal pattern, but it composes nicely, for ease of legibility.
 It covers the special case where you would like to have a pattern than applies unary
 operations on the *values of keys* in the incoming stream.
 Approximately, Pobind(\delta, 2*_) is the same as Pbind(\delta, 2*Pkey(\delta))
 */
-POp : Pbind {
+Pop : Pbind {
 	//closely cribbed from Pbind, but more convenient for fn application
 	printOn { arg stream;
 		stream << "%(%)".format(this.class, patternpairs.join(","));
@@ -76,7 +76,7 @@ POp : Pbind {
 	at{|...args|
 		^Event.newFrom(patternpairs).at(*args)
 	}
-	// compose POps
+	// compose Pops
 	<> { arg that;
 		^(that.isKindOf(this.class).not).if(
 			{
@@ -85,19 +85,19 @@ POp : Pbind {
 				Pchain(this, that)
 			}, {
 				//First, copy 'im.
-				var composedPOp = Event.newFrom(that.patternpairs);
+				var composedPop = Event.newFrom(that.patternpairs);
 				//now, compose all sub operations.
 				patternpairs.pairsDo({|key, lefttransform|
-					var righttransform = composedPOp.at(key) ?? {Affine1(1)};
+					var righttransform = composedPop.at(key) ?? {Affine1(1)};
 					//Special case non-composable things here by presuming them constant.
 					//This gives us a convenient way to straight-out overwriting keys with constants.
 					var composedTransform = case
 						 { lefttransform.respondsTo('<>').not } {lefttransform}
 						 { righttransform.respondsTo('<>').not} {lefttransform.value(righttransform)}
 						 { true } {lefttransform <> righttransform };
-					composedPOp.put(key, composedTransform);
+					composedPop.put(key, composedTransform);
 				});
-				that.class.new(*(composedPOp.getPairs.flat));
+				that.class.new(*(composedPop.getPairs.flat));
 			}
 		);
 	}

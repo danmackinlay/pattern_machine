@@ -28,6 +28,6 @@ patt = Ptrace(ps.root,10);
 
 ////Testing:
 TestAffine1.run;
-TestPOp.run;
+TestPop.run;
 UnitTest.runTest("TestPS:test_branching");
 TestPS.run;

@@ -16,7 +16,7 @@ m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 //m = MIDIOut.newByName("SimpleSynth virtual input", "SimpleSynth virtual input");
 //m.latency=0;
 )
-POp(\a, Affine1(2)) <> POp(\a, Affine1(2,1)) <> POp(\a, 1)
+Pop(\a, Affine1(2)) <> Pop(\a, Affine1(2,1)) <> Pop(\a, 1)
 
 (
 //test
@@ -32,14 +32,14 @@ var ps;
 ~logger = PostLogger.new;
 ps = PSProductionSystem(~logger);
 ~clock=TempoClock.new(150/60);
-ps.putOp(\doubleSpeed, POp(\stretch, Affine1(1/2)));
-ps.putOp(\halfSpeed, POp(\stretch, Affine1(2)));
-ps.putOp(\thirdSpeed, POp(\stretch, Affine1(1/3)));
-ps.putOp(\tripleSpeed, POp(\stretch, Affine1(3)));
-ps.putOp(\upmin3, POp(\note, Affine1(1, 3)));
-ps.putOp(\upmaj3, POp(\note, Affine1(1, 4)));
-ps.putOp(\downmin3, POp(\note, Affine1(1, -3)));
-ps.putOp(\downmaj3, POp(\note, Affine1(1, -4)));
+ps.putOp(\doubleSpeed, Pop(\stretch, Affine1(1/2)));
+ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2)));
+ps.putOp(\thirdSpeed, Pop(\stretch, Affine1(1/3)));
+ps.putOp(\tripleSpeed, Pop(\stretch, Affine1(3)));
+ps.putOp(\upmin3, Pop(\note, Affine1(1, 3)));
+ps.putOp(\upmaj3, Pop(\note, Affine1(1, 4)));
+ps.putOp(\downmin3, Pop(\note, Affine1(1, -3)));
+ps.putOp(\downmaj3, Pop(\note, Affine1(1, -4)));
 //SambaTwoPart.mid
 ps.putAtom(\sambarhythm1, Pbind(\midinote, MIDIPercMap.cabasa, \dur, Pseq([1/2, 1/4, 1/4, 1/2, 1/4, 1/2, 1/2, 1/4, 1/2, 1/2])));
 ps.putAtom(\sambarhythm2, Pbind(

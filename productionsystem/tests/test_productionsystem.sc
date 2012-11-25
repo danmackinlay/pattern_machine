@@ -27,7 +27,7 @@ TestProductionSystem : PSTestPattern {
 		// (Extra credit: SHOULD they?)
 		//This buys us the ability to have rules at are only operators,
 		// but at the expense of having trailing operators applied in weird contexts 
-		ps.putOp(\halfSpeed, POp(\stretch, Affine1(2))) ;
+		ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2))) ;
 		ps.putAtom(\note, Pobind(\note, 1, \dur, 1)) ;
 		ps.putRule(\op, \halfSpeed);
 		ps.putRule(\atom, \note);
@@ -39,7 +39,7 @@ TestProductionSystem : PSTestPattern {
 	}
 	test_rule_rule_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
-		ps.putOp(\halfSpeed, POp(\stretch, Affine1(2)));
+		ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2)));
 		ps.putAtom(\note, Pobind(\note, 1, \dur, 1));
 		ps.putRule(\part1, \halfSpeed, \note, \halfSpeed);
 		ps.putRule(\part2, \note, \halfSpeed, \note);
@@ -52,7 +52,7 @@ TestProductionSystem : PSTestPattern {
 	}
 	test_rule_op_atom_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
-		ps.putOp(\halfSpeed, POp(\stretch, Affine1(2))) ;
+		ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2))) ;
 		ps.putAtom(\note, Pobind(\note, 1, \dur, 1)) ;
 		ps.putRule(\op, \halfSpeed);
 		ps.putRule(\root, \op, \note, \op, \op, \note);
@@ -87,7 +87,7 @@ TestProductionSystem : PSTestPattern {
 	}
 	test_star_association {
 		var steps, ps = PSProductionSystem.new;
-		ps.putOp(\starop, POp(\note, Affine1(1,1)));
+		ps.putOp(\starop, Pop(\note, Affine1(1,1)));
 		ps.putAtom(\note, Pobind(\note, 1, \delta, 1));
 		ps.putRule(\root, PSStarN(2, \starop), \note, \note);
 		steps = this.class.expressPattern(ps);
@@ -111,8 +111,8 @@ TestProductionSystem : PSTestPattern {
 		ps = PSProductionSystem.new;
 		deltasfound = Set.new;
 		ps.putRule(\changeSpeed, PSChoice(1, [\half, \note], 1, [\third, \note]));
-		ps.putOp(\half, POp(\stretch, Affine1(2)));
-		ps.putOp(\third, POp(\stretch, Affine1(3)));
+		ps.putOp(\half, Pop(\stretch, Affine1(2)));
+		ps.putOp(\third, Pop(\stretch, Affine1(3)));
 		ps.putAtom(\note, Pobind(\note, 1, \delta, 1)) ;
 		20.do({
 			this.class.expressPattern(ps.asPattern([\changeSpeed])).do({|step|
@@ -125,7 +125,7 @@ TestProductionSystem : PSTestPattern {
 		var ps, steps;
 		ps = PSProductionSystem.new;
 		ps.putRule(\changeSpeed, PSChoice(1, [\half], 1, [\half]));
-		ps.putOp(\half, POp(\stretch, Affine1(2)));
+		ps.putOp(\half, Pop(\stretch, Affine1(2)));
 		ps.putAtom(\note, Pobind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\changeSpeed, \note]));
 		this.assertEquals(steps.size, 1, "PSChoice expands in current context: correct number of steps");
