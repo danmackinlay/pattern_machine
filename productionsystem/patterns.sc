@@ -77,12 +77,15 @@ Pcutdur : FilterPattern {
 			delta = inevent.delta;
 			nextElapsed = nextElapsed + delta;
 		});
-		//handle an offset-rest, and reset all counters for the duration count.
+		//how long until the next event?
 		delta = nextElapsed-localstart;
+		//handle an offset-rest
 		inevent = Event.silent(delta);
+		cleanup.update(inevent);
+
+		// reset all counters for the next duration count.
 		nextElapsed = delta;
 		elapsed  = 0.0;
-		cleanup.update(inevent);
 
 		loop {
 			if (nextElapsed.roundUp(tolerance) >= localdur) {

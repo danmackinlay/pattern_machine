@@ -45,12 +45,12 @@ ps.putRule(\root, \part1, \part2);
  * Should collections be a synonym for PSBranch, by analogy with normal parallel expansion?
  * Stochastic factories, producing Affine transforms (or, more conveniently, Pops) to desired specs
  * Pop wrangling
-	* Make Pops and Operators generally be a differnt subclass of stream than Patterns
+	* Make Pops and Operators generally be a different subclass of stream than Patterns
  	* Refactor Pop to use a dict internally, since I end up casting to it all the time anyway.
  * make some examples
    * moombahton, or a samba
    * breakbeat cuts
- * swing.shuffle patterns(Jitlib has examples of clock-sensitive alteration)
+ * swing.shuffle patterns (Jitlib has examples of clock-sensitive alteration)
  * guis for Pops and PSChoices, maybe even rules.
  * a pattern library for PSProductionSystem
  * accept naked patterns instead of tokens for convenience
