@@ -60,6 +60,8 @@ Pcutdur : FilterPattern {
 	*new { arg start, dur, pattern, tolerance = 0.001;
 		^super.new(pattern).start_(start).dur_(dur).tolerance_(tolerance)
 	}
+	guiClass { ^PcutdurGui }
+	
 	storeArgs { ^[start,dur,pattern,tolerance] }
 	asStream { | cleanup| ^Routine({ arg inval; this.embedInStream(inval, cleanup) }) }
 

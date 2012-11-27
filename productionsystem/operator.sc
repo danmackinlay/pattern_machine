@@ -9,6 +9,7 @@ Pcomp : Pattern {
 	*new {|fn|
 		^super.newCopyArgs(fn)
 	}
+	guiClass { ^PcompGui }
 	<> {|that|
 		^fn.value(that)
 	}
