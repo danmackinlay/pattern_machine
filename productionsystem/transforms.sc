@@ -13,8 +13,8 @@ Transform : AbstractFunction {
 }
 Affine1 : Transform {
 	//A 1 dimensional affine transform
-	var <mul;
-	var <add;
+	var <>mul;
+	var <>add;
 	var <nilSafe;
 	var <transformFunc;
 	*new {|mul=1,add=0, nilSafe=true|
@@ -27,6 +27,7 @@ Affine1 : Transform {
 	}
 	
 	value{|in| ^transformFunc.value(in)}
+	guiClass { ^Affine1Gui }
 	
 	printOn { arg stream;
 		(add==0).if({
