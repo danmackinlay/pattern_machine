@@ -1,7 +1,0 @@
-(
-	\name: "json",
-	\path: "json",
-	\summary: "JSON parser",
-	\author: "parking sun",
-	\helpdoc: "Help/JsonParser.htm"
-)
