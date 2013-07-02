@@ -60,3 +60,20 @@ ps.putRule(\root, PSStarN(4, \bar));
 ~patt.play(~clock);
 )
 ~logger.minPriority=0;
+~n=NumberEditorGui;
+~n
+KrNumberEditor
+Editor.for(3).gui;
+Editor.for((a: 5)).gui
+
+cxpatterns
+Pbind(\degree, Instr([\degreeStream,\endlessLeapFrog])).play;
+Instr([\degreeStream,\endlessLeapFrog]).next.asCompileString;
+~p=Pcutdur(2,3,Pbind(\dur,1));
+~p.gui;
+~p.asCompileString
+Editor.for(Pbind(\dur,1))
+~t=Affine1(2,3);
+~t.gui;
+~t
+Quarks.checkoutAll;
