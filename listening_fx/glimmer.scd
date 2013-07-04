@@ -3,7 +3,6 @@
 //TODO: go to demand-rate recording. Control rate is lame.
 //TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
-//TODO: use JITLib to make this compile nicely
 //TODO: turn this into an instrument with nice intuitive GUI controls etc.
 //rewire in a dynamic-voicing style with Hash to get dynamic voicing, instead of the current manual one
 
