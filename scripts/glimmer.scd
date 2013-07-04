@@ -5,6 +5,7 @@
 //TODO: turn this into an instrument with nice intuitive GUI controls etc.
 //TODO: simplify.
 //TODO: make feedback delay random too
+//TODO: only play delayed signsl
 
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
@@ -14,14 +15,14 @@ var maxVoices = 23; //primes make it easy to permute, since everything is co-pri
 
 SynthDef.new(\glimmergrains,
 	{|inbus, outbus,
-		trigRate=10,
+		trigRate=1,
 		duty=0.5,
-		ringTime=2.0, wideness=1,
+		ringTime=0.1, wideness=1,
 		attack=0.01, decay=0.5,
 		freqBus,
 		ratioBuf,
 		intensity=1.0,
-		feedbackGain = 0.5, feedbackLen=0.1|
+		feedbackGain = 0.0, feedbackLen=0.1|
 		var trigRamp, voices, mixedIn, outChannels, feedback, freqEst;
 		inbus = In.ar(inbus, 2);
 		feedback = DelayL.ar(
@@ -30,7 +31,6 @@ SynthDef.new(\glimmergrains,
 			delaytime: feedbackLen-ControlRate.ir.reciprocal,
 			mul:feedbackGain) ;
 		mixedIn = Mix.new(inbus+feedback);
-		//poor-man's shared ring buffer
 		freqEst = In.kr(freqBus);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
@@ -97,8 +97,11 @@ SynthDef.new(\findfreq, {|inbus, outbus|
 
 	Out.kr(outbus, Gate.kr(freq, hasFreq).max(10));
 }).add;
-)
 
+~filler = {|buf,arr|
+	buf.setn(0, arr.wrapExtend(512))
+}
+)
 (
 fork {
 	~ratioBuf = Buffer(s, 512, 1);
@@ -108,6 +111,8 @@ fork {
 	s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 	//Now..
 	s.sync;
+	~filler.(~ratioBuf, [1/3,2/3,4/3,5/3]);
+
 	~globalOuts = Bus.new(\audio, 0, 2);
 	~freqBus = Bus.control(s, 1);
 	~sourceIns = Bus.newFrom(s.inputBus,0,2);
@@ -121,4 +126,6 @@ fork {
 }
 )
 ~freqBus.get(_.postln);
-~sourceIns.scope
+~sourceIns.scope;
+~fx.set(\feedbackGain, 0.2);
+~ratioBuf.getn(0,512,_.postln);
