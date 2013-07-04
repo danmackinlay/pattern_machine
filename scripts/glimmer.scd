@@ -4,7 +4,6 @@
 //TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: turn this into an instrument with nice intuitive GUI controls etc.
-//TODO: rewire in a dynamic-voicing style with Hasher to get dynamic voicing, instead of the current manual one
 //TODO: simplify.
 
 (
@@ -21,7 +20,7 @@ SynthDef.new(\glimmergrains,
 		attack=0.01, decay=0.5,
 		freqBuf, freqMemory=10, freqBufPointer,
 		ratioBuf,
-		nVoices=23,
+		intensity=1.0,
 		feedbackGain = 0.5, feedbackLen=0.1|
 		var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
 		inbus = In.ar(inbus, 2);
@@ -40,17 +39,18 @@ SynthDef.new(\glimmergrains,
 			var gate, env;
 			var myFilterFreqLag, myDelayFreqLag;
 			var myDelayFreq, myFilterFreq, myPan;
-			var phaseI, panI;
+			var phase, pan, threshold;
 			var ratioPointerFilt, ratioPointerDelay;
 			var ratioFilt, ratioDelay;
 			var sig;
 			var alive;
 			//permute phases
-			phaseI = (i*29) % maxVoices;
-			panI = (i*17) % maxVoices;
-			alive = i<nVoices;
+			phase = Rand.new;
+			pan = Rand.new;
+			threshold = Rand.new;
+			alive = threshold<intensity;
 			//voice-local phase-offset ramp
-			myRamp = Wrap.kr(trigRamp + (phaseI * maxVoices.reciprocal));
+			myRamp = Wrap.kr(trigRamp + phase );
 			gate = (myRamp < duty) * alive;
 			env = Linen.kr(gate, attackTime: attack, releaseTime: decay);
 			ratioPointerFilt = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: gate);
@@ -79,7 +79,7 @@ SynthDef.new(\glimmergrains,
 				mul:env);
 			Pan2.ar(
 				in: sig,
-				pos: ((2 * (panI+0.5) * maxVoices.reciprocal) -1),
+				pos: (2 * pan -1),
 				level: 1.0
 			);
 		});
