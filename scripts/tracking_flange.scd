@@ -18,7 +18,7 @@ fork {
 		sig = RLPF.ar(Saw.ar(freq, amp), freq + (env * headroom), rq) * env;
 		Out.ar(outbus, sig ! 2);	// sig ! 2 is the same as [sig, sig]
 
-	}).add(s);
+	}).add;
 
 	//TODO: add in spring constrints w/regard to central frequency.
 	//TODO: add in hard clipping to avoid mishaps
@@ -52,9 +52,9 @@ fork {
 		peakGain = Lag.kr(Select.kr(offPeak, [1, offPeakGain]), offPeakLag);//mute when inbus transit
 		env = EnvGen.kr(Env.asr(0.01, 1.0, 0.1), gate, doneAction: 2) * peakGain;
 		Out.ar(outbus, (sigOut * env) ! 2);	// sig ! 2 is the same as [sig, sig]
-	}).add(s);
+	}).add;
 
-	SynthDef.new(\stereolimiter, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus, 2))); }).add(s);
+	SynthDef.new(\stereolimiter, {|outbus| ReplaceOut.ar(outbus, Limiter.ar(In.ar(outbus, 2))); }).add;
 	s.sync;
 
 	~mainOut = Bus.new(\audio, 0, 2);
