@@ -53,7 +53,7 @@ SynthDef(\tempotrack, {|inbus, outbus, tempoout=(-1), beatout=(-1), vol=0.0, bee
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			inbus: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
+			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo: 0,
 			hi: (BufFrames.ir(i_buffer)-1)
 		),
@@ -63,8 +63,8 @@ SynthDef(\tempotrack, {|inbus, outbus, tempoout=(-1), beatout=(-1), vol=0.0, bee
 SynthDef(\ps_flange_chorister_del_bp, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1|
 	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	pitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
@@ -73,13 +73,13 @@ SynthDef(\ps_flange_chorister_del_bp, {
 	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
 	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		inbus: sig,
+		in: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		inbus: sig,
+		in: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -90,8 +90,8 @@ SynthDef(\ps_flange_chorister_del_bp, {
 SynthDef(\ps_flange_chorister_del_bp_compand, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1, thresh=0.001, slopeAbove=0.1|
 	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(inbus: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	pitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (~trackpitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
@@ -100,13 +100,13 @@ SynthDef(\ps_flange_chorister_del_bp_compand, {
 	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
 	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		inbus: sig,
+		in: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		inbus: sig,
+		in: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -120,7 +120,7 @@ SynthDef(\ps_flange_chorister_del_bp_compand, {
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			inbus: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
+			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo: 0,
 			hi: (BufFrames.ir(i_buffer)-1)
 		),
@@ -130,8 +130,8 @@ SynthDef(\ps_flange_chorister_del_bp_compand, {
 SynthDef(\ps_flange_grain_del_bp, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1|
 	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
@@ -140,13 +140,13 @@ SynthDef(\ps_flange_grain_del_bp, {
 	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
 	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		inbus: sig,
+		in: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		inbus: sig,
+		in: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -157,8 +157,8 @@ SynthDef(\ps_flange_grain_del_bp, {
 SynthDef(\ps_flange_grain_del_bp_compand, {
 	|delbuf, phasein, outbus, bigdelay=0.1, attack=0.1, release=0.2, i_bufpointer, i_buffer, maxdel=50, i_ratiod=0.5, i_ratiof=2, i_ratiodb=0.5, wideness=1, decaytime=1, thresh=0.001, slopeAbove=0.1|
 	var inbus, pitch, bpitch, delay, sig, env, minf=40, maxf=4000;
-	pitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
-	bpitch = Clip.kr(inbus: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	pitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
+	bpitch = Clip.kr(in: (~choosepitch.(i_bufpointer, i_buffer, maxdel)), lo:minf, hi:maxf);
 	bigdelay = Clip.kr(LastValue.kr(bigdelay, inf)* i_ratiodb, lo:0.05, hi:1);
 	release = (release*(pitch>minf)*(bpitch>minf)).max(0.05);
 	attack = attack*(pitch>minf)*(bpitch>minf);
@@ -167,13 +167,13 @@ SynthDef(\ps_flange_grain_del_bp_compand, {
 	inbus = DelTapRd.ar(buffer:delbuf, phase:In.kr(phasein), delTime:bigdelay)*env;
 	sig  = Pan2.ar(inbus, Rand(lo:-1, hi:1));
 	sig = Resonz.ar(
-		inbus: sig,
+		in: sig,
 		freq: bpitch*i_ratiof,
 		bwr: wideness
 	);
 	delay = (pitch*i_ratiod).reciprocal;
 	sig = CombN.ar(
-		inbus: sig,
+		in: sig,
 		maxdelaytime: 0.1,
 		delaytime: delay,
 		decaytime: decaytime,
@@ -230,7 +230,7 @@ SynthDef(\delwrite, {|inbus, buffer, phaseout|
 		numChannels:1,
 		bufnum: i_buffer,
 		phase: Wrap.kr(
-			inbus: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
+			in: (In.kr(i_bufpointer)-(Rand(lo:0, hi: maxdel))),
 			lo:0,
 			hi: BufFrames.ir(i_buffer)-1
 		),

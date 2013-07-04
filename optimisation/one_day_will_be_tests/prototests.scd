@@ -60,7 +60,7 @@ fork {
 				) * gate + gate -1,//hope this stops recording when gate is over
 				loop:0
 			);
-			IndexInBetween.kr(~rec, inbus: 0.5);
+			IndexInBetween.kr(~rec, in: 0.5);
 		}.play(target: s, outbus:~indexbus);
 		s.sync;
 		~tester.set(\t_trig, 1);

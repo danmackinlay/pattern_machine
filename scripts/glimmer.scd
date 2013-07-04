@@ -25,7 +25,7 @@ SynthDef.new(\glimmergrains,
 		var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
 		inbus = In.ar(inbus, 2);
 		feedback = DelayL.ar(
-			inbus: LocalIn.ar(2),
+			in: LocalIn.ar(2),
 			maxdelaytime: 1.0,
 			delaytime: feedbackLen-ControlRate.ir.reciprocal,
 			mul:feedbackGain) ;
@@ -63,18 +63,18 @@ SynthDef.new(\glimmergrains,
 				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
 				interpolation:1).max(80);
 			sig = Resonz.ar(
-				inbus: mixedIn*inEnv,
+				in: mixedIn*inEnv,
 				freq: myFilterFreq,
 				bwr: wideness
 			);
 			sig = CombL.ar(
-				inbus: sig,
+				in: sig,
 				maxdelaytime: 0.1,
 				delaytime: myDelayFreq.reciprocal,
 				decaytime: ringTime,
 				mul:outEnv);
 			Pan2.ar(
-				inbus: sig,
+				in: sig,
 				pos: ((2 * (panI+0.5) * maxVoices.reciprocal) -1),
 				level: 1.0
 			);

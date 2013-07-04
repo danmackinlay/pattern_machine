@@ -32,7 +32,7 @@ SynthDef.new(\ps_autorecorder, {|inbus, analout, sndbuffer, pitchbuffer, ampthre
 	recordtrig = Trig1.kr(recordable, dur: duration);
 	recordtrig.poll(1, \rt);
 	RecordBuf.ar(inbus, run: recordtrig, trigger: recordtrig, loop:0);
-	SendTrig.kr(inbus: recordable*LFPulse.kr(freq: 10), value: pitch);
+	SendTrig.kr(in: recordable*LFPulse.kr(freq: 10), value: pitch);
 	Out.kr(analout, excitement);
 }).add;
 SynthDef.new(\ps_twinker, {|outbus, gate=1, sndbuffer, pitchbuffer, paramrate=3, duty=2, release=1, duration=10.0|
