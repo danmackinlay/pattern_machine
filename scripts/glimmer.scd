@@ -1,10 +1,10 @@
 /* create glimmering soundscapes without manual trweaking using machine listening.
 */
-//TODO: go to demand-rate recording. Control rate is lame.
-//TODO: create a version that does not depend on  \findfreqs - i.e which takes a pre-filled buffer
+//TODO: create a version that does not depend on \findfreqs - i.e which takes a pre-filled buffer
 //TODO: handle any number of input AND output channels (by being ambisonic internally?)
 //TODO: turn this into an instrument with nice intuitive GUI controls etc.
 //TODO: simplify.
+//TODO: make feedback delay random too
 
 (
 var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
@@ -108,16 +108,12 @@ fork {
 	s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 	//Now..
 	s.sync;
-	~globalOuts = Bus.new(\audio, 0, 4);
-	~freqBufPointer = Bus.control(s, 1);
-	~sourceIns = Bus.audio(s, 2);
-	~voxGroup = Group.new(s);
+	~globalOuts = Bus.new(\audio, 0, 2);
+	~freqBus = Bus.control(s, 1);
+	~sourceIns = Bus.newFrom(s.inputBus,0,2);
+	~fxGroup = Group.new(s);
 	s.sync;
-	~fxGroup = Group.after(~voxGroup);
-	s.sync;
-	~outGroup = Group.after(~fxGroup);
 	//read hardware in at head of ~voxGroup
-	~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
 	//s.volume.gui;
 	s.volume.volume= -20;
 	~listener = Synth.head(~fxGroup, \findfreq, [\inbus, ~sourceIns, \outbus, ~freqBus]);
