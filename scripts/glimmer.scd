@@ -18,11 +18,11 @@ SynthDef.new(\glimmergrains,
 		duty=0.5,
 		ringTime=2.0, wideness=1,
 		attack=0.01, decay=0.5,
-		freqBuf, freqMemory=10, freqBufPointer,
+		freqBus,
 		ratioBuf,
 		intensity=1.0,
 		feedbackGain = 0.5, feedbackLen=0.1|
-		var trigRamp, voices, maxIndicesSoFar, mixedIn, outChannels, feedback;
+		var trigRamp, voices, mixedIn, outChannels, feedback, freqEst;
 		inbus = In.ar(inbus, 2);
 		feedback = DelayL.ar(
 			in: LocalIn.ar(2),
@@ -31,17 +31,16 @@ SynthDef.new(\glimmergrains,
 			mul:feedbackGain) ;
 		mixedIn = Mix.new(inbus+feedback);
 		//poor-man's shared ring buffer
-		freqBufPointer = In.kr(freqBufPointer);
-		maxIndicesSoFar = RunningMax.kr(freqBufPointer);
+		freqEst = In.kr(freqBus);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
 			var myRamp;
 			var gate, env;
-			var myFilterFreqLag, myDelayFreqLag;
 			var myDelayFreq, myFilterFreq, myPan;
 			var phase, pan, threshold;
 			var ratioPointerFilt, ratioPointerDelay;
 			var ratioFilt, ratioDelay;
+			var localFreq;
 			var sig;
 			var alive;
 			//permute phases
@@ -57,15 +56,9 @@ SynthDef.new(\glimmergrains,
 			ratioPointerDelay = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: gate);
 			ratioFilt = BufRd.kr(1,ratioBuf, ratioPointerFilt);
 			ratioDelay = BufRd.kr(1,ratioBuf, ratioPointerDelay);
-			myDelayFreqLag = TIRand.kr(lo:0, hi: freqMemory.min(maxIndicesSoFar), trig:gate);
-			myFilterFreqLag = TIRand.kr(lo:0, hi: freqMemory.min(maxIndicesSoFar), trig:gate);
-			Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511);
-			myDelayFreq = (BufRd.kr(numChannels:1, bufnum:freqBuf,
-				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
-				interpolation:1)* ratioFilt).max(10);
-			myFilterFreq = (BufRd.kr(numChannels:1, bufnum:freqBuf,
-				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
-				interpolation:1)*ratioDelay).max(80);
+			localFreq = Latch.kr(freqEst, gate);
+			myDelayFreq = (localFreq* ratioFilt).max(10);
+			myFilterFreq = (localFreq* ratioFilt).max(80);
 			sig = Resonz.ar(
 				in: mixedIn*env,
 				freq: myFilterFreq,
@@ -89,38 +82,29 @@ SynthDef.new(\glimmergrains,
 	}
 ).add;
 
-
-SynthDef.new(\findfreqs, {|inbus, rate = 10, gate=1, freqBuf, freqBufPointer|
-	var hasFreq, freq, index, writing=0;
-	rate = rate.min(ControlRate.ir/2);//so triggers work
+SynthDef.new(\findfreq, {|inbus, outbus|
+	var hasFreq, freq;
 	//we presume freqBuf has 513 samples, and use 512. Why not?
-	#freq, hasFreq = Pitch.kr(Mix.new(In.ar(inbus, 2)), execFreq: rate);
-	writing = hasFreq* gate;
-	index = Stepper.kr(Impulse.kr(rate) * writing, max: 511);
-	index = (index+(512*(1-writing))).min(512);  //this last bit moves the read head to the end when there is no freq. Maybe I should do this at demand rate instead?
-	//freq.poll(10, \written);
-	BufWr.kr(
-		inputArray: freq,
-		bufnum: freqBuf,
-		phase: index
+	#freq, hasFreq = Pitch.kr(
+		HPF.ar(HPF.ar(
+			Mix.new(
+				In.ar(inbus, 2)
+			),
+			freq:100), freq:100
+		),
+		execFreq: ControlRate.ir
 	);
-	BufRd.kr(numChannels:1,
-		bufnum: freqBuf,
-		phase: index,
-		interpolation:1
-	);//.poll(10, \read);
-	Out.kr(freqBufPointer, Gate.kr(index, hasFreq));
+
+	Out.kr(outbus, Gate.kr(freq, hasFreq).max(10));
 }).add;
 )
 
 (
 fork {
-	~freqBuf = Buffer(s, 513, 1);
 	~ratioBuf = Buffer(s, 512, 1);
 	// alloc and set the values
-	//pitches all 440Hz by default
-	s.listSendMsg( ~freqBuf.allocMsg( ~freqBuf.setnMsg(0, 440!513) ).postln );
 	//ratios all 1 by default.
+	s.sync;
 	s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
 	//Now..
 	s.sync;
@@ -136,9 +120,9 @@ fork {
 	~inVox={ SoundIn.ar([0, 1]) }.play(target:~voxGroup, outbus:~sourceIns);
 	//s.volume.gui;
 	s.volume.volume= -20;
-	~listener = Synth.head(~fxGroup, \findfreqs, [\inbus, ~sourceIns, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer]);
-	~fx = Synth.tail(~fxGroup, \glimmergrains, [\inbus, ~sourceIns, \outbus, ~globalOuts, \freqBuf, ~freqBuf, \freqBufPointer, ~freqBufPointer, \ratioBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
+	~listener = Synth.head(~fxGroup, \findfreq, [\inbus, ~sourceIns, \outbus, ~freqBus]);
+	~fx = Synth.tail(~fxGroup, \glimmergrains, [\inbus, ~sourceIns, \outbus, ~globalOuts, \freqBus, ~freqBus, \ratioBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
 }
 )
-~freqBufPointer.get(_.postln);
-~freqBuf.loadToFloatArray(count: -1, action: {|arr| arr.postln;});
+~freqBus.get(_.postln);
+~sourceIns.scope
