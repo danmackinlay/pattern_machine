@@ -16,7 +16,7 @@ var maxVoices = 23; //primes make it easy to permute, since everything is co-pri
 SynthDef.new(\glimmergrains,
 	{|inbus, outbus,
 		trigRate=10,
-		inDuty=0.5, playDuty=0.5,
+		duty=0.5,
 		ringTime=2.0, wideness=1,
 		attack=0.01, decay=0.5,
 		freqBuf, freqMemory=10, freqBufPointer,
@@ -37,8 +37,7 @@ SynthDef.new(\glimmergrains,
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
 			var myRamp;
-			var inGate, outGate;
-			var inEnv, outEnv;
+			var gate, env;
 			var myFilterFreqLag, myDelayFreqLag;
 			var myDelayFreq, myFilterFreq, myPan;
 			var phaseI, panI;
@@ -52,16 +51,14 @@ SynthDef.new(\glimmergrains,
 			alive = i<nVoices;
 			//voice-local phase-offset ramp
 			myRamp = Wrap.kr(trigRamp + (phaseI * maxVoices.reciprocal));
-			inGate = (myRamp < inDuty) * alive;
-			outGate = (myRamp < playDuty) * alive;
-			inEnv = Linen.kr(inGate, attackTime: attack, releaseTime: decay);
-			outEnv = Linen.kr(outGate, attackTime: attack, releaseTime: decay);
-			ratioPointerFilt = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: inGate);
-			ratioPointerDelay = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: inGate);
+			gate = (myRamp < duty) * alive;
+			env = Linen.kr(gate, attackTime: attack, releaseTime: decay);
+			ratioPointerFilt = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: gate);
+			ratioPointerDelay = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: gate);
 			ratioFilt = BufRd.kr(1,ratioBuf, ratioPointerFilt);
 			ratioDelay = BufRd.kr(1,ratioBuf, ratioPointerDelay);
-			myDelayFreqLag = TIRand.kr(lo:0, hi: freqMemory.min(maxIndicesSoFar), trig:inGate);
-			myFilterFreqLag = TIRand.kr(lo:0, hi: freqMemory.min(maxIndicesSoFar), trig:inGate);
+			myDelayFreqLag = TIRand.kr(lo:0, hi: freqMemory.min(maxIndicesSoFar), trig:gate);
+			myFilterFreqLag = TIRand.kr(lo:0, hi: freqMemory.min(maxIndicesSoFar), trig:gate);
 			Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511);
 			myDelayFreq = (BufRd.kr(numChannels:1, bufnum:freqBuf,
 				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
@@ -70,7 +67,7 @@ SynthDef.new(\glimmergrains,
 				phase: Wrap.kr(freqBufPointer - myDelayFreqLag, lo: 0, hi: 511),
 				interpolation:1)*ratioDelay).max(80);
 			sig = Resonz.ar(
-				in: mixedIn*inEnv,
+				in: mixedIn*env,
 				freq: myFilterFreq,
 				bwr: wideness
 			);
@@ -79,7 +76,7 @@ SynthDef.new(\glimmergrains,
 				maxdelaytime: 0.1,
 				delaytime: myDelayFreq.reciprocal,
 				decaytime: ringTime,
-				mul:outEnv);
+				mul:env);
 			Pan2.ar(
 				in: sig,
 				pos: ((2 * (panI+0.5) * maxVoices.reciprocal) -1),
