@@ -8,7 +8,7 @@
 //TODO: only play delayed signsl
 
 (
-var maxVoices = 23; //primes make it easy to permute, since everything is co-prime
+var maxVoices = 23;
 
 //This little guy voices a whole bunch of flange frequencies at a given polyphony with known rate
 //input is assumed to be stereo
@@ -84,7 +84,6 @@ SynthDef.new(\glimmergrains,
 
 SynthDef.new(\findfreq, {|inbus, outbus|
 	var hasFreq, freq;
-	//we presume freqBuf has 513 samples, and use 512. Why not?
 	#freq, hasFreq = Pitch.kr(
 		HPF.ar(HPF.ar(
 			Mix.new(
@@ -99,16 +98,18 @@ SynthDef.new(\findfreq, {|inbus, outbus|
 }).add;
 
 ~filler = {|buf,arr|
-	buf.setn(0, arr.wrapExtend(512))
+	var cont = arr.wrapExtend(512);
+	buf.setn(0, cont);
+	cont;
 }
 )
 (
 fork {
-	~ratioBuf = Buffer(s, 512, 1);
+	~ratioBuf = Buffer.alloc(s, 512);
 	// alloc and set the values
 	//ratios all 1 by default.
 	s.sync;
-	s.listSendMsg( ~ratioBuf.allocMsg( ~ratioBuf.setnMsg(0, 1!513) ).postln );
+	~ratioBuf.setn(0, 1!513);
 	//Now..
 	s.sync;
 	~filler.(~ratioBuf, [1/3,2/3,4/3,5/3]);
