@@ -105,6 +105,16 @@ SynthDef.new(\findfreq, {|inbus, outbus|
 )
 (
 fork {
+	~controls = (
+		\trigRate: ControlSpec.new(0.01,10,warp:\exponential,default:1),
+		\duty: ControlSpec.new(0.0,1,default:0.5),
+		\ringTime: ControlSpec.new(0.01,1,warp:\exponential,default:0.1),
+		\attack: ControlSpec.new(0.001,1,warp:\exponential,default:0.01),
+		\decay: ControlSpec.new(0.001,1,warp:\exponential,default:0.5),
+		\intensity: ControlSpec.new(0.0,1,default:0.5),
+		\feedbackGain: ControlSpec.new(0.0,1,default:0.0),
+		\feedbackLen: ControlSpec.new(0.0,1,default:0.2)
+	);
 	~ratioBuf = Buffer.alloc(s, 512);
 	// alloc and set the values
 	//ratios all 1 by default.
@@ -123,9 +133,33 @@ fork {
 	//s.volume.gui;
 	s.volume.volume= -20;
 	~listener = Synth.head(~fxGroup, \findfreq, [\inbus, ~sourceIns, \outbus, ~freqBus]);
-	~fx = Synth.tail(~fxGroup, \glimmergrains, [\inbus, ~sourceIns, \outbus, ~globalOuts, \freqBus, ~freqBus, \ratioBuf, ~ratioBuf, \trigRate, 1, \wideness, 1]);
+	~initArgs = [\inbus, ~sourceIns, \outbus, ~globalOuts, \freqBus, ~freqBus, \ratioBuf, ~ratioBuf];
+	~controls.keysValuesDo({|name, spec|
+		//[name, spec].postln;
+		~initArgs = ~initArgs.add(name);
+		~initArgs = ~initArgs.add(spec.default);
+	});
+
+	~fx = Synth.tail(~fxGroup, \glimmergrains, ~initArgs);
+	{
+		~window = Window.new.front;
+		~window.view.decorator = FlowLayout(~window.view.bounds);
+		~widgets = List.new;
+		\doingstuff.postln;
+		~controls.keysValuesDo({|name, spec|
+			[name, spec].postln;
+			~widgets.add(EZSlider.new(~window,
+				controlSpec: spec,
+				label: name,
+				action:{|widget|
+					[name, widget.value].postln
+				}
+			));
+		});
+	}.defer;
 }
 )
+GUI.qt;
 ~freqBus.get(_.postln);
 ~sourceIns.scope;
 ~fx.set(\feedbackGain, 0.2);
