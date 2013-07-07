@@ -9,6 +9,7 @@
 
 (
 var maxVoices = 23;
+GUI.qt;
 
 //This little guy voices a whole bunch of flange frequencies at a given polyphony with known rate
 //input is assumed to be stereo
@@ -23,14 +24,14 @@ SynthDef.new(\glimmergrains,
 		ratioBuf,
 		intensity=1.0,
 		feedbackGain = 0.0, feedbackLen=0.1|
-		var trigRamp, voices, mixedIn, outChannels, feedback, freqEst;
-		inbus = In.ar(inbus, 2);
+		var in, trigRamp, voices, mixedIn, outChannels, feedback, freqEst;
+		in = In.ar(inbus, 2);
 		feedback = DelayL.ar(
 			in: LocalIn.ar(2),
 			maxdelaytime: 1.0,
 			delaytime: feedbackLen-ControlRate.ir.reciprocal,
 			mul:feedbackGain) ;
-		mixedIn = Mix.new(inbus+feedback);
+		mixedIn = Mix.new(in+feedback);
 		freqEst = In.kr(freqBus);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
@@ -152,14 +153,13 @@ fork {
 				controlSpec: spec,
 				label: name,
 				action:{|widget|
-					[name, widget.value].postln
+					~fx.set(name, spec.map(widget.value));
 				}
 			));
 		});
 	}.defer;
 }
 )
-GUI.qt;
 ~freqBus.get(_.postln);
 ~sourceIns.scope;
 ~fx.set(\feedbackGain, 0.2);
