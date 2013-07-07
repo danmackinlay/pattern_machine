@@ -74,6 +74,7 @@ SynthDef.new(\glimmergrains,
 				delaytime: feedbackMinLen + (Rand.new*feedbackDepth)-ControlRate.ir.reciprocal,
 				mul:feedbackGain
 			);
+			sig = sig * maxVoices.sqrt.reciprocal;
 			Pan2.ar(
 				in: sig,
 				pos: (2 * pan -1),
@@ -118,7 +119,8 @@ fork {
 		\intensity: ControlSpec.new(0.0,1,default:0.5),
 		\feedbackGain: ControlSpec.new(0.0,1,default:0.0),
 		\feedbackMinLen: ControlSpec.new(0.0,1,default:0.2),
-		\feedbackMaxLen: ControlSpec.new(0.0,1,default:0.4)
+		\feedbackMaxLen: ControlSpec.new(0.0,1,default:0.4),
+		\wideness: ControlSpec.new(0.001, 1, warp:\exponential, default: 1)
 	);
 	~ratioBuf = Buffer.alloc(s, 512);
 	// alloc and set the values
