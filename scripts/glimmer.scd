@@ -24,7 +24,7 @@ SynthDef.new(\glimmergrains,
 		ratioBuf,
 		intensity=1.0,
 		feedbackGain = 0.0, feedbackMinLen=0.1,feedbackMaxLen=0.5|
-		var in, trigRamp, voices, mixedIn, outChannels, feedback, freqEst, feedbackDepth, delayed;
+		var in, trigRamp, voices, mixedIn, outChannels, feedback, freqEst, feedbackDepth, delayed, prenormOut;
 		in = In.ar(inbus, 2);
 		delayed = LocalIn.ar(2);
 		feedbackDepth = feedbackMaxLen-feedbackMinLen;
@@ -34,10 +34,9 @@ SynthDef.new(\glimmergrains,
 		voices = Array.fill(maxVoices, {|i|
 			var myRamp;
 			var gate, env;
-			var myDelayFreq, myFilterFreq, myPan;
+			var myDelayFreq, myPan;
 			var phase, pan, threshold;
-			var ratioPointerFilt, ratioPointerDelay;
-			var ratioFilt, ratioDelay;
+			var ratioPointerDelay, ratioDelay;
 			var localFreq;
 			var sig;
 			var alive;
@@ -50,20 +49,12 @@ SynthDef.new(\glimmergrains,
 			myRamp = Wrap.kr(trigRamp + phase );
 			gate = (myRamp < duty) * alive;
 			env = Linen.kr(gate, attackTime: attack, releaseTime: decay);
-			ratioPointerFilt = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: gate);
 			ratioPointerDelay = TIRand.kr(lo:0, hi: BufFrames.kr(ratioBuf), trig: gate);
-			ratioFilt = BufRd.kr(1,ratioBuf, ratioPointerFilt);
 			ratioDelay = BufRd.kr(1,ratioBuf, ratioPointerDelay);
 			localFreq = Latch.kr(freqEst, gate);
-			myDelayFreq = (localFreq* ratioFilt).max(10);
-			myFilterFreq = (localFreq* ratioFilt).max(80);
-			sig = Resonz.ar(
-				in: mixedIn*env,
-				freq: myFilterFreq,
-				bwr: wideness
-			);
+			myDelayFreq = (localFreq* ratioDelay).max(10);
 			sig = CombL.ar(
-				in: sig,
+				in: mixedIn*env,
 				maxdelaytime: 0.1,
 				delaytime: myDelayFreq.reciprocal,
 				decaytime: ringTime,
@@ -74,14 +65,18 @@ SynthDef.new(\glimmergrains,
 				delaytime: feedbackMinLen + (Rand.new*feedbackDepth)-ControlRate.ir.reciprocal,
 				mul:feedbackGain
 			);
-			sig = sig * maxVoices.sqrt.reciprocal;
 			Pan2.ar(
 				in: sig,
 				pos: (2 * pan -1),
 				level: 1.0
 			);
 		});
-		outChannels = Limiter.ar(LeakDC.ar(Mix.new(voices)),1,0.01);
+		prenormOut = Mix.new(voices);
+		Amplitude.kr(prenormOut).poll(1,\prenorm);
+		outChannels = Limiter.ar(LeakDC.ar(
+			prenormOut * maxVoices.sqrt.reciprocal
+		),1,0.01);
+		Amplitude.kr(prenormOut).poll(1,\postnorm);
 		LocalOut.ar(outChannels);
 		Out.ar(outbus, outChannels);
 	}
@@ -119,8 +114,7 @@ fork {
 		\intensity: ControlSpec.new(0.0,1,default:0.5),
 		\feedbackGain: ControlSpec.new(0.0,1,default:0.0),
 		\feedbackMinLen: ControlSpec.new(0.0,1,default:0.2),
-		\feedbackMaxLen: ControlSpec.new(0.0,1,default:0.4),
-		\wideness: ControlSpec.new(0.001, 1, warp:\exponential, default: 1)
+		\feedbackMaxLen: ControlSpec.new(0.0,1,default:0.4)
 	);
 	~ratioBuf = Buffer.alloc(s, 512);
 	// alloc and set the values
