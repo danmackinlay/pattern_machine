@@ -23,15 +23,12 @@ SynthDef.new(\glimmergrains,
 		freqBus,
 		ratioBuf,
 		intensity=1.0,
-		feedbackGain = 0.0, feedbackLen=0.1|
-		var in, trigRamp, voices, mixedIn, outChannels, feedback, freqEst;
+		feedbackGain = 0.0, feedbackMinLen=0.1,feedbackMaxLen=0.5|
+		var in, trigRamp, voices, mixedIn, outChannels, feedback, freqEst, feedbackDepth, delayed;
 		in = In.ar(inbus, 2);
-		feedback = DelayL.ar(
-			in: LocalIn.ar(2),
-			maxdelaytime: 1.0,
-			delaytime: feedbackLen-ControlRate.ir.reciprocal,
-			mul:feedbackGain) ;
-		mixedIn = Mix.new(in+feedback);
+		delayed = LocalIn.ar(2);
+		feedbackDepth = feedbackMaxLen-feedbackMinLen;
+		mixedIn = Mix.new(in+delayed);
 		freqEst = In.kr(freqBus);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
@@ -71,6 +68,12 @@ SynthDef.new(\glimmergrains,
 				delaytime: myDelayFreq.reciprocal,
 				decaytime: ringTime,
 				mul:env);
+			feedback = DelayL.ar(
+				in: sig,
+				maxdelaytime: 1.0,
+				delaytime: feedbackMinLen + (Rand.new*feedbackDepth)-ControlRate.ir.reciprocal,
+				mul:feedbackGain
+			);
 			Pan2.ar(
 				in: sig,
 				pos: (2 * pan -1),
@@ -114,7 +117,8 @@ fork {
 		\decay: ControlSpec.new(0.001,1,warp:\exponential,default:0.5),
 		\intensity: ControlSpec.new(0.0,1,default:0.5),
 		\feedbackGain: ControlSpec.new(0.0,1,default:0.0),
-		\feedbackLen: ControlSpec.new(0.0,1,default:0.2)
+		\feedbackMinLen: ControlSpec.new(0.0,1,default:0.2),
+		\feedbackMaxLen: ControlSpec.new(0.0,1,default:0.4)
 	);
 	~ratioBuf = Buffer.alloc(s, 512);
 	// alloc and set the values
