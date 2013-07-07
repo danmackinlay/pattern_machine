@@ -55,7 +55,7 @@ SynthDef.new(\glimmergrains,
 			ratioFilt = BufRd.kr(1,ratioBuf, ratioPointerFilt);
 			ratioDelay = BufRd.kr(1,ratioBuf, ratioPointerDelay);
 			localFreq = Latch.kr(freqEst, gate);
-			myDelayFreq = (localFreq* ratioFilt).max(10);
+			myDelayFreq = (localFreq* ratioDelay).max(10);
 			myFilterFreq = (localFreq* ratioFilt).max(80);
 			sig = Resonz.ar(
 				in: mixedIn*env,
