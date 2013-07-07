@@ -28,7 +28,7 @@ SynthDef.new(\glimmergrains,
 		in = In.ar(inbus, 2);
 		delayed = LocalIn.ar(2);
 		feedbackDepth = feedbackMaxLen-feedbackMinLen;
-		mixedIn = Mix.new(in+delayed);
+		mixedIn = Mix.new(in+(delayed*feedbackGain);
 		freqEst = In.kr(freqBus);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
@@ -59,11 +59,10 @@ SynthDef.new(\glimmergrains,
 				delaytime: myDelayFreq.reciprocal,
 				decaytime: ringTime,
 				mul:env);
-			feedback = DelayL.ar(
+			sig = DelayL.ar(
 				in: sig,
 				maxdelaytime: 1.0,
-				delaytime: feedbackMinLen + (Rand.new*feedbackDepth)-ControlRate.ir.reciprocal,
-				mul:feedbackGain
+				delaytime: feedbackMinLen + (Rand.new*feedbackDepth)-ControlRate.ir.reciprocal
 			);
 			Pan2.ar(
 				in: sig,
