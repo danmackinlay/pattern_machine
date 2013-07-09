@@ -1,0 +1,1 @@
+//remixer where grains scrub the buffer at different rates but each mutes itself according to its dissonance
