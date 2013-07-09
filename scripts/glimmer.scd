@@ -28,7 +28,7 @@ SynthDef.new(\glimmergrains,
 		in = In.ar(inbus, 2);
 		delayed = LocalIn.ar(2);
 		feedbackDepth = feedbackMaxLen-feedbackMinLen;
-		mixedIn = Mix.new(in+(delayed*feedbackGain);
+		mixedIn = Mix.new(in+(delayed*feedbackGain));
 		freqEst = In.kr(freqBus);
 		trigRamp = LFSaw.kr(freq:trigRate, mul:0.5, add:0.5);
 		voices = Array.fill(maxVoices, {|i|
@@ -159,7 +159,58 @@ fork {
 	}.defer;
 }
 )
+(
+~controldev = MIDIMKtl('nnkn20');
+~controldev.reset;
+k.elementNames.do({|name|
+	var contr = k.esFor(name);
+	contr.do({|val|
+		[name, val].postln;
+	});
+});
+)
+
+~num = NumberEditor(3,ControlSpec(0,5));
+~numgui = ~num.gui;
+~num.set(2);
+
 ~freqBus.get(_.postln);
 ~sourceIns.scope;
 ~fx.set(\feedbackGain, 0.2);
 ~ratioBuf.getn(0,512,_.postln);
+
+
+///OR, as per "http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Inconsistent-behaviour-with-MVC-updater-td7579954.html"
+
+~example.b[key]
+
+returns the value at that key, which is the number.
+
+I thought that was what you were trying to do.
+
+I would make it much simpler.  Even if you have 50 knobs, it won't be too bad if you just update the whole gui.
+
+use an Updater to make it even easier
+
+~example.specs = (sNum: ControlSpec(0,10,step:1), myBus: ControlSpec(0,127,step:1));
+~example.set = { arg k,v;
+     ~example.b[k] = v;
+     ~example.changed(k);
+};
+
+u = Updater(~example, {  arg key;
+  // I would just update them all
+ // but you could just do the one that changed
+ // in any case, send .changed to the whole data
+  ~example.knobs.keysValuesDo { arg k,v;
+     k.value = ~example.specs[k].unmap( b[k] );  //  scale it to 0..1 for the knob
+   }
+});
+
+
+then
+
+~example.set(\myBus,3)
+
+// detach the updater when you are done
+u.remove

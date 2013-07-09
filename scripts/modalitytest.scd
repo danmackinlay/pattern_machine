@@ -34,5 +34,6 @@ k.elementNames.do({|name|
 });
 )
 
-Quarks.checkoutAll;
-Quarks.gui;
+~num = NumberEditor(3,ControlSpec(0,5));
+~numgui = ~num.gui;
+~num.set(2);
