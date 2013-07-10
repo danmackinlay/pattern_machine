@@ -138,9 +138,6 @@ k.elementNames.do({|name|
 */
 
 ///OR, as per "http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Inconsistent-behaviour-with-MVC-updater-td7579954.html"
-
-//I would make it much simpler.  Even if you have 50 knobs, it won't be too bad if you just update the whole gui.
-//use an Updater to make it even easier
 (
 {
 	~example = ();
@@ -160,15 +157,14 @@ k.elementNames.do({|name|
 	);
 	~example.widgets = ();
 	~example.specs.keysValuesDo({|name, spec|
-		[\settingaction, name, spec].postln;
+		//[\settingaction, name, spec].postln;
 		~example.widgets[name] = EZSlider.new(~example.window,
 			controlSpec: spec,
 			label: name,
 			action:{|widget|
 				//this should go through the model accessor
-				[\action, name, widget.value].postln;
-				//YES:~example.setUnit(name, widget.value, update=false);
-				//NO:~fx.set(name, spec.map(widget.value));
+				//[\action, name, widget.value].postln;
+				~example.setActual(name, widget.value, false);
 			}
 		);
 	});
@@ -176,29 +172,22 @@ k.elementNames.do({|name|
 	~example.specs.keysDo({|key|
 		~example.controlVals[key] = ~example.specs[key].default;
 	});
-	~example.setActual = { arg self, k,v;
+	~example.setActual = { arg self,k,v,updateGui=true;
 		//set from actual control range
-		/*[\setActual, k, v].postln;
-		[\setingself, k].postln;
-		[\setingotha, v].postln;*/
 		self.controlVals[k] = v;
-		self.changed(k);
+		updateGui.if({self.changed(k)});
 	};
-	~example.setUnit = { arg self,k,v;
+	~example.setUnit = { arg self,k,v,updateGui=true;
 		//set 0-1.
-		/*[\setUnit, k, v].postln;
-		[\setingself, k].postln;
-		[\setingotha, v].postln;*/
 		self.controlVals[k] = self.specs[k].map(v);
-		self.changed(k);
+		updateGui.if({self.changed(k)});
 	};
 	~example.guiupdater = Updater(~example, {arg self, name;
 		var widget = ~example.widgets[name];
-		[\guiaction, name, widget, widget.value, ~example.controlVals, ~example.specs[name]].postln;
 		{widget.value = ~example.controlVals[name];}.defer;
 	});
 	~example.extController = MIDIMKtl('nnkn20');
-	~example.extController.esFor(\sl_1).do({|v| [\mido, v].postln; ~example.setUnit(\trigRate, v)});
+	~example.extController.esFor(\sl_1).do({|v| ~example.setUnit(\trigRate, v)});
 }.defer;
 )
 // detach the updater when you are done
