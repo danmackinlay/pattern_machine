@@ -165,8 +165,10 @@ k.elementNames.do({|name|
 			controlSpec: spec,
 			label: name,
 			action:{|widget|
+				//this should go through the model accessor
 				[\action, name, widget.value].postln;
-				//~fx.set(name, spec.map(widget.value));
+				//YES:~example.setUnit(name, widget.value, update=false);
+				//NO:~fx.set(name, spec.map(widget.value));
 			}
 		);
 	});
@@ -174,49 +176,39 @@ k.elementNames.do({|name|
 	~example.specs.keysDo({|key|
 		~example.controlVals[key] = ~example.specs[key].default;
 	});
-	~example.setActual = { arg k,v;
+	~example.setActual = { arg self, k,v;
 		//set from actual control range
-		[\setActual, k, v].postln;
+		/*[\setActual, k, v].postln;
 		[\setingself, k].postln;
-		[\setingotha, v].postln;
-		~example.controlVals[k] = v;
-		~example.changed(k);
+		[\setingotha, v].postln;*/
+		self.controlVals[k] = v;
+		self.changed(k);
 	};
-	~example.setUnit = { arg k,v;
+	~example.setUnit = { arg self,k,v;
 		//set 0-1.
-		[\setUnit, k, v].postln;
+		/*[\setUnit, k, v].postln;
 		[\setingself, k].postln;
-		[\setingotha, v].postln;
-		~example.controlVals[k] = ~example.specs[k].map(v);
-		~example.changed(k);
+		[\setingotha, v].postln;*/
+		self.controlVals[k] = self.specs[k].map(v);
+		self.changed(k);
 	};
-	~example.guiupdater = Updater(~example, {arg key;
-		// I would just update them all
-		// but you could just do the one that changed
-		// in any case, send .changed to the whole data
-		~example.widgets.keysValuesDo { arg name, widget;
-			[\guiaction, name, widget, widget.value, ~example.specs[name]].postln;
-			// scale it to 0..1 for the widget
-			//widget.value = ~example.specs[name].unmap( ~example.controlVals[name]);
-			// don't scale it to 0..1 for the widget
-			{widget.value = ~example.controlVals[name];}.defer;
-		}
+	~example.guiupdater = Updater(~example, {arg self, name;
+		var widget = ~example.widgets[name];
+		[\guiaction, name, widget, widget.value, ~example.controlVals, ~example.specs[name]].postln;
+		{widget.value = ~example.controlVals[name];}.defer;
 	});
 	~example.extController = MIDIMKtl('nnkn20');
-	~example.extController.esFor(\sl_1).do({|v| [\mido, v].postln; ~example[\setUnit].(\trigRate, v)});
+	~example.extController.esFor(\sl_1).do({|v| [\mido, v].postln; ~example.setUnit(\trigRate, v)});
 }.defer;
 )
-~example[\setActual];
-~example[\setUnit].value(\intensity,1);
-~example[\setActual].value(\trigRate,6);
-~example[\setUnit].value(\trigRate,0.5);
-[~example.widgets[\ringTime].value, ~example.specs[\ringTime]];
 // detach the updater when you are done
-~guiupdater.remove;
+~example.guiupdater.remove;
 
-~num = NumberEditor(3,ControlSpec(0,5));
-~numgui = ~num.gui;
-~num.set(2);
+~example.setUnit(\intensity,1);
+~example.setActual(\trigRate,6);
+~example.setUnit(\trigRate,0.5);
+
+[~example.widgets[\ringTime].value, ~example.specs[\ringTime]];
 
 
 ~freqBus.get(_.postln);
