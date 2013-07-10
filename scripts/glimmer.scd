@@ -80,7 +80,6 @@ SynthDef.new(\glimmergrains,
 		Out.ar(outbus, outChannels);
 	}
 ).add;
-
 SynthDef.new(\findfreq, {|inbus, outbus|
 	var hasFreq, freq;
 	#freq, hasFreq = Pitch.kr(
@@ -127,16 +126,6 @@ fork {
 }
 )
 
-/*~controldev = MIDIMKtl('nnkn20');
-~controldev.reset;
-k.elementNames.do({|name|
-	var contr = k.esFor(name);
-	contr.do({|val|
-		[name, val].postln;
-	});
-});
-*/
-
 ///OR, as per "http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Inconsistent-behaviour-with-MVC-updater-td7579954.html"
 (
 {
@@ -162,8 +151,7 @@ k.elementNames.do({|name|
 			controlSpec: spec,
 			label: name,
 			action:{|widget|
-				//this should go through the model accessor
-				//[\action, name, widget.value].postln;
+				//I suppose this could bypass the setter method
 				~example.setActual(name, widget.value, false);
 			}
 		);
@@ -193,12 +181,10 @@ k.elementNames.do({|name|
 // detach the updater when you are done
 ~example.guiupdater.remove;
 
+
 ~example.setUnit(\intensity,1);
 ~example.setActual(\trigRate,6);
 ~example.setUnit(\trigRate,0.5);
-
-[~example.widgets[\ringTime].value, ~example.specs[\ringTime]];
-
 
 ~freqBus.get(_.postln);
 ~sourceIns.scope;
