@@ -195,12 +195,15 @@ k.elementNames.do({|name|
 		// but you could just do the one that changed
 		// in any case, send .changed to the whole data
 		~example.widgets.keysValuesDo { arg name, widget;
-			//  scale it to 0..1 for the widget
 			[\guiaction, name, widget, widget.value, ~example.specs[name]].postln;
+			// scale it to 0..1 for the widget
 			//widget.value = ~example.specs[name].unmap( ~example.controlVals[name]);
-			widget.value = ~example.controlVals[name];
+			// don't scale it to 0..1 for the widget
+			{widget.value = ~example.controlVals[name];}.defer;
 		}
 	});
+	~example.extController = MIDIMKtl('nnkn20');
+	~example.extController.esFor(\sl_1).do({|v| [\mido, v].postln; ~example[\setUnit].(\trigRate, v)});
 }.defer;
 )
 ~example[\setActual];
