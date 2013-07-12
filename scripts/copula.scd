@@ -26,3 +26,20 @@ coupling, it's not too crazy.
 ~generators[\clayton][\inverse].(0);
 ((0..16)/16).collect(~generators[\clayton][\inverse].(_, 0.5));
 ~generators[\clayton][\inverse].(0.5);
+
+
+////Bleargh. OK, actually, let's start with gaussian.(
+(
+var length, arr_Erf, arr_iErf, buf_Erf, buf_iErf;
+length=1025;
+buf_Erf = Buffer.alloc(s, length, 1);
+buf_iErf = Buffer.alloc(s, length, 1);
+
+arr_Erf = Array.interpolation(length,-4,4).collect(_.gaussCurve).integrate.normalize;
+arr_Erf.plot;
+arr_iErf = Array.interpolation(length).collect({|v| arr_Erf.indexInBetween(v)}).normalize(-4,4);
+arr_iErf.plot;
+
+buf_Erf.getn(0, buf_Erf.numFrames, {|x| x.postln })
+
+)
