@@ -145,14 +145,18 @@ fork {
 		\feedbackMaxLen: ControlSpec.new(0.0,1,default:0.4)
 	);
 	~example.widgets = ();
-	~example.specs.keysValuesDo({|name, spec|
-		//[\settingaction, name, spec].postln;
-		~example.widgets[name] = EZSlider.new(~example.window,
+	// ~example.controlKeys = ~example.specs.keys.asList.sorted;
+	~example.controlKeys = [\trigRate, \duty, \ringTime, \attack, \decay, \intensity, \feedbackGain, \feedbackMinLen, \feedbackMaxLen];
+
+	~example.controlKeys.do({|k|
+		var spec = ~example.specs[k];
+		//[\settingaction, k, spec].postln;
+		~example.widgets[k] = EZSlider.new(~example.window,
 			controlSpec: spec,
-			label: name,
+			label: k,
 			action:{|widget|
 				//I suppose this could bypass the setter method
-				~example.setActual(name, widget.value, false);
+				~example.setActual(k, widget.value, false);
 			}
 		);
 	});
@@ -163,12 +167,23 @@ fork {
 	~example.setActual = { arg self,k,v,updateGui=true;
 		//set from actual control range
 		self.controlVals[k] = v;
+		self.updateSynth(k);
 		updateGui.if({self.changed(k)});
 	};
 	~example.setUnit = { arg self,k,v,updateGui=true;
 		//set 0-1.
 		self.controlVals[k] = self.specs[k].map(v);
+		self.updateSynth(k);
 		updateGui.if({self.changed(k)});
+	};
+	~example.updateActions = (
+		default: {|k|
+			[k, ~example.controlVals[k]].postln;
+			~fx.set(k, ~example.controlVals[k]);}
+	);
+	~example.updateSynth = {|self, k|
+		var updateAction = self.updateActions[k] ? self.updateActions[\default];
+		updateAction.value(k);
 	};
 	~example.guiupdater = Updater(~example, {arg self, name;
 		var widget = ~example.widgets[name];
@@ -176,12 +191,19 @@ fork {
 	});
 	~example.extController = MIDIMKtl('nnkn20');
 	~example.extController.esFor(\sl_1).do({|v| ~example.setUnit(\trigRate, v)});
+	~example.extController.esFor(\sl_2).do({|v| ~example.setUnit(\duty, v)});
+	~example.extController.esFor(\sl_3).do({|v| ~example.setUnit(\ringTime, v)});
+	~example.extController.esFor(\sl_4).do({|v| ~example.setUnit(\attack, v)});
+	~example.extController.esFor(\sl_5).do({|v| ~example.setUnit(\decay, v)});
+	~example.extController.esFor(\sl_6).do({|v| ~example.setUnit(\intensity, v)});
+	~example.extController.esFor(\kn_1).do({|v| ~example.setUnit(\feedbackGain, v)});
+	~example.extController.esFor(\kn_2).do({|v| ~example.setUnit(\feedbackMinLen, v)});
+	~example.extController.esFor(\kn_3).do({|v| ~example.setUnit(\feedbackMaxLen, v)});
 }.defer;
 )
 // detach the updater when you are done
 ~example.guiupdater.remove;
-
-
+~example.extController.elements.keys;
 ~example.setUnit(\intensity,1);
 ~example.setActual(\trigRate,6);
 ~example.setUnit(\trigRate,0.5);
