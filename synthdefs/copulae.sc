@@ -1,6 +1,7 @@
 /*Gaussian copula business*/
 //Todo: currenlty the (4 sigma) buffer is inefficient because 1) it is symmetric and 2) many samples are at the fringes. 
 //      Thist coudl be made more efficient by polynomial warping and symmetrisation.
+// Todo: sharing buffers is a giant premature optimisation. I should just pass LUTs in the Synthdef, and save trouble.
 PSGaussCopula {
 	classvar <arr_Erf, <arr_iErf;
 	classvar <length=1025;
@@ -33,9 +34,12 @@ PSGaussCopula {
 		^dict_Servers[servername];
 	}
 	*buffersFor{|server|
-		
+		server.serverRunning.not.if({
+			Error("Server not running").throw;
+		});
 		^dict_Servers.atFail(server.name, {this.initServer(server)});
 	}
+	
 	*gaussianize {
 		
 	}
