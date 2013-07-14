@@ -8,25 +8,12 @@ However, Archimedean copulae have a single coupling parameter for a large variab
  */
 
 ///////////////////////////
-//Archimedean copulae
+//Gaussian copulae
 ///////////////////////////
 
-//We define a 2d CDF using a specified generator.
-
-~generators = (
-	\clayton: (
-		\forward: {|t, param=0| (1+t)**((-1/param).neg)},
-		\inverse: {|t, param=0| ( t**(param.neg)) -1 },
-		\ghat: {}
-	)
-);
-~generators[\clayton][\forward].(0);
-~generators[\clayton][\inverse].(0);
-((0..16)/16).collect(~generators[\clayton][\inverse].(_, 0.5));
-~generators[\clayton][\inverse].(0.5);
-
-
-////Bleargh. OK, actually, let's start with gaussian.(
 (
-
+PSGaussCopula.arr_Erf;
+PSGaussCopula.initServer(s);
+PSGaussCopula.buffersFor(s)[\buf_iErf].plot;
+PSGaussCopula.dict_Servers[\localhost][\buf_Erf].plot
 )
