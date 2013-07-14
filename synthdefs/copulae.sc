@@ -1,10 +1,13 @@
 /*Gaussian copula business*/
 //Todo: currenlty the (4 sigma) buffer is inefficient because 1) it is symmetric and 2) many samples are at the fringes. 
-//      Thist coudl be made more efficient by polynomial warping and symmetrisation.
-// Todo: sharing buffers is a giant premature optimisation. I should just pass LUTs in the Synthdef, and save trouble.
+//      Thist could be made more efficient by polynomial warping and symmetrisation.
+// Todo: triggered version
+// Todo: there are off-by-one errors in the LUTs
+// Todo: make supplied RV optional
+
 PSGaussCopula {
 	classvar <arr_Erf, <arr_iErf;
-	classvar <length=1025;
+	classvar <length=513;
 	classvar <dict_Servers;
 	*initClass{
 		StartUp.add({
@@ -16,31 +19,20 @@ PSGaussCopula {
 		arr_Erf = Array.interpolation(length,-4,4).collect(_.gaussCurve).integrate.normalize;
 		arr_iErf = Array.interpolation(length).collect({|v| arr_Erf.indexInBetween(v)}).normalize(-4,4);
 	}
-	*initServer {|server|
-		var dict_serverBufs, servername = server.name;
-		dict_serverBufs = IdentityDictionary.new;
-		dict_Servers[servername] = dict_serverBufs;
-		server.doWhenBooted({
-			server.makeBundle(nil, {
-				dict_serverBufs[\buf_Erf] = Buffer.alloc(server, length, 1);
-				dict_serverBufs[\buf_iErf] = Buffer.alloc(server, length, 1);
-				server.sync;
-				dict_serverBufs[\buf_Erf].setn(0, arr_Erf);
-				dict_serverBufs[\buf_iErf].setn(0, arr_iErf);
-				[\making, servername, dict_Servers[servername], dict_Servers[servername].identityHash].postln;
-			});
-		});
-		[\making2, servername, dict_Servers[servername], dict_Servers[servername].identityHash].postln;
-		^dict_Servers[servername];
+	*krGaussianize {|inUniform|
+		//transform a univorm RV to a Gaussian RV
+		^arr_iErf.blendAt(inUniform*(length-1));
 	}
-	*buffersFor{|server|
-		server.serverRunning.not.if({
-			Error("Server not running").throw;
-		});
-		^dict_Servers.atFail(server.name, {this.initServer(server)});
+	*krDegaussianize {|inGaussian|
+		//transform a Gaussian RV to a Uniform one
+		^arr_iErf.indexInBetween(inGaussian|)/(length-1);
 	}
-	
-	*gaussianize {
-		
+	*correlate {|rho, inGaussian|
+		var otherRand = 0.gauss;
+		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
+	}
+	*krCorrelate {|rho, inGaussian|
+		var otherRand = this.krGaussianize(WhiteNoise.kr(0.5, 0.5));
+		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
 }

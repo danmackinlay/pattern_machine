@@ -5,6 +5,7 @@ or, for exmpirical copulae, http://www.mathworks.com.au/products/statistics/exam
 This turns out to be easiest for Gaussian, t-copulae and Marshall-Olkin, and
 only somewhat easy for some Archimedeans - specifically, Frank, Gumbel and Clayton.
 However, Archimedean copulae have a single coupling parameter for a large variable set which is nice. However, for bivariate coupling (and everythign can be done pariwise if we really want) Gaussians are very simple.
+Aside: What is the difference between GaussTrig and TGaussRand?
  */
 
 ///////////////////////////
