@@ -4,9 +4,7 @@ or, for exmpirical copulae, http://www.mathworks.com.au/products/statistics/exam
 
 This turns out to be easiest for Gaussian, t-copulae and Marshall-Olkin, and
 only somewhat easy for some Archimedeans - specifically, Frank, Gumbel and Clayton.
-However, Archimedean copulae have a single coupling parameter, which is the whole
-reason I'm interested in this technique, so I'd rather them. OTOH, for bivariate
-coupling, it's not too crazy.
+However, Archimedean copulae have a single coupling parameter for a large variable set which is nice. However, for bivariate coupling (and everythign can be done pariwise if we really want) Gaussians are very simple.
  */
 
 ///////////////////////////
@@ -30,16 +28,5 @@ coupling, it's not too crazy.
 
 ////Bleargh. OK, actually, let's start with gaussian.(
 (
-var length, arr_Erf, arr_iErf, buf_Erf, buf_iErf;
-length=1025;
-buf_Erf = Buffer.alloc(s, length, 1);
-buf_iErf = Buffer.alloc(s, length, 1);
-
-arr_Erf = Array.interpolation(length,-4,4).collect(_.gaussCurve).integrate.normalize;
-arr_Erf.plot;
-arr_iErf = Array.interpolation(length).collect({|v| arr_Erf.indexInBetween(v)}).normalize(-4,4);
-arr_iErf.plot;
-
-buf_Erf.getn(0, buf_Erf.numFrames, {|x| x.postln })
 
 )
