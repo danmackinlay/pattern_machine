@@ -55,4 +55,16 @@ PSUGaussCorrelate : PSGaussCorrelate {
 		var otherRand = this.krGaussianize(WhiteNoise.kr(0.5, 0.5));
 		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
+	*arGaussianize {|inUniform|
+		//UGen-happy version
+		^IndexL.ar(LocalBuf.newFrom(arr_iErf), inUniform * (length-1));
+	}
+	*arDegaussianize {|inUniform|
+		//UGen-happy version
+		^IndexL.ar(LocalBuf.newFrom(arr_Erf), inUniform.linlin(-4, 4, 0, (length-1)));
+	}
+	*ar {|rho, inGaussian|
+		var otherRand = this.arGaussianize(WhiteNoise.ar(0.5, 0.5));
+		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
+	}
 }
