@@ -4,7 +4,7 @@ or, for exmpirical copulae, http://www.mathworks.com.au/products/statistics/exam
 
 This turns out to be easiest for Gaussian, t-copulae and Marshall-Olkin, and
 only somewhat easy for some Archimedeans - specifically, Frank, Gumbel and Clayton.
-However, Archimedean copulae have a single coupling parameter for a large variable set which is nice. However, for bivariate coupling (and everythign can be done pariwise if we really want) Gaussians are very simple.
+Archimedean copulae have a single coupling parameter for a large variable set, which is nice. However, for bivariate coupling (and everything can be done pairwise if we want) Gaussians are yet simpler.
 Aside: What is the difference between GaussTrig and TGaussRand?
  */
 
@@ -13,8 +13,13 @@ Aside: What is the difference between GaussTrig and TGaussRand?
 ///////////////////////////
 
 (
-PSGaussCopula.arr_Erf;
-PSGaussCopula.initServer(s);
-PSGaussCopula.buffersFor(s)[\buf_iErf].plot;
-PSGaussCopula.dict_Servers[\localhost][\buf_Erf].plot
+PSGaussCorrelate.arr_Erf;
+//PSUGaussCorrelate.initServer(s);
+//PSUGaussCorrelate.buffersFor(s)[\buf_iErf].plot;
+//PSUGaussCorrelate.dict_Servers[\localhost][\buf_Erf].plot;
+PSGaussCorrelate.arr_Erf.plot;
+PSGaussCorrelate.arr_iErf.gnuplot;
+h=GNUPlot.new;
+v={0.gauss(1)}.dup(200);
+h.scatter([v,PSGaussCorrelate.corr(0.99, v)].flop);
 )
