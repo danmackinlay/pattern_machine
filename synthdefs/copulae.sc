@@ -26,7 +26,7 @@ PSGaussCorrelate {
 	}
 	*degaussianize {|inGaussian|
 		//transform a Gaussian RV to a Uniform one
-		^arr_iErf.indexInBetween(inGaussian)/(length-1);
+		^arr_Erf.blendAt(inGaussian.linlin(-4, 4, 0, (length-1)));
 	}
 	*corr {|rho, inGaussian|
 		var otherRand, inDim;
