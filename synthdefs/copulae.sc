@@ -17,6 +17,7 @@ PSGaussCorrelate {
 		});
 	}
 	*init {
+		//pretty sure there is an off-by-one error here. 
 		arr_Erf = Array.interpolation(length,-4,4).collect(_.gaussCurve).integrate.normalize;
 		arr_iErf = Array.interpolation(length).collect({|v| arr_Erf.indexInBetween(v)}).normalize(-4,4);
 	}
@@ -32,22 +33,26 @@ PSGaussCorrelate {
 		var otherRand, inDim;
 		inDim = inGaussian.size;
 		otherRand = (inDim>0).if({
+			//cast to array if we want many values at once.
 			{0.gauss(1)}.dup(inDim);
 		},{
 			0.gauss(1);
 		});
-		[\otherRand, otherRand].postln;
 		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
 }
 
 PSUGaussCorrelate : PSGaussCorrelate {
-	*kr {|rho, inGaussian|
-		var otherRand = this.gaussianize(WhiteNoise.kr(0.5, 0.5));
-		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
+	*krGaussianize {|inUniform|
+		//UGen-happy version
+		^IndexL.kr(LocalBuf.newFrom(arr_iErf), inUniform * (length-1));
 	}
-	*ar {|rho, inGaussian|
-		var otherRand = this.gaussianize(WhiteNoise.ar(0.5, 0.5));
+	*krDegaussianize {|inUniform|
+		//UGen-happy version
+		^IndexL.kr(LocalBuf.newFrom(arr_Erf), inUniform.linlin(-4, 4, 0, (length-1)));
+	}
+	*kr {|rho, inGaussian|
+		var otherRand = this.krGaussianize(WhiteNoise.kr(0.5, 0.5));
 		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
 }

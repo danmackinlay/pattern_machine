@@ -11,7 +11,6 @@ Aside: What is the difference between GaussTrig and TGaussRand?
 ///////////////////////////
 //Gaussian copulae
 ///////////////////////////
-
 (
 PSGaussCorrelate.arr_Erf;
 //PSUGaussCorrelate.initServer(s);
@@ -19,7 +18,14 @@ PSGaussCorrelate.arr_Erf;
 //PSUGaussCorrelate.dict_Servers[\localhost][\buf_Erf].plot;
 PSGaussCorrelate.arr_Erf.plot;
 PSGaussCorrelate.arr_iErf.gnuplot;
+PSGaussCorrelate.degaussianize({0.gauss(1)}.dup(1000)).histo(25).plot;
 h=GNUPlot.new;
 v={0.gauss(1)}.dup(200);
 h.scatter([v,PSGaussCorrelate.corr(0.99, v)].flop);
 )
+{PSUGaussCorrelate.krGaussianize(WhiteNoise.kr(0.5, 0.5))}.plot(0.1);
+{PSUGaussCorrelate.krDegaussianize(
+	PSUGaussCorrelate.krGaussianize(WhiteNoise.kr(0.5, 0.5))
+)}.plot(0.1);
+
+PSUGaussCorrelate.kr(0, PSGaussCorrelate.gaussianize(WhiteNoise.kr(0.5, 0.5)));
