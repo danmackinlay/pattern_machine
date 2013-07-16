@@ -1,8 +1,5 @@
-//SETO doesn't seem to do anything. I can't be fucked working out why
-//t = SETOServer('2Dobj', SETOdump);
-//u = SETO_OSCTUIOServer('2Dobj',NetAddr("127.0.0.1", 3333), SETOdump);
-//u.gui
 (
+//GO!
 ~touchCoords = IdentityDictionary.new;
 ~touchesToStart = IdentitySet.new;
 ~touchesToStop = IdentitySet.new;
@@ -37,6 +34,7 @@ OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, ar
 OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
 )
 (
+//STOP!
 OSCdef(\touchset).free;
 OSCdef(\touchalive).free;
 OSCdef(\touchupdate).free;
