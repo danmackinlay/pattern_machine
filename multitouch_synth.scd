@@ -3,26 +3,41 @@
 //u = SETO_OSCTUIOServer('2Dobj',NetAddr("127.0.0.1", 3333), SETOdump);
 //u.gui
 (
-~touches = IdentityDictionary.new;
+~touchCoords = IdentityDictionary.new;
+~touchesToStart = IdentitySet.new;
+~touchesToStop = IdentitySet.new;
+
 ~tuioSetterFn = {|message, time, add, port|
-	message.postln
+	var blobId, coords;
+	blobId = message[2];
+	coords = message.copyRange(3,message.size);
+	~touchCoords[blobId] = coords;
 };
 ~tuioAliverFn = {|message, time, add, port|
-	var living = message.copyRange(2,message.size).as(IdentitySet);
-	//living.postln;
-	~touches.keys.do({|k|
-		["scanning",k].postln;
-		living.scanFor(k).not.if({
-			["deleting",k].postln;
-			~touches.removeAt(k);
-		}, {["keeping",k].postln;});
-	});
+	//This one just has to kill dead blobs
+	var prevLiving, nowLiving;
+	nowLiving = message.copyRange(2,message.size).as(IdentitySet);
+	prevLiving = ~touchCoords.keys.as(IdentitySet);
+	~touchesToStop = (prevLiving-nowLiving);
+	~touchesToStart = (nowLiving-prevLiving);
 };
-// OSCdef.newMatching(\touchset, ~tuioSetterFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
-OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["alive"]);
+~tuioWorkerFn = {|message, time, add, port|
+	//message.postln;
+	//Called after frame updates. work should happen here.
+	(~touchesToStop.size>0).if({["Stop", ~touchesToStop].postln;});
+	~touchesToStop.do({|k|
+		~touchCoords.removeAt(k);
+	});
+	(~touchesToStart.size>0).if({["Start", ~touchesToStart].postln;});
+	~touchesToStop.makeEmpty;
+	~touchesToStart.makeEmpty;
+};
+OSCdef.newMatching(\touchset, ~tuioSetterFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
+OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
+OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
 )
 (
 OSCdef(\touchset).free;
 OSCdef(\touchalive).free;
+OSCdef(\touchupdate).free;
 )
-[1,2,3,4].copyRange(2,4)
