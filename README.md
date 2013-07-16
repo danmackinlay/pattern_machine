@@ -26,3 +26,9 @@ Touch inputs
   * Throng basic multiplexes multiple TUIO sources and aggregates IDs
 * [Tongseng](https://github.com/fajran/tongseng) can do that with the trackpad
 * [SETO](http://tuio.lfsaw.de/seto-details.shtml) is Till's SC implemention of TUIO 
+
+Other questions
+===============
+
+* How to parameterise *height* of speaker
+* on that note, what if children too short to access high frequencies use the system?
