@@ -28,9 +28,26 @@ void draw() {
 
 }
 
+/*
+void parseTUIO(OscMessage theOscMessage){
+  
+}
 void oscEvent(OscMessage theOscMessage) {
-  /* print the address pattern and the typetag of the received OscMessage */
+  // print the address pattern and the typetag of the received OscMessage 
   print("### received an osc message.");
   print(" addrpattern: "+theOscMessage.addrPattern());
   println(" typetag: "+theOscMessage.typetag());
-}
+  // check if theOscMessage has the address pattern we are looking for.   
+  if(theOscMessage.checkAddrPattern("/test")==true) {
+    // check if the typetag is the right one. 
+    if(theOscMessage.checkTypetag("ifs")) {
+      // parse theOscMessage and extract the values from the osc message arguments. 
+      int firstValue = theOscMessage.get(0).intValue();  // get the first osc argument
+      float secondValue = theOscMessage.get(1).floatValue(); // get the second osc argument
+      String thirdValue = theOscMessage.get(2).stringValue(); // get the third osc argument
+      print("### received an osc message /test with typetag ifs.");
+      println(" values: "+firstValue+", "+secondValue+", "+thirdValue);
+      return;
+    }
+  }
+}*/
