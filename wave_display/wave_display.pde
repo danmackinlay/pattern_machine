@@ -1,8 +1,15 @@
+import oscP5.*;
+import netP5.*;
 
+OscP5 oscP5;
 PImage img;
 //String datapath = dataPath("");
 
 void setup() {
+  /* start oscP5, listening for incoming messages at port 12000 */
+  oscP5 = new OscP5(this,3333);
+  
+  /* spectrograph */
   textureMode(NORMAL);
   size(1280, 720, P2D);
   img = loadImage("spectrogram.png");
@@ -10,20 +17,20 @@ void setup() {
   beginShape();
   texture(img);
   vertex(0, 0, 0, 0);
-  vertex(1280, 0, img.width, 0);
-  vertex(1280, 720, img.width, img.height);
-  vertex(0, 720, 0, img.height);
+  vertex(1280, 0, 1, 0);
+  vertex(1280, 720, 1, 1);
+  vertex(0, 720, 0, 1);
   endShape();
 }
 
 
 void draw() {
-  //image(img, 0, 0);
-  if (mousePressed) {
-    fill(0);
-  } else {
-    fill(255);
-  }
-  ellipse(mouseX, mouseY, 80, 80);
+
 }
 
+void oscEvent(OscMessage theOscMessage) {
+  /* print the address pattern and the typetag of the received OscMessage */
+  print("### received an osc message.");
+  print(" addrpattern: "+theOscMessage.addrPattern());
+  println(" typetag: "+theOscMessage.typetag());
+}
