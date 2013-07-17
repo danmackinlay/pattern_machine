@@ -3,6 +3,18 @@ f_lustre
 
 Spectrographic sound playground for the layperson
 
+Sound output
+============
+
+I'm gonna use supercollider to do some synthesis, either granular time domain, or spectral domain if I get overexcited.
+
+TODO:
+
+* filter!
+  * to harmonic multiples
+  * or bandpass
+
+
 Visual component
 ================
 
