@@ -2,7 +2,7 @@
 //GO!
 fork {
 	//needs an envelope
-	SynthDef.new(\bufferbitz, {|out=0, xpos, ypos, buf|
+	SynthDef.new(\bufferbitz, {|out=0, gate=1, xpos, ypos, buf|
 		var sig;
 		sig = Warp1.ar(
 			numChannels:1,
@@ -13,6 +13,7 @@ fork {
 			windowRandRatio:0.1,
 			mul: 0.1
 		);
+		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(0, sig);
 	}, metadata:(specs: (xpos: \unipolar, ypos: \midfreq))).add;
 	s.sync;
