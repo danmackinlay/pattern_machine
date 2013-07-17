@@ -2,17 +2,25 @@
 //GO!
 fork {
 	//needs an envelope
-	SynthDef.new(\bufferbitz, {|out=0, gate=1, xpos, ypos, buf|
-		var sig;
+	SynthDef.new(\bufferbitz, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
+		var sig, freq, delay;
+		//map the frequency as if out input y coord maps from the bottom of an FFT bit
+		freq = ypos.linlin(0,1,SampleRate.ir/2/i_binsize,SampleRate.ir/2);
+		delay = freq.reciprocal;
 		sig = Warp1.ar(
 			numChannels:1,
 			bufnum:buf,
 			pointer:xpos,
 			freqScale:1,
-			windowSize:0.2,
-			windowRandRatio:0.1,
-			mul: 0.1
+			windowSize:0.1,
+			windowRandRatio:0.2,
+			mul: 0.05
 		);
+		sig = HPF.ar(sig, freq);
+		sig = CombL.ar(sig,
+			maxdelaytime: i_binsize*SampleDur.ir*8,
+			delaytime: delay,
+			decaytime: delay*4);
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(0, sig);
 	}, metadata:(specs: (xpos: \unipolar, ypos: \midfreq))).add;

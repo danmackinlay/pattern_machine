@@ -13,7 +13,8 @@ TODO:
 * filter!
   * to harmonic multiples
   * or bandpass
-
+* output compressor (this clips when there are any, many voices.)
+* panning (right now in glorious mono)
 
 Visual component
 ================
