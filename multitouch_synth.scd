@@ -1,3 +1,12 @@
+/*
+ * TODO:
+ *
+ * multichannel
+ * better visualisation than manual FFT. Fuck FFT.
+ * fit to API at ICST
+ *
+ */
+
 (
 //GO!
 fork {
@@ -72,6 +81,8 @@ fork {
 	OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
 }
 )
+s.record;
+s.stopRecording
 (
 //STOP!
 OSCdef(\touchset).free;
