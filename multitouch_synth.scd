@@ -3,6 +3,7 @@
  *
  * multichannel
  * better visualisation than manual FFT. Fuck FFT.
+   * could use SCMIR+MFCC, but not really convinced about it being a real cepstral transform. Looks like the a single FFT of a multiband whosit
  * fit to API at ICST
  *
  */
@@ -10,7 +11,26 @@
 (
 //GO!
 fork {
-	//needs an envelope
+	var n_chromabands=12;
+	SynthDef.new(\chromagram, {|gate=0|
+		var in, fft, chroma, poller, time, n_chromabands=12;
+
+		//in = SinOsc.ar(440,0,0.1);
+		in= SoundIn.ar;
+		//Timer doesn't do what I think it does
+		time = Sweep.kr(gate);
+		poller = Impulse.kr(10)*gate;
+
+		SendTrig.kr (in: poller, id: 0, value: time);
+
+		fft = FFT(LocalBuf(2048), in);
+
+		chroma=Chromagram.kr(fft, 2048, n_chromabands);
+		chroma.do({|v, i|
+			SendTrig.kr (in: poller, id: i+1, value: v);
+		});
+	}).add;
+
 	SynthDef.new(\bufferbitz, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
 		var sig, freq, delay;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
@@ -33,10 +53,12 @@ fork {
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(0, sig);
 	}, metadata:(specs: (xpos: \unipolar, ypos: \midfreq))).add;
-	s.sync;
 	~soundbuf = Buffer.read(s,"/Users/dan/src/sc/f_lustre/chimegongfrenzy.aif");
 	s.sync;
 
+	~analyser = Synth.new(\chromagram);
+	s.sync;
+	~analyser.set(\gate, 1);
 	~touchCoords = IdentityDictionary.new;
 	~touchSynths = IdentityDictionary.new;
 	~touchesToStart = IdentitySet.new;
@@ -76,13 +98,16 @@ fork {
 		~touchesToStop.makeEmpty;
 		~touchesToStart.makeEmpty;
 	};
-	OSCdef.newMatching(\touchset, ~tuioSetterFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
-	OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
-	OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
+	//OSCdef.newMatching(\touchset, ~tuioSetterFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
+	//OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
+	//OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
+	OSCdef.newMatching(\pollchroma, {|...args| [\osc,args].postln;}, "/tr");
 }
 )
 s.record;
 s.stopRecording
+~analyser.set(\gate, 0);
+
 (
 //STOP!
 OSCdef(\touchset).free;
