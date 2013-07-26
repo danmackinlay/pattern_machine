@@ -2,24 +2,54 @@
  * TODO:
  *
  * multichannel playing
+ * time-limit.
  * better visualisation than manual FFT. Fuck FFT.
    * could use SCMIR+MFCC, but not really convinced about it being a real cepstral transform. Looks like the a single FFT of a multiband whosit
  * fit to API at ICST
+ * pause synths if CPU load is too heavy?
  *
  */
 
 (
 //GO!
 fork {
-	var n_chromabands=12, n_bpbands_oct=4, a_bpbandf;
+	var n_chromabands=12, n_bpbands_oct=12, duration=30;
+	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7;
 	//frequencies from 40 to 4000 Hz
-	a_bpbandf = 2**(Array.series(7*n_bpbands_oct)/n_bpbands_oct)*40;
+	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*40;
 	~a_bpbandf = a_bpbandf;
-	SynthDef.new(\chromagram, {|gate=0|
+	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=30|
+		//every time you set this bus, this keeps it at 1 for dur seconds
+		Out.kr(bus,
+			Trig1.kr(
+				t_go,
+				dur:dur
+			)
+		);
+	}).add;
+	SynthDef.new(\playbuf, {|gate=0, out=0, buf=0|
+		Out.ar(out,
+			PlayBuf.ar(1, buf,
+				rate:gate, trigger:gate,
+			)* EnvGen.kr(
+				Env.asr(0.1,1,0.1,\linear),
+				gate:gate, doneAction:0 //doesn't free synth atm
+			)
+		);
+	}).add;
+	SynthDef.new(\playin, {|gate=0, out=0|
+		Out.ar(out,
+			SoundIn.ar*EnvGen.kr(
+				Env.asr(0.1,1,0.1,\linear),
+				gate:gate, doneAction:0 //doesn't free synth atm
+			)
+		);
+	}).add;
+	SynthDef.new(\chromagram, {|gate=0, inbus=0|
 		var in, fft, chroma, poller, time;
 
 		//in = SinOsc.ar(440,0,0.1);
-		in= SoundIn.ar;
+		in= In.ar(inbus);
 		//Timer doesn't do what I think it does
 		time = Sweep.kr(gate);
 		poller = Impulse.kr(1)*gate;
@@ -33,12 +63,13 @@ fork {
 			SendTrig.kr (in: poller, id: i+1, value: v);
 		});
 	}).add;
-	SynthDef.new(\bands, {|gate=0|
+	SynthDef.new(\bands, {|gate=0, inbus=0|
 		var in, amps, poller, time;
+		var bwr = n_bpbands_total.reciprocal;
 
-		in= SoundIn.ar;
+		in= In.ar(inbus);
 		time = Sweep.kr(gate);
-		poller = Impulse.kr(1)*gate;
+		poller = (Impulse.kr(1)*gate);
 
 		SendTrig.kr (in: poller, id: 0, value: time);
 
@@ -46,7 +77,7 @@ fork {
 			SendTrig.kr(
 				in: poller,
 				id: i+1,
-				value: Amplitude.kr(Resonz.ar(in,freq))
+				value: Amplitude.kr(Resonz.ar(in,freq,bwr))
 			);
 		});
 	}).add;
@@ -73,14 +104,36 @@ fork {
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
 		Out.ar(0, sig);
 	}, metadata:(specs: (xpos: \unipolar, ypos: \midfreq))).add;
-	~soundbuf = Buffer.read(s,"/Users/dan/src/sc/f_lustre/chimegongfrenzy.aif");
+	////////// Analysing sounds
+	~triggerBus = Bus.control(s,1);
+	~analBus = Bus.audio(s,1);
+	~listenGroup = Group.new(s);
+	~soundBuf = Buffer.read(s, "/Users/dan/src/sc/f_lustre/chimegongfrenzy.aif");
 	s.sync;
-	~chromaanalyser = Synth.new(\chromagram);
-	~bandanalyser = Synth.new(\bands);
+	~trigger = Synth.new(\longtrigger,
+		[\bus, ~triggerBus, \dur, duration],
+		target: ~listenGroup, addAction:\addBefore);
+	~player = Synth.new(\playbuf,
+		[\out, ~analBus],
+		target: ~listenGroup, addAction:\addToHead);
+	~chromaanalyser = Synth.new(\chromagram,
+		[\inbus, ~analBus],
+		target: ~listenGroup, addAction:\addToTail);
+	~bandanalyser = Synth.new(\bands,
+		[\inbus, ~analBus],
+		target: ~listenGroup, addAction:\addToTail);
 	s.sync;
-	~chromaanalyser.set(\gate, 1);
-	~bandanalyser.set(\gate, 1);
-	~touchCoords = IdentityDictionary.new;
+	~player.map(\gate, ~triggerBus);
+	~chromaanalyser.map(\gate, ~triggerBus);
+	~bandanalyser.map(\gate, ~triggerBus);
+	s.sync;
+	OSCdef.newMatching(\pollchroma, {|...args| [\chroma,args].postln;}, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
+	OSCdef.newMatching(\pollbands, {|...args| [\bands,args].postln;}, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
+	s.sync;
+	~trigger.set(\t_go,1);
+	s.sync;
+	////////////Playing sounds
+	/*~touchCoords = IdentityDictionary.new;
 	~touchSynths = IdentityDictionary.new;
 	~touchesToStart = IdentitySet.new;
 	~touchesToStop = IdentitySet.new;
@@ -122,10 +175,11 @@ fork {
 	//OSCdef.newMatching(\touchset, ~tuioSetterFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
 	//OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
 	//OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
-	//OSCdef.newMatching(\pollchroma, {|...args| [\chroma,args].postln;}, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
-	OSCdef.newMatching(\pollbands, {|...args| [\bands,args].postln;}, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
+	*/
 }
 )
+~trigger.set(\t_go,1);
+~triggerBus.get(_.postln);
 s.record;
 s.stopRecording
 ~analyser.set(\gate, 0);
