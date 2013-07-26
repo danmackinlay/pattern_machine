@@ -12,13 +12,13 @@
 (
 ////////// Analysing sounds
 fork {
-	var n_chromabands=12, n_bpbands_oct=12, duration=30, pollrate=50;
+	var n_chromabands=12, n_bpbands_oct=12, duration=5, pollrate=50;
 	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7+1;
-	var n_steps = duration*pollRate+1;
+	var n_steps = duration*pollrate+1;
 	//frequencies from 55 to 7040 Hz
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
 	~a_bpbandf = a_bpbandf;
-	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=30|
+	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(duration)|
 		//every time you set this bus, this keeps it at 1 for dur seconds
 		Out.kr(bus,
 			Trig1.kr(
@@ -101,20 +101,50 @@ fork {
 	~chromaanalyser.map(\gate, ~triggerBus);
 	~bandanalyser.map(\gate, ~triggerBus);
 	s.sync;
-	OSCdef.newMatching(\pollchroma, {|...args| [\chroma,args].postln;}, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
-	OSCdef.newMatching(\pollbands, {|...args| [\bands,args].postln;}, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
+	~bands = Array.new(n_steps);
+	~bandtimes = Array.new(n_steps);
+	~nextBandRow = Array.newClear(n_bpbands_total);
+	~chroma = Array.new(n_steps);
+	~chromatimes = Array.new(n_steps);
+	~nextChromaRow = Array.newClear(12);
+	~fn_bandLogger = {|msg, time, addr, port|
+		var path, nid, tid, val;
+		# path, nid, tid, val = msg;
+		(tid==0).if({
+			~bandtimes = ~bandtimes.add(val);
+			~nextBandRow = Array.newClear(n_bpbands_total);
+			~bands = ~bands.add(~nextBandRow);
+		},{
+			~nextBandRow[tid-1]=val;
+		});
+	};
+	~fn_chromaLogger = {|msg, time, addr, port|
+		var path, nid, tid, val;
+		# path, nid, tid, val = msg;
+		(tid==0).if({
+			~chromatimes = ~chromatimes.add(val);
+			~nextChromaRow = Array.newClear(12);
+			~chroma = ~chroma.add(~nextChromaRow);
+		},{
+			~nextChromaRow[tid-1]=val;
+		});
+	};
+
+	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
+	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
 	s.sync;
 	~trigger.set(\t_go,1);
 	s.sync;
 }
 )
+
 (
 ////////////Playing sounds
 fork {
 	SynthDef.new(\bufferbitz, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
 		var sig, freq, delay;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
-		freq = ypos.linlin(0,1,SampleRate.ir/2/i_binsize,SampleRate.ir/2);
+		freq = ypos.linexp(0,1,55,7040);
 		delay = freq.reciprocal;
 		sig = Warp1.ar(
 			numChannels:1,
@@ -138,7 +168,7 @@ fork {
 	~touchesToStart = IdentitySet.new;
 	~touchesToStop = IdentitySet.new;
 
-	~tuioSetterFn = {|message, time, add, port|
+	~fn_tuioSetter = {|message, time, add, port|
 		var k, coords;
 		k = message[2];
 		coords = message.copyRange(3,message.size);
@@ -149,7 +179,7 @@ fork {
 			synth.set(\ypos, coords[1]);
 		});
 	};
-	~tuioAliverFn = {|message, time, add, port|
+	~fn_tuioAliver = {|message, time, add, port|
 		//This one just has to kill dead blobs
 		var prevLiving, nowLiving;
 		nowLiving = message.copyRange(2,message.size).as(IdentitySet);
@@ -157,7 +187,7 @@ fork {
 		~touchesToStop = (prevLiving-nowLiving);
 		~touchesToStart = (nowLiving-prevLiving);
 	};
-	~tuioWorkerFn = {|message, time, add, port|
+	~fn_tuioWorker = {|message, time, add, port|
 		//Called after frame updates. work should happen here.
 		~touchesToStop.do({|k|
 			["killing",k].postln;
@@ -172,12 +202,11 @@ fork {
 		~touchesToStop.makeEmpty;
 		~touchesToStart.makeEmpty;
 	};
-	//OSCdef.newMatching(\touchset, ~tuioSetterFn, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
-	//OSCdef.newMatching(\touchalive, ~tuioAliverFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
-	//OSCdef.newMatching(\touchupdate, ~tuioWorkerFn, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
+	OSCdef.newMatching(\touchset, ~fn_tuioSetter, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
+	OSCdef.newMatching(\touchalive, ~fn_tuioAliver, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
+	OSCdef.newMatching(\touchupdate, ~fn_tuioWorker, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
 }
 )
-
 ~trigger.set(\t_go,1);
 ~triggerBus.get(_.postln);
 s.record;
