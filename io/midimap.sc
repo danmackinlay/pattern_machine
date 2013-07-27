@@ -67,7 +67,7 @@ MicrotonicMIDIPercMap : MIDIPercMap {
 	*initClass {
 		map = (
 			\bass_drum_1: 36,
-			\bass_drum_1: 37,
+			\bass_drum_2: 37,
 			\rimshot: 38,
 			\hand_clap: 39,
 			\snare_drum_2: 40,

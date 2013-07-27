@@ -1,5 +1,5 @@
 //This one is trying to be a breakbeat guy.
-/NB - am not sure that the \truncatetobar operator is behaving from within the pattern. should test.
+//NB - am not sure that the \truncatetobar operator is behaving from within the pattern. should test.
 (
 //init
 MIDIClient.init;
@@ -7,7 +7,7 @@ MIDIClient.destinations;
 m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 //m = MIDIOut.newByName("SimpleSynth virtual input", "SimpleSynth virtual input");
 //m.latency=0;
-
+m.noteOn(0,36,127);
 //~pm = GeneralMIDIPercMap;
 ~pm = MicrotonicMIDIPercMap;
 ~amen_break = Ppar([
@@ -57,17 +57,14 @@ ps.putRule(\root, PSStarN(4, \bar));
 //~patt=Ptrace(ps.root);
 ~patt=ps.root;
 ~logger.minPriority = 0;
-~patt=Ptrace(ps.root <> (amp: 1, type: \midi, midiout: m, \chan: 9));
+~patt=Ptrace(ps.root <> (amp: 1, type: \midi, midiout: m, \chan: 0));
 ~patt.play(~clock);
 )
 ~logger.minPriority=0;
 ~n=NumberEditorGui;
-~n
 KrNumberEditor
 Editor.for(3).gui;
 Editor.for((a: 5)).gui
-
-cxpatterns
 Pbind(\degree, Instr([\degreeStream,\endlessLeapFrog])).play;
 Instr([\degreeStream,\endlessLeapFrog]).next.asCompileString;
 ~p=Pcutdur(2,3,Pbind(\dur,1));
@@ -77,4 +74,3 @@ Editor.for(Pbind(\dur,1))
 ~t=Affine1(2,3);
 ~t.gui;
 ~t
-Quarks.checkoutAll;
