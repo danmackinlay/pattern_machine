@@ -61,4 +61,14 @@ TestPop : PSTestPattern {
 		this.assertEquals(op3[\delta], 57, "Composed Affine1 with constant");
 		this.assertEquals(op4[\delta], 7, "Composed constant with Affine1");
 	}
+	test_pcomp {
+		var patt1, patt2,steps;
+		patt1=Pbind(\delta, 2);
+		patt2=Pcomp(Pfindur(5, _))<>patt1;
+		steps = this.class.expressPattern(patt2);
+		this.assertEquals(steps.size, 3, "correct number of steps");
+		this.assertEquals(steps[0][\delta], 2, "Composed constant with Pfindur");
+		this.assertEquals(steps[1][\delta], 2, "Composed constant with Pfindur");
+		this.assertEquals(steps[2][\delta], 1, "Composed constant with Pfindur");
+	}
 }

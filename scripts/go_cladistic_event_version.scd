@@ -1,9 +1,9 @@
 //This one is trying to be a breakbeat guy.
 //NB - am not sure that the \truncatetobar operator is behaving from within the pattern. should test.
-//Probably this is PComp misbehaving, it being the only thing w/out tests.
+//Probably this is Pcutdur misbehaving, it being the only thing w/out tests.
 TestProductionSystem.runAll
 PSTestPattern.runAll
-(
+;(
 //init
 MIDIClient.init;
 MIDIClient.destinations;
@@ -68,12 +68,8 @@ ps.putRule(\root, PSStarN(4, \bar));
 ~logger.minPriority=0;
 ~n=NumberEditorGui;
 KrNumberEditor
-Editor.for(3).gui;
 Editor.for((a: 5)).gui
 ~p=Pcutdur(2,3,Pbind(\dur,1));
 ~p.gui;
 ~p.asCompileString
 Editor.for(Pbind(\dur,1))
-~t=Affine1(2,3);
-~t.gui;
-~t
