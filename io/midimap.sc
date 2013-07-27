@@ -1,6 +1,13 @@
 MIDIPercMap {
-	//Playing MIDI percussion? look up its note number by name here
 	classvar <map;
+	*doesNotUnderstand {|selector ... args|
+		^this.map[selector]
+	}
+	*keys{^this.map.keys}
+}
+GeneralMIDIPercMap : MIDIPercMap {
+	classvar <map;
+	//Playing General MIDI percussion? look up its note number by name here
 	*initClass {
 		map = (
 			\bass_drum_2: 35,
@@ -52,7 +59,21 @@ MIDIPercMap {
 			\open_triangle: 81,
 		);
 	}
-	*doesNotUnderstand {|selector ... args|
-		^map[selector]
+}
+MicrotonicMIDIPercMap : MIDIPercMap {
+	//Playing Sonic Charge's Mucrotonic?
+	classvar <map;
+	
+	*initClass {
+		map = (
+			\bass_drum_1: 36,
+			\bass_drum_1: 37,
+			\rimshot: 38,
+			\hand_clap: 39,
+			\snare_drum_2: 40,
+			\ride_cymbal_1: 41,
+			\closed_hi_hat: 42,
+			\pedal_hi_hat: 44,
+		);
 	}
 }

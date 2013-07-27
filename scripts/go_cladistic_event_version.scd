@@ -8,7 +8,8 @@ m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 //m = MIDIOut.newByName("SimpleSynth virtual input", "SimpleSynth virtual input");
 //m.latency=0;
 
-~pm = MIDIPercMap;
+//~pm = GeneralMIDIPercMap;
+~pm = MicrotonicMIDIPercMap;
 ~amen_break = Ppar([
 	Pser([Pobind(\midinote, ~pm.ride_cymbal_1, \dur, 1/2, \amp, 1/2)],8),
 	Pbind(
