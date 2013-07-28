@@ -70,7 +70,7 @@ MicrotonicMIDIPercMap : MIDIPercMap {
 			\bass_drum_2: 37,
 			\rimshot: 38,
 			\hand_clap: 39,
-			\snare_drum_2: 40,
+			\snare_drum_1: 40,
 			\ride_cymbal_1: 41,
 			\closed_hi_hat: 42,
 			\pedal_hi_hat: 44,
