@@ -1,9 +1,9 @@
 //This one is trying to be a breakbeat guy.
 //NB - am not sure that the \truncatetobar operator is behaving from within the pattern. should test.
-//Probably this is Pcutdur misbehaving, it being the only thing w/out tests.
-TestProductionSystem.runAll
-PSTestPattern.runAll
-;(
+//Also, timetransform is not repeatedly applied.
+TestProductionSystem.runAll;
+PSTestPattern.runAll;
+(
 //init
 MIDIClient.init;
 MIDIClient.destinations;
@@ -16,7 +16,7 @@ m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
 ~amen_break = Ppar([
 	Pbind(\midinote, ~pm.ride_cymbal_1, \dur, Pser([1/2],8), \amp, 1/2),
 	Pbind(
-		\midinote, Pseq(~pm.bass_drum_1.dup(2) ++ ~pm.snare_drum_1.dup(3) ++ ~pm.bass_drum_1.dup(2) ++ ~pm.snare_drum_1.dup(3)),
+		\midinote, Pseq(~pm.bass_drum_1.dup(2) ++ ~pm.snare_drum_1.dup(3) ++ ~pm.bass_drum_1.dup(2) ++ ~pm.snare_drum_1.dup(1)),
 		\dur, Pseq([1/2, 1/2, 3/4, 1/2, 1/4, 1/4, 1/4, 3/4, 1/4])
 	)
 ]);
