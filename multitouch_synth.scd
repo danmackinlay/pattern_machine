@@ -3,7 +3,7 @@
  *
  * multichannel playing
  * better visualisation than manual FFT. Fuck FFT.
-   * could use SCMIR+MFCC, but not really convinced about it being a real cepstral transform. Looks like the a single FFT of a multiband whosit
+   * could use SCMIR+MFCC, but not really convinced about it being a real cepstral transform. Looks like the FFT of a multiband spectrum. Or if not the documentation is so bad that I am alarmed anyway.
  * fit to API at ICST
  * pause synths if CPU load is too heavy?
  * detect noisiness?
