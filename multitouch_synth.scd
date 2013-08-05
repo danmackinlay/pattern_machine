@@ -7,7 +7,6 @@
  * fit to API at ICST (nearly done!)
  * pause synths if CPU load is too heavy?
  * detect (and visualise) noisiness?
- * detect when Gate has closed
  * shell script to launch this
  * web version
  */
@@ -22,13 +21,14 @@ fork {
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
 	~a_bpbandf = a_bpbandf;
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(duration)|
-		//every time you set this bus, this keeps it at 1 for dur seconds
-		Out.kr(bus,
-			Trig1.kr(
-				t_go,
-				dur:dur
-			)
+		//every time you set this input, this keeps it at 1 for dur seconds
+		var gate = Trig1.kr(
+			t_go,
+			dur:dur
 		);
+		//send a trigger after a signal decrease (envelope close)
+		SendTrig.kr (in: (Delay1.kr(gate)-gate), id: 0, value: gate);
+		Out.kr(bus, gate);
 	}).add;
 	SynthDef.new(\playbuf, {|gate=0, out=0, buf=0|
 		Out.ar(out,
@@ -120,8 +120,7 @@ fork {
 		# path, nid, tid, val = msg;
 		(tid==0).if({
 			~timeStep = ~timeStep + 1;
-			visualiser.sendMsg("/vizInit", n_bpbands_total, n_steps, duration, pollrate);
-
+			visualiser.sendMsg("/vizStep", val);
 			~bandtimes = ~bandtimes.add(val);
 			~nextBandRow = Array.newClear(n_bpbands_total);
 			~bands = ~bands.add(~nextBandRow);
@@ -141,8 +140,9 @@ fork {
 		});
 	};
 
-	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
-	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
+	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
+	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
+	OSCdef.newMatching(\pollend, {|...args| visualiser.sendMsg("/vizStop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
 	s.sync;
 	~startAnalysis.value();
 	s.sync;
