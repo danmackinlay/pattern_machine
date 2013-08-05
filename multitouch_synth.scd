@@ -3,10 +3,10 @@
  *
  * multichannel playing
  * better visualisation than manual FFT. Fuck FFT.
-   * could use SCMIR+MFCC, but not really convinced about it being a real cepstral transform. Looks like the FFT of a multiband spectrum. Or if not the documentation is so bad that I am alarmed anyway.
-* fit to API at ICST (nearly done!)
+    * could use SCMIR+MFCC, but not convinced about it being a real cepstral transform. Looks like the FFT of a multiband spectrum. Or if not, the documentation is so bad that I am alarmed anyway.
+ * fit to API at ICST (nearly done!)
  * pause synths if CPU load is too heavy?
- * detect noisiness?
+ * detect (and visualise) noisiness?
  * detect when Gate has closed
  * shell script to launch this
  * web version
