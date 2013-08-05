@@ -113,14 +113,17 @@ fork {
 		~timeStep = -1;
 		~nextChromaRow = Array.newClear(12);
 		~trigger.set(\t_go,1);
-		visualiser.sendMsg("/vizInit", n_bpbands_total, n_steps, duration, pollrate);
+		visualiser.sendMsg("/viz/init", n_bpbands_total, n_steps, duration, pollrate);
 	};
 	~fn_bandLogger = {|msg, time, addr, port|
 		var path, nid, tid, val;
 		# path, nid, tid, val = msg;
 		(tid==0).if({
 			~timeStep = ~timeStep + 1;
-			visualiser.sendMsg("/vizStep", val);
+			~nextBandRow.any(_.notNil).if({
+				visualiser.sendMsg("/viz/bands", *(~nextBandRow));
+			});
+			visualiser.sendMsg("/viz/step", val);
 			~bandtimes = ~bandtimes.add(val);
 			~nextBandRow = Array.newClear(n_bpbands_total);
 			~bands = ~bands.add(~nextBandRow);
@@ -142,12 +145,17 @@ fork {
 
 	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
-	OSCdef.newMatching(\pollend, {|...args| visualiser.sendMsg("/vizStop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
+	OSCdef.newMatching(\pollend, {|...args| visualiser.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
 	s.sync;
 	~startAnalysis.value();
 	s.sync;
 }
 )
+~startAnalysis.value();
+		~nextChromaRow = Array.newClear(12);
+~nextChromaRow.any(_.notNil);
+		~nextChromaRow;
+
 (
 ////////////Playing sounds
 fork {
