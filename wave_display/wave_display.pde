@@ -6,7 +6,7 @@ PImage img;
 //String datapath = dataPath("");
 
 void setup() {
-  /* start oscP5, listening for incoming messages at port 12000 */
+  /* start oscP5, listening for incoming messages at port 3333 */
   oscP5 = new OscP5(this,3333);
   
   /* spectrograph */

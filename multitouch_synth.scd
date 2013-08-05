@@ -51,7 +51,7 @@ fork {
 	SynthDef.new(\chromagram, {|gate=0, inbus=0|
 		var in, fft, chroma, poller, time;
 		in= In.ar(inbus);
-		//Timer doesn't do what I think it does. Sweep does
+		//Timer doesn't do what I think it does. Sweep does.
 		time = Sweep.kr(gate);
 		poller = Impulse.kr(pollrate)*gate;
 
@@ -144,8 +144,7 @@ fork {
 	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
 	s.sync;
-	~initAnalysis.value();
-	//	visualiser.sendMsg("/vizStop");
+	~startAnalysis.value();
 	s.sync;
 }
 )
