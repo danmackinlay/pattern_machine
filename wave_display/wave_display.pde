@@ -4,14 +4,17 @@ import netP5.*;
 OscP5 oscP5;
 PImage img;
 //String datapath = dataPath("");
+int port;
 
 void setup() {
-  /* start oscP5, listening for incoming messages at port 3333 */
-  oscP5 = new OscP5(this,3333);
-  
+  //This init has to come before the OSC stuff, of the latter gets initialized twice
+  size(1280, 720, P2D);
+  /* start oscP5, listening for incoming messages at port 3335 */
+  //port = int(random(1024, 20480));
+  port = 3334;
+  oscP5 = new OscP5(this, port);
   /* spectrograph */
   textureMode(NORMAL);
-  size(1280, 720, P2D);
   img = loadImage("spectrogram.png");
   img.loadPixels();
   beginShape();
