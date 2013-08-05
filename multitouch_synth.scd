@@ -4,17 +4,20 @@
  * multichannel playing
  * better visualisation than manual FFT. Fuck FFT.
    * could use SCMIR+MFCC, but not really convinced about it being a real cepstral transform. Looks like the FFT of a multiband spectrum. Or if not the documentation is so bad that I am alarmed anyway.
- * fit to API at ICST
+* fit to API at ICST (nearly done!)
  * pause synths if CPU load is too heavy?
  * detect noisiness?
  * detect when Gate has closed
+ * shell script to launch this
+ * web version
  */
 (
 ////////// Analysing sounds
 fork {
-	var n_chromabands=12, n_bpbands_oct=12, duration=5, pollrate=50;
+	var n_chromabands=12, n_bpbands_oct=12, duration=5.0, pollrate=50.0;
 	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7+1;
 	var n_steps = duration*pollrate+1;
+	var visualiser = NetAddr.new("127.0.0.1", 3334);
 	//frequencies from 55 to 7040 Hz
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
 	~a_bpbandf = a_bpbandf;
@@ -101,16 +104,24 @@ fork {
 	~chromaanalyser.map(\gate, ~triggerBus);
 	~bandanalyser.map(\gate, ~triggerBus);
 	s.sync;
-	~bands = Array.new(n_steps);
-	~bandtimes = Array.new(n_steps);
-	~nextBandRow = Array.newClear(n_bpbands_total);
-	~chroma = Array.new(n_steps);
-	~chromatimes = Array.new(n_steps);
-	~nextChromaRow = Array.newClear(12);
+	~startAnalysis = {
+		~bands = Array.new(n_steps);
+		~bandtimes = Array.new(n_steps);
+		~nextBandRow = Array.newClear(n_bpbands_total);
+		~chroma = Array.new(n_steps);
+		~chromatimes = Array.new(n_steps);
+		~timeStep = -1;
+		~nextChromaRow = Array.newClear(12);
+		~trigger.set(\t_go,1);
+		visualiser.sendMsg("/vizInit", n_bpbands_total, n_steps, duration, pollrate);
+	};
 	~fn_bandLogger = {|msg, time, addr, port|
 		var path, nid, tid, val;
 		# path, nid, tid, val = msg;
 		(tid==0).if({
+			~timeStep = ~timeStep + 1;
+			visualiser.sendMsg("/vizInit", n_bpbands_total, n_steps, duration, pollrate);
+
 			~bandtimes = ~bandtimes.add(val);
 			~nextBandRow = Array.newClear(n_bpbands_total);
 			~bands = ~bands.add(~nextBandRow);
@@ -133,11 +144,11 @@ fork {
 	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate:[~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate:[~bandanalyser.nodeID, nil, nil]);
 	s.sync;
-	~trigger.set(\t_go,1);
+	~initAnalysis.value();
+	//	visualiser.sendMsg("/vizStop");
 	s.sync;
 }
 )
-
 (
 ////////////Playing sounds
 fork {
@@ -207,12 +218,12 @@ fork {
 	OSCdef.newMatching(\touchupdate, ~fn_tuioWorker, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
 }
 )
+(
 ~trigger.set(\t_go,1);
 ~triggerBus.get(_.postln);
+)
 s.record;
 s.stopRecording
-~analyser.set(\gate, 0);
-~analyser.nid
 (
 //STOP!
 OSCdef(\touchset).free;
