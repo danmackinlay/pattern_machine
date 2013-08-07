@@ -13,9 +13,9 @@
 (
 ////////// Analysing sounds
 fork {
-	var n_chromabands=12, n_bpbands_oct=12, duration=5.0, pollrate=50.0;
+	var n_chromabands=12, n_bpbands_oct=12, duration=0.1, pollrate=50.0;
 	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7+1;
-	var n_steps = duration*pollrate+1;
+	var n_steps = (duration*pollrate+1).asInteger;
 	var visualiser = NetAddr.new("127.0.0.1", 3334);
 	//frequencies from 55 to 7040 Hz
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;

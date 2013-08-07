@@ -5,6 +5,10 @@ OscP5 oscP5;
 PImage img;
 //String datapath = dataPath("");
 int port;
+int n_bpbands_total;
+int n_steps;
+float duration;
+float pollrate;
 
 void setup() {
   //This init has to come before the OSC stuff, of the latter gets initialized twice
@@ -36,16 +40,15 @@ void oscEvent(OscMessage theOscMessage) {
   print(" addrpattern: "+theOscMessage.addrPattern());
   println(" typetag: "+theOscMessage.typetag());
   // check if theOscMessage has the address pattern we are looking for.   
-  if(theOscMessage.checkAddrPattern("/test")==true) {
-    // check if the typetag is the right one. 
-    if(theOscMessage.checkTypetag("ifs")) {
-      // parse theOscMessage and extract the values from the osc message arguments. 
-      int firstValue = theOscMessage.get(0).intValue();  // get the first osc argument
-      float secondValue = theOscMessage.get(1).floatValue(); // get the second osc argument
-      String thirdValue = theOscMessage.get(2).stringValue(); // get the third osc argument
-      print("### received an osc message /test with typetag ifs.");
-      println(" values: "+firstValue+", "+secondValue+", "+thirdValue);
+  if(theOscMessage.checkAddrPattern("/viz/init")==true) {
+      // parse theOscMessage and extract the values from the osc message arguments.
+      // n_bpbands_total, n_steps, duration, pollrate
+      n_bpbands_total = theOscMessage.get(0).intValue();  // get the first osc argument
+      n_steps = theOscMessage.get(1).intValue(); // get the second osc argument
+      duration = theOscMessage.get(2).floatValue(); // get the third osc argument
+      pollrate = theOscMessage.get(3).floatValue(); // get the third osc argument
+      print("## received an init message /test with typetag ifs.");
+      println(" values: "+n_bpbands_total+", "+n_steps+", "+duration+", "+pollrate);
       return;
-    }
   }
 }
