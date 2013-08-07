@@ -9,6 +9,7 @@
  * detect (and visualise) noisiness?
  * shell script to launch this
  * web version
+ * apply an unsharp mask to bands to get cleaner lines before dB arithmetic
  */
 (
 ////////// Analysing sounds
@@ -17,6 +18,8 @@ fork {
 	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7+1;
 	var n_steps = (duration*pollrate+1).asInteger;
 	var visualiser = NetAddr.new("127.0.0.1", 3334);
+	var minDb=(-45.0), maxDb=(-10.0);
+
 	//frequencies from 55 to 7040 Hz
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
 	~a_bpbandf = a_bpbandf;
@@ -78,7 +81,11 @@ fork {
 			SendTrig.kr(
 				in: poller,
 				id: i+1,
-				value: Amplitude.kr(Resonz.ar(in,freq,bwr))
+				value: (
+					Amplitude.kr(
+						Resonz.ar(in,freq,bwr)
+					) * (n_bpbands_total.sqrt)
+				).ampdb
 			);
 		});
 	}).add;
@@ -121,7 +128,7 @@ fork {
 		(tid==0).if({
 			~timeStep = ~timeStep + 1;
 			~nextBandRow.any(_.notNil).if({
-				visualiser.sendMsg("/viz/bands", *(~nextBandRow));
+				visualiser.sendMsg("/viz/bands", *(~nextBandRow.linlin(minDb,maxDb,0,1).asFloat));
 			});
 			visualiser.sendMsg("/viz/step", val);
 			~bandtimes = ~bandtimes.add(val);
