@@ -79,8 +79,9 @@ void oscEvent(OscMessage theOscMessage) {
         next_bands[i] = theOscMessage.get(i).floatValue();
       }
       for (int i = 0; i < n_bpbands_total; i = i+1) {
-        img.pixels[next_step_i*n_bpbands_total+i] = color(int(next_bands[i]*256));
+        img.pixels[next_step_i+n_steps*i] = color(int(next_bands[i]*256));
       }
+      print("## received bands message .");
       print(join(nf(next_bands, 0, 3), ";"));
       data_updated=true;
     }
