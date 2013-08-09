@@ -1,6 +1,72 @@
 import oscP5.*;
 import netP5.*;
+import codeanticode.syphon.*;
 
+///begin workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
+import javax.media.opengl.GL2;
+import jsyphon.*;
+
+class SyphonServer2{
+  protected JSyphonServer syphon;
+  protected GL2 gl;
+  protected int[] texID;
+  protected int[] syphonFBO;
+  
+  public SyphonServer2(String name){
+    syphon = new JSyphonServer();
+    syphon.initWithName(name);
+    println("Starting the syphon server:"+name);
+    try {
+      gl = ((PGraphicsOpenGL)g).pgl.gl.getGL2();
+    } catch (javax.media.opengl.GLException e) {
+      println("OpenGL 2 not supported!");
+    }
+    
+    texID = new int[1];
+    gl.glGenTextures(1, texID, 0);
+    gl.glBindTexture(GL2.GL_TEXTURE_RECTANGLE, texID[0]);
+    gl.glTexImage2D(GL2.GL_TEXTURE_RECTANGLE, 0, GL2.GL_RGBA8, width, height, 0, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, null);
+    
+    int[] defaultFBO = new int[1];
+    gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, defaultFBO, 0);
+    
+    syphonFBO = new int[1];
+    gl.glGenFramebuffers(1, syphonFBO, 0);
+    gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, syphonFBO[0]);
+    gl.glFramebufferTexture2D(GL2.GL_FRAMEBUFFER, GL2.GL_COLOR_ATTACHMENT0, GL2.GL_TEXTURE_RECTANGLE, texID[0], 0);
+    gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, defaultFBO[0]);
+  }
+  
+  public void send(){
+    int[] defaultFBO = new int[1];
+    gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, defaultFBO, 0);
+    //println("fbo="+defaultFBO[0]);
+    
+    gl.glBindFramebuffer(GL2.GL_READ_FRAMEBUFFER, defaultFBO[0]);
+    gl.glBindFramebuffer(GL2.GL_DRAW_FRAMEBUFFER, syphonFBO[0]);
+    gl.glBlitFramebuffer(0, 0, width, height, 
+                         0, 0, width, height, 
+                         GL2.GL_COLOR_BUFFER_BIT, GL2.GL_LINEAR);
+                         
+    syphon.publishFrameTexture(texID[0], GL2.GL_TEXTURE_RECTANGLE, 0, 0, width, height, width, height, false);
+    gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, defaultFBO[0]);
+  }
+  
+  public void stop(){
+    println("deleting textures");
+    gl.glDeleteTextures(1, texID, 0);
+    gl.glDeleteFramebuffers(1, syphonFBO, 0);
+    if(syphon!=null) {
+      println("stopping the syphon server");
+      syphon.stop();
+    }
+  }
+}
+
+///end workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
+
+
+SyphonServer2 syphonserver;
 OscP5 oscP5;
 PImage img;
 //String datapath = dataPath("");
@@ -18,6 +84,7 @@ float[] next_bands;
 void setup() {
   //This init has to come before the OSC stuff, or the latter gets initialized twice
   size(1280, 720, P2D);
+  syphonserver = new SyphonServer2("Processing Syphon");
   /* start oscP5, listening for incoming messages at port 3335 */
   //port = int(random(1024, 20480));
   port = 3334;
@@ -42,6 +109,7 @@ void draw() {
     img.updatePixels();
     draw_spectrogram();
     data_updated = false;
+    syphonserver.send();
   }
 }
 
@@ -86,4 +154,7 @@ void oscEvent(OscMessage theOscMessage) {
       data_updated=true;
     }
   }
+}
+void dispose() {
+  syphonserver.stop();
 }
