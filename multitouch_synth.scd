@@ -10,16 +10,17 @@
  * shell script to launch this
  * web version
  * apply an unsharp mask to bands to get cleaner lines before dB arithmetic
+ * I am unconvinced that the pointer variable addresses the whole buffer.
  */
 (
 ////////// Analysing sounds
 fork {
-	var n_chromabands=12, n_bpbands_oct=12, duration=0.1, pollrate=50.0;
+	var n_chromabands=12, n_bpbands_oct=12, duration=10.0, pollrate=100.0;
 	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7+1;
 	var n_steps = (duration*pollrate+1).asInteger;
 	var visualiser = NetAddr.new("127.0.0.1", 3334);
 	var minDb=(-45.0), maxDb=(-10.0);
-
+	var here = "/Users/dan/src/sc/f_lustre/";
 	//frequencies from 55 to 7040 Hz
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
 	~a_bpbandf = a_bpbandf;
@@ -92,7 +93,8 @@ fork {
 	~triggerBus = Bus.control(s,1);
 	~analBus = Bus.audio(s,1);
 	~listenGroup = Group.new(s);
-	~soundBuf = Buffer.read(s, "/Users/dan/src/sc/f_lustre/chimegongfrenzy.aif");
+	//~soundBuf = Buffer.read(s, here +/+ "chimegongfrenzy.aif");
+	~soundBuf = Buffer.read(s, here +/+ "draingigm.wav");
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, duration],
@@ -159,9 +161,6 @@ fork {
 }
 )
 ~startAnalysis.value();
-		~nextChromaRow = Array.newClear(12);
-~nextChromaRow.any(_.notNil);
-		~nextChromaRow;
 
 (
 ////////////Playing sounds
