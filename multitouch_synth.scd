@@ -12,10 +12,8 @@
  * shell script to launch this
     * including detecting location of filepath (or env var?)
  * web version
- * ditch the i_binsize business now that we are not in Fourier domain
  * sound nicer
    * roll off higher harmonics for contrast
-   * remove zipper noise from synths (mostly audible at low f in delay)
    * compressor
    * reverb. C'mon, the kids love reverb.
  */
@@ -187,7 +185,7 @@ fork {
 		var sig, freq, delay;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
 		freq = ypos.linexp(0,1,55,7040);
-		delay = freq.reciprocal;
+		delay = Lag.ar(DC.ar(freq.reciprocal), 0.1);
 		sig = Warp1.ar(
 			numChannels:1,
 			bufnum:buf,
@@ -199,7 +197,7 @@ fork {
 		);
 		sig = HPF.ar(sig, freq);
 		sig = CombL.ar(sig,
-			maxdelaytime: i_binsize*SampleDur.ir*8,
+			maxdelaytime: ~minF.value.reciprocal,
 			delaytime: delay,
 			decaytime: delay*4);
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
