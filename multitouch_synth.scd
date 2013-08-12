@@ -15,23 +15,35 @@
  * ditch the i_binsize business now that we are not in Fourier domain
  * sound nicer
    * roll off higher harmonics for contrast
+   * remove zipper noise from synths (mostly audible at low f)
    * compressor
    * reverb. C'mon, the kids love reverb.
  */
-////////// Setup
+(
+////////// Config vars
 ~here = "/Users/dan/src/sc/f_lustre/";
+~xmin=0;
+~xmax=1; //4 for ICST production
+~ymin=0;
+~ymax=1;
+~n_chromabands=12;
+~n_bpbands_oct=12;
+~pollrate=100.0;
+~duration=10.0;
+~visualizerport = 3334;
+~minDb=(-45.0);
+~maxDb=(-10.0);
+
+////////// Derived vars
+~n_bpbands_total=~n_bpbands_oct*7+1;
+~n_steps = (~duration*~pollrate+1).asInteger;
+~a_bpbandf = 2**(Array.series(~n_bpbands_total)/~n_bpbands_oct)*55;
 
 ////////// Analysing sounds
 fork {
-	var n_chromabands=12, n_bpbands_oct=12, duration=10.0, pollrate=100.0;
-	var a_bpbandf, n_bpbands_total=n_bpbands_oct*7+1;
-	var n_steps = (duration*pollrate+1).asInteger;
-	var visualiser = NetAddr.new("127.0.0.1", 3334);
-	var minDb=(-45.0), maxDb=(-10.0);
+	var visualiser = NetAddr.new("127.0.0.1", ~visualizerport);
 	//frequencies from 55 to 7040 Hz
-	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
-	~a_bpbandf = a_bpbandf;
-	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(duration)|
+	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
 		//every time you set this input, this keeps it at 1 for dur seconds
 		var gate = Trig1.kr(
 			t_go,
@@ -64,35 +76,35 @@ fork {
 		in= In.ar(inbus);
 		//Timer doesn't do what I think it does. Sweep does.
 		time = Sweep.kr(gate);
-		poller = Impulse.kr(pollrate)*gate;
+		poller = Impulse.kr(~pollrate)*gate;
 
 		SendTrig.kr (in: poller, id: 0, value: time);
 
 		fft = FFT(LocalBuf(2048), in);
 
-		chroma=Chromagram.kr(fft, 2048, n_chromabands);
+		chroma=Chromagram.kr(fft, 2048, ~n_chromabands);
 		chroma.do({|v, i|
 			SendTrig.kr (in: poller, id: i+1, value: v);
 		});
 	}).add;
 	SynthDef.new(\report_bands, {|gate=0, inbus=0|
 		var in, amps, poller, time;
-		var bwr = n_bpbands_total.reciprocal;
+		var bwr = ~n_bpbands_total.reciprocal;
 
 		in= In.ar(inbus);
 		time = Sweep.kr(gate);
-		poller = (Impulse.kr(pollrate)*gate);
+		poller = (Impulse.kr(~pollrate)*gate);
 
 		SendTrig.kr (in: poller, id: 0, value: time);
 
-		a_bpbandf.do({|freq,i|
+		~a_bpbandf.do({|freq,i|
 			SendTrig.kr(
 				in: poller,
 				id: i+1,
 				value: (
 					Amplitude.kr(
 						Resonz.ar(in,freq,bwr)
-					) * (n_bpbands_total.sqrt)
+					) * (~n_bpbands_total.sqrt)
 				).ampdb
 			);
 		});
@@ -105,7 +117,7 @@ fork {
 	~soundBuf = Buffer.read(s, ~here +/+ "draingigm.wav");
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
-		[\bus, ~triggerBus, \dur, duration],
+		[\bus, ~triggerBus, \dur, ~duration],
 		target: ~listenGroup, addAction:\addBefore);
 	~player = Synth.new(\play_buf_inst,
 		[\out, ~analBus],
@@ -122,15 +134,15 @@ fork {
 	~bandanalyser.map(\gate, ~triggerBus);
 	s.sync;
 	~startAnalysis = {
-		~bands = Array.new(n_steps);
-		~bandtimes = Array.new(n_steps);
-		~nextBandRow = Array.newClear(n_bpbands_total);
-		~chroma = Array.new(n_steps);
-		~chromatimes = Array.new(n_steps);
+		~bands = Array.new(~n_steps);
+		~bandtimes = Array.new(~n_steps);
+		~nextBandRow = Array.newClear(~n_bpbands_total);
+		~chroma = Array.new(~n_steps);
+		~chromatimes = Array.new(~n_steps);
 		~timeStep = -1;
 		~nextChromaRow = Array.newClear(12);
 		~trigger.set(\t_go,1);
-		visualiser.sendMsg("/viz/init", n_bpbands_total, n_steps, duration, pollrate);
+		visualiser.sendMsg("/viz/init", ~n_bpbands_total, ~n_steps, ~duration, ~pollrate);
 	};
 	~fn_bandLogger = {|msg, time, addr, port|
 		var path, nid, tid, val;
@@ -138,11 +150,11 @@ fork {
 		(tid==0).if({
 			~timeStep = ~timeStep + 1;
 			~nextBandRow.any(_.notNil).if({
-				visualiser.sendMsg("/viz/bands", *(~nextBandRow.linlin(minDb,maxDb,0,1).asFloat));
+				visualiser.sendMsg("/viz/bands", *(~nextBandRow.linlin(~minDb,~maxDb,0,1).asFloat));
 			});
 			visualiser.sendMsg("/viz/step", val);
 			~bandtimes = ~bandtimes.add(val);
-			~nextBandRow = Array.newClear(n_bpbands_total);
+			~nextBandRow = Array.newClear(~n_bpbands_total);
 			~bands = ~bands.add(~nextBandRow);
 		},{
 			~nextBandRow[tid-1]=val;
