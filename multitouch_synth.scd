@@ -35,7 +35,7 @@ fork {
 		SendTrig.kr (in: (Delay1.kr(gate)-gate), id: 0, value: gate);
 		Out.kr(bus, gate);
 	}).add;
-	SynthDef.new(\playbuf, {|gate=0, out=0, buf=0|
+	SynthDef.new(\play_buf_inst, {|gate=0, out=0, buf=0|
 		Out.ar(out,
 			PlayBuf.ar(1, buf,
 				rate:gate, trigger:gate,
@@ -45,7 +45,7 @@ fork {
 			)
 		);
 	}).add;
-	SynthDef.new(\playin, {|gate=0, out=0|
+	SynthDef.new(\play_in, {|gate=0, out=0|
 		Out.ar(out,
 			SoundIn.ar*EnvGen.kr(
 				Env.asr(0.1,1,0.1,\linear),
@@ -53,7 +53,7 @@ fork {
 			)
 		);
 	}).add;
-	SynthDef.new(\chromagram, {|gate=0, inbus=0|
+	SynthDef.new(\report_chromagram, {|gate=0, inbus=0|
 		var in, fft, chroma, poller, time;
 		in= In.ar(inbus);
 		//Timer doesn't do what I think it does. Sweep does.
@@ -69,7 +69,7 @@ fork {
 			SendTrig.kr (in: poller, id: i+1, value: v);
 		});
 	}).add;
-	SynthDef.new(\bands, {|gate=0, inbus=0|
+	SynthDef.new(\report_bands, {|gate=0, inbus=0|
 		var in, amps, poller, time;
 		var bwr = n_bpbands_total.reciprocal;
 
@@ -100,13 +100,13 @@ fork {
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, duration],
 		target: ~listenGroup, addAction:\addBefore);
-	~player = Synth.new(\playbuf,
+	~player = Synth.new(\play_buf_inst,
 		[\out, ~analBus],
 		target: ~listenGroup, addAction:\addToHead);
-	~chromaanalyser = Synth.new(\chromagram,
+	~chromaanalyser = Synth.new(\report_chromagram,
 		[\inbus, ~analBus],
 		target: ~listenGroup, addAction:\addToTail);
-	~bandanalyser = Synth.new(\bands,
+	~bandanalyser = Synth.new(\report_bands,
 		[\inbus, ~analBus],
 		target: ~listenGroup, addAction:\addToTail);
 	s.sync;
@@ -166,7 +166,7 @@ fork {
 (
 ////////////Playing sounds
 fork {
-	SynthDef.new(\bufferbitz, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
+	SynthDef.new(\harmonic_grain, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
 		var sig, freq, delay;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
 		freq = ypos.linexp(0,1,55,7040);
@@ -222,7 +222,7 @@ fork {
 		~touchesToStart.do({|k|
 			var coords = ~touchCoords[k]; //should not be empty by the end of the frame
 			["starting",k].postln;
-			~touchSynths[k] = Synth.new(\bufferbitz, [\xpos, coords[0], \ypos, coords[1], \buf, ~soundBuf]);
+			~touchSynths[k] = Synth.new(\harmonic_grain, [\xpos, coords[0], \ypos, coords[1], \buf, ~soundBuf]);
 		});
 		~touchesToStop.makeEmpty;
 		~touchesToStart.makeEmpty;
