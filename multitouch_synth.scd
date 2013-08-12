@@ -14,7 +14,10 @@
  * web version
  * I am unconvinced that the pointer variable addresses the whole buffer.
  * ditch the i_binsize business now that we are not in Fourier domain
- * roll off higher harmonics for contrast
+ * sound nicer
+   * roll off higher harmonics for contrast
+   * compressor
+   * reverb. C'mon, the kids love reverb.
  */
 (
 ////////// Analysing sounds
@@ -98,8 +101,8 @@ fork {
 	~analBus = Bus.audio(s,1);
 	~listenGroup = Group.new(s);
 	//~soundBuf = Buffer.read(s, here +/+ "chimegongfrenzy.aif");
-	~soundBuf = Buffer.read(s, here +/+ "note_sweep.aif");
-	//~soundBuf = Buffer.read(s, here +/+ "draingigm.wav");
+	//~soundBuf = Buffer.read(s, here +/+ "note_sweep.aif");
+	~soundBuf = Buffer.read(s, here +/+ "draingigm.wav");
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, duration],
@@ -182,7 +185,7 @@ fork {
 			freqScale:1,
 			windowSize:0.1,
 			windowRandRatio:0.2,
-			mul: 0.05
+			mul: 0.2
 		);
 		sig = HPF.ar(sig, freq);
 		sig = CombL.ar(sig,
