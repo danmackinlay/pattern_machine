@@ -18,7 +18,9 @@
    * compressor
    * reverb. C'mon, the kids love reverb.
  */
-(
+////////// Setup
+~here = "/Users/dan/src/sc/f_lustre/";
+
 ////////// Analysing sounds
 fork {
 	var n_chromabands=12, n_bpbands_oct=12, duration=10.0, pollrate=100.0;
@@ -26,7 +28,6 @@ fork {
 	var n_steps = (duration*pollrate+1).asInteger;
 	var visualiser = NetAddr.new("127.0.0.1", 3334);
 	var minDb=(-45.0), maxDb=(-10.0);
-	var here = "/Users/dan/src/sc/f_lustre/";
 	//frequencies from 55 to 7040 Hz
 	a_bpbandf = 2**(Array.series(n_bpbands_total)/n_bpbands_oct)*55;
 	~a_bpbandf = a_bpbandf;
@@ -99,9 +100,9 @@ fork {
 	~triggerBus = Bus.control(s,1);
 	~analBus = Bus.audio(s,1);
 	~listenGroup = Group.new(s);
-	//~soundBuf = Buffer.read(s, here +/+ "chimegongfrenzy.aif");
-	//~soundBuf = Buffer.read(s, here +/+ "note_sweep.aif");
-	~soundBuf = Buffer.read(s, here +/+ "draingigm.wav");
+	//~soundBuf = Buffer.read(s, ~here +/+ "chimegongfrenzy.aif");
+	//~soundBuf = Buffer.read(s, ~here +/+ "note_sweep.aif");
+	~soundBuf = Buffer.read(s, ~here +/+ "draingigm.wav");
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, duration],
@@ -165,13 +166,7 @@ fork {
 	s.sync;
 	~startAnalysis.value();
 	s.sync;
-}
-)
-~startAnalysis.value();
-
-(
-////////////Playing sounds
-fork {
+    ////////////Playing sounds
 	SynthDef.new(\harmonic_grain, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
 		var sig, freq, delay;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
@@ -239,12 +234,6 @@ fork {
 }
 )
 (
-~trigger.set(\t_go,1);
-~triggerBus.get(_.postln);
-)
-s.record;
-s.stopRecording
-(
 //STOP!
 OSCdef(\touchset).free;
 OSCdef(\touchalive).free;
@@ -252,3 +241,11 @@ OSCdef(\touchupdate).free;
 )
 ~touchSynths;
 ~touchCoords;
+(
+~trigger.set(\t_go,1);
+~triggerBus.get(_.postln);
+)
+~startAnalysis.value();
+
+s.record;
+s.stopRecording
