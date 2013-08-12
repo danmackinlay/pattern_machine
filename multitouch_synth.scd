@@ -15,7 +15,7 @@
  * ditch the i_binsize business now that we are not in Fourier domain
  * sound nicer
    * roll off higher harmonics for contrast
-   * remove zipper noise from synths (mostly audible at low f)
+   * remove zipper noise from synths (mostly audible at low f in delay)
    * compressor
    * reverb. C'mon, the kids love reverb.
  */
@@ -33,16 +33,20 @@
 ~visualizerport = 3334;
 ~minDb=(-45.0);
 ~maxDb=(-10.0);
+~minF=55;
+~n_octaves=7;
 
 ////////// Derived vars
-~n_bpbands_total=~n_bpbands_oct*7+1;
+~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
+~maxF = 2**~n_octaves * ~minF;
+//frequencies from 55 to 7040 Hz
+~fmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,~n_octaves)*~minF };
+~posmap = {|v| 2**v.linlin(~xmin,~xmax,0.0,1.0)};
 ~n_steps = (~duration*~pollrate+1).asInteger;
-~a_bpbandf = 2**(Array.series(~n_bpbands_total)/~n_bpbands_oct)*55;
-
+~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
 ////////// Analysing sounds
 fork {
 	var visualiser = NetAddr.new("127.0.0.1", ~visualizerport);
-	//frequencies from 55 to 7040 Hz
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
 		//every time you set this input, this keeps it at 1 for dur seconds
 		var gate = Trig1.kr(
