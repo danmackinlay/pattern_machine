@@ -6,7 +6,6 @@ import codeanticode.syphon.*;
    * https://forum.processing.org/topic/use-external-editor-is-gone-in-beta-5-now-what
    * https://forum.processing.org/topic/get-command-line-parameter-from-compiled-sketch
    * https://code.google.com/p/processing/issues/detail?id=142
- * currently spectrogram is upside down.
  */
 
 
@@ -155,7 +154,9 @@ void oscEvent(OscMessage theOscMessage) {
         next_bands[i] = theOscMessage.get(i).floatValue();
       }
       for (int i = 0; i < n_bpbands_total; i = i+1) {
-        img.pixels[next_step_i+n_steps*i] = color(int(next_bands[i]*256));
+        //careful with the fiddly quasi-pointer arithmetic
+        //count in rows from top left down
+        img.pixels[next_step_i+n_steps*(n_bpbands_total-i-1)] = color(int(next_bands[i]*256));
       }
       print("## received bands message .");
       print(join(nf(next_bands, 0, 3), ";"));
