@@ -12,7 +12,6 @@
  * shell script to launch this
     * including detecting location of filepath (or env var?)
  * web version
- * I am unconvinced that the pointer variable addresses the whole buffer.
  * ditch the i_binsize business now that we are not in Fourier domain
  * sound nicer
    * roll off higher harmonics for contrast
