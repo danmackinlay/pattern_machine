@@ -8,10 +8,13 @@
  * spectral improvements
    * colourise spectral display
    * detect (and visualise) noisiness vs percussiveness?
-   * apply an unsharp mask to bands to get cleaner lines before dB arithmetic
+   * apply an unsharp mask to bands to get cleaner lines (looks clear enough, don't bother)
  * shell script to launch this
+    * including detecting location of filepath (or env var?)
  * web version
  * I am unconvinced that the pointer variable addresses the whole buffer.
+ * ditch the i_binsize business now that we are not in Fourier domain
+ * roll off higher harmonics for contrast
  */
 (
 ////////// Analysing sounds
@@ -95,7 +98,8 @@ fork {
 	~analBus = Bus.audio(s,1);
 	~listenGroup = Group.new(s);
 	//~soundBuf = Buffer.read(s, here +/+ "chimegongfrenzy.aif");
-	~soundBuf = Buffer.read(s, here +/+ "draingigm.wav");
+	~soundBuf = Buffer.read(s, here +/+ "note_sweep.aif");
+	//~soundBuf = Buffer.read(s, here +/+ "draingigm.wav");
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, duration],

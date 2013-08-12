@@ -1,6 +1,14 @@
 import oscP5.*;
 import netP5.*;
 import codeanticode.syphon.*;
+/*TODO:
+ * parse CLI
+   * https://forum.processing.org/topic/use-external-editor-is-gone-in-beta-5-now-what
+   * https://forum.processing.org/topic/get-command-line-parameter-from-compiled-sketch
+   * https://code.google.com/p/processing/issues/detail?id=142
+ * currently spectrogram is upside down.
+ */
+
 
 ///begin workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
 import javax.media.opengl.GL2;
