@@ -2,9 +2,9 @@
  * TODO:
  *
  * multichannel playing
-
  * fit to API at ICST (nearly done!)
  * pause synths if CPU load is too heavy?
+ * move CV mapping logic to language side for ease of testing
  * spectral improvements
    * colourise spectral display
    * detect (and visualise) noisiness vs percussiveness?
@@ -33,15 +33,28 @@
 ~maxDb=(-10.0);
 ~minF=55;
 ~n_octaves=7;
-
+~n_ring_speakers = 2;
+/*
+PanAz.ar(
+        numChans: ~n_ring_speakers,           // numChans
+        in: ClipNoise.ar,     // in
+        pos: LFSaw.kr(MouseX.kr(0.2, 8, 'exponential')), // pos
+        level: 0.5,            // level
+        orientation: 0.5
+    );
+*/
 ////////// Derived vars
 ~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
 ~maxF = 2**~n_octaves * ~minF;
 //frequencies from 55 to 7040 Hz
 ~fmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,~n_octaves)*~minF };
-~posmap = {|v| 2**v.linlin(~xmin,~xmax,0.0,1.0)};
+~bufposmap = {|v| 2**v.linlin(~xmin,~xmax,0.0,1.0)};
+~xpanmap = {|v| 2**v.linlin(~xmin,~xmax,-1.0,1.0)};
+~ypanmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,1.0)};
+
 ~n_steps = (~duration*~pollrate+1).asInteger;
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
+
 ////////// Analysing sounds
 fork {
 	var visualiser = NetAddr.new("127.0.0.1", ~visualizerport);
