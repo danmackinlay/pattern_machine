@@ -6,7 +6,7 @@
  * pause synths if CPU load is too heavy?
  * move CV mapping logic to language side for ease of testing
  * spectral improvements
-   * colourise spectral display
+   * colourise spectral display to indicate chromaticity
    * detect (and visualise) noisiness vs percussiveness?
    * apply an unsharp mask to bands to get cleaner lines (looks clear enough, don't bother)
  * shell script to launch this
@@ -21,7 +21,8 @@
 ////////// Config vars
 ~here = "/Users/dan/src/sc/f_lustre/";
 ~xmin=0;
-~xmax=1; //4 for ICST production
+~xmax=1; //testing
+//~xmax=4; //ICST production
 ~ymin=0;
 ~ymax=1;
 ~n_chromabands=12;
@@ -33,16 +34,10 @@
 ~maxDb=(-10.0);
 ~minF=55;
 ~n_octaves=7;
-~n_ring_speakers = 2;
-/*
-PanAz.ar(
-        numChans: ~n_ring_speakers,           // numChans
-        in: ClipNoise.ar,     // in
-        pos: LFSaw.kr(MouseX.kr(0.2, 8, 'exponential')), // pos
-        level: 0.5,            // level
-        orientation: 0.5
-    );
-*/
+~n_ring_speakers = 2; //testing
+//~n_ring_speakers = 8; //ICST
+~n_speaker_rings = 2; //ICST
+
 ////////// Derived vars
 ~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
 ~maxF = 2**~n_octaves * ~minF;
@@ -50,7 +45,7 @@ PanAz.ar(
 ~fmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,~n_octaves)*~minF };
 ~bufposmap = {|v| 2**v.linlin(~xmin,~xmax,0.0,1.0)};
 ~xpanmap = {|v| 2**v.linlin(~xmin,~xmax,-1.0,1.0)};
-~ypanmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,1.0)};
+//~ypanmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,1.0)};
 
 ~n_steps = (~duration*~pollrate+1).asInteger;
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
@@ -214,6 +209,15 @@ fork {
 			delaytime: delay,
 			decaytime: delay*4);
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
+		/*
+        PanAz.ar(
+            numChans: ~n_ring_speakers,
+            in: sig,
+            pos: ??,
+		    level: 0.5,
+		    orientation: 0.5
+		);
+		*/
 		Out.ar(0, sig);
 	}, metadata:(specs: (xpos: \unipolar, ypos: \midfreq))).add;
 	~touchCoords = IdentityDictionary.new;
