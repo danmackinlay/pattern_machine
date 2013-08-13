@@ -189,15 +189,14 @@ fork {
 	~startAnalysis.value();
 	s.sync;
     ////////////Playing sounds
-	SynthDef.new(\harmonic_grain, {|out=0, gate=1, i_binsize=512, xpos, ypos, buf|
-		var sig, freq, delay;
+	SynthDef.new(\harmonic_grain, {|out=0, gate=1, i_binsize=512, pointer, freq, buf|
+		var sig, delay;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
-		freq = ypos.linexp(0,1,55,7040);
 		delay = Lag.ar(DC.ar(freq.reciprocal), 0.1);
 		sig = Warp1.ar(
 			numChannels:1,
 			bufnum:buf,
-			pointer:xpos,
+			pointer:pointer,
 			freqScale:1,
 			windowSize:0.1,
 			windowRandRatio:0.2,
@@ -219,7 +218,11 @@ fork {
 		);
 		*/
 		Out.ar(0, sig);
-	}, metadata:(specs: (xpos: \unipolar, ypos: \midfreq))).add;
+	}, metadata:(specs:(
+			pointer: \unipolar,
+			freq: ControlSpec(~minF, ~maxF, \exp)
+	))
+	).add;
 	~touchCoords = IdentityDictionary.new;
 	~touchSynths = IdentityDictionary.new;
 	~touchesToStart = IdentitySet.new;
@@ -232,8 +235,8 @@ fork {
 		~touchCoords[k] = coords;
 		~touchSynths[k].notNil.if({
 			var synth = ~touchSynths[k];
-			synth.set(\xpos, coords[0]);
-			synth.set(\ypos, coords[1]);
+			synth.set(\pointer, ~bufposmap.value(coords[0]));
+			synth.set(\freq, ~fmap.value(coords[1]));
 		});
 	};
 	~fn_tuioAliver = {|message, time, add, port|
@@ -254,7 +257,11 @@ fork {
 		~touchesToStart.do({|k|
 			var coords = ~touchCoords[k]; //should not be empty by the end of the frame
 			["starting",k].postln;
-			~touchSynths[k] = Synth.new(\harmonic_grain, [\xpos, coords[0], \ypos, coords[1], \buf, ~soundBuf]);
+			~touchSynths[k] = Synth.new(\harmonic_grain, [
+				\pointer, ~bufposmap.value(coords[0]),
+				\freq, ~fmap.value(coords[1]),
+				\buf, ~soundBuf
+			]);
 		});
 		~touchesToStop.makeEmpty;
 		~touchesToStart.makeEmpty;
