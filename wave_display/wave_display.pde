@@ -8,7 +8,6 @@ import codeanticode.syphon.*;
    * https://code.google.com/p/processing/issues/detail?id=142
  */
 
-
 ///begin workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
 import javax.media.opengl.GL2;
 import jsyphon.*;
@@ -69,14 +68,11 @@ class SyphonServer2{
     }
   }
 }
-
 ///end workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
-
 
 SyphonServer2 syphonserver;
 OscP5 oscP5;
 PImage img;
-//String datapath = dataPath("");
 int port;
 boolean ready_for_spectral_data = false;
 boolean spectrogram_updated = false;
@@ -98,7 +94,6 @@ void setup() {
   size(1280, 720, P2D);
   syphonserver = new SyphonServer2("Processing Syphon");
   /* start oscP5, listening for incoming messages at port 3335 */
-  //port = int(random(1024, 20480));
   port = 3334;
   oscP5 = new OscP5(this, port);
   /* spectrograph */
@@ -148,18 +143,18 @@ void oscEvent(OscMessage theOscMessage) {
     n_steps = theOscMessage.get(1).intValue();
     duration = theOscMessage.get(2).floatValue();
     pollrate = theOscMessage.get(3).floatValue();
-    print("## received an init message .");
-    println(" values: "+n_bpbands_total+", "+n_steps+", "+duration+", "+pollrate);
+    //print("## received an init message .");
+    //println(" values: "+n_bpbands_total+", "+n_steps+", "+duration+", "+pollrate);
     img.resize(n_steps,n_bpbands_total);
     img.loadPixels();
     ready_for_spectral_data=true;
     next_step_time = 0.0;
     next_step_i = -1;
   }  else if(theOscMessage.checkAddrPattern("/viz/stop")==true) {
-    print("## received a stop message .");
+    //print("## received a stop message .");
     ready_for_spectral_data=false;
   }  else if(theOscMessage.checkAddrPattern("/viz/blobs")==true) {
-    print("## received a blobs message .");
+    //print("## received a blobs message .");
     n_blobs = theOscMessage.typetag().length()/3;
     for (int i = 0; i < n_blobs; i = i+1) {
       int j=i*3;
@@ -183,7 +178,7 @@ void oscEvent(OscMessage theOscMessage) {
         //count in rows from top left down
         img.pixels[next_step_i+n_steps*(n_bpbands_total-i-1)] = color(int(next_bands[i]*256));
       }
-      print("## received bands message .");
+      //print("## received bands message .");
       print(join(nf(next_bands, 0, 3), ";"));
       spectrogram_updated=true;
     }
