@@ -79,8 +79,8 @@ OscP5 oscP5;
 PImage img;
 //String datapath = dataPath("");
 int port;
-boolean ready_for_data = false;
-boolean data_updated = false;
+boolean ready_for_spectral_data = false;
+boolean spectrogram_updated = false;
 int n_bpbands_total;
 int n_steps;
 float duration;
@@ -113,10 +113,10 @@ void draw_spectrogram (){
 }
 void draw() {
   //background(0);
-  if (data_updated){
+  if (spectrogram_updated){
     img.updatePixels();
     draw_spectrogram();
-    data_updated = false;
+    spectrogram_updated = false;
     syphonserver.send();
   }
 }
@@ -138,14 +138,14 @@ void oscEvent(OscMessage theOscMessage) {
     println(" values: "+n_bpbands_total+", "+n_steps+", "+duration+", "+pollrate);
     img.resize(n_steps,n_bpbands_total);
     img.loadPixels();
-    ready_for_data=true;
+    ready_for_spectral_data=true;
     next_step_time = 0.0;
     next_step_i = -1;
   }  else if(theOscMessage.checkAddrPattern("/viz/stop")==true) {
     print("## received a stop message .");
-    ready_for_data=false;
+    ready_for_spectral_data=false;
   }
-  if(ready_for_data) {
+  if(ready_for_spectral_data) {
     if(theOscMessage.checkAddrPattern("/viz/step")==true) {
       next_step_time = theOscMessage.get(0).floatValue();
       next_step_i++;
@@ -161,7 +161,7 @@ void oscEvent(OscMessage theOscMessage) {
       }
       print("## received bands message .");
       print(join(nf(next_bands, 0, 3), ";"));
-      data_updated=true;
+      spectrogram_updated=true;
     }
   }
 }
