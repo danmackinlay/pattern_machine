@@ -16,6 +16,7 @@
 (
 ////////// Config vars
 ~here = "/Users/dan/src/sc/f_lustre/";
+~soundsdir = ~here +/+ "sounds";
 ~xmin=0;
 ~xmax=1; //testing
 //~xmax=4; //ICST production
@@ -54,7 +55,7 @@
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
 ~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
 ~initICST = {
-	~syphonClient.sendMsg("/SwitchSyphonClient", "someclientname", 1. );
+	~syphonClient.sendMsg("/SwitchSyphonClient", "someclientname", 1.0 );
 	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", 3333 );
 };
 ////////// Analysing sounds
@@ -128,9 +129,9 @@ fork {
 	~triggerBus = Bus.control(s,1);
 	~analBus = Bus.audio(s,1);
 	~listenGroup = Group.new(s);
-	//~soundBuf = Buffer.read(s, ~here +/+ "chimegongfrenzy.aif");
-	//~soundBuf = Buffer.read(s, ~here +/+ "note_sweep.aif");
-	~soundBuf = Buffer.read(s, ~here +/+ "draingigm.wav");
+	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "chimegongfrenzy.aif");
+	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "note_sweep.aif");
+	~soundBuf = Buffer.read(s, ~soundsdir +/+ "draingigm.wav");
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, ~duration],
