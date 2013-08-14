@@ -10,7 +10,6 @@
     * including detecting location of filepath (or env var?)
  * web version
  * sound nicer
-   * roll off higher harmonics for contrast
    * compressor
    * reverb. C'mon, the kids love reverb.
  */
@@ -206,6 +205,10 @@ fork {
 			maxdelaytime: ~minF.value.reciprocal,
 			delaytime: delay,
 			decaytime: delay*4);
+		//gentle roll-off so that low freqencies don't ahve all the fun
+		sig = LPF.ar(sig,
+			freq: freq*2
+		);
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
 		pannedsig = PanAz.ar(
             numChans: ~n_ring_speakers,
