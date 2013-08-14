@@ -1,6 +1,8 @@
 import oscP5.*;
 import netP5.*;
 import codeanticode.syphon.*;
+import java.util.Properties;
+
 /*TODO:
  * parse CLI (ports, dimensions)
    * https://forum.processing.org/topic/use-external-editor-is-gone-in-beta-5-now-what
@@ -71,10 +73,28 @@ class SyphonServer2{
 }
 ///end workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
 
+
+Properties loadCommandLine () {
+
+  Properties props = new Properties();
+  //props.setProperty("width", "1280");
+  //props.setProperty("height", "720");
+  
+  for (String arg:args) {
+    String[] parsed = arg.split("=", 2);
+    if (parsed.length == 2)
+      println("parsing");
+      println(parsed[0]);
+      println(parsed[1]);
+      props.setProperty(parsed[0], parsed[1]);
+  }
+  return props;
+}
+
 SyphonServer2 syphonserver;
 OscP5 oscP5;
 PImage img;
-int port;
+
 boolean ready_for_spectral_data = false;
 boolean spectrogram_updated = false;
 boolean blobs_updated = false;
@@ -86,37 +106,48 @@ float next_step_time;
 int next_step_i;
 float[] next_bands;
 
+Properties props;
+int pxwidth;
+int pxheight;
+int port;
+
 float[] blobX = new float[200]; // we can track 200 blobs. This is enough.
 float[] blobY = new float[200];
 int n_blobs = 0;
 
 void setup() {
-  //This init has to come before the OSC stuff, or the latter gets initialized twice
-  size(1280, 720, P2D);
+  props = loadCommandLine();
+  pxwidth = int(props.getProperty("width", "1280"));
+  pxheight = int(props.getProperty("height", "720"));
+  port = int(props.getProperty("port", "3334"));
+  
+  //This size init has to come before the OSC stuff, or the latter
+  //gets initialized twice without the earlier one getting disposed.
+  size(pxwidth, pxheight, P2D);
   syphonserver = new SyphonServer2("f_lustre");
-  /* start oscP5, listening for incoming messages at port 3334 */
-  port = 3334;
+  /* start oscP5, listening for incoming messages */
   oscP5 = new OscP5(this, port);
-  /* spectrograph */
+
   textureMode(NORMAL);
-  ellipseMode(RADIUS);
   img = loadImage("spectrogram.png");
+
+  ellipseMode(RADIUS);
 }
 
 void draw_spectrogram (){
   beginShape();
   texture(img);
   vertex(0, 0, 0, 0);
-  vertex(1280, 0, 1, 0);
-  vertex(1280, 720, 1, 1);
-  vertex(0, 720, 0, 1);
+  vertex(pxwidth, 0, 1, 0);
+  vertex(pxwidth, pxheight, 1, 1);
+  vertex(0, pxheight, 0, 1);
   endShape();
 }
 
 void draw_blobs(){
   fill(255,0,0);
   for (int i = 0; i < n_blobs; i = i+1) {
-    ellipse(1280.0*blobX[i], 720.0*(1.0-blobY[i]), 20.0, 20.0);
+    ellipse(pxwidth*blobX[i], pxheight*(1.0-blobY[i]), 10.0, 10.0);
   }
 }
 
