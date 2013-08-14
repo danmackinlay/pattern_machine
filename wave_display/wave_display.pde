@@ -2,11 +2,10 @@ import oscP5.*;
 import netP5.*;
 import codeanticode.syphon.*;
 /*TODO:
- * parse CLI
+ * parse CLI (ports, dimensions)
    * https://forum.processing.org/topic/use-external-editor-is-gone-in-beta-5-now-what
    * https://forum.processing.org/topic/get-command-line-parameter-from-compiled-sketch
    * https://code.google.com/p/processing/issues/detail?id=142
- * give touch feedback
  */
 
 
@@ -81,6 +80,7 @@ PImage img;
 int port;
 boolean ready_for_spectral_data = false;
 boolean spectrogram_updated = false;
+boolean blobs_updated = false;
 int n_bpbands_total;
 int n_steps;
 float duration;
@@ -88,6 +88,10 @@ float pollrate;
 float next_step_time;
 int next_step_i;
 float[] next_bands;
+
+float[] blobX = new float[200]; // we can track 200 blobs. This is enough.
+float[] blobY = new float[200];
+int n_blobs = 0;
 
 void setup() {
   //This init has to come before the OSC stuff, or the latter gets initialized twice
@@ -99,6 +103,7 @@ void setup() {
   oscP5 = new OscP5(this, port);
   /* spectrograph */
   textureMode(NORMAL);
+  ellipseMode(RADIUS);
   img = loadImage("spectrogram.png");
 }
 
@@ -111,26 +116,35 @@ void draw_spectrogram (){
   vertex(0, 720, 0, 1);
   endShape();
 }
-void draw() {
-  //background(0);
-  if (spectrogram_updated){
-    img.updatePixels();
-    draw_spectrogram();
-    spectrogram_updated = false;
-    syphonserver.send();
+
+void draw_blobs(){
+  fill(255,0,0);
+  for (int i = 0; i < n_blobs; i = i+1) {
+    ellipse(1280.0*blobX[i], 720.0*(1.0-blobY[i]), 20.0, 20.0);
   }
 }
 
+void draw() {
+  if (spectrogram_updated|| blobs_updated) {
+    img.updatePixels();
+    draw_spectrogram();
+    draw_blobs();
+    syphonserver.send();
+  }
+  spectrogram_updated = false;
+  blobs_updated = false;
+}
+
 void oscEvent(OscMessage theOscMessage) {
-  // print the address pattern and the typetag of the received OscMessage 
+  // print the address pattern and the typetag of the received OscMessage
   print("### received an osc message.");
   print(" addrpattern: "+theOscMessage.addrPattern());
   println(" typetag: "+theOscMessage.typetag());
-  // All other functions are switched by whether we have received the right init info or not:
+  // All spectral functions are switched by whether we have received the right init info or not:
   if(theOscMessage.checkAddrPattern("/viz/init")==true) {
     // parse theOscMessage and extract the values from the osc message arguments.
     // n_bpbands_total, n_steps, duration, pollrate
-    n_bpbands_total = theOscMessage.get(0).intValue(); 
+    n_bpbands_total = theOscMessage.get(0).intValue();
     n_steps = theOscMessage.get(1).intValue();
     duration = theOscMessage.get(2).floatValue();
     pollrate = theOscMessage.get(3).floatValue();
@@ -144,7 +158,17 @@ void oscEvent(OscMessage theOscMessage) {
   }  else if(theOscMessage.checkAddrPattern("/viz/stop")==true) {
     print("## received a stop message .");
     ready_for_spectral_data=false;
-  }
+  }  else if(theOscMessage.checkAddrPattern("/viz/blobs")==true) {
+    print("## received a blobs message .");
+    n_blobs = theOscMessage.typetag().length()/3;
+    for (int i = 0; i < n_blobs; i = i+1) {
+      int j=i*3;
+      // this would return the blob id, not currently used:  theOscMessage.get(j+1).intValue();
+      blobX[i] = theOscMessage.get(j+1).floatValue();
+      blobY[i] = theOscMessage.get(j+2).floatValue();
+    }
+    blobs_updated = true;
+  } 
   if(ready_for_spectral_data) {
     if(theOscMessage.checkAddrPattern("/viz/step")==true) {
       next_step_time = theOscMessage.get(0).floatValue();
