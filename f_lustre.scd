@@ -14,35 +14,8 @@
    * reverb. C'mon, the kids love reverb.
  */
 (
-////////// Config vars
-~here = "/Users/dan/src/sc/f_lustre/";
-//CLI version
-//~here = "pwd".unixCmdGetStdOut.stripWhiteSpace;
-~soundsdir = ~here +/+ "sounds";
-~xmin=0;
-~xmax=1; //testing
-//~xmax=4; //ICST production
-~ymin=0;
-~ymax=1;
-~n_chromabands=12;
-~n_bpbands_oct=12;
-~pollrate=100.0;
-~duration=10.0;
-~visualizer = NetAddr.new("127.0.0.1", 3334);
-~trackerMaster = NetAddr.new("224.0.0.1", 64000);
-~syphonClient= NetAddr.new("127.0.0.1", 8400);
-~minDb=(-45.0);
-~maxDb=(-10.0);
-~minF=55;
-~n_octaves=7;
-~n_ring_speakers = 2; //testing
-~n_speaker_rings = 1; //testing
-//~n_ring_speakers = 8; //ICST
-//~n_speaker_rings = 2; //ICST
-~firstOutputBus = 0;
-
-
 ////////// Derived vars
+~soundsdir = ~here +/+ "sounds";
 ~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
 ~maxF = 2**~n_octaves * ~minF;
 ~n_speakers = ~n_ring_speakers * ~n_speaker_rings;

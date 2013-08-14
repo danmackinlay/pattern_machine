@@ -1,0 +1,20 @@
+////////// Config vars
+~here = "/Users/dan/src/sc/f_lustre/";
+~xmin=0;
+~xmax=1; //testing
+~ymin=0;
+~ymax=1;
+~n_chromabands=12;
+~n_bpbands_oct=12;
+~pollrate=100.0;
+~duration=10.0;
+~visualizer = NetAddr.new("127.0.0.1", 3334);
+~trackerMaster = NetAddr.new("224.0.0.1", 64000);
+~syphonClient= NetAddr.new("127.0.0.1", 8400);
+~minDb=(-45.0);
+~maxDb=(-10.0);
+~minF=55;
+~n_octaves=7;
+~n_ring_speakers = 2; //testing
+~n_speaker_rings = 1; //testing
+~firstOutputBus = 0;
