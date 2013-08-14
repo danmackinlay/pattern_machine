@@ -30,7 +30,7 @@
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
 ~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
 ~initICST = {
-	~syphonClient.sendMsg("/SwitchSyphonClient", "someclientname", 1.0 );
+	~syphonClient.sendMsg("/SwitchSyphonClient", "f_lustre", 1.0 );
 	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", 3333 );
 };
 ////////// Analysing sounds

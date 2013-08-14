@@ -92,8 +92,8 @@ int n_blobs = 0;
 void setup() {
   //This init has to come before the OSC stuff, or the latter gets initialized twice
   size(1280, 720, P2D);
-  syphonserver = new SyphonServer2("Processing Syphon");
-  /* start oscP5, listening for incoming messages at port 3335 */
+  syphonserver = new SyphonServer2("f_lustre");
+  /* start oscP5, listening for incoming messages at port 3334 */
   port = 3334;
   oscP5 = new OscP5(this, port);
   /* spectrograph */
