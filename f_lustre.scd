@@ -16,6 +16,8 @@
 (
 ////////// Config vars
 ~here = "/Users/dan/src/sc/f_lustre/";
+//CLI version
+//~here = "pwd".unixCmdGetStdOut.stripWhiteSpace;
 ~soundsdir = ~here +/+ "sounds";
 ~xmin=0;
 ~xmax=1; //testing
@@ -287,20 +289,11 @@ fork {
 	OSCdef.newMatching(\touchset, ~fn_tuioSetter, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
 	OSCdef.newMatching(\touchalive, ~fn_tuioAliver, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
 	OSCdef.newMatching(\touchupdate, ~fn_tuioWorker, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
+	~stopOsc = {
+		OSCdef(\touchset).free;
+		OSCdef(\touchalive).free;
+		OSCdef(\touchupdate).free;
+	}
 }
 )
-(
-//STOP!
-OSCdef(\touchset).free;
-OSCdef(\touchalive).free;
-OSCdef(\touchupdate).free;
-)
-~touchSynths;
-~touchCoords;
-(
-~trigger.set(\t_go,1);
-~triggerBus.get(_.postln);
-)
-~startAnalysis.value();
-s.record;
-s.stopRecording
+//~startAnalysis.value();
