@@ -25,7 +25,9 @@
 ~n_bpbands_oct=12;
 ~pollrate=100.0;
 ~duration=10.0;
-~visualizerport = 3334;
+~visualizer = NetAddr.new("127.0.0.1", 3334);
+~trackerMaster = NetAddr.new("224.0.0.1", 64000);
+~syphonClient= NetAddr.new("127.0.0.1", 8400);
 ~minDb=(-45.0);
 ~maxDb=(-10.0);
 ~minF=55;
@@ -35,6 +37,7 @@
 //~n_ring_speakers = 8; //ICST
 //~n_speaker_rings = 2; //ICST
 ~firstOutputBus = 0;
+
 
 ////////// Derived vars
 ~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
@@ -50,9 +53,12 @@
 ~n_steps = (~duration*~pollrate+1).asInteger;
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
 ~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
+~initICST = {
+	~syphonClient.sendMsg("/SwitchSyphonClient", "someclientname", 1. );
+	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", 3333 );
+};
 ////////// Analysing sounds
 fork {
-	var visualiser = NetAddr.new("127.0.0.1", ~visualizerport);
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
 		//every time you set this input, this keeps it at 1 for dur seconds
 		var gate = Trig1.kr(
@@ -152,7 +158,7 @@ fork {
 		~timeStep = -1;
 		~nextChromaRow = Array.newClear(12);
 		~trigger.set(\t_go,1);
-		visualiser.sendMsg("/viz/init", ~n_bpbands_total, ~n_steps, ~duration, ~pollrate);
+		~visualizer.sendMsg("/viz/init", ~n_bpbands_total, ~n_steps, ~duration, ~pollrate);
 	};
 	~fn_bandLogger = {|msg, time, addr, port|
 		var path, nid, tid, val;
@@ -160,9 +166,9 @@ fork {
 		(tid==0).if({
 			~timeStep = ~timeStep + 1;
 			~nextBandRow.any(_.notNil).if({
-				visualiser.sendMsg("/viz/bands", *(~nextBandRow.linlin(~minDb,~maxDb,0,1).asFloat));
+				~visualizer.sendMsg("/viz/bands", *(~nextBandRow.linlin(~minDb,~maxDb,0,1).asFloat));
 			});
-			visualiser.sendMsg("/viz/step", val);
+			~visualizer.sendMsg("/viz/step", val);
 			~bandtimes = ~bandtimes.add(val);
 			~nextBandRow = Array.newClear(~n_bpbands_total);
 			~bands = ~bands.add(~nextBandRow);
@@ -184,7 +190,7 @@ fork {
 
 	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
-	OSCdef.newMatching(\pollend, {|...args| visualiser.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
+	OSCdef.newMatching(\pollend, {|...args| ~visualizer.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
 	s.sync;
 	~startAnalysis.value();
 	s.sync;
@@ -270,8 +276,8 @@ fork {
 		});
 		~touchesToStop.makeEmpty;
 		~touchesToStart.makeEmpty;
-		//Send a list of id,x,y coords to the visualiser
-		visualiser.sendMsg("/viz/blobs", *(
+		//Send a list of id,x,y coords to the ~visualizer
+		~visualizer.sendMsg("/viz/blobs", *(
 			~touchCoords.keys.asArray.sort.collect({|k|
 				var v=~touchCoords.at(k);
 				[k, ~xposmap.value(v[0]), ~yposmap.value(v[1])]}).flat;
@@ -295,6 +301,5 @@ OSCdef(\touchupdate).free;
 ~triggerBus.get(_.postln);
 )
 ~startAnalysis.value();
-
 s.record;
 s.stopRecording
