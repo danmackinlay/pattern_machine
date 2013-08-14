@@ -270,7 +270,11 @@ fork {
 		});
 		~touchesToStop.makeEmpty;
 		~touchesToStart.makeEmpty;
+		//Send a bundle of xy coords to the visualiser
+		//(~touchCoords.values.collect({|v| [~xposmap.value(v[0]), ~xposmap.value(v[1])]}).flat).postln;
+		visualiser.sendMsg("/viz/touches", *(~touchCoords.values.collect({|v| [~xposmap.value(v[0]), ~xposmap.value(v[1])]}).flat));
 	};
+
 	OSCdef.newMatching(\touchset, ~fn_tuioSetter, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
 	OSCdef.newMatching(\touchalive, ~fn_tuioAliver, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
 	OSCdef.newMatching(\touchupdate, ~fn_tuioWorker, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
