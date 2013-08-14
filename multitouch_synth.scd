@@ -1,10 +1,7 @@
 /*
  * TODO:
  *
- * multichannel playing
- * fit to API at ICST (nearly done!)
  * pause synths if CPU load is too heavy?
- * move CV mapping logic to language side for ease of testing
  * spectral improvements
    * colourise spectral display to indicate chromaticity
    * detect (and visualise) noisiness vs percussiveness?
@@ -35,21 +32,23 @@
 ~minF=55;
 ~n_octaves=7;
 ~n_ring_speakers = 2; //testing
+~n_speaker_rings = 1; //testing
 //~n_ring_speakers = 8; //ICST
-~n_speaker_rings = 2; //ICST
+//~n_speaker_rings = 2; //ICST
+~firstOutputBus = 0;
 
 ////////// Derived vars
 ~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
 ~maxF = 2**~n_octaves * ~minF;
-//frequencies from 55 to 7040 Hz
+~n_speakers = ~n_ring_speakers * ~n_speaker_rings;
+//frequencies from ~minF to ~maxF (55 to 7040 Hz per default)
 ~fmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,~n_octaves)*~minF };
 ~bufposmap = {|v| 2**v.linlin(~xmin,~xmax,0.0,1.0)};
 ~xpanmap = {|v| 2**v.linlin(~xmin,~xmax,-1.0,1.0)};
 //~ypanmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,1.0)};
-
 ~n_steps = (~duration*~pollrate+1).asInteger;
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
-
+~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
 ////////// Analysing sounds
 fork {
 	var visualiser = NetAddr.new("127.0.0.1", ~visualizerport);
@@ -189,8 +188,8 @@ fork {
 	~startAnalysis.value();
 	s.sync;
     ////////////Playing sounds
-	SynthDef.new(\harmonic_grain, {|out=0, gate=1, i_binsize=512, pointer, freq, buf|
-		var sig, delay;
+	SynthDef.new(\harmonic_grain, {|out=0, gate=1, pointer, freq, xpan, buf|
+		var sig, delay, pannedsig;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
 		delay = Lag.ar(DC.ar(freq.reciprocal), 0.1);
 		sig = Warp1.ar(
@@ -208,16 +207,14 @@ fork {
 			delaytime: delay,
 			decaytime: delay*4);
 		sig = sig * EnvGen.kr(Env.asr, gate, doneAction:2);
-		/*
-        PanAz.ar(
+		pannedsig = PanAz.ar(
             numChans: ~n_ring_speakers,
             in: sig,
-            pos: ??,
+            pos: xpan,
 		    level: 0.5,
 		    orientation: 0.5
-		);
-		*/
-		Out.ar(0, sig);
+		).dup(~n_speaker_rings).flat; //could use PanX for a quick fade here.
+		Out.ar(~outputBus, pannedsig);
 	}, metadata:(specs:(
 			pointer: \unipolar,
 			freq: ControlSpec(~minF, ~maxF, \exp)
@@ -237,6 +234,7 @@ fork {
 			var synth = ~touchSynths[k];
 			synth.set(\pointer, ~bufposmap.value(coords[0]));
 			synth.set(\freq, ~fmap.value(coords[1]));
+			synth.set(\xpan, ~xpanmap.value(coords[0]));
 		});
 	};
 	~fn_tuioAliver = {|message, time, add, port|
@@ -258,8 +256,10 @@ fork {
 			var coords = ~touchCoords[k]; //should not be empty by the end of the frame
 			["starting",k].postln;
 			~touchSynths[k] = Synth.new(\harmonic_grain, [
+				\out, ~outputBus,
 				\pointer, ~bufposmap.value(coords[0]),
 				\freq, ~fmap.value(coords[1]),
+				\xpan, ~xpanmap.value(coords[0]),
 				\buf, ~soundBuf
 			]);
 		});
