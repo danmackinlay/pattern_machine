@@ -42,9 +42,11 @@
 ~n_speakers = ~n_ring_speakers * ~n_speaker_rings;
 //frequencies from ~minF to ~maxF (55 to 7040 Hz per default)
 ~fmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,~n_octaves)*~minF };
-~bufposmap = {|v| 2**v.linlin(~xmin,~xmax,0.0,1.0)};
-~xpanmap = {|v| 2**v.linlin(~xmin,~xmax,-1.0,1.0)};
+~bufposmap = {|v| v.linlin(~xmin,~xmax,0.0,1.0)};
+~xpanmap = {|v| v.linlin(~xmin,~xmax,-1.0,1.0)};
 //~ypanmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,1.0)};
+~xposmap = {|v| v.linlin(~xmin,~xmax,0.0,1.0)};
+~yposmap = {|v| v.linlin(~ymin,~ymax,0.0,1.0)};
 ~n_steps = (~duration*~pollrate+1).asInteger;
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
 ~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
