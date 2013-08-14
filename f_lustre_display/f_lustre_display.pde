@@ -120,6 +120,9 @@ void setup() {
   //This size init has to come before the OSC stuff, or the latter
   //gets initialized twice without the earlier one getting disposed.
   size(pxwidth, pxheight, P2D);
+  //This explodes (for Syphon?)
+  //smooth(4);
+  
   syphonserver = new SyphonServer2("f_lustre");
   /* start oscP5, listening for incoming messages */
   oscP5 = new OscP5(this, port);
