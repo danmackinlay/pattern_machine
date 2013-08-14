@@ -14,7 +14,7 @@
    * reverb. C'mon, the kids love reverb.
  */
 (
-////////// Derived vars
+////////// Derived vars (from config vars loaded in a separate file)
 ~soundsdir = ~here +/+ "sounds";
 ~n_bpbands_total=~n_bpbands_oct*~n_octaves+1;
 ~maxF = 2**~n_octaves * ~minF;
@@ -23,7 +23,7 @@
 ~fmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,~n_octaves)*~minF };
 ~bufposmap = {|v| v.linlin(~xmin,~xmax,0.0,1.0)};
 ~xpanmap = {|v| v.linlin(~xmin,~xmax,-1.0,1.0)};
-//~ypanmap = {|v| 2**v.linlin(~ymin,~ymax,0.0,1.0)};
+//~ypanmap = {|v| v.linlin(~ymin,~ymax,0.0,1.0)};
 ~xposmap = {|v| v.linlin(~xmin,~xmax,0.0,1.0)};
 ~yposmap = {|v| v.linlin(~ymin,~ymax,0.0,1.0)};
 ~n_steps = (~duration*~pollrate+1).asInteger;
@@ -107,6 +107,7 @@ fork {
 	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "chimegongfrenzy.aif");
 	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "note_sweep.aif");
 	~soundBuf = Buffer.read(s, ~soundsdir +/+ "draingigm.wav");
+	~initICST.value;
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, ~duration],

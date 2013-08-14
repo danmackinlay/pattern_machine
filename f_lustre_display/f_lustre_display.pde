@@ -5,6 +5,7 @@ import codeanticode.syphon.*;
  * parse CLI (ports, dimensions)
    * https://forum.processing.org/topic/use-external-editor-is-gone-in-beta-5-now-what
    * https://forum.processing.org/topic/get-command-line-parameter-from-compiled-sketch
+   * http://wiki.processing.org/w/Setting_width/height_dynamically
    * https://code.google.com/p/processing/issues/detail?id=142
  */
 
