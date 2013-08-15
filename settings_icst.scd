@@ -11,6 +11,9 @@
 ~visualizer = NetAddr.new("127.0.0.1", 3334);
 ~trackerMaster = NetAddr.new("224.0.0.1", 64000);
 ~syphonClient= NetAddr.new("127.0.0.1", 8400);
+~listenPort = 3333;
+~pxwidth = 1280*4;
+~pxheight =720;
 ~minDb=(-45.0);
 ~maxDb=(-10.0);
 ~minF=55;

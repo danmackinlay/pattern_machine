@@ -31,9 +31,16 @@
 ~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
 ~initICST = {
 	~syphonClient.sendMsg("/SwitchSyphonClient", "f_lustre", 1.0 );
-	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", 3333 );
+	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", ~listenPort );
 };
-//~visualizercli="open /Users/dan/src/sc/f_lustre/f_lustre_display/application.macosx/f_lustre_display.app --args width=80";
+//launch visualizer. We have to guess the launched PID, sinc the process is laundred though launchd
+~visualizercli="open % --args width=% height=% respondport=%;pgrep -f -n f_lustre_display".format(
+	~here +/+ "f_lustre_display/application.macosx/f_lustre_display.app".shellQuote,
+	~pxwidth,
+	~pxheight,
+	~listenPort
+);
+
 ////////// Analysing sounds
 fork {
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
@@ -165,12 +172,11 @@ fork {
 			~nextChromaRow[tid-1]=val;
 		});
 	};
-
 	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollend, {|...args| ~visualizer.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
 	s.sync;
-	~startAnalysis.value();
+	//~startAnalysis.value();
 	s.sync;
     ////////////Playing sounds
 	SynthDef.new(\harmonic_grain, {|out=0, gate=1, pointer, freq, xpan, buf|
@@ -261,14 +267,19 @@ fork {
 				[k, ~xposmap.value(v[0]), ~yposmap.value(v[1])]}).flat;
 		));
 	};
-	OSCdef.newMatching(\touchset, ~fn_tuioSetter, "/tuio/2Dcur", recvPort: 3333, argTemplate:["set"]);
-	OSCdef.newMatching(\touchalive, ~fn_tuioAliver, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["alive"]);
-	OSCdef.newMatching(\touchupdate, ~fn_tuioWorker, "/tuio/2Dcur", recvPort: 3333, argTemplate: ["fseq"]);
+	OSCdef.newMatching(\touchset, ~fn_tuioSetter, "/tuio/2Dcur", recvPort: ~listenPort, argTemplate:["set"]);
+	OSCdef.newMatching(\touchalive, ~fn_tuioAliver, "/tuio/2Dcur", recvPort: ~listenPort, argTemplate: ["alive"]);
+	OSCdef.newMatching(\touchupdate, ~fn_tuioWorker, "/tuio/2Dcur", recvPort: ~listenPort, argTemplate: ["fseq"]);
 	~stopOsc = {
 		OSCdef(\touchset).free;
 		OSCdef(\touchalive).free;
 		OSCdef(\touchupdate).free;
-	}
+	};
+	//listen for notification from processing that the app has just started up
+	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
+	//launch said visualizer
+	~vizpid=~visualizercli.unixCmdGetStdOut.stripWhiteSpace.asInteger;
 }
 )
 //~startAnalysis.value();
+~vizpid

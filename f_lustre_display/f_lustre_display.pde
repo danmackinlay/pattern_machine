@@ -90,6 +90,9 @@ Properties loadCommandLine () {
 SyphonServer2 syphonserver;
 
 OscP5 oscP5;
+NetAddress respondAddress;
+int listenPort;
+int respondPort;
 
 PImage img;
 
@@ -107,7 +110,6 @@ float[] next_bands;
 Properties props;
 int pxwidth;
 int pxheight;
-int port;
 
 float[] blobX = new float[200]; // we can track 200 blobs. This is enough.
 float[] blobY = new float[200];
@@ -117,8 +119,8 @@ void setup() {
   props = loadCommandLine();
   pxwidth = int(props.getProperty("width", "1280"));
   pxheight = int(props.getProperty("height", "720"));
-  port = int(props.getProperty("port", "3334"));
-  
+  listenPort = int(props.getProperty("listenport", "3334"));
+  respondPort = int(props.getProperty("respondport", "3333"));
   //This size init has to come before the OSC stuff, or the latter
   //gets initialized twice without the earlier one getting disposed.
   size(pxwidth, pxheight, P2D);
@@ -126,13 +128,21 @@ void setup() {
   //smooth(4);
   
   syphonserver = new SyphonServer2("f_lustre");
+  
   /* start oscP5, listening for incoming messages */
-  oscP5 = new OscP5(this, port);
+  oscP5 = new OscP5(this, listenPort);
+  respondAddress = new NetAddress("127.0.0.1", respondPort);
 
   textureMode(NORMAL);
   img = loadImage("spectrogram.png");
 
   ellipseMode(RADIUS);
+  
+  //Now we can phone home and tell them that we are ready to accept data.
+  OscMessage myMessage = new OscMessage("/viz/alive");
+  myMessage.add(1); /* add an int to the osc message */
+  /* send the message */
+  oscP5.send(myMessage, respondAddress);
 }
 
 void draw_spectrogram (){
@@ -218,5 +228,12 @@ void oscEvent(OscMessage theOscMessage) {
   }
 }
 void dispose() {
+  //Now we can phone home and tell them that we are dead.
+  OscMessage myMessage = new OscMessage("/viz/alive");
+  myMessage.add(0); /* add an int to the osc message */
+  /* send the message */
+  oscP5.send(myMessage, respondAddress);
+  
+  //kill syphon too
   syphonserver.stop();
 }
