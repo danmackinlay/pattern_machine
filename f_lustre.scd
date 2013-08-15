@@ -33,6 +33,7 @@
 	~syphonClient.sendMsg("/SwitchSyphonClient", "f_lustre", 1.0 );
 	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", 3333 );
 };
+//~visualizercli="open /Users/dan/src/sc/f_lustre/f_lustre_display/application.macosx/f_lustre_display.app --args width=80";
 ////////// Analysing sounds
 fork {
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|

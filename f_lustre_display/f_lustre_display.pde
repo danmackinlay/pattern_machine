@@ -88,7 +88,9 @@ Properties loadCommandLine () {
 }
 
 SyphonServer2 syphonserver;
+
 OscP5 oscP5;
+
 PImage img;
 
 boolean ready_for_spectral_data = false;

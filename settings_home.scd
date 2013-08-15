@@ -2,8 +2,8 @@
 ~here = "/Users/dan/src/sc/f_lustre/";
 ~xmin=0;
 ~xmax=1; //testing
-~ymin=0;
-~ymax=1;
+~ymin=0.0; //should be inverted because trackpad is the input source
+~ymax=1.0; //should be inverted because trackpad is the input source
 ~n_chromabands=12;
 ~n_bpbands_oct=12;
 ~pollrate=100.0;
