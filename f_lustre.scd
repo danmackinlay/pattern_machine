@@ -42,7 +42,7 @@
 );
 
 ////////// Analysing sounds
-fork {
+Server.default.waitForBoot({fork {
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
 		//every time you set this input, this keeps it at 1 for dur seconds
 		var gate = Trig1.kr(
@@ -279,7 +279,7 @@ fork {
 	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
 	//launch said visualizer
 	~vizpid=~visualizercli.unixCmdGetStdOut.stripWhiteSpace.asInteger;
-}
+}});
 )
 //~startAnalysis.value();
 ~vizpid
