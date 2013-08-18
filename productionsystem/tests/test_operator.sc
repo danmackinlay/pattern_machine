@@ -67,8 +67,8 @@ TestPop : PSTestPattern {
 		patt2=Pcomp(Pfindur(5, _))<>patt1;
 		steps = this.class.expressPattern(patt2);
 		this.assertEquals(steps.size, 3, "correct number of steps");
-		this.assertEquals(steps[0][\delta], 2, "Composed constant with Pfindur");
-		this.assertEquals(steps[1][\delta], 2, "Composed constant with Pfindur");
-		this.assertEquals(steps[2][\delta], 1, "Composed constant with Pfindur");
+		this.assertEquals(steps[0][\delta], 2, "Composed pattern with Pfindur");
+		this.assertEquals(steps[1][\delta], 2, "Composed pattern with Pfindur");
+		this.assertEquals(steps[2][\delta], 1, "Composed pattern with Pfindur");
 	}
 }
