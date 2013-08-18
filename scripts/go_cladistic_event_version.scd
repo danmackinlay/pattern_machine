@@ -1,10 +1,14 @@
+
 //This one is trying to be a breakbeat guy.
 //NB - am not sure that the \truncatetobar operator is behaving from within the pattern. should test.
 //Also, timetransform is not repeatedly applied.
 TestProductionSystem.runAll;
 PSTestPattern.runAll;
 (
-//init
+//percussion synth
+~here = "/Users/dan/src/sc/pattern_machine/";
+~synthprog = ~here +/+ "ext/microtonic.trak";
+"open -g %".format(~synthprog).unixCmd;
 MIDIClient.init;
 MIDIClient.destinations;
 m = MIDIOut.newByName("IAC Driver", "IAC Bus 1");
