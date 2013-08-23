@@ -12,9 +12,16 @@
  * sound nicer
    * compressor
    * reverb. C'mon, the kids love reverb.
- * build a standalone application
- * document dependencies
-   *
+ * eliminate, or at least document, dependencies
+   * Supercolliders
+     * but it may later require chromagram
+     * build a standalone application
+   * I already build a standalone for processing. But it has build dependencies
+     * oscp5
+     * syphon
+ * less verbose debugging output
+ * detect running java app w/out using pgrep, or spawn a subprocess explicitly using java.
+ * make processing span multiple screens
  */
 (
 ////////// Derived vars (from config vars loaded in a separate file)

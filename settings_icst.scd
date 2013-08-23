@@ -1,5 +1,6 @@
 ////////// Config vars
-~here = "pwd".unixCmdGetStdOut.stripWhiteSpace;
+//~here = "pwd".unixCmdGetStdOut.stripWhiteSpace;
+~here = "/Users/icst/Desktop/Dan/f_lustre";
 ~xmin=0;
 ~xmax=4; //ICST production
 ~ymin=0;
