@@ -21,7 +21,13 @@
      * syphon
  * less verbose debugging output
  * detect running java app w/out using pgrep, or spawn a subprocess explicitly using java.
- * make processing span multiple screens
+   * capture debug output from processing app
+ * make processing span multiple screens (currently display is truncated to width of first screen)
+   * this could happen using syphon
+   * see also:
+* "http://wiki.processing.org/w/Window_Size_and_Full_Screen#The_displayWidth_and_displayHeight_variables" (claims there isn't a problem...)
+     * "http://forum.processing.org/topic/present-full-screen-mode-stretched-across-multiple-screens"
+     * v1.0 workaround "http://wiki.processing.org/w/Fullscreen_on_multiple_monitors"
  */
 (
 ////////// Derived vars (from config vars loaded in a separate file)
