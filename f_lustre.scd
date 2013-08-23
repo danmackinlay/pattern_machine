@@ -12,6 +12,9 @@
  * sound nicer
    * compressor
    * reverb. C'mon, the kids love reverb.
+ * build a standalone application
+ * document dependencies
+   *
  */
 (
 ////////// Derived vars (from config vars loaded in a separate file)
@@ -33,7 +36,7 @@
 	~syphonClient.sendMsg("/SwitchSyphonClient", "f_lustre", 1.0 );
 	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", ~listenPort );
 };
-//launch visualizer. We have to guess the launched PID, sinc the process is laundred though launchd
+//launch visualizer. We have to guess the launched PID, since the process is laundered though launchd
 ~visualizercli="open % --args width=% height=% respondport=%;pgrep -f -n f_lustre_display".format(
 	~here +/+ "f_lustre_display/application.macosx/f_lustre_display.app".shellQuote,
 	~pxwidth,
@@ -71,7 +74,7 @@ Server.default.waitForBoot({fork {
 			)
 		);
 	}).add;
-	SynthDef.new(\report_chromagram, {|gate=0, inbus=0|
+	/* SynthDef.new(\report_chromagram, {|gate=0, inbus=0|
 		var in, fft, chroma, poller, time;
 		in= In.ar(inbus);
 		//Timer doesn't do what I think it does. Sweep does.
@@ -86,7 +89,7 @@ Server.default.waitForBoot({fork {
 		chroma.do({|v, i|
 			SendTrig.kr (in: poller, id: i+1, value: v);
 		});
-	}).add;
+	}).add;*/
 	SynthDef.new(\report_bands, {|gate=0, inbus=0|
 		var in, amps, poller, time;
 		var bwr = ~n_bpbands_total.reciprocal;
@@ -123,15 +126,15 @@ Server.default.waitForBoot({fork {
 	~player = Synth.new(\play_buf_inst,
 		[\out, ~analBus],
 		target: ~listenGroup, addAction:\addToHead);
-	~chromaanalyser = Synth.new(\report_chromagram,
+	/*~chromaanalyser = Synth.new(\report_chromagram,
 		[\inbus, ~analBus],
-		target: ~listenGroup, addAction:\addToTail);
+		target: ~listenGroup, addAction:\addToTail);*/
 	~bandanalyser = Synth.new(\report_bands,
 		[\inbus, ~analBus],
 		target: ~listenGroup, addAction:\addToTail);
 	s.sync;
 	~player.map(\gate, ~triggerBus);
-	~chromaanalyser.map(\gate, ~triggerBus);
+	//~chromaanalyser.map(\gate, ~triggerBus);
 	~bandanalyser.map(\gate, ~triggerBus);
 	s.sync;
 	~startAnalysis = {
@@ -172,7 +175,7 @@ Server.default.waitForBoot({fork {
 			~nextChromaRow[tid-1]=val;
 		});
 	};
-	OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
+	//OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollend, {|...args| ~visualizer.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
 	s.sync;
@@ -241,7 +244,7 @@ Server.default.waitForBoot({fork {
 		~touchesToStart = (nowLiving-prevLiving);
 	};
 	~fn_tuioWorker = {|message, time, add, port|
-		//Called after frame updates. work should happen here.
+		//Called after frame updates. Actual work should happen here.
 		~touchesToStop.do({|k|
 			["killing",k].postln;
 			~touchCoords.removeAt(k);
