@@ -19,7 +19,6 @@
    * I already build a standalone for processing. But it has build dependencies
      * oscp5
      * syphon
- * less verbose debugging output
  * detect running java app w/out using pgrep, or spawn a subprocess explicitly using java.
    * capture debug output from processing app
  * make processing span multiple screens (currently display is truncated to width of first screen)
@@ -49,6 +48,7 @@
 	~syphonClient.sendMsg("/SwitchSyphonClient", "f_lustre", 1.0 );
 	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", ~listenPort );
 };
+~debugpostln = {|msg, lvl=1| (lvl>= (~debuglvl ? 0)).if({msg.postln})};
 //launch visualizer. We have to guess the launched PID, since the process is laundered though launchd
 ~visualizercli="open % --args width=% height=% respondport=%;pgrep -f -n f_lustre_display".format(
 	~here +/+ "f_lustre_display/application.macosx/f_lustre_display.app".shellQuote,
@@ -132,6 +132,7 @@ Server.default.waitForBoot({fork {
 	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "note_sweep.aif");
 	~soundBuf = Buffer.read(s, ~soundsdir +/+ "draingigm.wav");
 	~initICST.value;
+	~debugpostln.([\here,~here],1);
 	s.sync;
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, ~duration],
@@ -259,13 +260,14 @@ Server.default.waitForBoot({fork {
 	~fn_tuioWorker = {|message, time, add, port|
 		//Called after frame updates. Actual work should happen here.
 		~touchesToStop.do({|k|
-			["killing",k].postln;
+			~debugpostln.(["killing",k],0);
 			~touchCoords.removeAt(k);
 			~touchSynths.removeAt(k).release;
 		});
 		~touchesToStart.do({|k|
 			var coords = ~touchCoords[k]; //should not be empty by the end of the frame
-			["starting",k].postln;
+			~debugpostln.(["starting",k],0);
+
 			~touchSynths[k] = Synth.new(\harmonic_grain, [
 				\out, ~outputBus,
 				\pointer, ~bufposmap.value(coords[0]),
@@ -298,4 +300,3 @@ Server.default.waitForBoot({fork {
 }});
 )
 //~startAnalysis.value();
-~vizpid

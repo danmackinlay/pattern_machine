@@ -22,3 +22,4 @@
 ~n_ring_speakers = 8; //ICST
 ~n_speaker_rings = 2; //ICST
 ~firstOutputBus = 0;
+~debuglvl=1;

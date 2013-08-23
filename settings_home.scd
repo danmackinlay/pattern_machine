@@ -21,3 +21,4 @@
 ~n_ring_speakers = 2; //testing
 ~n_speaker_rings = 1; //testing
 ~firstOutputBus = 0;
+~debuglvl=0;
