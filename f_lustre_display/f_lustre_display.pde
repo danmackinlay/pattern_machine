@@ -1,5 +1,4 @@
 /*TODO:
- * Why does this not paint the screen on the first refresh? 
  */
 
 import oscP5.*;
@@ -52,6 +51,17 @@ float[] blobX = new float[200]; // we can track 200 blobs. This is enough blobs.
 float[] blobY = new float[200];
 int n_blobs = 0;
 
+public void init() {
+
+  frame.removeNotify();
+
+  frame.setUndecorated(true);
+
+  frame.addNotify();
+
+  super.init();
+}
+
 void setup() {
   props = loadCommandLine();
   pxwidth = int(props.getProperty("width", "1280"));
@@ -101,6 +111,7 @@ void draw_blobs(PGraphics ctx){
 }
 
 void draw() {
+  if(frameCount == 1) frame.setLocation(0, 0);
   if (spectrogram_updated|| blobs_updated||frameCount<=1) {
     spectroImg.updatePixels();
     canvas.beginDraw();
