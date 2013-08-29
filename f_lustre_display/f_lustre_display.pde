@@ -7,69 +7,6 @@ import netP5.*;
 import codeanticode.syphon.*;
 import java.util.Properties;
 
-///begin workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
-import javax.media.opengl.GL2;
-import jsyphon.*;
-
-class SyphonServer2{
-  protected JSyphonServer syphon;
-  protected GL2 gl;
-  protected int[] texID;
-  protected int[] syphonFBO;
-  
-  public SyphonServer2(String name){
-    syphon = new JSyphonServer();
-    syphon.initWithName(name);
-    println("Starting the syphon server:"+name);
-    try {
-      gl = ((PGraphicsOpenGL)g).pgl.gl.getGL2();
-    } catch (javax.media.opengl.GLException e) {
-      println("OpenGL 2 not supported!");
-    }
-    
-    texID = new int[1];
-    gl.glGenTextures(1, texID, 0);
-    gl.glBindTexture(GL2.GL_TEXTURE_RECTANGLE, texID[0]);
-    gl.glTexImage2D(GL2.GL_TEXTURE_RECTANGLE, 0, GL2.GL_RGBA8, width, height, 0, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, null);
-    
-    int[] defaultFBO = new int[1];
-    gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, defaultFBO, 0);
-    
-    syphonFBO = new int[1];
-    gl.glGenFramebuffers(1, syphonFBO, 0);
-    gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, syphonFBO[0]);
-    gl.glFramebufferTexture2D(GL2.GL_FRAMEBUFFER, GL2.GL_COLOR_ATTACHMENT0, GL2.GL_TEXTURE_RECTANGLE, texID[0], 0);
-    gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, defaultFBO[0]);
-  }
-  
-  public void send(){
-    int[] defaultFBO = new int[1];
-    gl.glGetIntegerv(GL2.GL_FRAMEBUFFER_BINDING, defaultFBO, 0);
-    //println("fbo="+defaultFBO[0]);
-    
-    gl.glBindFramebuffer(GL2.GL_READ_FRAMEBUFFER, defaultFBO[0]);
-    gl.glBindFramebuffer(GL2.GL_DRAW_FRAMEBUFFER, syphonFBO[0]);
-    gl.glBlitFramebuffer(0, 0, width, height, 
-                         0, 0, width, height, 
-                         GL2.GL_COLOR_BUFFER_BIT, GL2.GL_LINEAR);
-                         
-    syphon.publishFrameTexture(texID[0], GL2.GL_TEXTURE_RECTANGLE, 0, 0, width, height, width, height, false);
-    gl.glBindFramebuffer(GL2.GL_FRAMEBUFFER, defaultFBO[0]);
-  }
-  
-  public void stop(){
-    println("deleting textures");
-    gl.glDeleteTextures(1, texID, 0);
-    gl.glDeleteFramebuffers(1, syphonFBO, 0);
-    if(syphon!=null) {
-      println("stopping the syphon server");
-      syphon.stop();
-    }
-  }
-}
-///end workaround from https://forum.processing.org/topic/my-solution-for-processing-2-0-1-syphon
-
-
 Properties loadCommandLine () {
 
   Properties props = new Properties();
@@ -87,13 +24,14 @@ Properties loadCommandLine () {
   return props;
 }
 
-SyphonServer2 syphonserver;
+SyphonServer syphonserver;
 
 OscP5 oscP5;
 NetAddress respondAddress;
 int listenPort;
 int respondPort;
 
+PGraphics canvas;
 PImage img;
 
 boolean ready_for_spectral_data = false;
@@ -111,7 +49,7 @@ Properties props;
 int pxwidth;
 int pxheight;
 
-float[] blobX = new float[200]; // we can track 200 blobs. This is enough.
+float[] blobX = new float[200]; // we can track 200 blobs. This is enough blobs.
 float[] blobY = new float[200];
 int n_blobs = 0;
 
@@ -124,11 +62,12 @@ void setup() {
   //This size init has to come before the OSC stuff, or the latter
   //gets initialized twice without the earlier one getting disposed.
   size(pxwidth, pxheight, P2D);
+  canvas = createGraphics(pxwidth, pxheight); 
+
   //This explodes (for Syphon?)
   //smooth(4);
   
-  syphonserver = new SyphonServer2("f_lustre");
-  
+  syphonserver = new SyphonServer(this, "f_lustre");
   /* start oscP5, listening for incoming messages */
   oscP5 = new OscP5(this, listenPort);
   respondAddress = new NetAddress("127.0.0.1", respondPort);
@@ -145,29 +84,32 @@ void setup() {
   oscP5.send(myMessage, respondAddress);
 }
 
-void draw_spectrogram (){
-  beginShape();
-  texture(img);
-  vertex(0, 0, 0, 0);
-  vertex(pxwidth, 0, 1, 0);
-  vertex(pxwidth, pxheight, 1, 1);
-  vertex(0, pxheight, 0, 1);
-  endShape();
+void draw_spectrogram (PGraphics ctx){
+  ctx.beginShape();
+  ctx.texture(img);
+  ctx.vertex(0, 0, 0, 0);
+  ctx.vertex(pxwidth, 0, 1, 0);
+  ctx.vertex(pxwidth, pxheight, 1, 1);
+  ctx.vertex(0, pxheight, 0, 1);
+  ctx.endShape();
 }
 
-void draw_blobs(){
-  fill(255,0,0);
+void draw_blobs(PGraphics ctx){
+  ctx.fill(255,0,0);
   for (int i = 0; i < n_blobs; i = i+1) {
-    ellipse(pxwidth*blobX[i], pxheight*(1.0-blobY[i]), 10.0, 10.0);
+    ctx.ellipse(pxwidth*blobX[i], pxheight*(1.0-blobY[i]), 10.0, 10.0);
   }
 }
 
 void draw() {
   if (spectrogram_updated|| blobs_updated) {
     img.updatePixels();
-    draw_spectrogram();
-    draw_blobs();
-    syphonserver.send();
+    canvas.beginDraw();
+    draw_spectrogram(canvas);
+    draw_blobs(canvas);
+    canvas.endDraw();
+    image(canvas, 0, 0);
+    syphonserver.sendImage(canvas);
   }
   spectrogram_updated = false;
   blobs_updated = false;
@@ -233,7 +175,4 @@ void dispose() {
   myMessage.add(0); /* add an int to the osc message */
   /* send the message */
   oscP5.send(myMessage, respondAddress);
-  
-  //kill syphon too
-  syphonserver.stop();
 }
