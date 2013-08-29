@@ -8,9 +8,7 @@ import java.util.Properties;
 
 Properties loadCommandLine () {
   Properties props = new Properties();
-  //props.setProperty("width", "1280");
-  //props.setProperty("height", "720");
-  
+
   for (String arg:args) {
     String[] parsed = arg.split("=", 2);
     if (parsed.length == 2)
@@ -71,18 +69,18 @@ void setup() {
   //This size init has to come before the OSC stuff, or the latter
   //gets initialized twice without the earlier one getting disposed.
   size(pxwidth, pxheight, P2D);
-  canvas = createGraphics(pxwidth, pxheight, P2D); 
+  canvas = createGraphics(pxwidth, pxheight, P2D);
 
   //This explodes (for Syphon?)
   //smooth(4);
-  
+
   syphonserver = new SyphonServer(this, "f_lustre");
   /* start oscP5, listening for incoming messages */
   oscP5 = new OscP5(this, listenPort);
   respondAddress = new NetAddress("127.0.0.1", respondPort);
 
   spectroImg = loadImage("spectrogram.png");
-  
+
   //Now we can phone home and tell them that we are ready to accept data.
   OscMessage myMessage = new OscMessage("/viz/alive");
   myMessage.add(1); /* add an int to the osc message */
@@ -158,7 +156,8 @@ void oscEvent(OscMessage theOscMessage) {
       blobY[i] = theOscMessage.get(j+2).floatValue();
     }
     blobs_updated = true;
-  } 
+  }
+
   if(ready_for_spectral_data) {
     if(theOscMessage.checkAddrPattern("/viz/step")==true) {
       next_step_time = theOscMessage.get(0).floatValue();

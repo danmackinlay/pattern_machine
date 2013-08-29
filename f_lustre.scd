@@ -13,8 +13,8 @@
    * compressor
    * reverb. C'mon, the kids love reverb.
  * eliminate, or at least document, dependencies
-   * Supercolliders
-     * but it may later require chromagram
+   * Supercollider: None.
+     * it may later require chromagram
      * build a standalone application
    * I already build a standalone for processing. But it has build dependencies
      * oscp5
