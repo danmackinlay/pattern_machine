@@ -296,7 +296,7 @@ Server.default.waitForBoot({fork {
 	//listen for notification from processing that the app has just started up
 	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
 	//launch said visualizer
-	~vizpid=~visualizercli.unixCmdGetStdOut.stripWhiteSpace.asInteger;
+	//~vizpid=~visualizercli.unixCmdGetStdOut.stripWhiteSpace.asInteger;
 }});
 )
 //~startAnalysis.value();

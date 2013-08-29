@@ -1,5 +1,5 @@
 /*TODO:
-
+ * Why does this not paint the screen on the first refresh? 
  */
 
 import oscP5.*;
@@ -8,7 +8,6 @@ import codeanticode.syphon.*;
 import java.util.Properties;
 
 Properties loadCommandLine () {
-
   Properties props = new Properties();
   //props.setProperty("width", "1280");
   //props.setProperty("height", "720");
@@ -72,10 +71,7 @@ void setup() {
   oscP5 = new OscP5(this, listenPort);
   respondAddress = new NetAddress("127.0.0.1", respondPort);
 
-  canvas.textureMode(NORMAL);
   spectroImg = loadImage("spectrogram.png");
-
-  canvas.ellipseMode(RADIUS);
   
   //Now we can phone home and tell them that we are ready to accept data.
   OscMessage myMessage = new OscMessage("/viz/alive");
@@ -85,6 +81,7 @@ void setup() {
 }
 
 void draw_spectrogram (PGraphics ctx){
+  ctx.textureMode(NORMAL);
   ctx.beginShape();
   ctx.texture(spectroImg);
   ctx.vertex(0, 0, 0, 0);
@@ -95,11 +92,12 @@ void draw_spectrogram (PGraphics ctx){
 }
 
 void draw_blobs(PGraphics ctx){
+  ctx.ellipseMode(RADIUS);
   ctx.fill(255,0,0);
   for (int i = 0; i < n_blobs; i = i+1) {
     ctx.ellipse(pxwidth*blobX[i], pxheight*(1.0-blobY[i]), 10.0, 10.0);
   }
-  ctx.text(nf(frameCount,0),0,0);
+  //ctx.text(nf(frameCount,0),0,0);
 }
 
 void draw() {
