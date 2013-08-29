@@ -32,7 +32,7 @@ int listenPort;
 int respondPort;
 
 PGraphics canvas;
-PImage img;
+PImage spectroImg;
 
 boolean ready_for_spectral_data = false;
 boolean spectrogram_updated = false;
@@ -62,7 +62,7 @@ void setup() {
   //This size init has to come before the OSC stuff, or the latter
   //gets initialized twice without the earlier one getting disposed.
   size(pxwidth, pxheight, P2D);
-  canvas = createGraphics(pxwidth, pxheight); 
+  canvas = createGraphics(pxwidth, pxheight, P2D); 
 
   //This explodes (for Syphon?)
   //smooth(4);
@@ -72,10 +72,10 @@ void setup() {
   oscP5 = new OscP5(this, listenPort);
   respondAddress = new NetAddress("127.0.0.1", respondPort);
 
-  textureMode(NORMAL);
-  img = loadImage("spectrogram.png");
+  canvas.textureMode(NORMAL);
+  spectroImg = loadImage("spectrogram.png");
 
-  ellipseMode(RADIUS);
+  canvas.ellipseMode(RADIUS);
   
   //Now we can phone home and tell them that we are ready to accept data.
   OscMessage myMessage = new OscMessage("/viz/alive");
@@ -86,7 +86,7 @@ void setup() {
 
 void draw_spectrogram (PGraphics ctx){
   ctx.beginShape();
-  ctx.texture(img);
+  ctx.texture(spectroImg);
   ctx.vertex(0, 0, 0, 0);
   ctx.vertex(pxwidth, 0, 1, 0);
   ctx.vertex(pxwidth, pxheight, 1, 1);
@@ -99,11 +99,12 @@ void draw_blobs(PGraphics ctx){
   for (int i = 0; i < n_blobs; i = i+1) {
     ctx.ellipse(pxwidth*blobX[i], pxheight*(1.0-blobY[i]), 10.0, 10.0);
   }
+  ctx.text(nf(frameCount,0),0,0);
 }
 
 void draw() {
-  if (spectrogram_updated|| blobs_updated) {
-    img.updatePixels();
+  if (spectrogram_updated|| blobs_updated||frameCount<=1) {
+    spectroImg.updatePixels();
     canvas.beginDraw();
     draw_spectrogram(canvas);
     draw_blobs(canvas);
@@ -117,9 +118,9 @@ void draw() {
 
 void oscEvent(OscMessage theOscMessage) {
   // print the address pattern and the typetag of the received OscMessage
-  print("### received an osc message.");
-  print(" addrpattern: "+theOscMessage.addrPattern());
-  println(" typetag: "+theOscMessage.typetag());
+  //print("### received an osc message.");
+  //print(" addrpattern: "+theOscMessage.addrPattern());
+  //println(" typetag: "+theOscMessage.typetag());
   // All spectral functions are switched by whether we have received the right init info or not:
   if(theOscMessage.checkAddrPattern("/viz/init")==true) {
     // parse theOscMessage and extract the values from the osc message arguments.
@@ -130,8 +131,8 @@ void oscEvent(OscMessage theOscMessage) {
     pollrate = theOscMessage.get(3).floatValue();
     //print("## received an init message .");
     //println(" values: "+n_bpbands_total+", "+n_steps+", "+duration+", "+pollrate);
-    img.resize(n_steps,n_bpbands_total);
-    img.loadPixels();
+    spectroImg.resize(n_steps,n_bpbands_total);
+    spectroImg.loadPixels();
     ready_for_spectral_data=true;
     next_step_time = 0.0;
     next_step_i = -1;
@@ -161,9 +162,9 @@ void oscEvent(OscMessage theOscMessage) {
       for (int i = 0; i < n_bpbands_total; i = i+1) {
         //careful with the fiddly quasi-pointer arithmetic
         //count in rows from top left down
-        img.pixels[next_step_i+n_steps*(n_bpbands_total-i-1)] = color(int(next_bands[i]*256));
+        spectroImg.pixels[next_step_i+n_steps*(n_bpbands_total-i-1)] = color(int(next_bands[i]*256));
       }
-      //print("## received bands message .");
+      print("## received bands message .");
       print(join(nf(next_bands, 0, 3), ";"));
       spectrogram_updated=true;
     }
