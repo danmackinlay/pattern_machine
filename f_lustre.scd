@@ -1,13 +1,10 @@
 /*
  * TODO:
  *
- * pause synths if CPU load is too heavy?
+ * pause unused (analysis) synths
  * spectral improvements
    * colourise spectral display to indicate chromaticity
    * detect (and visualise) noisiness vs percussiveness?
-   * apply an unsharp mask to bands to get cleaner lines (looks clear enough, don't bother)
- * shell script to launch this
-    * including detecting location of filepath (or env var?)
  * web version
  * sound nicer
    * compressor
@@ -19,7 +16,13 @@
    * I already build a standalone for processing. But it has build dependencies
      * oscp5
      * syphon
+ * shell script to launch this
+    * including detecting location of filepath (or env var?)
  * detect running java app w/out using pgrep, or spawn a subprocess explicitly using java.
+   * https://forum.processing.org/topic/get-command-line-parameter-in-the-new-world-of-processing-java#25080000002398185
+   * this compact little command-line seems to do it:
+cd /Users/dan/src/sc/f_lustre/f_lustre_display/application.macosx/f_lustre_display.app/Contents/Resources/Java; java -cp Syphon.framework:jogl-all.jar:Syphon.jar:gluegen-rt-natives-macosx-universal.jar:jsyphon.jar:core.jar:gluegen-rt.jar:jogl-all-natives-macosx-universal.jar:oscP5.jar:f_lustre_display.jar f_lustre_display width=500 height=600
+   * I live the concise expressiveness of java.
    * capture debug output from processing app
  */
 (

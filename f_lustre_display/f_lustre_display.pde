@@ -172,8 +172,8 @@ void oscEvent(OscMessage theOscMessage) {
         //count in rows from top left down
         spectroImg.pixels[next_step_i+n_steps*(n_bpbands_total-i-1)] = color(int(next_bands[i]*256));
       }
-      print("## received bands message .");
-      print(join(nf(next_bands, 0, 3), ";"));
+      //print("## received bands message .");
+      //print(join(nf(next_bands, 0, 3), ";"));
       spectrogram_updated=true;
     }
   }
