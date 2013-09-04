@@ -159,6 +159,14 @@ Server.default.waitForBoot({fork {
 		~trigger.set(\t_go,1);
 		~visualizer.sendMsg("/viz/init", ~n_bpbands_total, ~n_steps, ~duration, ~pollrate);
 	};
+	~stopf_lustre.isFunction.if({~stopf_lustre.value;});
+	~stopf_lustre = {
+		var killer = "kill %".format(~vizpid);
+		~vizpid.isNumber.if({
+			killer.unixCmd;
+		});
+		~stopOsc.value;
+	};
 	~fn_bandLogger = {|msg, time, addr, port|
 		var path, nid, tid, val;
 		# path, nid, tid, val = msg;
@@ -189,8 +197,6 @@ Server.default.waitForBoot({fork {
 	//OSCdef.newMatching(\pollchroma, ~fn_chromaLogger, "/tr", argTemplate: [~chromaanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollend, {|...args| ~visualizer.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
-	s.sync;
-	//~startAnalysis.value();
 	s.sync;
     ////////////Playing sounds
 	SynthDef.new(\harmonic_grain, {|out=0, gate=1, pointer, freq, xpan, buf|
