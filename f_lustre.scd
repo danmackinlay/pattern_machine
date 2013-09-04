@@ -19,14 +19,9 @@
  * shell script to launch this
     * including detecting location of filepath (or env var?)
  * detect running java app pid w/out using pgrep
-   * or spawn a subprocess explicitly using java.
-     * https://forum.processing.org/topic/get-command-line-parameter-in-the-new-world-of-processing-java#25080000002398185
-     * this compact little command-line seems to do spawn the app:
-cd /Users/dan/src/sc/f_lustre/f_lustre_display/application.macosx/f_lustre_display.app/Contents/Resources/Java; java -cp Syphon.framework:jogl-all.jar:Syphon.jar:gluegen-rt-natives-macosx-universal.jar:jsyphon.jar:core.jar:gluegen-rt.jar:jogl-all-natives-macosx-universal.jar:oscP5.jar:f_lustre_display.jar f_lustre_display width=500 height=600
-     * however it still doesn't return a usable PID.
-     * I love the concise expressiveness of java.
+   * or spawn a subprocess explicitly using java - however it still doesn't return a usable PID.
    * capture debug output from processing app
-   * persuade processing to return its own PID and parse it from the command line
+     * persuade processing to return its own PID and parse it from the command line
  */
 (
 ////////// Derived vars (from config vars loaded in a separate file)
