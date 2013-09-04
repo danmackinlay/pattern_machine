@@ -74,7 +74,7 @@ void setup() {
   //This explodes (for Syphon?)
   //smooth(4);
 
-  syphonserver = new SyphonServer(this, "f_lustre");
+  syphonserver = new SyphonServer(this, "FLustre");
   /* start oscP5, listening for incoming messages */
   oscP5 = new OscP5(this, listenPort);
   respondAddress = new NetAddress("127.0.0.1", respondPort);
@@ -172,8 +172,8 @@ void oscEvent(OscMessage theOscMessage) {
         //count in rows from top left down
         spectroImg.pixels[next_step_i+n_steps*(n_bpbands_total-i-1)] = color(int(next_bands[i]*256));
       }
-      //print("## received bands message .");
-      //print(join(nf(next_bands, 0, 3), ";"));
+      print("## received bands message .");
+      print(join(nf(next_bands, 0, 3), ";"));
       spectrogram_updated=true;
     }
   }

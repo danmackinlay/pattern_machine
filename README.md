@@ -1,4 +1,4 @@
-f_lustre
+FLustre
 ========
 
 Spectrographic sound playground for the layperson

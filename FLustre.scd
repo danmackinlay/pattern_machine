@@ -40,13 +40,13 @@
 ~a_bpbandf = (Array.series(~n_bpbands_total)/~n_bpbands_total).collect(~fmap);
 ~outputBus = Bus.new(\audio, ~firstOutputBus, ~n_speakers, Server.default);
 ~initICST = {
-	~syphonClient.sendMsg("/SwitchSyphonClient", "f_lustre", 1.0 );
+	~syphonClient.sendMsg("/SwitchSyphonClient", "FLustre", 1.0 );
 	~trackerMaster.sendMsg("/trackerMaster/requestTuiostream", ~listenPort );
 };
 ~debugpostln = {|msg, lvl=1| (lvl>= (~debuglvl ? 0)).if({msg.postln})};
 //launch visualizer. We have to guess the launched PID, since the process is laundered though launchd
-~visualizercli="open % --args width=% height=% respondport=%;pgrep -f -n f_lustre_display".format(
-	~here +/+ "f_lustre_display/application.macosx/f_lustre_display.app".shellQuote,
+~visualizercli="open % --args width=% height=% respondport=%;pgrep -f -n FLustreDisplay".format(
+	~here +/+ "FLustreDisplay/application.macosx/FLustreDisplay.app".shellQuote,
 	~pxwidth,
 	~pxheight,
 	~listenPort
@@ -157,8 +157,8 @@ Server.default.waitForBoot({fork {
 		~trigger.set(\t_go,1);
 		~visualizer.sendMsg("/viz/init", ~n_bpbands_total, ~n_steps, ~duration, ~pollrate);
 	};
-	~stopf_lustre.isFunction.if({~stopf_lustre.value;});
-	~stopf_lustre = {
+	~stopFLustre.isFunction.if({~stopFLustre.value;});
+	~stopFLustre = {
 		var killer = "kill %".format(~vizpid);
 		~vizpid.isNumber.if({
 			killer.unixCmd;
