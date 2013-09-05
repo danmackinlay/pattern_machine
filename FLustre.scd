@@ -7,7 +7,6 @@
    * detect (and visualise) noisiness vs percussiveness?
  * web version
  * sound nicer
-   * compressor
    * reverb. C'mon, the kids love reverb.
  * eliminate, or at least document, dependencies
    * Supercollider: None.
@@ -195,7 +194,27 @@ Server.default.waitForBoot({fork {
 	OSCdef.newMatching(\pollbands, ~fn_bandLogger, "/tr", argTemplate: [~bandanalyser.nodeID, nil, nil]);
 	OSCdef.newMatching(\pollend, {|...args| ~visualizer.sendMsg("/viz/stop");}, "/tr", argTemplate: [~trigger.nodeID, 0, nil]);
 	s.sync;
+
     ////////////Playing sounds
+	~playGroup = Group.tail(s);
+	//Compressor
+	//You know, I could use SlopeBelow to make this a compressor+limiter.
+	SynthDef.new(\compressor_++(~n_speakers),
+		{|in=0, thresh=0.02, slopeAbove=0.15|
+			var inSig = In.ar(in, ~n_speakers);
+			ReplaceOut.ar(in,
+				Compander.ar(
+					in: inSig,
+					control: Mix.new(inSig),
+					thresh: thresh,
+					slopeAbove:slopeAbove,
+					mul:((1-thresh)*slopeAbove).reciprocal
+				)
+			);
+		}
+	).add;
+	s.sync;
+	~fxGroup = Group.after(~playGroup);
 	SynthDef.new(\harmonic_grain, {|out=0, gate=1, pointer, freq, xpan, buf|
 		var sig, delay, pannedsig;
 		//map the frequency as if out input y coord maps from the bottom of an FFT bit
@@ -232,6 +251,12 @@ Server.default.waitForBoot({fork {
 			freq: ControlSpec(~minF, ~maxF, \exp)
 	))
 	).add;
+	s.sync;
+	~compressor = Synth.new(\compressor_++(~n_speakers),
+		[\in, ~outputBus],
+		target: ~fxGroup,
+		addAction:\addToHead
+	);
 	~touchCoords = IdentityDictionary.new;
 	~touchSynths = IdentityDictionary.new;
 	~touchesToStart = IdentitySet.new;
@@ -297,7 +322,7 @@ Server.default.waitForBoot({fork {
 		~listenGroup.free;
 		~triggerBus.free;
 		~analBus.free;
-	}
+	};
 	//listen for notification from processing that the app has just started up
 	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
 	//launch said visualizer
