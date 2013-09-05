@@ -54,6 +54,7 @@
 
 ////////// Analysing sounds
 Server.default.waitForBoot({fork {
+	var cliOutput;
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
 		//every time you set this input, this keeps it at 1 for dur seconds
 		var gate = Trig1.kr(
@@ -297,6 +298,20 @@ Server.default.waitForBoot({fork {
 	//listen for notification from processing that the app has just started up
 	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
 	//launch said visualizer
-	~vizpid=~visualizercli.unixCmdGetStdOut.stripWhiteSpace.asInteger;
+	cliOutput = ~visualizercli.unixCmdGetStdOut.split($@);
+	(cliOutput.size>1).if({
+		//probably worked if we have a PID surrounded by @
+		~vizpid=cliOutput[1].asInteger;
+	}, {
+		//sometimes we mysteriously get a naked PID
+		~vizpid=cliOutput[0].asInteger;
+	});
+	(~vizpid<=0).if({
+		"oops! no PID found in output".warn;
+		cliOutput.join("").warn;
+		~vizpid=nil;
+	}, {
+		"process pid % found".format(~vizpid).postln;
+	});
 }});
 )
