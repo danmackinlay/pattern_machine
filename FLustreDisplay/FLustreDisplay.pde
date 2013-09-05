@@ -5,6 +5,27 @@ import oscP5.*;
 import netP5.*;
 import codeanticode.syphon.*;
 import java.util.Properties;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+
+//function to return current PID. Clearly, an apalling hack
+String getPidString () {
+  RuntimeMXBean bean = ManagementFactory.getRuntimeMXBean();
+
+  // Get name representing the running Java virtual machine.
+  // It returns something like 6460@AURORA. Where the value
+  // before the @ symbol is the PID.
+  //
+  String jvmName = bean.getName();
+  System.out.println("Name = " + jvmName);
+
+  //
+  // Extract the PID by splitting the string returned by the
+  // bean.getName() method.
+  //
+  //long pid = Long.valueOf(jvmName.split("@")[0]);
+  return jvmName.split("@")[0];
+}
 
 Properties loadCommandLine () {
   Properties props = new Properties();
@@ -26,6 +47,7 @@ OscP5 oscP5;
 NetAddress respondAddress;
 int listenPort;
 int respondPort;
+String pidString;
 
 PGraphics canvas;
 PImage spectroImg;
@@ -70,6 +92,12 @@ void setup() {
   //gets initialized twice without the earlier one getting disposed.
   size(pxwidth, pxheight, P2D);
   canvas = createGraphics(pxwidth, pxheight, P2D);
+
+  pidString = getPidString();
+  print("@");
+  print(pidString);
+  print("@");
+  println();
 
   //This explodes (for Syphon?)
   //smooth(4);
