@@ -18,10 +18,6 @@
      * syphon
  * shell script to launch this
     * including detecting location of filepath (or env var?)
- * detect running java app pid w/out using pgrep
-   * or spawn a subprocess explicitly using java - however it still doesn't return a usable PID.
-   * capture debug output from processing app
-     * persuade processing to return its own PID and parse it from the command line
  */
 (
 ////////// Derived vars (from config vars loaded in a separate file)
@@ -165,6 +161,8 @@ Server.default.waitForBoot({fork {
 			killer.unixCmd;
 		});
 		~stopOsc.value;
+		//don't do this, as we re-use them for now.
+		//~freeServerResources.value;
 	};
 	~fn_bandLogger = {|msg, time, addr, port|
 		var path, nid, tid, val;
@@ -295,6 +293,11 @@ Server.default.waitForBoot({fork {
 		OSCdef(\touchalive).free;
 		OSCdef(\touchupdate).free;
 	};
+	~freeServerResources = {
+		~listenGroup.free;
+		~triggerBus.free;
+		~analBus.free;
+	}
 	//listen for notification from processing that the app has just started up
 	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
 	//launch said visualizer

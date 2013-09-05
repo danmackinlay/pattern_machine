@@ -6,5 +6,5 @@
 ~debuglvl = 2;
 ~pxwidth =2560;
 ~vizpid;
-~startAnalysis.value();
-~stopFLustre.value();
+~startAnalysis.value;
+~stopFLustre.value;
