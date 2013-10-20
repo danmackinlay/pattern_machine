@@ -4,6 +4,10 @@ resemblance is rapidly diminishing.
 Here I keep listensynthdefs with only one signal observed, i.e. that look for one
 particular signal quality rather than comapring it with an external signal.
 
+This is largely unmaintained and probably needs updating to match the API and 
+qualities of the compare synths as regards, e.g. distance versus simiarity
+scores, and regular construction etc
+
 */
 
 PSBasicListenSynths {
