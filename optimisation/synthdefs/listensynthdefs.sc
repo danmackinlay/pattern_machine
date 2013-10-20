@@ -1,8 +1,8 @@
 /* originally based on MCLD's example MCLD_Genetic tests, though the
 resemblance is rapidly diminishing.
 
-Here I keep listensynthdefs with only one signal observedbus, ie.e. that look for one
-particular signal quality rather than comapring wit with an external signal.
+Here I keep listensynthdefs with only one signal observed, i.e. that look for one
+particular signal quality rather than comapring it with an external signal.
 
 */
 

@@ -4,6 +4,8 @@ resemblance is rapidly diminishing.
 
 Here I keep all the "Compare" synths, that compare one signal, somehow or
 other, against a reference/template signal
+
+Some of these are distance measures and some similarities. life is too short for such shennanigans. choose an API and stick to it i say.
 */
 
 PSBasicCompareSynths {
@@ -15,7 +17,7 @@ PSBasicCompareSynths {
 	*makeComparer { |name, func, lags|
 		/* A listen synthdef factory, complete with graceful accumulation.
 		Be careful with those bus arguments.
-		Compararers made with this method are channel-blind -
+		Comparers made with this method are channel-blind -
 		the input channels are mixed down to mono.*/
 		(1..4).do({|targetChan| (1..4).do({|obsChan|
 			var channame;
@@ -100,7 +102,7 @@ PSBasicCompareSynths {
 
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
-		NB - this uses a  CUSTOM MCLD UGEN, available in the SC3-plugins project
+		NB - this uses a custom MCLD Ugen, available in the SC3-plugins project
 		*/
 		this.makeComparer(\ps_judge_fft_distance_wide, {
 			|targetsig, observedsig|
@@ -123,7 +125,7 @@ PSBasicCompareSynths {
 		});
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
-		NB - this uses a CUSTOM MCLD UGEN, available in the SC3-plugins project.
+		NB - this uses a custom MCLD Ugen, available in the SC3-plugins project
 		*/
 		this.makeComparer(\ps_judge_fft_distance_narrow, {
 			|targetsig, observedsig|
@@ -245,7 +247,7 @@ PSBasicCompareSynths {
 			bfr2 = LocalBuf.new(1024,1);
 
 			targetfft = FFT(bfr1, targetsig);
-			offt =   FFT(bfr2, observedsig);
+			offt = FFT(bfr2, observedsig);
 
 			//rms difference - should log diff? or abs diff?
 			targetMFCCoef = MFCC.kr(targetfft, numcoeff:42);
