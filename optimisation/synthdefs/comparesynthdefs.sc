@@ -5,8 +5,10 @@ resemblance is rapidly diminishing.
 Here I keep all the "Compare" synths, that compare one signal, somehow or
 other, against a reference/template signal
 
-Some of these are distance measures and some similarities. life is too short for such shennanigans. choose an API and stick to it i say.
-*/
+Thesee shoudl now be regarded as untested, since i did nasty little hacks
+to make these all into distances, as opposed to similarity measurea.
+Ideally this means that two identical signals have a distance of zero,
+but let's look at that a little later. */
 
 PSBasicCompareSynths {
 	*initClass{
@@ -60,7 +62,7 @@ PSBasicCompareSynths {
 			targetamp = Amplitude.kr(targetsig);
 			oamp = Amplitude.kr(observedsig);
 
-			(1- (targetamp - oamp).abs).max(0);
+			(targetamp.max(0.00001)/(oamp.max(0.00001))).log.abs;
 		});
 
 		// Try and match pitch envelope against a template signal
@@ -71,7 +73,7 @@ PSBasicCompareSynths {
 			# targetpitch, targethaspitch = Pitch.kr(targetsig);
 			# opitch, ohaspitch = Pitch.kr(observedsig);
 
-			(100 - ((targetpitch - opitch).abs * 0.1)).max(0);
+			(targetpitch.max(0.1)/(opitch.max(0.1))).log.abs;
 		});
 		// Try and match pitch and amplitude envelope against a template signal
 		this.makeComparer(\ps_judge_pitchamp_distance, {
@@ -83,10 +85,8 @@ PSBasicCompareSynths {
 			# opitch, ohaspitch = Pitch.kr(observedsig);
 			targetamp = Amplitude.kr(targetsig);
 			oamp = Amplitude.kr(observedsig);
-
-			nanfitness = ((targetpitch+eps)/(opitch+eps)).log.abs + ((targetamp+eps)/(oamp+eps)).log.abs;
-			//nanness = CheckBadValues.kr
-			nanfitness;
+			(targetamp.max(0.00001)/(oamp.max(0.00001))).log.abs +
+				(targetpitch.max(0.1)/(opitch.max(0.1))).log.abs;
 		});
 		/* Try and match pitch envelope against a template signal - but using
 		 ZeroCrossing*/
@@ -97,14 +97,14 @@ PSBasicCompareSynths {
 			targetpitch = A2K.kr(ZeroCrossing.ar(targetsig));
 			opitch = A2K.kr(ZeroCrossing.ar(observedsig));
 
-			(100 - ((targetpitch - opitch).abs * 0.1)).max(0);
+			(targetpitch.max(0.1)/(opitch.max(0.1))).log.abs;
 		});
 
 		/* Try and match the FFT of the individual against some "template" signal
 		- typically an audio sample.
 		NB - this uses a custom MCLD Ugen, available in the SC3-plugins project
 		*/
-		this.makeComparer(\ps_judge_fft_distance_wide, {
+		this.makeComparer(\ps_judge_fft_wide_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
 			/* Take a wideband FFT of the signals since we're interested in
@@ -127,7 +127,7 @@ PSBasicCompareSynths {
 		- typically an audio sample.
 		NB - this uses a custom MCLD Ugen, available in the SC3-plugins project
 		*/
-		this.makeComparer(\ps_judge_fft_distance_narrow, {
+		this.makeComparer(\ps_judge_fft_narrow_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, bfr1, bfr2;
 		   /* Take a narrowband FFT and match timbre precisely*/
@@ -146,30 +146,21 @@ PSBasicCompareSynths {
 		});
 
 		/*Convolution-based comparison. Amplitude-blind.*/
-		this.makeComparer(\ps_judge_convolution_norm, {
+		this.makeComparer(\ps_judge_convolution_norm_distance, {
 			|targetsig, observedsig|
 			targetsig = Normalizer.ar(targetsig);
 			observedsig = Normalizer.ar(observedsig);
-
-			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512));
+			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)).max(0.00001).reciprocal;
 		});
 		/*Convolution-based comparison that attempts to match amplitudes*/
-		this.makeComparer(\ps_judge_convolution, {
+		this.makeComparer(\ps_judge_convolution_distance, {
 			|targetsig, observedsig|
 			var amptarget, ampobs, amplo, amphi, obsHigher;
-			amptarget = Amplitude.kr(targetsig);
-			ampobs = Amplitude.kr(observedsig);
-			obsHigher = (ampobs>amptarget);
-			amplo = Select.kr(obsHigher, [ampobs, amptarget]);
-			amphi = Select.kr(obsHigher, [amptarget, ampobs]);
-			/*amptarget.poll(0.1, \ampta);
-			ampobs.poll(0.1, \ampob);
-			obsHigher.poll(0.1, \obsHi);
-			amplo.poll(0.1, \amplo);
-			amphi.poll(0.1, \amphi);*/
-			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) * (
-				amphi/(amplo+0.0000001)
-			);
+			amptarget = Amplitude.kr(targetsig).max(0.0001);
+			ampobs = Amplitude.kr(observedsig).max(0.0001);
+			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) / (
+				amptarget*ampobs
+			).log.obs;
 		});
 		/*Cepstral-based comparison that attempts to match amplitudes*/
 		this.makeComparer(\ps_judge_cepstral_distance, {
@@ -185,14 +176,10 @@ PSBasicCompareSynths {
 			offt =   FFT(ffbfr2, observedsig);
 			targetcep = Cepstrum(cepbfr1, targetfft);
 			ocep =   Cepstrum(cepbfr2, offt);
-
-			// // Smear the FFT a little to avoid being trapped in bins
-			// targetcep = PV_MagSmear(targetcep, 5);
-			//   ocep = PV_MagSmear(  ocep, 5);
-
+			
 			FFTDiffMags.kr(targetcep, ocep);
 		});
-		this.makeComparer(\ps_judge_cepstral_distance_norm, {
+		this.makeComparer(\ps_judge_cepstral_norm_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetcep, ocep, ffbfr1, ffbfr2, cepbfr1, cepbfr2;
 
@@ -208,10 +195,6 @@ PSBasicCompareSynths {
 			offt =   FFT(ffbfr2, observedsig);
 			targetcep = Cepstrum(cepbfr1, targetfft);
 			ocep =   Cepstrum(cepbfr2, offt);
-
-			// // Smear the FFT a little to avoid being trapped in bins
-			// targetcep = PV_MagSmear(targetcep, 5);
-			//   ocep = PV_MagSmear(  ocep, 5);
 
 			FFTDiffMags.kr(targetcep, ocep);
 		});
@@ -237,7 +220,7 @@ PSBasicCompareSynths {
 			(targetMFCCoef - oMFCCoef).squared.sum;
 		});
 		/*MFCC-based comparison with extra amplitude-match weighting*/
-		this.makeComparer(\ps_judge_mfcc_distance_amp, {
+		this.makeComparer(\ps_judge_mfcc_amp_distance, {
 			|targetsig, observedsig|
 			var targetfft, offt, targetMFCCoef, oMFCCoef, bfr1, bfr2, ampdist;
 			var targetamp, oamp, totaldist, polltrig;

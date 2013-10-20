@@ -91,9 +91,9 @@ s.waitForBoot({
 	~control.leakCoef = 0.05;
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_pitch_distance__1_1;
-	//~control.listenSynthDef = \ps_judge_fft_distance_wide__1_1;
-	//~control.listenSynthDef = \ps_judge_fft_distance_narrow__1_1;
-	//~control.listenSynthDef = \ps_judge_convolution__1_1;
+	//~control.listenSynthDef = \ps_judge_fft_wide_distance__1_1;
+	//~control.listenSynthDef = \ps_judge_fft_narrow_distance__1_1;
+	//~control.listenSynthDef = \ps_judge_convolution_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_mfcc_distance__1_1;
 	~control.listenSynthDef = \ps_judge_mfcc_distance_amp__2_1;

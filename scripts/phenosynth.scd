@@ -56,9 +56,9 @@ fork {
 	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
-	~control.listenSynthDef = \ps_judge_fft_distance_wide;
-	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
-	//~control.listenSynthDef = \ps_judge_convolution;
+	~control.listenSynthDef = \ps_judge_fft_wide_distance;
+	//~control.listenSynthDef = \ps_judge_fft_narrow_distance;
+	//~control.listenSynthDef = \ps_judge_convolution_distance;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	//~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.leakCoef;
@@ -172,9 +172,9 @@ fork {
 	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1,  leakCoef:0.5, maxPop:45);
 	//~control.listenSynthDef = \ps_judge_pitchamp_distance;
 	//~control.listenSynthDef = \ps_judge_pitch_distance;
-	//~control.listenSynthDef = \ps_judge_fft_distance_wide;
-	//~control.listenSynthDef = \ps_judge_fft_distance_narrow;
-	//~control.listenSynthDef = \ps_judge_convolution;
+	//~control.listenSynthDef = \ps_judge_fft_wide_distance;
+	//~control.listenSynthDef = \ps_judge_fft_narrow_distance;
+	//~control.listenSynthDef = \ps_judge_convolution_distance;
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.leakCoef;
@@ -268,10 +268,10 @@ fork {
 	0.1.wait;
 	~template = Synth.new(\ps_reson_saw, [\outbus, ~targetbus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5], target: ~voxgroup);
 	~candidate = Synth.new(\ps_reson_saw, [\outbus, ~observedBus, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \amp, 0.5], target: ~voxgroup);
-	//~comparer = Synth.new(\ps_judge_fft_distance_narrow, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0], target: ~outgroup);
-	~comparer = Synth.new(\ps_judge_fft_distance_wide, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_convolution, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_convolution_norm, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_fft_narrow_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0], target: ~outgroup);
+	~comparer = Synth.new(\ps_judge_fft_wide_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_convolution_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_convolution_distance_norm, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 
