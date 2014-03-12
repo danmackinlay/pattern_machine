@@ -3,18 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>f_lustre</title>
+  <!-- prevent zooming as per http://www.html5rocks.com/en/mobile/touch/ -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <!-- use full screen as per http://www.html5rocks.com/en/mobile/mobifying/#toc-meta -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
   Hello world.
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript">
-    // var socket = new eio.Socket('ws://localhost/');
-//     socket.on('open', function () {
-//       socket.on('message', function (data) { });
-//       socket.on('close', function () { });
-//     });
-  </script>
+    //wrap to prevent initialisation order problems.
+    window.onload = function () {
+      //prevent scrolling as per http://www.html5rocks.com/en/mobile/touch/
+      document.body.addEventListener('touchmove', function(event) {
+        event.preventDefault();
+      }, false);
+      // var socket = new eio.Socket('ws://localhost/');
+      // socket.on('open', function () {
+      //   socket.on('message', function (data) { });
+      //   socket.on('close', function () { });
+      // });
+    }
   </script>
 </body>
 </html>
