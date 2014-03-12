@@ -11,7 +11,10 @@
 </head>
 <body>
   Hello world.
-
+  <canvas id="canvas" width="300" height="300" style="top:0px; left:0px; width: 300px; height: 300px;"></canvas>
+  <object id="tuio" type="application/x-tuio" style="width: 0px; height: 0px;">
+    Touch input plugin failed to load!
+  </object>
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript">
     //wrap to prevent initialisation order problems.
@@ -20,6 +23,9 @@
       document.body.addEventListener('touchmove', function(event) {
         event.preventDefault();
       }, false);
+      //scroll to hide address bars as per http://www.html5rocks.com/en/mobile/mobifying/#toc-meta
+      setTimeout(function() { window.scrollTo(0, 0); }, 1);
+      
       // var socket = new eio.Socket('ws://localhost/');
       // socket.on('open', function () {
       //   socket.on('message', function (data) { });
