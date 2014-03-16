@@ -15,8 +15,17 @@
   <object id="tuio" type="application/x-tuio" style="width: 0px; height: 0px;">
     Touch input plugin failed to load!
   </object>
+  <script src="/magictouch.js"></script>
   <script src="/socket.io/socket.io.js"></script>
   <script type="text/javascript">
+    var canvas;
+    var ctx;
+    var w = 0;
+    var h = 0;
+    var timer;
+    var updateStarted = false;
+    var touches = [];
+    
     //wrap to prevent initialisation order problems.
     window.onload = function () {
       //prevent scrolling as per http://www.html5rocks.com/en/mobile/touch/
@@ -31,6 +40,24 @@
       //   socket.on('message', function (data) { });
       //   socket.on('close', function () { });
       // });
+      function ol() {
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+        timer = setInterval(update, 15);
+
+        canvas.addEventListener('touchend', function() {
+          ctx.clearRect(0, 0, w, h);
+        });
+
+        canvas.addEventListener('touchmove', function(event) {
+          event.preventDefault();
+          touches = event.touches;
+        });
+
+        canvas.addEventListener('touchstart', function(event) {
+          console.log('start');
+        });
+      };
     }
   </script>
 </body>
