@@ -1,14 +1,39 @@
 import os
-from music21 import converter, instrument
-
+from music21 import converter, instrument, midi
 base = os.path.expanduser('~/Music/midi')
 inpath = os.path.join(base, 'dillpick.mid')
 outpath = os.path.join(base, 'dillpick-out.mid')
 
-score = converter.parse(inpath)
+stream = converter.parse(inpath)
 
-for ev in score.recurse():
-    pass
+# now, I want to break out each part into note-on-note-off events
+# this will probably involve the .offsetMap
+# might be able to do with less
+# really want to avoid percussion parts if i can
+# for elem in stream.recurse():
+#     pass
+
+#this seems roundabout:
+mf = midi.translate.streamToMidiFile(stream)
+# and we still need to get instrument metadata:
+# using midiEventsToInstrument
+# midi.translate.midiEventsToInstrument
+for i, track in enumerate(mf.tracks):
+    held_notes = dict()
+    #check if it is percussion:
+    instr_num = track.getProgramChanges()[0] #pull out first instrumentation instruction
+    try:
+        instr = instrument.instrumentFromMidiProgram(instr_num)
+    except instrument.InstrumentException:
+        instr = instrument.Instrument()
+    if isinstance(instr, instrument.UnpitchedPercussion): break
     
-#score.write('midi', outpath)
+    for e in track.events:
+        if e.isNoteOn():
+            held_notes[e.pitch]=e.velocity
+        if e.isNoteOff():
+            del(held_notes[e.pitch])
+        print held_notes
+    
+#stream.write('midi', outpath)
 
