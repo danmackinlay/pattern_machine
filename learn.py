@@ -18,9 +18,13 @@ mf = midi.translate.streamToMidiFile(stream)
 # and we still need to get instrument metadata:
 # using midiEventsToInstrument
 # midi.translate.midiEventsToInstrument
-for i, track in enumerate(mf.tracks):
+#for i, track in enumerate(mf.tracks):
+for i, track in enumerate([mf.tracks[0]]):
     held_notes = dict()
-    #check if it is percussion:
+    ons = dict()
+    offs = dict()
+    
+    #check if it is unpitched percussion:
     instr_num = track.getProgramChanges()[0] #pull out first instrumentation instruction
     try:
         instr = instrument.instrumentFromMidiProgram(instr_num)
@@ -28,12 +32,20 @@ for i, track in enumerate(mf.tracks):
         instr = instrument.Instrument()
     if isinstance(instr, instrument.UnpitchedPercussion): break
     
+    #OK, it plays pitches. let's analyse it.
     for e in track.events:
+        print e
         if e.isNoteOn():
+            if len(held_notes)>0:
+                lowest = min(held_notes.keys())
+                rel_on_pitch = e.pitch-lowest
+                pitch_class = tuple(sorted([p-lowest for p in held_notes.keys()]))
+                transitions = ons.setdefault(pitch_class, dict())
+                transitions[rel_on_pitch]=transitions.get(rel_on_pitch,0)+1
             held_notes[e.pitch]=e.velocity
-        if e.isNoteOff():
+            print held_notes, transitions, ons
+            
+        if e.isNoteOff():            
             del(held_notes[e.pitch])
-        print held_notes
     
 #stream.write('midi', outpath)
-

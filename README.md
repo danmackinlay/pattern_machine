@@ -11,4 +11,16 @@ MIDI parsing:
 * https://groups.google.com/forum/#!msg/alt.sources/eRG2bL3Re-k/FvRLrRl0RiIJ
 * http://web.mit.edu/music21/doc/index.html
 * http://stackoverflow.com/a/14611850
-* realtime output might even be possible thanks to http://portmedia.sourceforge.net/portmidi/doxygen/ see also http://sourceforge.net/p/portmedia/code/HEAD/tree/portmidi/trunk/pm_python/README_PYTHON.txt
+* realtime output might even be possible thanks to http://portmedia.sourceforge.net/portmidi/doxygen/
+
+Statistical underpinnings:
+
+* this naive markov model still has lots of hairy bits. Questions:
+  * can I get a better "base" point for my notes? e.g. choosing a "key"
+  * can I somehow condition on more "control" variables?
+  * can I use state transitions to estimate "consonance"?
+* I'd kinda like to do this with a probabilistic graphical model, although the necessity of circular causation makes that messy. This Might work if the previous timestep were the nodes and the *next* were the leaf nodes
+
+Practical business:
+
+* the midi parsing is a little funky in that it separates out parts; this means that harmonic relationships are only considered between the current voice, not other voices/instruments
