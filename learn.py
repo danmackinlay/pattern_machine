@@ -7,32 +7,33 @@ outpath = os.path.join(base, 'dillpick-out.mid')
 stream = converter.parse(inpath)
 
 # now, I want to break out each part into note-on-note-off events
-# this will probably involve the .offsetMap
-# might be able to do with less
-# really want to avoid percussion parts if i can
+# this will probably involve the .offsetMap to be done in ful generality;
+
 # for elem in stream.recurse():
 #     pass
 
-#this seems roundabout:
+# For now I use the midi parser which gives us nice note-offs.
+# However, it separates voice parts. 
 mf = midi.translate.streamToMidiFile(stream)
-# and we still need to get instrument metadata:
-# using midiEventsToInstrument
-# midi.translate.midiEventsToInstrument
+
+# for now, just to the first track:
 #for i, track in enumerate(mf.tracks):
 for i, track in enumerate([mf.tracks[0]]):
     held_notes = dict()
     ons = dict()
     offs = dict()
     
-    #check if it is unpitched percussion:
-    instr_num = track.getProgramChanges()[0] #pull out first instrumentation instruction
+    # check if it is unpitched percussion by pulling out
+    # first instrumentation instruction
+    # will fail if there are multiple PROGRAM_CHANGE messages
+    instr_num = track.getProgramChanges()[0] 
     try:
         instr = instrument.instrumentFromMidiProgram(instr_num)
     except instrument.InstrumentException:
         instr = instrument.Instrument()
     if isinstance(instr, instrument.UnpitchedPercussion): break
     
-    #OK, it plays pitches. let's analyse it.
+    #OK, it plays pitches, probably. let's analyse it.
     for e in track.events:
         print e
         if e.isNoteOn():

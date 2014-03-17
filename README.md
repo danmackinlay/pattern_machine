@@ -19,6 +19,7 @@ Statistical underpinnings:
   * can I get a better "base" point for my notes? e.g. choosing a "key"
   * can I somehow condition on more "control" variables?
   * can I use state transitions to estimate "consonance"?
+  * can I generalise somehow? right now this thing will only pass through note states that it has already seen... but if I trained every note with its own transition matrix we could have more notes
 * I'd kinda like to do this with a probabilistic graphical model, although the necessity of circular causation makes that messy. This Might work if the previous timestep were the nodes and the *next* were the leaf nodes
 
 Practical business:
