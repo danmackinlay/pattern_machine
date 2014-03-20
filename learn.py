@@ -16,12 +16,12 @@ stream = converter.parse(inpath)
 # However, it separates voice parts. 
 mf = midi.translate.streamToMidiFile(stream)
 
+# anyway, it will give us a cacnonical form for state transitions whcih we can try to analyse in various ways
+note_transitions = []
 # for now, just to the first track:
 #for i, track in enumerate(mf.tracks):
 for i, track in enumerate([mf.tracks[0]]):
     held_notes = dict()
-    ons = dict()
-    offs = dict()
     
     # check if it is unpitched percussion by pulling out
     # first instrumentation instruction
@@ -37,16 +37,30 @@ for i, track in enumerate([mf.tracks[0]]):
     for e in track.events:
         print e
         if e.isNoteOn():
-            if len(held_notes)>0:
-                lowest = min(held_notes.keys())
-                rel_on_pitch = e.pitch-lowest
-                pitch_class = tuple(sorted([p-lowest for p in held_notes.keys()]))
-                transitions = ons.setdefault(pitch_class, dict())
-                transitions[rel_on_pitch]=transitions.get(rel_on_pitch,0)+1
             held_notes[e.pitch]=e.velocity
-            print held_notes, transitions, ons
+            note_transitions.append(held_notes.copy())
+            print held_notes
             
         if e.isNoteOff():            
             del(held_notes[e.pitch])
+            note_transitions.append(held_notes.copy())
+            print held_notes
+
+#one possible representation of transitions
+curr_state = tuple()
+curr_pitch_class = tuple()
+state_transitions = dict()
+for held_notes in note_transitions:
+    next_state = tuple(sorted(held_notes.keys()))
+    if len(curr_state)>0:
+        lowest = curr_state[0]
+    else:
+        lowest = next_state[0]
+    next_pitch_class = tuple([p-lowest for p in next_state])
+    edge = tuple([curr_pitch_class, next_pitch_class])
+    state_transitions[edge] = state_transitions.get(edge,0)+1
+    
+    curr_state = tuple(next_state)
+    curr_pitch_class = tuple(next_pitch_class)
     
 #stream.write('midi', outpath)

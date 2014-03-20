@@ -21,6 +21,7 @@ Statistical underpinnings:
   * can I use state transitions to estimate "consonance"?
   * can I generalise somehow? right now this thing will only pass through note states that it has already seen... but if I trained every note with its own transition matrix we could have more notes
 * I'd kinda like to do this with a probabilistic graphical model, although the necessity of circular causation makes that messy. This Might work if the previous timestep were the nodes and the *next* were the leaf nodes
+* Linguistics has "bag of words"-models that might be interesting to play with?
 
 Practical business:
 
