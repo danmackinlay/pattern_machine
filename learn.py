@@ -58,16 +58,17 @@ for held_notes in note_transitions:
         lowest = min(next_state)
     curr_pitch_class = set([p-lowest for p in curr_state])
     next_pitch_class = set([p-lowest for p in next_state])
-    if len(next_state)>len(curr_state):
+    state_key = tuple(sorted(curr_pitch_class))
+    if len(next_pitch_class)>len(curr_pitch_class):
         #added a note
-        node_added = (next_pitch_class - curr_pitch_class).pop()
-        edge = tuple([tuple(sorted(curr_pitch_class)), node_added])
-        note_on_transitions[edge] = note_on_transitions.get(edge,0)+1
-    elif len(next_state)<len(curr_state):
+        note_added = (next_pitch_class - curr_pitch_class).pop()
+        edges = note_on_transitions.setdefault(state_key, dict())
+        edges[note_added] = edges.get(note_added,0)+1
+    elif len(next_pitch_class)<len(curr_pitch_class):
         #removed a note
         note_removed = (curr_pitch_class - next_pitch_class).pop()
-        edge = tuple([tuple(sorted(curr_pitch_class)), note_removed])
-        note_off_transitions[edge] = note_off_transitions.get(edge,0)+1
+        edges = note_off_transitions.get(state_key, dict())
+        edges[note_removed] = edges.get(note_removed,0)+1
 
     curr_state = set(next_state)
     
