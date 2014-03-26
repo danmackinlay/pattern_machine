@@ -1,3 +1,4 @@
+from pprint import pprint
 import os
 from music21 import converter, instrument, midi
 base = os.path.expanduser('~/Music/midi')
@@ -35,32 +36,39 @@ for i, track in enumerate([mf.tracks[0]]):
     
     #OK, it plays pitches, probably. let's analyse it.
     for e in track.events:
-        print e
         if e.isNoteOn():
             held_notes[e.pitch]=e.velocity
             note_transitions.append(held_notes.copy())
-            print held_notes
             
         if e.isNoteOff():            
             del(held_notes[e.pitch])
             note_transitions.append(held_notes.copy())
-            print held_notes
-
-#one possible representation of transitions
-curr_state = tuple()
-curr_pitch_class = tuple()
-state_transitions = dict()
+            
+# one possible representation of transitions
+# more generally, I'd like to do this using regression on neighbourhoods of notes.
+curr_state = set()
+curr_pitch_class = set()
+note_on_transitions = dict()
+note_off_transitions = dict()
 for held_notes in note_transitions:
-    next_state = tuple(sorted(held_notes.keys()))
+    next_state = set(held_notes.keys())
     if len(curr_state)>0:
-        lowest = curr_state[0]
+        lowest = min(curr_state)
     else:
-        lowest = next_state[0]
-    next_pitch_class = tuple([p-lowest for p in next_state])
-    edge = tuple([curr_pitch_class, next_pitch_class])
-    state_transitions[edge] = state_transitions.get(edge,0)+1
-    
-    curr_state = tuple(next_state)
-    curr_pitch_class = tuple(next_pitch_class)
+        lowest = min(next_state)
+    curr_pitch_class = set([p-lowest for p in curr_state])
+    next_pitch_class = set([p-lowest for p in next_state])
+    if len(next_state)>len(curr_state):
+        #added a note
+        node_added = (next_pitch_class - curr_pitch_class).pop()
+        edge = tuple([tuple(sorted(curr_pitch_class)), node_added])
+        note_on_transitions[edge] = note_on_transitions.get(edge,0)+1
+    elif len(next_state)<len(curr_state):
+        #removed a note
+        note_removed = (curr_pitch_class - next_pitch_class).pop()
+        edge = tuple([tuple(sorted(curr_pitch_class)), note_removed])
+        note_off_transitions[edge] = note_off_transitions.get(edge,0)+1
+
+    curr_state = set(next_state)
     
 #stream.write('midi', outpath)
