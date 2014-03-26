@@ -45,7 +45,7 @@ for i, track in enumerate([mf.tracks[0]]):
             note_transitions.append(held_notes.copy())
             
 # one possible representation of transitions
-# more generally, I'd like to do this using regression on neighbourhoods of notes.
+# more generally, I'd like to do this using logistic lasso regression on neighbourhoods of notes.
 curr_state = set()
 curr_pitch_class = set()
 note_on_transitions = dict()
@@ -67,7 +67,7 @@ for held_notes in note_transitions:
     elif len(next_pitch_class)<len(curr_pitch_class):
         #removed a note
         note_removed = (curr_pitch_class - next_pitch_class).pop()
-        edges = note_off_transitions.get(state_key, dict())
+        edges = note_off_transitions.setdefault(state_key, dict())
         edges[note_removed] = edges.get(note_removed,0)+1
 
     curr_state = set(next_state)
