@@ -100,13 +100,13 @@ for held_notes in note_transitions:
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
 # But sod it; we ain't doing analysis in python right now; let's pump this out to R
-fieldnames = [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['trials', 'passes']
+fieldnames = [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['ons', 'offs']
 with open(CSV_OUT_PATH, 'w') as handle:
     writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
     writer.writerow(fieldnames)
     for i, predictor in enumerate(sorted(all_counts.keys())):
         writer.writerow(
           [(1 if i in predictor else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + 
-          [all_counts.get(predictor, 0), on_counts.get(predictor, 0)]
+          [on_counts.get(predictor, 0), off_counts.get(predictor, 0)]
         )
         
