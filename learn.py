@@ -46,30 +46,46 @@ for i, track in enumerate([mf.tracks[0]]):
             
 # one possible representation of transitions
 # more generally, I'd like to do this using logistic lasso regression on neighbourhoods of notes.
-curr_state = set()
-curr_pitch_class = set()
-note_on_transitions = dict()
-note_off_transitions = dict()
-for held_notes in note_transitions:
-    next_state = set(held_notes.keys())
-    if len(curr_state)>0:
-        lowest = min(curr_state)
-    else:
-        lowest = min(next_state)
-    curr_pitch_class = set([p-lowest for p in curr_state])
-    next_pitch_class = set([p-lowest for p in next_state])
-    state_key = tuple(sorted(curr_pitch_class))
-    if len(next_pitch_class)>len(curr_pitch_class):
-        #added a note
-        note_added = (next_pitch_class - curr_pitch_class).pop()
-        edges = note_on_transitions.setdefault(state_key, dict())
-        edges[note_added] = edges.get(note_added,0)+1
-    elif len(next_pitch_class)<len(curr_pitch_class):
-        #removed a note
-        note_removed = (curr_pitch_class - next_pitch_class).pop()
-        edges = note_off_transitions.setdefault(state_key, dict())
-        edges[note_removed] = edges.get(note_removed,0)+1
+# how far I look to find neighbours
+# perfect 5th
+NEIGHBORHOOD_RADIUS = 6
+# 1 octave:
+# NEIGHBORHOOD_RADIUS = 11
+# 1.5 octave
+#NEIGHBORHOOD_RADIUS = 17
+curr_global_state = tuple()
+on_counts = dict()
+off_counts = dict()
+all_counts = dict()
 
-    curr_state = set(next_state)
-    
-#stream.write('midi', outpath)
+# I wonder if it makes a difference to calculate state *change* formulae rather than on-off forumlae?
+#  Seems that we might not want to penalise repeating a note a lot etc
+# I wonder if we want to give note 0 its own interaction term with all the others? probably.
+
+# make a sparse dict of transitiona
+for held_notes in note_transitions:
+    next_global_state = tuple(sorted(held_notes.keys()))
+    for local_pitch in xrange(128):
+        neighborhood = []
+        for i in curr_global_state:
+            rel_pitch = i - local_pitch
+            if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
+                neighborhood.append(rel_pitch)
+        neighborhood = tuple(neighborhood)
+        all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
+        if local_pitch in next_global_state:
+            on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
+        else:
+            off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
+        
+        curr_global_state = tuple(next_global_state)
+        if len(neighborhood)>0:
+            print neighborhood
+
+#Convert to arrays for regression - left columns predictors, right 2 variates
+predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1))
+regressors = np.zeros((len(all_counts), 2))
+for i, predictor in enumerate(sorted(all_counts.keys())):
+    predictors[i][np.array(predictor, dtype='int32') + NEIGHBORHOOD_RADIUS] = 1
+    regressors[i][0] = all_counts.get(predictor, 0)
+    regressors[i][1] = on_counts.get(predictor, 0)
