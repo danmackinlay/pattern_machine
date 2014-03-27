@@ -29,7 +29,7 @@ note_stream = converter.parse(MIDI_IN_PATH)
 # However, it separates voice parts. 
 mf = midi.translate.streamToMidiFile(note_stream)
 
-# anyway, it will give us a cacnonical form for state transitions whcih we can try to analyse in various ways
+# anyway, it will give us a canonical form for state transitions which we can try to analyse in various ways
 note_transitions = []
 # for now, just to the first track:
 #for i, track in enumerate(mf.tracks):
@@ -71,7 +71,10 @@ all_counts = dict()
 # make a sparse dict of transitiona
 for held_notes in note_transitions:
     next_global_state = tuple(sorted(held_notes.keys()))
-    for local_pitch in xrange(128):
+    #we only want to look at notes within a neighbourhood of something happening
+    # otherwise nothing->nothing dominates the data
+    domain = set(curr_global_state + next_global_state)
+    for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
         neighborhood = []
         for i in curr_global_state:
             rel_pitch = i - local_pitch
