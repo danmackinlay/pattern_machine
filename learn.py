@@ -1,21 +1,33 @@
+import numpy as np
 from pprint import pprint
 import os
 from music21 import converter, instrument, midi
-base = os.path.expanduser('~/Music/midi')
-inpath = os.path.join(base, 'dillpick.mid')
-outpath = os.path.join(base, 'dillpick-out.mid')
+import csv
+# how far I look to find neighbours
+# perfect 5th
+NEIGHBORHOOD_RADIUS = 6
+# 1 octave:
+# NEIGHBORHOOD_RADIUS = 11
+# 1.5 octave
+#NEIGHBORHOOD_RADIUS = 17
 
-stream = converter.parse(inpath)
+MIDI_BASE_PATH = os.path.expanduser('~/Music/midi')
+MIDI_IN_PATH = os.path.join(MIDI_BASE_PATH, 'dillpick.mid')
+MIDI_OUT_PATH = os.path.join(MIDI_BASE_PATH, 'dillpick-out.mid')
+CSV_BASE_PATH = os.path.normpath("./")
+CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'dillpick.csv')
+
+note_stream = converter.parse(MIDI_IN_PATH)
 
 # now, I want to break out each part into note-on-note-off events
-# this will probably involve the .offsetMap to be done in ful generality;
+# this will probably involve the .offsetMap to be done in full generality;
 
-# for elem in stream.recurse():
+# for elem in note_stream.recurse():
 #     pass
 
 # For now I use the midi parser which gives us nice note-offs.
 # However, it separates voice parts. 
-mf = midi.translate.streamToMidiFile(stream)
+mf = midi.translate.streamToMidiFile(note_stream)
 
 # anyway, it will give us a cacnonical form for state transitions whcih we can try to analyse in various ways
 note_transitions = []
@@ -46,13 +58,7 @@ for i, track in enumerate([mf.tracks[0]]):
             
 # one possible representation of transitions
 # more generally, I'd like to do this using logistic lasso regression on neighbourhoods of notes.
-# how far I look to find neighbours
-# perfect 5th
-NEIGHBORHOOD_RADIUS = 6
-# 1 octave:
-# NEIGHBORHOOD_RADIUS = 11
-# 1.5 octave
-#NEIGHBORHOOD_RADIUS = 17
+
 curr_global_state = tuple()
 on_counts = dict()
 off_counts = dict()
@@ -82,10 +88,22 @@ for held_notes in note_transitions:
         if len(neighborhood)>0:
             print neighborhood
 
-#Convert to arrays for regression - left columns predictors, right 2 variates
-predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1))
-regressors = np.zeros((len(all_counts), 2))
-for i, predictor in enumerate(sorted(all_counts.keys())):
-    predictors[i][np.array(predictor, dtype='int32') + NEIGHBORHOOD_RADIUS] = 1
-    regressors[i][0] = all_counts.get(predictor, 0)
-    regressors[i][1] = on_counts.get(predictor, 0)
+# #Convert to arrays for regression - left columns predictors, right 2 variates
+# predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
+# regressors = np.zeros((len(all_counts), 2), dtype='int32')
+# for i, predictor in enumerate(sorted(all_counts.keys())):
+#     predictors[i][np.array(predictor, dtype='int32') + NEIGHBORHOOD_RADIUS] = 1
+#     regressors[i][0] = all_counts.get(predictor, 0)
+#     regressors[i][1] = on_counts.get(predictor, 0)
+
+# But sod it; we ain't doing analysis in python right now; let's pump this out to R
+fieldnames = [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['trials', 'passes']
+with open(CSV_OUT_PATH, 'w') as handle:
+    writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
+    writer.writerow(fieldnames)
+    for i, predictor in enumerate(sorted(all_counts.keys())):
+        writer.writerow(
+          [(1 if i in predictor else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + 
+          [all_counts.get(predictor, 0), on_counts.get(predictor, 0)]
+        )
+        
