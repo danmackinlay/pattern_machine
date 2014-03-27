@@ -76,6 +76,7 @@ for held_notes in note_transitions:
     domain = set(curr_global_state + next_global_state)
     for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
         neighborhood = []
+        # find ON notes:
         for i in curr_global_state:
             rel_pitch = i - local_pitch
             if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
@@ -86,10 +87,9 @@ for held_notes in note_transitions:
             on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
         else:
             off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
-        
-        curr_global_state = tuple(next_global_state)
         if len(neighborhood)>0:
             print neighborhood
+    curr_global_state = tuple(next_global_state)
 
 # #Convert to arrays for regression - left columns predictors, right 2 variates
 # predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
