@@ -48,4 +48,20 @@ rm(notes.on.successes)
 fit.on = cv.glmnet(as.matrix(notes.on[,-(ncol(notes.on))]),notes.on[,(ncol(notes.on))], family="binomial", alpha=1)
 fit.off = cv.glmnet(as.matrix(notes.off[,-(ncol(notes.off))]),notes.off[,(ncol(notes.off))], family="binomial", alpha=1)
 
-#glm.diag.plots(fit.on,glm.diag(fit.on))
+#data to fit the COMBINED model
+notes$totalHeld=rowSums(notes[substr(names(notes),1,1)=="X"])
+#remove initial nodes
+notes = subset(notes, totalHeld>0)
+notes$totalHeld = NULL
+
+notes.successes = notes[rep(row.names(notes), notes$ons),]
+notes.successes$ons=NULL
+notes.successes$offs=NULL
+notes.successes$result=1
+notes.fails = notes[rep(row.names(notes), notes$offs),]
+notes.fails$ons=NULL
+notes.fails$offs=NULL
+notes.fails$result=0
+notes = rbind(notes.successes, notes.fails)
+rm(notes.fails)
+rm(notes.successes)
