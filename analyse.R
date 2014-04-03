@@ -9,6 +9,8 @@ require("glmnet")
 # NB liblineaR has python binding
 # NB glmnet and liblineaR do not support interaction terms
 # NB glm doesn't support penalised regression.
+# nice vignette: http://nlp.stanford.edu/manning/courses/ling289/logistic.pdf
+# or traditional AIC style: http://data.princeton.edu/R/glms.html
 
 notes = read.csv("dillpick.csv", header=TRUE)
 
@@ -33,9 +35,26 @@ notes.off = rbind(notes.off.successes, notes.off.fails)
 rm(notes.off.fails)
 rm(notes.off.successes)
 
-notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~", paste(notes.off.predictor.names, collapse="+"))), lambda1=0, data=notes.off, model="logistic", trace=TRUE)
+#notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~", paste(notes.off.predictor.names, collapse="+"))), lambda1=0, data=notes.off, model="logistic", trace=TRUE)
 ## penalized:
 #notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")), lambda1=1, data=notes.off, model="logistic", trace=TRUE)
+# Finding an optimal cross-validated likelihood
+notes.off.opt = optL1(
+  response=notes.off$response,
+  penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")),
+  data=notes.off, model="logistic", trace=TRUE, fold = 10)
+coefficients(notes.off.opt$fullfit)
+plot(notes.off.opt$predictions)
+
+# Plotting the profile of the cross-validated likelihood
+notes.off.prof <- profL1(
+  response=notes.off$response,
+  penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")),
+  trace=TRUE, 
+  fold = opt$fold, steps=20)
+plot(notes.off.prof$lambda, notes.off.prof$cvl, type="l")
+plotpath(notes.off.prof$fullfit)
+
 
 #data to fit the note ADDITION mode.
 notes.on = notes[notes$X0==1,]
