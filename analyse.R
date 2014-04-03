@@ -36,15 +36,22 @@ notes.off = rbind(notes.off.successes, notes.off.fails)
 rm(notes.off.fails)
 rm(notes.off.successes)
 
-# #this would be how to manufacture interaction terms for oneself.
-# notes.on.predictor.names = colnames(notes.on)[-ncol(notes.on)]
-# notes.on.interaction.names = combn(note.on.predictor.names,2)
-# notes.on.interaction.strings = apply(notes.on.interaction.names, 2, function (col) {paste(as.list(col),  collapse="*")})
-# notes.on.interactions = apply(notes.on.interaction.names, 2, function (col) {notes.on[,col[1]]*notes.on[,col[2]]})
-# colnames(notes.on.interactions) = notes.on.interaction.strings
-# # homework: make sparse
-# # you would start with
-# # notes.on.predictors.sparse = as(data.matrix(notes.on[notes.on.predictor.names]), "sparseMatrix")
+# this would be how to manufacture interaction terms for oneself.
+# homework: make sparse
+# you would start with
+notes.off.predictors.sparse = as(data.matrix(notes.off[notes.off.predictor.names]), "sparseMatrix")
+notes.off.interaction.combs = combn(note.on.predictor.names,2)
+notes.off.interaction.strings = apply(
+  notes.off.interaction.combs, 2,
+  function (intn.names) {
+    paste(as.list(intn.names),  collapse="*")
+  })
+notes.off.interactions = apply(
+  notes.off.interaction.combs, 2,
+  function (intn.names) {
+    notes.off.predictors.sparse[,intn.names[1]]*notes.off.predictors.sparse[,intn.names[2]]
+  })
+colnames(notes.off.interactions) = notes.off.interaction.strings
 
 # Finding an optimal cross-validated likelihood
 notes.off.opt = optL1(
@@ -61,7 +68,6 @@ notes.off.prof <- profL1(
   fold = notes.off.opt$fold, steps=20)
 plot(notes.off.prof$lambda, notes.off.prof$cvl, type="l")
 plotpath(notes.off.prof$fullfit)
-
 
 #data to fit the note model, GIVEN THE CURRENT NOTE IS ON
 # i.e. note removal.
