@@ -15,7 +15,8 @@ notes = read.csv("dillpick.csv", header=TRUE)
 #data to fit the note REMOVAL model
 notes.off = notes[notes$X0==0,]
 notes.off[names(notes.off)=="X0"] = NULL
-notes.off$totalHeld=rowSums(notes.off[substr(names(notes.off),1,1)=="X"])
+notes.off.predictor.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
+notes.off$totalHeld=rowSums(notes.off[notes.off.predictor.names])
 #remove initial nodes
 notes.off = subset(notes.off, totalHeld>1) #is this coherent?
 notes.off$totalHeld = NULL
@@ -23,19 +24,24 @@ notes.off$totalHeld = NULL
 notes.off.successes = notes.off[rep(row.names(notes.off), notes.off$ons),]
 notes.off.successes$ons=NULL
 notes.off.successes$offs=NULL
-notes.off.successes$result=1
+notes.off.successes$response=1
 notes.off.fails = notes.off[rep(row.names(notes.off), notes.off$offs),]
 notes.off.fails$ons=NULL
 notes.off.fails$offs=NULL
-notes.off.fails$result=0
+notes.off.fails$response=0
 notes.off = rbind(notes.off.successes, notes.off.fails)
 rm(notes.off.fails)
 rm(notes.off.successes)
 
+notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~", paste(notes.off.predictor.names, collapse="+"))), lambda1=0, data=notes.off, model="logistic", trace=TRUE)
+## penalized:
+#notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")), lambda1=1, data=notes.off, model="logistic", trace=TRUE)
+
 #data to fit the note ADDITION mode.
 notes.on = notes[notes$X0==1,]
 notes.on[names(notes.on)=="X0"] = NULL
-notes.on$totalHeld=rowSums(notes.on[substr(names(notes.on),1,1)=="X"])
+notes.on.predictor.names = colnames(notes.on)[substr(names(notes.on),1,1)=="X"]
+notes.on$totalHeld=rowSums(notes.on[notes.on.predictor.name])
 #remove terminal nodes
 notes.on = subset(notes.on, totalHeld>0)
 notes.on$totalHeld = NULL
@@ -43,16 +49,18 @@ notes.on$totalHeld = NULL
 notes.on.successes = notes.on[rep(row.names(notes.on), notes.on$ons),]
 notes.on.successes$ons=NULL
 notes.on.successes$offs=NULL
-notes.on.successes$result=1
+notes.on.successes$response=1
 notes.on.fails = notes.on[rep(row.names(notes.on), notes.on$offs),]
 notes.on.fails$ons=NULL
 notes.on.fails$offs=NULL
-notes.on.fails$result=0
+notes.on.fails$response=0
 notes.on = rbind(notes.on.successes, notes.on.fails)
 rm(notes.on.fails)
 rm(notes.on.successes)
 
 #data to fit the COMBINED model, for tracking consonance
+notes.predictor.names = colnames(notes)[substr(names(notes),1,1)=="X"]
+notes[substr(names(notes),1,1)=="X"]
 notes$totalHeld=rowSums(notes[substr(names(notes),1,1)=="X"])
 #remove initial nodes
 notes = subset(notes, totalHeld>0)
@@ -61,11 +69,11 @@ notes$totalHeld = NULL
 notes.successes = notes[rep(row.names(notes), notes$ons),]
 notes.successes$ons=NULL
 notes.successes$offs=NULL
-notes.successes$result=1
+notes.successes$response=1
 notes.fails = notes[rep(row.names(notes), notes$offs),]
 notes.fails$ons=NULL
 notes.fails$offs=NULL
-notes.fails$result=0
+notes.fails$response=0
 notes = rbind(notes.successes, notes.fails)
 rm(notes.fails)
 rm(notes.successes)
