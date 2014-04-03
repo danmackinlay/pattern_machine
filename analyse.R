@@ -1,23 +1,16 @@
 require("glmnet")
 
-notes = read.csv("dillpick.csv", header=TRUE)
+#am I doing this wrong? I could model odds of each note going on conditional on environemtn.
+# could also model, conditional on environemtn, which note goes on.
 
-# neg log likelihood cost
-binomial.cost <- function(r, pi=0) {
-#   print("r");
-#   print(r);
-#   print("pi");
-#   print(pi);
-  return(sum(-log(r*pi+(1-r)*(1-pi))))
-}
-# Is this better than neg log likelihood?
+notes = read.csv("dillpick.csv", header=TRUE)
 
 #data to fit the note REMOVAL model
 notes.off = notes[notes$X0==0,]
 notes.off[names(notes.off)=="X0"] = NULL
 notes.off$totalHeld=rowSums(notes.off[substr(names(notes.off),1,1)=="X"])
 #remove initial nodes
-notes.off = subset(notes.off, totalHeld>1)
+notes.off = subset(notes.off, totalHeld>1) #is this coherent?
 notes.off$totalHeld = NULL
 
 notes.off.successes = notes.off[rep(row.names(notes.off), notes.off$ons),]
@@ -31,7 +24,6 @@ notes.off.fails$result=0
 notes.off = rbind(notes.off.successes, notes.off.fails)
 rm(notes.off.fails)
 rm(notes.off.successes)
-
 
 #data to fit the note ADDITION mode.
 notes.on = notes[notes$X0==1,]
