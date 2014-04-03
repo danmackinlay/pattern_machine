@@ -7,20 +7,21 @@ require("glmnet")
 
 # See packages glmnet, penalized, liblineaR, rms
 # NB liblineaR has python binding
-# NB glmnet and liblineaR do not support interaction terms
+# NB glmnet and liblineaR do not support interaction terms natively
 # NB glm doesn't support penalised regression.
 # nice vignette: http://nlp.stanford.edu/manning/courses/ling289/logistic.pdf
 # or traditional AIC style: http://data.princeton.edu/R/glms.html
 
 notes = read.csv("dillpick.csv", header=TRUE)
 
-#data to fit the note REMOVAL model
+# data to fit the note model, GIVEN THE CURRENT NOTE IS OFF
+# i.e. the note addition model
 notes.off = notes[notes$X0==0,]
 notes.off[names(notes.off)=="X0"] = NULL
 notes.off.predictor.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
 notes.off$totalHeld=rowSums(notes.off[notes.off.predictor.names])
-#remove initial nodes
-notes.off = subset(notes.off, totalHeld>1) #is this coherent?
+#remove initial nodes - i.e. there has to be one other note in range for this note to switch on
+notes.off = subset(notes.off, totalHeld>0)
 notes.off$totalHeld = NULL
 
 notes.off.successes = notes.off[rep(row.names(notes.off), notes.off$ons),]
@@ -56,12 +57,14 @@ plot(notes.off.prof$lambda, notes.off.prof$cvl, type="l")
 plotpath(notes.off.prof$fullfit)
 
 
-#data to fit the note ADDITION mode.
+#data to fit the note model, GIVEN THE CURRENT NOTE IS ON
+# i.e. note removal.
 notes.on = notes[notes$X0==1,]
 notes.on[names(notes.on)=="X0"] = NULL
 notes.on.predictor.names = colnames(notes.on)[substr(names(notes.on),1,1)=="X"]
 notes.on$totalHeld=rowSums(notes.on[notes.on.predictor.name])
 #remove terminal nodes
+# I.e. this note has to be interacting with at least one other note for us to care if it goes off
 notes.on = subset(notes.on, totalHeld>0)
 notes.on$totalHeld = NULL
 
