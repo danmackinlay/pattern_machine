@@ -1,6 +1,6 @@
-require("glmnet")
+require("penalized")
 
-# Am I doing this wrong? I could model odds of each note going on conditional on environemtn.
+# Am I doing this wrong? I could model odds of each note going on conditional on environment.
 # Could also model, conditional on environemtn, which note goes on.
 # More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
 # this would possibly more interpretable.
@@ -36,15 +36,21 @@ notes.off = rbind(notes.off.successes, notes.off.fails)
 rm(notes.off.fails)
 rm(notes.off.successes)
 
-#notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~", paste(notes.off.predictor.names, collapse="+"))), lambda1=0, data=notes.off, model="logistic", trace=TRUE)
-## penalized:
-#notes.off.fit=penalized(response=notes.off$response, penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")), lambda1=1, data=notes.off, model="logistic", trace=TRUE)
+# #this would be how to manufacture interaction terms for oneself.
+# notes.on.predictor.names = colnames(notes.on)[-ncol(notes.on)]
+# notes.on.interaction.names = combn(note.on.predictor.names,2)
+# notes.on.interaction.strings = apply(notes.on.interaction.names, 2, function (col) {paste(as.list(col),  collapse="*")})
+# notes.on.interactions = apply(notes.on.interaction.names, 2, function (col) {notes.on[,col[1]]*notes.on[,col[2]]})
+# colnames(notes.on.interactions) = notes.on.interaction.strings
+# # homework: make sparse
+# # you would start with
+# # notes.on.predictors.sparse = as(data.matrix(notes.on[notes.on.predictor.names]), "sparseMatrix")
+
 # Finding an optimal cross-validated likelihood
 notes.off.opt = optL1(
   response=notes.off$response,
   penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")),
   data=notes.off, model="logistic", trace=TRUE, fold = 10)
-coefficients(notes.off.opt$fullfit)
 plot(notes.off.opt$predictions)
 
 # Plotting the profile of the cross-validated likelihood
@@ -52,7 +58,7 @@ notes.off.prof <- profL1(
   response=notes.off$response,
   penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")),
   trace=TRUE, 
-  fold = opt$fold, steps=20)
+  fold = notes.off.opt$fold, steps=20)
 plot(notes.off.prof$lambda, notes.off.prof$cvl, type="l")
 plotpath(notes.off.prof$fullfit)
 
@@ -99,13 +105,3 @@ notes.fails$response=0
 notes = rbind(notes.successes, notes.fails)
 rm(notes.fails)
 rm(notes.successes)
-
-# #this would be how to manufacture interaction terms for oneself.
-# notes.on.predictor.names = colnames(notes.on)[-ncol(notes.on)]
-# notes.on.interaction.names = combn(note.on.predictor.names,2)
-# notes.on.interaction.strings = apply(notes.on.interaction.names, 2, function (col) {paste(as.list(col),  collapse="*")})
-# notes.on.interactions = apply(notes.on.interaction.names, 2, function (col) {notes.on[,col[1]]*notes.on[,col[2]]})
-# colnames(notes.on.interactions) = notes.on.interaction.strings
-# # homework: make sparse
-# # you would start with
-# # notes.on.predictors.sparse = as(data.matrix(notes.on[notes.on.predictor.names]), "sparseMatrix")
