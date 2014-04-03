@@ -1,7 +1,14 @@
 require("glmnet")
 
-#am I doing this wrong? I could model odds of each note going on conditional on environemtn.
-# could also model, conditional on environemtn, which note goes on.
+# Am I doing this wrong? I could model odds of each note going on conditional on environemtn.
+# Could also model, conditional on environemtn, which note goes on.
+# More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
+# this would possibly more interpretable.
+
+# See packages glmnet, penalized, liblineaR, rms
+# NB liblineaR has python binding
+# NB glmnet and liblineaR do not support interaction terms
+# NB glm doesn't support penalised regression.
 
 notes = read.csv("dillpick.csv", header=TRUE)
 
@@ -45,10 +52,7 @@ notes.on = rbind(notes.on.successes, notes.on.fails)
 rm(notes.on.fails)
 rm(notes.on.successes)
 
-fit.on = cv.glmnet(as.matrix(notes.on[,-(ncol(notes.on))]),notes.on[,(ncol(notes.on))], family="binomial", alpha=1)
-fit.off = cv.glmnet(as.matrix(notes.off[,-(ncol(notes.off))]),notes.off[,(ncol(notes.off))], family="binomial", alpha=1)
-
-#data to fit the COMBINED model
+#data to fit the COMBINED model, for tracking consonance
 notes$totalHeld=rowSums(notes[substr(names(notes),1,1)=="X"])
 #remove initial nodes
 notes = subset(notes, totalHeld>0)
@@ -65,3 +69,13 @@ notes.fails$result=0
 notes = rbind(notes.successes, notes.fails)
 rm(notes.fails)
 rm(notes.successes)
+
+# #this would be how to manufacture interaction terms for oneself.
+# notes.on.predictor.names = colnames(notes.on)[-ncol(notes.on)]
+# notes.on.interaction.names = combn(note.on.predictor.names,2)
+# notes.on.interaction.strings = apply(notes.on.interaction.names, 2, function (col) {paste(as.list(col),  collapse="*")})
+# notes.on.interactions = apply(notes.on.interaction.names, 2, function (col) {notes.on[,col[1]]*notes.on[,col[2]]})
+# colnames(notes.on.interactions) = notes.on.interaction.strings
+# # homework: make sparse
+# # you would start with
+# # notes.on.predictors.sparse = as(data.matrix(notes.on[notes.on.predictor.names]), "sparseMatrix")
