@@ -160,7 +160,7 @@ PSBasicCompareSynths {
 			ampobs = Amplitude.kr(observedsig).max(0.0001);
 			Amplitude.kr(Convolution.ar(targetsig, observedsig, framesize: 512)) / (
 				amptarget*ampobs
-			).log.obs;
+			).log;
 		});
 		/*Cepstral-based comparison that attempts to match amplitudes*/
 		this.makeComparer(\ps_judge_cepstral_distance, {

@@ -30,6 +30,7 @@ PSGaussCorrelate {
 		^arr_Erf.blendAt(inGaussian.linlin(-4, 4, 0, (length-1)));
 	}
 	*corr {|rho, inGaussian|
+		//output a covariate with specified correlation rho
 		var otherRand, inDim;
 		inDim = inGaussian.size;
 		otherRand = (inDim>0).if({
