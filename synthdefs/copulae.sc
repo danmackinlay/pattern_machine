@@ -7,7 +7,7 @@
 // Todo: there are off-by-one errors in the LUTs
 // Todo: make supplied RV optional
 
-PSInvNorm {
+PSInvPsi {
 	//gaussian quantile function
 	//http://home.online.no/~pjacklam/notes/invnorm/#The_algorithm
 	classvar a1 = -3.969683028665376e+01;
@@ -62,6 +62,48 @@ PSInvNorm {
 			((((d1*q+d2)*q+d3)*q+d4)*q+1);
 	}
 }
+
+/*
+gaussian CDF
+From Mathematica using
+MiniMaxApproximation[1/2 Erfc[-(x/Sqrt[2])],{x,{0,5},5,6},Bias->-0.0][[2,1]]
+(0.5 + 0.14471 x - 0.0475766 x^2 + 0.0103247 x^3 + 0.00770533 x^4 - 0.00173843 x^5)/
+(1 - 0.508492 x + 0.310832 x^2 - 0.0953128 x^3 +  0.02533 x^4 - 0.00331528 x^5 + 0.0000590544 x^6)
+
+HornerForm[MiniMaxApproximation[1/2 Erfc[-(x/Sqrt[2])],{x,{0,5},5,6},Bias->-0.0][[2,1]]]
+(8466.77 + x (2450.46 +  x (-805.641 + x (174.834 + (130.479 - 29.4377 x) x))))/
+(16933.6 +  x (-8610.58 + x (5263.49 + x (-1613.98 + x (428.927 + x (-56.1395 + 1. x))))))
+
+Alternative version, nicer:
+HornerForm[MiniMaxApproximation[ (1/2 Erfc[-(x/Sqrt[2])] -1/2)/x, {x,{0.1,5},3,5}, Bias->-0][[2,1]] *x]
+(x (-664.282+x (211.052 +(-54.6369-3.13535 x) x)))/
+(-1665.13+x (529.232 +x (-414.991+x (80.874 +x (-28.0145+1.0x)))))
+*/
+
+PSPsi {
+	classvar a1 = -3.13535;
+	classvar a2 = -54.6369;
+	classvar a3 = 211.052;
+	classvar a4 = -664.282;
+
+	classvar b2 = -28.0145;
+	classvar b3 = 80.874;
+	classvar b4 = -414.991;
+	classvar b5 = 529.232;
+	classvar b6 = -1665.13;
+
+	*new{|p|
+		var flip;
+		p = p.clip(-5,5);
+		flip = 1-(2*(p<0.0).asInt);
+		^0.5+(flip*this.halfPsi(flip*p));
+	}
+	*halfPsi {|p|
+		^(((a1*p+a2)*p+a3)*p+a4)*p /
+			(((((p+b2)*p+b3)*p+b4)*p+b5)*p+b6);
+	}
+}
+
 
 PSGaussCorrelate {
 	classvar <arr_Erf, <arr_iErf;
