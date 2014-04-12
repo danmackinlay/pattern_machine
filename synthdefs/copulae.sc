@@ -39,12 +39,12 @@ PSInvPsi {
 
 	*new{|p|
 		var isRightSide;
-		isRightSide = (p>0.5).asInt;
+		isRightSide = (p>0.5)*1;
 		^(1-(2*isRightSide))*this.leftSide(p.fold(0.0,0.5));
 	}
 	*leftSide{|p|
 		var isLow;
-		isLow = (p<pLow).asInt;
+		isLow = (p<pLow)*1;
 		^(isLow*this.lowSection(p)+((1-isLow)*this.midSection(p)));
 	}
 	*midSection {|p|
@@ -95,7 +95,7 @@ PSPsi {
 	*new{|p|
 		var flip;
 		p = p.clip(-5,5);
-		flip = 1-(2*(p<	0.0).asInt);
+		flip = 1-((p<0.0)*2);
 		^0.5+(flip*this.halfPsi(flip*p));
 	}
 	*halfPsi {|p|
