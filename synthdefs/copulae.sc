@@ -95,7 +95,7 @@ PSPsi {
 	*new{|p|
 		var flip;
 		p = p.clip(-5,5);
-		flip = 1-(2*(p<0.0).asInt);
+		flip = 1-(2*(p<	0.0).asInt);
 		^0.5+(flip*this.halfPsi(flip*p));
 	}
 	*halfPsi {|p|
@@ -106,26 +106,13 @@ PSPsi {
 
 
 PSGaussCorrelate {
-	classvar <arr_Erf, <arr_iErf;
-	classvar <length=513;
-
-	*initClass{
-		StartUp.add({
-			this.init;
-		});
-	}
-	*init {
-		//pretty sure there is an off-by-one error here. 
-		arr_Erf = Array.interpolation(length,-4,4).collect(_.gaussCurve).integrate.normalize;
-		arr_iErf = Array.interpolation(length).collect({|v| arr_Erf.indexInBetween(v)}).normalize(-4,4);
-	}
 	*gaussianize {|inUniform|
 		//transform a Uniform RV to a Gaussian RV
-		^arr_iErf.blendAt(inUniform*(length-1));
+		^PSPsi(inUniform);
 	}
 	*degaussianize {|inGaussian|
 		//transform a Gaussian RV to a Uniform one
-		^arr_Erf.blendAt(inGaussian.linlin(-4, 4, 0, (length-1)));
+		^PSInvPsi(inGaussian);
 	}
 	*corr {|rho, inGaussian|
 		//output a covariate with specified correlation rho
@@ -142,25 +129,9 @@ PSGaussCorrelate {
 }
 
 PSUGaussCorrelate : PSGaussCorrelate {
-	*krGaussianize {|inUniform|
-		//UGen-happy version
-		^IndexL.kr(LocalBuf.newFrom(arr_iErf), inUniform * (length-1));
-	}
-	*krDegaussianize {|inUniform|
-		//UGen-happy version
-		^IndexL.kr(LocalBuf.newFrom(arr_Erf), inUniform.linlin(-4, 4, 0, (length-1)));
-	}
 	*kr {|rho, inGaussian|
 		var otherRand = this.krGaussianize(WhiteNoise.kr(0.5, 0.5));
 		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
-	}
-	*arGaussianize {|inUniform|
-		//UGen-happy version
-		^IndexL.ar(LocalBuf.newFrom(arr_iErf), inUniform * (length-1));
-	}
-	*arDegaussianize {|inUniform|
-		//UGen-happy version
-		^IndexL.ar(LocalBuf.newFrom(arr_Erf), inUniform.linlin(-4, 4, 0, (length-1)));
 	}
 	*ar {|rho, inGaussian|
 		var otherRand = this.arGaussianize(WhiteNoise.ar(0.5, 0.5));
