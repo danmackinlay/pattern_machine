@@ -1,10 +1,4 @@
 /* Gaussian copula calcs and Pseudo-Ugens*/
-// Todo: currenlty the (4 sigma) buffer is inefficient because
-//		1) it is symmetric and
-//		2) many samples are at the fringes.
-//	  This could be made more efficient by polynomial warping and/or symmetrisation.
-// Todo: triggered version
-// Todo: there are off-by-one errors in the LUTs
 // Todo: make supplied RV optional
 
 PSInvPsi {
