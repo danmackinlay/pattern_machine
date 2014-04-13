@@ -19,7 +19,7 @@ LinCongRNG  {
 		state = xi ? state;
 		^this.step
 	}
-	*new {|a=4.111111, c=0.53335, m=1.0, state = 0.49887|
+	*new {|a=8.117111, c=0.23335, m=1.0, state = 0.49687|
 		^super.newCopyArgs(a,c,m,state);
 	}
 }
