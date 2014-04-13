@@ -101,27 +101,33 @@ PSPsi {
 }
 
 PSGaussCorrelate {
-	*new {|rho, inGaussian|
+	*new {|rho, thisRand, otherRand|
+		//output a covariate with specified correlation rho, with default value
+		^this.gaussGaussToGauss(rho, thisRand, otherRand ?? {0.gauss(1)});
+	}
+	*gaussGaussToGauss {|rho, thisRand, otherRand|
 		//output a covariate with specified correlation rho
-		var otherRand, inDim;
-		inDim = inGaussian.size;
-		otherRand = (inDim>0).if({
-			//cast to array if we want many values at once.
-			{0.gauss(1)}.dup(inDim);
-		},{
-			0.gauss(1);
-		});
-		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
+		^(thisRand * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
-}
-
-PSUGaussCorrelate : PSGaussCorrelate {
-	*kr {|rho, inGaussian|
-		var otherRand = PSPsi(WhiteNoise.kr(0.5, 0.5));
-		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
+	*gaussGaussToUnif {|rho, thisRand, otherRand|
+		^PSPsi(this.gaussGaussToGauss(rho, thisRand, otherRand));
 	}
-	*ar {|rho, inGaussian|
-		var otherRand = PSPsi(WhiteNoise.ar(0.5, 0.5));
-		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
+	*gaussUnifToGauss {|rho, thisRand, otherRand|
+		^this.gaussGaussToGauss(rho, thisRand, PSInvPsi(otherRand));
+	}
+	*gaussUnifToUnif {|rho, thisRand, otherRand|
+		^PSPsi(this.gaussUnifToGauss(rho, thisRand, otherRand));
+	}
+	*unifGaussToGauss {|rho, thisRand, otherRand|
+		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand);
+	}
+	*unifGaussToUnif {|rho, thisRand, otherRand|
+		^PSPsi(this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand));
+	}
+	*unifUnifToGauss {|rho, thisRand, otherRand|
+		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), PSInvPsi(otherRand));
+	}
+	*unifUnifToUnif {|rho, thisRand, otherRand|
+		^PSPsi(this.gaussUnifToGauss(rho, PSInvPsi(thisRand), PSInvPsi(otherRand)));
 	}
 }
