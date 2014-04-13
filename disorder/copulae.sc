@@ -1,5 +1,7 @@
 /* Gaussian copula calcs and Pseudo-Ugens*/
-// Todo: make supplied RV optional
+// Todo: make supplied RV option
+// See also http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some faster, simpler, albeit inaccurate algorithms and 
+// http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simplet algorithms
 
 PSInvPsi {
 	//gaussian quantile function
@@ -98,17 +100,8 @@ PSPsi {
 	}
 }
 
-
 PSGaussCorrelate {
-	*gaussianize {|inUniform|
-		//transform a Uniform RV to a Gaussian RV
-		^PSPsi(inUniform);
-	}
-	*degaussianize {|inGaussian|
-		//transform a Gaussian RV to a Uniform one
-		^PSInvPsi(inGaussian);
-	}
-	*corr {|rho, inGaussian|
+	*new {|rho, inGaussian|
 		//output a covariate with specified correlation rho
 		var otherRand, inDim;
 		inDim = inGaussian.size;
@@ -124,11 +117,11 @@ PSGaussCorrelate {
 
 PSUGaussCorrelate : PSGaussCorrelate {
 	*kr {|rho, inGaussian|
-		var otherRand = this.krGaussianize(WhiteNoise.kr(0.5, 0.5));
+		var otherRand = PSPsi(WhiteNoise.kr(0.5, 0.5));
 		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
 	*ar {|rho, inGaussian|
-		var otherRand = this.arGaussianize(WhiteNoise.ar(0.5, 0.5));
+		var otherRand = PSPsi(WhiteNoise.ar(0.5, 0.5));
 		^(inGaussian * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
 }
