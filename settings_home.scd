@@ -15,7 +15,7 @@
 ~pxwidth =1280;
 ~pxheight =720;
 ~minDb=(-45.0);
-~maxDb=(-10.0);
+~maxDb=(-5.0);
 ~minF=55;
 ~n_octaves=7;
 ~n_ring_speakers = 2; //testing

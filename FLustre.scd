@@ -46,10 +46,40 @@
 	~pxheight,
 	~listenPort
 );
+~launchViz = {
+	var cliOutput, vizPid;
+	cliOutput = ~visualizercli.unixCmdGetStdOut.split($@);
+	(cliOutput.size>1).if({
+		//probably worked if we have a PID surrounded by @
+		vizPid=cliOutput[1].asInteger;
+	}, {
+		//sometimes we mysteriously get a naked PID
+		vizPid=cliOutput[0].asInteger;
+	});
+	(vizPid<=0).if({
+		"oops! no PID found in output".warn;
+		cliOutput.join("").warn;
+		nil;
+	}, {
+		"process pid % found".format(vizPid).postln;
+		vizPid;
+	});
+};
+~replaceSound = {|relPath="note_sweep.aif"|
+	~soundBuf.read(~soundsdir +/+ relPath, action: {|buf|
+		{buf.plot;}.defer;
+		~startAnalysis.value()
+	});
+	/*~soundBuf.read(~soundsdir +/+ relPath, action: {|buf|
+		~startAnalysis.value()
+	});*/
+};
+//~replaceSound.value("note_sweep.aif");
+//~replaceSound.value("draingigm.wav");
+//~replaceSound.value("chimegongfrenzy.aif");
 
 ////////// Analysing sounds
 Server.default.waitForBoot({fork {
-	var cliOutput;
 	SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(~duration)|
 		//every time you set this input, this keeps it at 1 for dur seconds
 		var gate = Trig1.kr(
@@ -119,12 +149,13 @@ Server.default.waitForBoot({fork {
 	~triggerBus = Bus.control(s,1);
 	~analBus = Bus.audio(s,1);
 	~listenGroup = Group.new(s);
-	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "chimegongfrenzy.aif");
-	//~soundBuf = Buffer.read(s, ~soundsdir +/+ "note_sweep.aif");
-	~soundBuf = Buffer.read(s, ~soundsdir +/+ "draingigm.wav");
+	~soundBuf = Buffer.alloc(s, s.sampleRate * 30.0, 1);
+	s.sync;
+	~soundBuf.read(~soundsdir +/+ "chimegongfrenzy.aif", action: {|buf| {buf.plot;}.defer});
+
 	~initICST.value;
 	~debugpostln.([\here,~here],1);
-	s.sync;
+
 	~trigger = Synth.new(\longtrigger,
 		[\bus, ~triggerBus, \dur, ~duration],
 		target: ~listenGroup, addAction:\addBefore);
@@ -153,6 +184,8 @@ Server.default.waitForBoot({fork {
 		~trigger.set(\t_go,1);
 		~visualizer.sendMsg("/viz/init", ~n_bpbands_total, ~n_steps, ~duration, ~pollrate);
 	};
+	// kill the whatsit if it's already running
+	// should only occur during testing.
 	~stopFLustre.isFunction.if({~stopFLustre.value;});
 	~stopFLustre = {
 		var killer = "kill %".format(~vizpid);
@@ -169,7 +202,7 @@ Server.default.waitForBoot({fork {
 		(tid==0).if({
 			~timeStep = ~timeStep + 1;
 			~nextBandRow.any(_.notNil).if({
-				~visualizer.sendMsg("/viz/bands", *(~nextBandRow.linlin(~minDb,~maxDb,0,1).asFloat));
+				~visualizer.sendMsg("/viz/bands", *(~nextBandRow.linlin(~minDb, ~maxDb,0,1).asFloat));
 			});
 			~visualizer.sendMsg("/viz/step", val);
 			~bandtimes = ~bandtimes.add(val);
@@ -323,23 +356,9 @@ Server.default.waitForBoot({fork {
 		~triggerBus.free;
 		~analBus.free;
 	};
-	//listen for notification from processing that the app has just started up
+	//listen for notification from processing that the visualizer app has just started up
 	OSCdef.newMatching(\reanalyse, ~startAnalysis, "/viz/alive");
 	//launch said visualizer
-	cliOutput = ~visualizercli.unixCmdGetStdOut.split($@);
-	(cliOutput.size>1).if({
-		//probably worked if we have a PID surrounded by @
-		~vizpid=cliOutput[1].asInteger;
-	}, {
-		//sometimes we mysteriously get a naked PID
-		~vizpid=cliOutput[0].asInteger;
-	});
-	(~vizpid<=0).if({
-		"oops! no PID found in output".warn;
-		cliOutput.join("").warn;
-		~vizpid=nil;
-	}, {
-		"process pid % found".format(~vizpid).postln;
-	});
+	~vizPid = ~launchViz.value;
 }});
 )
