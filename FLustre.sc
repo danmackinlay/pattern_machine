@@ -102,7 +102,7 @@ FLustre {
 		minDb=(-45.0), maxDb=(-5.0),
 		debugLvl=0|
 		^super.newCopyArgs(
-			server ?? {server},
+			server ?? {Server.default},
 			workingDir,
 			nRingSpeakers,
 			nSpeakerRings,
@@ -116,7 +116,8 @@ FLustre {
 			sampleDuration,
 			pollRate,
 			minFreq, nOctaves, nBpBandsPerOctave,
-			minDb, maxDb
+			minDb, maxDb,
+			debugLvl
 		).init;
 	}
 	init {
@@ -274,7 +275,7 @@ FLustre {
 				level: 0.5,
 				orientation: 0.5
 			).dup(nSpeakerRings).flat; //could use PanX for a quick fade here.
-			Out.ar(outputBuses, pannedsig);
+			Out.ar(out, pannedsig);
 		}, metadata:(specs:(
 				pointer: \unipolar,
 				freq: ControlSpec(minFreq, maxFreq, \exp)
@@ -288,13 +289,13 @@ FLustre {
 				triggerBus = Bus.control(server,1);
 				analBus = Bus.audio(server,1);
 				listenGroup = Group.new(server);
-				soundBuf = Buffer.alloc(server, server.sampleRate * 30.0, 1);
+				soundBuf = Buffer.alloc(server, server.sampleRate * sampleDuration, 1);
 				outputBuses = Bus.new(\audio, firstOutputBus, nSpeakers, server);
 				this.initICST;
 				server.sync;
 				//fill up with some dummy data
 				soundBuf.read(soundsDir +/+ "chimegongfrenzy.aif", action: {|buf| {buf.plot;}.defer});
-				this.debugpostln([\here,workingDir],1);
+				this.debugPostln([\here,workingDir],1);
 				analTrigger = Synth.new(\longtrigger,
 					[\bus, triggerBus, \dur, sampleDuration],
 					target: listenGroup, addAction:\addBefore);
@@ -378,13 +379,13 @@ FLustre {
 	tuioWorker {|message, time, add, port|
 		//Called after frame updates. Actual work should happen here.
 		touchesToStop.do({|k|
-			this.debugpostln(["killing",k],0);
+			this.debugPostln(["killing",k],0);
 			touchCoords.removeAt(k);
 			touchSynths.removeAt(k).release;
 		});
 		touchesToStart.do({|k|
 			var coords = touchCoords[k]; //should not be empty by the end of the frame
-			this.debugpostln(["starting",k],0);
+			this.debugPostln(["starting",k],0);
 
 			touchSynths[k] = Synth.new(\harmonic_grain, [
 				\out, outputBuses,
