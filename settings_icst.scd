@@ -1,25 +1,5 @@
-////////// Config vars
-//~here = "pwd".unixCmdGetStdOut.stripWhiteSpace;
-~here = "/Users/icst/Desktop/Dan/f_lustre";
-~xmin=0;
-~xmax=4; //ICST production
-~ymin=0;
-~ymax=1;
-~n_chromabands=12;
-~n_bpbands_oct=12;
-~pollrate=100.0;
-~duration=10.0;
-~visualizer = NetAddr.new("127.0.0.1", 3334);
-~trackerMaster = NetAddr.new("224.0.0.1", 64000);
-~syphonClient= NetAddr.new("127.0.0.1", 8400);
-~listenPort = 3333;
-~pxwidth = 1280*4;
-~pxheight =720;
-~minDb=(-45.0);
-~maxDb=(-5.0);
-~minF=55;
-~n_octaves=7;
-~n_ring_speakers = 8; //ICST
-~n_speaker_rings = 2; //ICST
-~firstOutputBus = 0;
-~debuglvl=1;
+~fl=FLustre.new(workingDir: "/Users/icst/Desktop/Dan/f_lustre", xMax:4, pixWidth: 1280*4, pixHeight:720, nRingSpeakers: 8, nSpeakerRings:2, firstOutputBus: 0, debugLvl: -1);
+~fl.replaceSound.value("note_sweep.aif");
+~fl.replaceSound.value("draingigm.wav");
+~fl.replaceSound.value("chimegongfrenzy.aif");
+//~workingDir = "pwd".unixCmdGetStdOut.stripWhiteSpace;
