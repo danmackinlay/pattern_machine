@@ -58,6 +58,7 @@ FLustre {
 	var <nAnalSteps;
 	var <allBpFreqs;
 	var <visualizerCommand;
+	var <numFrames;
 	
 	//state variables dependent on real world factors.
 	var <triggerBus;
@@ -132,7 +133,7 @@ FLustre {
 		xPanMap = {|v| v.linlin(xMin,xMax,-1.0,1.0)};
 		xPosMap= {|v| v.linlin(xMin,xMax,0.0,1.0)};
 		yPosMap = {|v| v.linlin(yMin,yMax,0.0,1.0)};
-		nAnalSteps = (sampleDuration*pollRate+1).asInteger;
+		nAnalSteps = (sampleDuration*pollRate+1).ceil.asInteger;
 		allBpFreqs = (Array.series(nBpBandsTotal)/nBpBandsTotal).collect(freqMap);
 		visualizerCommand="open % --args width=% height=% respondport=%;pgrep -f -n FLustreDisplay".format(
 			workingDir +/+ "FLustreDisplay/application.macosx/FLustreDisplay.app".shellQuote,
@@ -172,13 +173,14 @@ FLustre {
 		});
 	}
 	replaceSound {|relPath="note_sweep.aif"|
-		soundBuf.read(soundsDir +/+ relPath, action: {|buf|
-			{buf.plot;}.defer;
-			this.startAnalysis;
-		});
-		/*soundBuf.read(soundsDir +/+ relPath, action: {|buf|
-			this.startAnalysis;
-		});*/
+		soundBuf.read(soundsDir +/+ relPath,
+			numFrames: numFrames,
+			action: {|buf|
+				//Note, the buffer *won't* actually be defined here, but rather blank
+				this.debugPostln(buf.asCompileString++buf.bufnum);
+				this.startAnalysis;
+			}
+		);
 	}
 	loadSynthDefs {
 		SynthDef.new(\longtrigger, {|t_go=0, bus=0, dur=(sampleDuration)|
@@ -286,15 +288,16 @@ FLustre {
 		server.waitForBoot({
 			fork {
 				this.loadSynthDefs;
+				numFrames = server.sampleRate * sampleDuration;
 				triggerBus = Bus.control(server,1);
 				analBus = Bus.audio(server,1);
 				listenGroup = Group.new(server);
-				soundBuf = Buffer.alloc(server, server.sampleRate * sampleDuration, 1);
+				soundBuf = Buffer.alloc(server, numFrames, 1);
 				outputBuses = Bus.new(\audio, firstOutputBus, nSpeakers, server);
 				this.initICST;
 				server.sync;
 				//fill up with some dummy data
-				soundBuf.read(soundsDir +/+ "chimegongfrenzy.aif", action: {|buf| {buf.plot;}.defer});
+				soundBuf.read(soundsDir +/+ "chimegongfrenzy.aif", numFrames: numFrames, action: {|buf| {buf.plot;}.defer});
 				this.debugPostln([\here,workingDir],1);
 				analTrigger = Synth.new(\longtrigger,
 					[\bus, triggerBus, \dur, sampleDuration],
@@ -333,12 +336,12 @@ FLustre {
 		});
 	}
 	startAnalysis {
-		bandAmps = Array.new(nAnalSteps);
-		bandTimes = Array.new(nAnalSteps);
-		nextBandRow = Array.newClear(nBpBandsTotal);
+		bandAmps = Array.fill(nAnalSteps,0);
+		bandTimes = Array.fill(nAnalSteps,0);
+		nextBandRow = Array.fill(nBpBandsTotal,0);
 		timeStep = -1;
 		visualizerAddress.sendMsg("/viz/init", nBpBandsTotal, nAnalSteps, sampleDuration, pollRate);
-		analTrigger.set(\t_go,1);
+		analTrigger.set(\t_go, 1);
 	}
 	bandLogger {|msg, time, addr, port|
 		var path, nid, tid, val;
@@ -350,16 +353,16 @@ FLustre {
 			});
 			visualizerAddress.sendMsg("/viz/step", val);
 			bandTimes = bandTimes.add(val);
-			nextBandRow = Array.newClear(nBpBandsTotal);
+			nextBandRow = Array.fill(nBpBandsTotal,0);
 			bandAmps = bandAmps.add(nextBandRow);
 		},{
 			nextBandRow[tid-1]=val;
 		});
 	}
-	tuioSetter {|message, time, add, port|
+	tuioSetter {|msg, time, add, port|
 		var k, coords;
-		k = message[2];
-		coords = message.copyRange(3,message.size);
+		k = msg[2];
+		coords = msg.copyRange(3,msg.size);
 		touchCoords[k] = coords;
 		touchSynths[k].notNil.if({
 			var synth = touchSynths[k];
@@ -368,15 +371,15 @@ FLustre {
 			synth.set(\xpan, xPanMap.value(coords[0]));
 		});
 	}
-	tuioAliver {|message, time, add, port|
+	tuioAliver {|msg, time, add, port|
 		//This one just has to kill dead blobs
 		var prevLiving, nowLiving;
-		nowLiving = message.copyRange(2,message.size).as(IdentitySet);
+		nowLiving = msg.copyRange(2,msg.size).as(IdentitySet);
 		prevLiving = touchCoords.keys.as(IdentitySet);
 		touchesToStop = (prevLiving-nowLiving);
 		touchesToStart = (nowLiving-prevLiving);
 	}
-	tuioWorker {|message, time, add, port|
+	tuioWorker {|msg, time, add, port|
 		//Called after frame updates. Actual work should happen here.
 		touchesToStop.do({|k|
 			this.debugPostln(["killing",k],0);
