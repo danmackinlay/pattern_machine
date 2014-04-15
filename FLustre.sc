@@ -308,10 +308,10 @@ FLustre {
 				server.sync;
 				sfPlayer.map(\gate, triggerBus);
 				bandAnalyser.map(\gate, triggerBus);
-				OSCdef.newMatching(\pollbands, {this.bandLogger}, "/tr", argTemplate: [bandAnalyser.nodeID, nil, nil]);
-				OSCdef.newMatching(\pollend, {|...args| visualizerAddress.sendMsg("/viz/stop");}, "/tr", argTemplate: [analTrigger.nodeID, 0, nil]);
+				OSCdef.newMatching(\pollbands, {|...argz| this.bandLogger(*argz)}, "/tr", argTemplate: [bandAnalyser.nodeID, nil, nil]);
+				OSCdef.newMatching(\pollend, {|...argz| visualizerAddress.sendMsg("/viz/stop");}, "/tr", argTemplate: [analTrigger.nodeID, 0, nil]);
 				//listen for notification from processing that the visualizer app has just started 
-				OSCdef.newMatching(\reanalyse, {this.startAnalysis}, "/viz/alive");
+				OSCdef.newMatching(\reanalyse, {|...argz| this.startAnalysis(*argz)}, "/viz/alive");
 				//launch said visualizer
 				this.launchViz;
 				////////////Playing sounds
@@ -326,9 +326,9 @@ FLustre {
 					target: fxGroup,
 					addAction:\addToHead
 				);
-				OSCdef.newMatching(\touchset, {this.tuioSetter}, "/tuio/2Dcur", recvPort: touchListenPort, argTemplate:["set"]);
-				OSCdef.newMatching(\touchalive, {this.tuioAliver}, "/tuio/2Dcur", recvPort: touchListenPort, argTemplate: ["alive"]);
-				OSCdef.newMatching(\touchupdate, {this.tuioWorker}, "/tuio/2Dcur", recvPort: touchListenPort, argTemplate: ["fseq"]);
+				OSCdef.newMatching(\touchset, {|...argz| this.tuioSetter(*argz)}, "/tuio/2Dcur", recvPort: touchListenPort, argTemplate:["set"]);
+				OSCdef.newMatching(\touchalive, {|...argz| this.tuioAliver(*argz)}, "/tuio/2Dcur", recvPort: touchListenPort, argTemplate: ["alive"]);
+				OSCdef.newMatching(\touchupdate, {|...argz| this.tuioWorker(*argz)}, "/tuio/2Dcur", recvPort: touchListenPort, argTemplate: ["fseq"]);
 			}
 		});
 	}
