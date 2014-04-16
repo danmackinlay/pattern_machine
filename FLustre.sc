@@ -3,9 +3,12 @@
  *
  * turn this into a class to make it less horribly chaotic.
  * pause unused (analysis) synths
+ * switch to TCP instead of UDP to avoid dropped packets
  * spectral improvements
    * colourise spectral display to indicate chromaticity
    * detect (and visualise) noisiness vs percussiveness?
+   * check pixel dimensions of the vizualiser app
+   * what does weird with high amplitude bands?
  * web version
  * sound nicer
    * reverb. C'mon, the kids love reverb.
@@ -109,7 +112,7 @@ FLustre {
 			nSpeakerRings,
 			xMin, xMax, yMin, yMax,
 			pixWidth, pixHeight,
-			firstOutputBus=0,
+			firstOutputBus,
 			visualizerAddress ?? {NetAddr.new("127.0.0.1", 3334)},
 			trackerMasterAddress ?? {NetAddr.new("224.0.0.1", 64000)},
 			syphonClientAddress ?? {NetAddr.new("127.0.0.1", 8400)},
@@ -193,7 +196,7 @@ FLustre {
 			SendTrig.kr (in: (Delay1.kr(gate)-gate), id: 0, value: gate);
 			Out.kr(bus, gate);
 		}).add;
-		SynthDef.new(\play_buf_inst, {|gate=0, out=0, buf=0|
+		SynthDef.new(\play_buf, {|gate=0, out=0, buf=0|
 			Out.ar(out,
 				PlayBuf.ar(1, buf,
 					rate:gate, trigger:gate,
@@ -301,13 +304,13 @@ FLustre {
 				this.debugPostln([\here,workingDir],1);
 				analTrigger = Synth.new(\longtrigger,
 					[\bus, triggerBus, \dur, sampleDuration],
-					target: listenGroup, addAction:\addBefore);
-				sfPlayer = Synth.new(\play_buf_inst,
-					[\out, analBus],
+					target: listenGroup, addAction: \addBefore);
+				sfPlayer = Synth.new(\play_buf,
+					[\out, analBus, \buf, soundBuf],
 					target: listenGroup, addAction:\addToHead);
 				bandAnalyser = Synth.new(\report_bands,
 					[\inbus, analBus],
-					target: listenGroup, addAction:\addToTail);
+					target: listenGroup, addAction: \addToTail);
 				server.sync;
 				sfPlayer.map(\gate, triggerBus);
 				bandAnalyser.map(\gate, triggerBus);
