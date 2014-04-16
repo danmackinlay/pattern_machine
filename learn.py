@@ -26,6 +26,13 @@ TIME_SMEAR = 0.125001
 # I wonder if it makes a difference to calculate state *change* formulae rather than on-off forumlae?
 # Seems that we might not want to penalise repeating a note a lot etc
 # I wonder if we want to give note 0 its own interaction term with all the others? probably.
+# Also possible: discard negative data. Weight likelihood solely by positives.
+# No that's crazy. but interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
+# # Convolution amplitude (effectively fourier comparison)
+# # mutual information of square waves at specified frequency (discrete distribution!)
+# # # or Pearson statistic!
+# # or mutual information of wavelength countat specified frequency
+# could be windowed. Real human hearing is, after all...
 
 MIDI_BASE_PATH = os.path.expanduser('~/Music/midi/rag/')
 MIDI_IN_PATH = os.path.join(MIDI_BASE_PATH, 'dillpick.mid')
@@ -84,28 +91,54 @@ on_counts = dict()
 off_counts = dict()
 all_counts = dict()
 
-# make a sparse dict of transitiona
-for held_notes in note_transitions:
-    next_global_state = tuple(sorted(held_notes.keys()))
-    # we only want to look at notes within a neighbourhood of something happening
-    # otherwise nothing->nothing dominates the data
-    domain = set(curr_global_state + next_global_state)
-    for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
-        neighborhood = []
-        # find ON notes:
-        for i in curr_global_state:
-            rel_pitch = i - local_pitch
-            if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
-                neighborhood.append(rel_pitch)
-        neighborhood = tuple(neighborhood)
-        all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
-        if local_pitch in next_global_state:
-            on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
-        else:
-            off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
-        #if len(neighborhood)>0:
-        #    print neighborhood
-    curr_global_state = tuple(next_global_state)
+def transition_summary(note_transitions):
+    # make dict form transition summary
+    for held_notes in note_transitions:
+        next_global_state = tuple(sorted(held_notes.keys()))
+        # we only want to look at notes within a neighbourhood of something happening
+        # otherwise nothing->nothing dominates the data
+        domain = set(curr_global_state + next_global_state)
+        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
+            neighborhood = []
+            # find ON notes:
+            for i in curr_global_state:
+                rel_pitch = i - local_pitch
+                if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
+                    neighborhood.append(rel_pitch)
+            neighborhood = tuple(neighborhood)
+            all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
+            if local_pitch in next_global_state:
+                on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
+            else:
+                off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
+            #if len(neighborhood)>0:
+            #    print neighborhood
+        curr_global_state = tuple(next_global_state)
+
+def all_trials(note_transitions):
+    # make list of trials - easily up to 10**5/minute. Be careful.
+    for held_notes in note_transitions:
+        next_global_state = tuple(sorted(held_notes.keys()))
+        # we only want to look at notes within a neighbourhood of something happening
+        # otherwise nothing->nothing dominates the data
+        domain = set(curr_global_state + next_global_state)
+        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
+            neighborhood = []
+            # find ON notes:
+            for i in curr_global_state:
+                rel_pitch = i - local_pitch
+                if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
+                    neighborhood.append(rel_pitch)
+            neighborhood = tuple(neighborhood)
+            all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
+            if local_pitch in next_global_state:
+                on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
+            else:
+                off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
+            #if len(neighborhood)>0:
+            #    print neighborhood
+        curr_global_state = tuple(next_global_state)
+
 
 # #Convert to arrays for regression - left columns predictors, right 2 responses
 # predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
