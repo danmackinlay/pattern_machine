@@ -39,7 +39,7 @@ FLustre {
 	var <trackerMasterAddress;
 	var <syphonClientAddress;
 	var <touchListenPort;
-	var <sampleDuration;
+	var <sampleDisplayDuration;
 	var <pollRate;
 	var <minFreq;
 	var <nOctaves;
@@ -62,7 +62,8 @@ FLustre {
 	var <allBpFreqs;
 	var <visualizerCommand;
 	var <numFrames;
-	
+	var <sampleDuration;
+
 	//state variables dependent on real world factors.
 	var <triggerBus;
 	var <analBus;
@@ -100,7 +101,7 @@ FLustre {
 		trackerMasterAddress,
 		syphonClientAddress,
 		touchListenPort=3333,
-		sampleDuration=10.0,
+		sampleDisplayDuration=10.0,
 		pollRate=100.0,
 		minFreq=55, nOctaves=7, nBpBandsPerOctave=12,
 		minDb=(-45.0), maxDb=(-5.0),
@@ -117,7 +118,7 @@ FLustre {
 			trackerMasterAddress ?? {NetAddr.new("224.0.0.1", 64000)},
 			syphonClientAddress ?? {NetAddr.new("127.0.0.1", 8400)},
 			touchListenPort,
-			sampleDuration,
+			sampleDisplayDuration,
 			pollRate,
 			minFreq, nOctaves, nBpBandsPerOctave,
 			minDb, maxDb,
@@ -136,8 +137,9 @@ FLustre {
 		xPanMap = {|v| v.linlin(xMin,xMax,-1.0,1.0)};
 		xPosMap= {|v| v.linlin(xMin,xMax,0.0,1.0)};
 		yPosMap = {|v| v.linlin(yMin,yMax,0.0,1.0)};
-		nAnalSteps = (sampleDuration*pollRate+1).ceil.asInteger;
+		nAnalSteps = (sampleDisplayDuration*pollRate+2).ceil.asInteger;
 		allBpFreqs = (Array.series(nBpBandsTotal)/nBpBandsTotal).collect(freqMap);
+		sampleDuration = (sampleDisplayDuration*1.1);
 		visualizerCommand="open % --args width=% height=% respondport=%;pgrep -f -n FLustreDisplay".format(
 			workingDir +/+ "FLustreDisplay/application.macosx/FLustreDisplay.app".shellQuote,
 			pixWidth,
@@ -343,7 +345,7 @@ FLustre {
 		bandTimes = Array.fill(nAnalSteps,0);
 		nextBandRow = Array.fill(nBpBandsTotal,0);
 		timeStep = -1;
-		visualizerAddress.sendMsg("/viz/init", nBpBandsTotal, nAnalSteps, sampleDuration, pollRate);
+		visualizerAddress.sendMsg("/viz/init", nBpBandsTotal, nAnalSteps, sampleDisplayDuration, pollRate);
 		analTrigger.set(\t_go, 1);
 	}
 	bandLogger {|msg, time, addr, port|
