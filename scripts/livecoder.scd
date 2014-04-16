@@ -13,8 +13,6 @@ Pbind(\degree, Pfunc({x[\degree]})).play(m.clock);
 ~state[\degree]=4;
 Pbind(\degree, 4, \octave, 4).play(TempoClock.default);
 Pbind(\degree, Pfunc({~state[\degree]}), \octave, 4).play(TempoClock.default);
-p=Instr([\cymbals, \tibetanCymbals2]).play(m.clock);
-p.stop
 
 ~steps1 = Array.series(3001, 0, 1)/3000;
 ~steps33 = Array.series(3001, -1500, 1)/500;
@@ -23,7 +21,9 @@ PSPsi(PSInvPsi(~steps1)).plot;
 PSInvPsi(~steps1).plot;
 PSPsi(~steps33).plot;
 ~rng = LinCongRNG.new;
-~steps1.collect({|i| PSGaussCorrelate.unifUnifToGauss(0.99, i, ~rng.next)}).plot;
+~steps1.collect({|i| PSGaussCorrelate.unifGaussToGauss(0.99, i, PSInvPsi(~rng.next))}).plot;
+~steps1.collect({|i| PSGaussCorrelate.unifGaussToGauss(0.99, i, ~rng.next)}).plot;
+PSGaussCorrelate.unifGaussToGauss(0.99, 0.99, 0.1)
 {PSInvPsi(LFSaw.ar(mul:0.5, add:0.5))}.plot;
 
 SynthDef(\bell,
