@@ -99,6 +99,22 @@ notes.on = rbind(notes.on.successes, notes.on.fails)
 rm(notes.on.fails)
 rm(notes.on.successes)
 
+# Finding an optimal cross-validated likelihood
+notes.on.opt = optL1(
+  response=notes.on$response,
+  penalized=as.formula(paste("~(", paste(notes.on.predictor.names, collapse="+"), ")^2")),
+  data=notes.on, model="logistic", trace=TRUE, fold = 10)
+plot(notes.on.opt$predictions)
+
+# Plotting the profile of the cross-validated likelihood
+notes.on.prof <- profL1(
+  response=notes.on$response,
+  penalized=as.formula(paste("~(", paste(notes.on.predictor.names, collapse="+"), ")^2")),
+  data=notes.on, fold = notes.on.opt$fold, steps=20,
+  trace=TRUE)
+plot(notes.on.prof$lambda, notes.on.prof$cvl, type="l")
+plotpath(notes.on.prof$fullfit)
+
 #data to fit the COMBINED model, for tracking consonance
 notes.predictor.names = colnames(source.notes)[substr(names(source.notes),1,1)=="X"]
 notes = source.notes
