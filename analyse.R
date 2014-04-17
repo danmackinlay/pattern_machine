@@ -1,4 +1,8 @@
-require("penalized")
+library("Matrix")
+#library("LiblineaR")
+library("glmnet")
+require(doMC)
+registerDoMC(cores=4)
 
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 # Could also model, conditional on environemtn, which note goes on.
@@ -43,38 +47,17 @@ notes.off = rbind(notes.off.successes, notes.off.fails)
 rm(notes.off.fails)
 rm(notes.off.successes)
 
-# this would be how to manufacture interaction terms for oneself.
-# homework: make sparse
-# you would start with
-notes.off.predictors.sparse = as(data.matrix(notes.off[notes.off.predictor.names]), "sparseMatrix")
-notes.off.interaction.combs = combn(note.on.predictor.names,2)
-notes.off.interaction.strings = apply(
-  notes.off.interaction.combs, 2,
-  function (intn.names) {
-    paste(as.list(intn.names),  collapse="*")
-  })
-notes.off.interactions = apply(
-  notes.off.interaction.combs, 2,
-  function (intn.names) {
-    notes.off.predictors.sparse[,intn.names[1]]*notes.off.predictors.sparse[,intn.names[2]]
-  })
-colnames(notes.off.interactions) = notes.off.interaction.strings
+# the original data frame and formula
+notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2"))
+notes.off.predictors.sparse=sparse.model.matrix(notes.off.formula, notes.off)
+notes.off.response=as.matrix(notes.off$response)
+notes.off.fit.time = system.time(notes.off.fit = cv.glmnet(notes.off.predictors.sparse,
+                          notes.off.response,
+                          family="binomial",
+                          alpha=1, parallel=TRUE))
+print(coef(notes.off.fit ))
 
-# # Finding an optimal cross-validated likelihood
-# notes.off.opt = optL1(
-#   response=notes.off$response,
-#   penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")),
-#   data=notes.off, model="logistic", trace=TRUE, fold = 10)
-# plot(notes.off.opt$predictions)
-# 
-# # Plotting the profile of the cross-validated likelihood
-# notes.off.prof <- profL1(
-#   response=notes.off$response,
-#   penalized=as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2")),
-#   data=notes.off, fold = notes.off.opt$fold, steps=20,
-#   trace=TRUE)
-# plot(notes.off.prof$lambda, notes.off.prof$cvl, type="l")
-# plotpath(notes.off.prof$fullfit)
+
 
 #data to fit the note model, GIVEN THE CURRENT NOTE IS ON
 # i.e. note removal.
