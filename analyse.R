@@ -23,7 +23,7 @@ registerDoMC(cores=4)
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-source.notes = read.csv("dillpick.csv", header=TRUE)
+source.notes = read.csv("rag", header=TRUE)
 
 # data to fit the note model, GIVEN THE CURRENT NOTE IS OFF
 # i.e. the note ADDITION model
