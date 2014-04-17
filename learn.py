@@ -23,75 +23,77 @@ TIME_SMEAR = 0.125001
 
 # Doubts and caveats:
 # This will possibly unduly favour notes on the edge of the range
-# I wonder if it makes a difference to calculate state *change* formulae rather than on-off forumlae?
+# I wonder if it makes a difference to calculate state *change* formulae rather than on-off formulae?
 # Seems that we might not want to penalise repeating a note a lot etc
 # We could extend and or delay notes randomly by a small amount to soften chord transitions
 # I wonder if we want to give note 0 its own interaction term with all the others? probably.
 # Also possible: discard negative data. Weight likelihood solely by positives.
 # No that's crazy. but interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
-# # Convolution amplitude (effectively fourier comparison)
+# # Convolution amplitude (effectively Fourier comparison)
 # # mutual information of square waves at specified frequency (discrete distribution!)
 # # # or Pearson statistic!
-# # or mutual information of wavelength countat specified frequency
+# # or mutual information of wavelength count at specified frequency
 # could be windowed. Real human hearing is, after all...
 
-MIDI_BASE_PATH = os.path.expanduser('~/Music/midi/rag/')
-MIDI_IN_PATH = os.path.join(MIDI_BASE_PATH, 'dillpick.mid')
-MIDI_OUT_PATH = os.path.join(MIDI_BASE_PATH, 'dillpick-out.mid')
+MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
+MIDI_OUT_FILE = os.path.join(MIDI_BASE_DIR, 'dillpick-out.mid')
 CSV_BASE_PATH = os.path.normpath("./")
-CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'dillpick.csv')
+CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag.csv')
 
-note_stream = converter.parse(MIDI_IN_PATH)
-transition_heap = []
+def parse_file(base_dir, midi_file, count_dicts):
+    on_counts, off_counts, all_counts = count_dicts
 
-# flattening doesn't squash parallel events down or give us nice note offs
-# push note ons and offs onto a heap to do this more gracefully
-for next_elem in note_stream.flat.offsetMap:
-    event = next_elem['element']
-    #only handle Notes and Chords
-    if not isinstance(event, NotRest):
-        continue
-    on_time = next_elem['offset']
-    off_time = next_elem['endTime'] + TIME_SMEAR
-    pitches = []
-    if hasattr(event, 'pitch'):
-        pitches = [event.pitch]
-    if hasattr(event, 'pitches'):
-        pitches = event.pitches
-    for pitch in pitches:
-        heappush(transition_heap, (on_time, 1, pitch.midi))
-        heappush(transition_heap, (off_time, -1, pitch.midi))
+    midi_in_file = os.path.join(MIDI_BASE_DIR, midi_file)
+    note_stream = converter.parse(midi_in_file)
+    transition_heap = []
 
-note_transitions = []
-held_notes = dict()
-time_stamp = 0.0
+    # flattening doesn't squash parallel events down or give us nice note offs
+    # push note ons and offs onto a heap to do this more gracefully
+    for next_elem in note_stream.flat.offsetMap:
+        event = next_elem['element']
+        #only handle Notes and Chords
+        if not isinstance(event, NotRest):
+            continue
+        on_time = next_elem['offset']
+        off_time = next_elem['endTime'] + TIME_SMEAR
+        pitches = []
+        if hasattr(event, 'pitch'):
+            pitches = [event.pitch]
+        if hasattr(event, 'pitches'):
+            pitches = event.pitches
+        for pitch in pitches:
+            heappush(transition_heap, (on_time, 1, pitch.midi))
+            heappush(transition_heap, (off_time, -1, pitch.midi))
 
-while True:
-    try:
-        next_time_stamp, action, pitch = heappop(transition_heap)
-    except IndexError:
-        break
-    time_delta = next_time_stamp - time_stamp
-    this_pitch_count = held_notes.get(pitch, 0) + action
-    if this_pitch_count < 0:
-        print "warning, negative pitch count for %d at offset %f" % (pitch, next_time_stamp)
-    if this_pitch_count > 0:
-        held_notes[pitch] = this_pitch_count
-    else:
-        del(held_notes[pitch])
+    note_transitions = []
+    held_notes = dict()
+    time_stamp = 0.0
 
-    if next_time_stamp > time_stamp:
-        #time actually advanced. Aggregate data here? Or next step?
-        note_transitions.append(held_notes.copy())
-        print held_notes
+    while True:
+        try:
+            next_time_stamp, action, pitch = heappop(transition_heap)
+        except IndexError:
+            break
+        time_delta = next_time_stamp - time_stamp
+        this_pitch_count = held_notes.get(pitch, 0) + action
+        if this_pitch_count < 0:
+            print "warning, negative pitch count for %d at offset %f" % (pitch, next_time_stamp)
+        if this_pitch_count > 0:
+            held_notes[pitch] = this_pitch_count
+        else:
+            del(held_notes[pitch])
 
+        if next_time_stamp > time_stamp:
+            #time actually advanced. Aggregate data here? Or next step?
+            note_transitions.append(held_notes.copy())
+            print held_notes
 
-def transition_summary(note_transitions):
+    on_counts, off_counts, all_counts = transition_summary(note_transitions, (on_counts, off_counts, all_counts))
+
+def transition_summary(note_transitions, count_dicts):
+    on_counts, off_counts, all_counts = count_dicts
     # make transition dict from transition summary
-    on_counts = dict()
-    off_counts = dict()
     curr_global_state = tuple()
-    all_counts = dict()
     
     for held_notes in note_transitions:
         next_global_state = tuple(sorted(held_notes.keys()))
@@ -115,7 +117,18 @@ def transition_summary(note_transitions):
     
     return on_counts, off_counts, all_counts
 
-on_counts, off_counts, all_counts = transition_summary(note_transitions)
+def parse_if_midi(count_dicts, file_dir, file_list):
+    print (count_dicts, file_dir, file_list)
+    for f in file_list:
+        if f.lower().endswith('mid'):
+            print "parsing", f
+            parse_file(file_dir, f, count_dicts)
+
+on_counts = dict()
+off_counts = dict()
+all_counts = dict()
+
+os.path.walk(MIDI_BASE_DIR, parse_if_midi, (on_counts, off_counts, all_counts))
 
 # #Convert to arrays for regression - left columns predictors, right 2 responses
 # predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
