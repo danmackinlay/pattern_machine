@@ -9,9 +9,9 @@ from heapq import heappush, heapify, heappop
 
 # how far I look to find neighbours
 # perfect 5th
-NEIGHBORHOOD_RADIUS = 6
+# NEIGHBORHOOD_RADIUS = 6
 # 1 octave:
-# NEIGHBORHOOD_RADIUS = 11
+NEIGHBORHOOD_RADIUS = 11
 # 1.5 octave
 # NEIGHBORHOOD_RADIUS = 17
 
@@ -36,14 +36,13 @@ TIME_SMEAR = 0.125001
 # could be windowed. Real human hearing is, after all...
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
-MIDI_OUT_FILE = os.path.join(MIDI_BASE_DIR, 'dillpick-out.mid')
 CSV_BASE_PATH = os.path.normpath("./")
-CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag.csv')
+CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
 
 def parse_file(base_dir, midi_file, count_dicts):
     on_counts, off_counts, all_counts = count_dicts
 
-    midi_in_file = os.path.join(MIDI_BASE_DIR, midi_file)
+    midi_in_file = os.path.join(base_dir, midi_file)
     note_stream = converter.parse(midi_in_file)
     transition_heap = []
 

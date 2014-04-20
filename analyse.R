@@ -23,7 +23,7 @@ registerDoMC(cores=4)
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-source.notes = read.csv("rag.csv", header=TRUE)
+source.notes = read.csv("rag-06.csv", header=TRUE)
 
 note.log.model = function(notes.data) {
   notes.predictor.names = colnames(notes.data)[substr(names(notes.data),1,1)=="X"]
