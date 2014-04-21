@@ -2,14 +2,14 @@ library("Matrix")
 #library("LiblineaR")
 library("glmnet")
 require(doMC)
-registerDoMC(cores=4)
+registerDoMC(cores=2)
 
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
-# Could also model, conditional on environemtn, which note goes on.
+# Could also model, conditional on environment, which note goes on.
 # More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
-# this would possibly more interpretable.
+# this would possibly more interpretable. But I would lose a lot of speed when I throw out sparsity.
 
-# See packages glmnet, penalized, liblineaR, rms
+# See packages glmnet, liblineaR, rms
 # NB liblineaR has python binding
 # NB glmnet and liblineaR do not support interaction terms natively
 # NB glm doesn't support penalised regression.
@@ -23,7 +23,7 @@ registerDoMC(cores=4)
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-source.notes = read.csv("rag-06.csv", header=TRUE)
+source.notes = read.csv("rag-11.csv", header=TRUE)
 
 note.log.model = function(notes.data) {
   notes.predictor.names = colnames(notes.data)[substr(names(notes.data),1,1)=="X"]
@@ -61,7 +61,6 @@ notes.off$totalHeld=rowSums(notes.off[notes.off.predictor.names])
 #remove initial nodes - i.e. there has to be one other note in range for this note to switch on
 notes.off = subset(notes.off, totalHeld>0)
 notes.off$totalHeld = NULL
-
 notes.off.fit = note.log.model(notes.off)
 
 #data to fit the note model, GIVEN THE CURRENT NOTE IS ON
@@ -74,15 +73,13 @@ notes.on$totalHeld=rowSums(notes.on[notes.on.predictor.names])
 # I.e. this note has to be interacting with at least one other note for us to care if it goes off
 notes.on = subset(notes.on, totalHeld>0)
 notes.on$totalHeld = NULL
-
 notes.on.fit = note.log.model(notes.on)
 
-#data to fit the COMBINED model, for tracking consonance
-notes.all.predictor.names = colnames(source.notes)[substr(names(source.notes),1,1)=="X"]
-notes.all = source.notes
-notes.all$totalHeld=rowSums(source.notes[substr(names(source.notes),1,1)=="X"])
-#remove initial nodes
-notes.all = subset(notes.all, totalHeld>0)
-notes.all$totalHeld = NULL
-
-notes.all.fit = note.log.model(notes.all)
+# #data to fit the COMBINED model, for tracking consonance
+# notes.all.predictor.names = colnames(source.notes)[substr(names(source.notes),1,1)=="X"]
+# notes.all = source.notes
+# notes.all$totalHeld=rowSums(source.notes[substr(names(source.notes),1,1)=="X"])
+# #remove initial nodes
+# notes.all = subset(notes.all, totalHeld>0)
+# notes.all$totalHeld = NULL
+# notes.all.fit = note.log.model(notes.all)

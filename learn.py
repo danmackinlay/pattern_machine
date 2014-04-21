@@ -12,7 +12,7 @@ from heapq import heappush, heapify, heappop
 # NEIGHBORHOOD_RADIUS = 6
 # 1 octave:
 NEIGHBORHOOD_RADIUS = 11
-# 1.5 octave
+# 1.5 octave (LARGE data set)
 # NEIGHBORHOOD_RADIUS = 17
 
 # how much to extend notes so that even momentary ones influence the future state
@@ -21,19 +21,25 @@ TIME_SMEAR = 0.125001
 # Floating point is probably adequate for machine-transcribed scores.
 # Could get messy for real notes.
 
+#TODO:
+#trim neighbourhood size at statistical anlysis stage rather than re-run MIDI (low priority as this step is fast.)
+# export inferred formula from R
+# implement midi player that uses this
+# could fit model condition on NUMBER OF HELD NOTES which woudl be faster to infer and to predict, and more accurate
+# but it would fail to generalise to crazy values and be fiddlier to implement, and lose the bonus feature of being able to compare harmonicity. Would this be a problem?
+# current model is very ugly - 90% of coefficients are non-zero, so something is messed up
+# # could try to make python do something nicer with chords - don't conflate transitions for example, but break cords down into interleaved events. (random? or bottom-up?)
+
 # Doubts and caveats:
 # This will possibly unduly favour notes on the edge of the range
-# I wonder if it makes a difference to calculate state *change* formulae rather than on-off formulae?
 # Seems that we might not want to penalise repeating a note a lot etc
 # We could extend and or delay notes randomly by a small amount to soften chord transitions
-# I wonder if we want to give note 0 its own interaction term with all the others? probably.
-# Also possible: discard negative data. Weight likelihood solely by positives.
-# No that's crazy. but interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
+# Interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
 # # Convolution amplitude (effectively Fourier comparison)
 # # mutual information of square waves at specified frequency (discrete distribution!)
 # # # or Pearson statistic!
 # # or mutual information of wavelength count at specified frequency
-# could be windowed. Real human hearing is, after all...
+# # could be windowed. Real human hearing is, after all...
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")
