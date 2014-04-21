@@ -17,9 +17,12 @@ NEIGHBORHOOD_RADIUS = 11
 
 # how much to extend notes so that even momentary ones influence the future state
 # measured in... crotchets?
-TIME_SMEAR = 0.125001
+TIME_SMEAR = 0.1251
 # Floating point is probably adequate for machine-transcribed scores.
 # Could get messy for real notes.
+# We break cords apart by jittering based on pitch
+#JITTER_FACTOR = 0.0
+JITTER_FACTOR = 0.001
 
 #TODO:
 #trim neighbourhood size at statistical anlysis stage rather than re-run MIDI (low priority as this step is fast.)
@@ -29,6 +32,7 @@ TIME_SMEAR = 0.125001
 # but it would fail to generalise to crazy values and be fiddlier to implement, and lose the bonus feature of being able to compare harmonicity. Would this be a problem?
 # current model is very ugly - 90% of coefficients are non-zero, so something is messed up
 # # could try to make python do something nicer with chords - don't conflate transitions for example, but break cords down into interleaved events. (random? or bottom-up?)
+# source which track gave us which transitions and attempto to cross-valiate not on pure random folds, but on generalising to new pieces from the same genre
 
 # Doubts and caveats:
 # This will possibly unduly favour notes on the edge of the range
@@ -67,8 +71,10 @@ def parse_file(base_dir, midi_file, count_dicts):
         if hasattr(event, 'pitches'):
             pitches = event.pitches
         for pitch in pitches:
-            heappush(transition_heap, (on_time, 1, pitch.midi))
-            heappush(transition_heap, (off_time, -1, pitch.midi))
+            #insert a small jitter here to break chords apart- base notes first
+            jitter = JITTER_FACTOR*(pitch.midi-64.0)/64
+            heappush(transition_heap, (on_time+jitter, 1, pitch.midi))
+            heappush(transition_heap, (off_time+jitter, -1, pitch.midi))
 
     note_transitions = []
     held_notes = dict()
@@ -89,7 +95,12 @@ def parse_file(base_dir, midi_file, count_dicts):
             del(held_notes[pitch])
 
         if next_time_stamp > time_stamp:
-            #time actually advanced. Aggregate data here? Or next step?
+            #time actually advanced.
+            # we could randomise the tranistions that have happened,
+            # or we could sort them
+            # or we could do all possible combinations
+            # for now, we do nothing, and instead jitter the notes using the JITTER_FACTOR
+            # to break ties.
             note_transitions.append(held_notes.copy())
             print held_notes
 
