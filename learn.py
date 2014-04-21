@@ -33,6 +33,8 @@ JITTER_FACTOR = 0.001
 # current model is very ugly - 90% of coefficients are non-zero, so something is messed up
 # # could try to make python do something nicer with chords - don't conflate transitions for example, but break cords down into interleaved events. (random? or bottom-up?)
 # source which track gave us which transitions and attempto to cross-valiate not on pure random folds, but on generalising to new pieces from the same genre
+# elastic net could give us nicer coefficient ordering
+# however, this ANOVA-like design means that an arbitarily-good fit will always be over-favoured.
 
 # Doubts and caveats:
 # This will possibly unduly favour notes on the edge of the range
