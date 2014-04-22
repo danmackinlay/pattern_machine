@@ -43,9 +43,8 @@ detune_12_tone = tuple(
     [
         abs(log(
             (float(num)/denom)/
-            (2.0**(float(i)/12))/
-            2.0**(1.0/12.0)
-        ))
+            (2.0**(float(i)/12))
+        ))/ log(2.0**(1.0/12.0))
         for i, (num,denom) in enumerate(ratios_12_tone)
     ]
 )
