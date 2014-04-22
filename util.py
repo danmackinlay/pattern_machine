@@ -17,16 +17,8 @@ def factor(n):
     if n > 1:
         yield n
 
-span5 = []
-span7 = []
-_this_span5 = []
-_this_span7 = []
-
-for i in xrange(12):
-    _this_span5.append((5*i)%12)
-    _this_span7.append((7*i)%12)
-    span5.append(set(_this_span5))
-    span7.append(set(_this_span7))
+def fold_to_octave(note_set):
+    return set(i % 12 for i in note_set)
 
 def print_approx_scale():
     for i in xrange(1,12):
@@ -46,14 +38,24 @@ ratios_12_tone = (
     (16,9), #10
     (28,15), #11
 )
+#How much are we out from just intonation on each pitch, as a fraction of a whole tine?
 detune_12_tone = tuple(
     [
         abs(log(
             (float(num)/denom)/
-            (2.0**(float(i)/12))))
+            (2.0**(float(i)/12))/
+            2.0**(1.0/12.0)
+        ))
         for i, (num,denom) in enumerate(ratios_12_tone)
     ]
 )
+
+def total_detunedness(neighbourhood):
+    """
+    ad hoc measure of how much this scale differs from just intonation
+    """
+    return sum([util.detune_12_tone[i] for i in fold_to_octave(neighborhood)])
+
 # decompose into powers of (2,3,5,7)
 prime_ratios_12_tone = (
     ((0,0,0,0),(0,0,0,0)), #0
@@ -69,3 +71,29 @@ prime_ratios_12_tone = (
     ((4,0,0,0),(0,2,0,0)), #10
     ((2,0,0,1),(0,1,1,0)), #11
 )
+
+_span5 = ()
+_span7 = ()
+_this_span5 = []
+_this_span7 = []
+
+for i in xrange(12):
+    _this_span5.append((5*i)%12)
+    _this_span7.append((7*i)%12)
+    _span5 = _span5 + (set(_this_span5),)
+    _span7 = _span7 + (set(_this_span7),)
+
+del(_this_span5)
+del(_this_span7)
+
+def span_in_5ths(neighborhood):
+    """
+    how many 5ths do I need to jump to encompass this entire set of pitches?
+    NB implicitly starts from the tonic.
+    """
+    folded_hood = fold_to_octave(neighborhood)
+    for i in xrange(12):
+        if _span5[i].issuperset(folded_hood):
+            return i
+        if _span7[i].issuperset(folded_hood):
+            return i
