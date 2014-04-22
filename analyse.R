@@ -24,9 +24,9 @@ registerDoMC(cores=2)
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-source.notes = read.csv("rag-11.csv", header=TRUE)
+source.notes = read.csv("rag-06.csv", header=TRUE)
 
-note.log.model = function(notes.data) {
+note.log.model = function(notes.data, ...) {
   notes.predictor.names = colnames(notes.data)[substr(names(notes.data),1,1)=="X"]
   notes.successes = notes.data[rep(row.names(notes.data), notes.data$ons),]
   notes.successes$ons=NULL
@@ -48,7 +48,9 @@ note.log.model = function(notes.data) {
   notes.fit = cv.glmnet(notes.predictors.sparse,
                         notes.response,
                         family="binomial",
-                        alpha=1, parallel=TRUE)
+                        type.logistic="modified.Newton",
+                        alpha=1, parallel=TRUE,
+                        ...)
   #)
   return(notes.fit)
 }
