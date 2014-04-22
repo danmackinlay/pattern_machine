@@ -61,10 +61,11 @@ MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")
 CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
 
-def parse_file(base_dir, midi_file, count_dicts):
-    on_counts, off_counts, all_counts = count_dicts
-
+def parse_file(base_dir, midi_file, per_file_counts):
     midi_in_file = os.path.join(base_dir, midi_file)
+    file_key = midi_in_file[len(MIDI_BASE_DIR):]
+    print "parsing", file_key
+    
     note_stream = converter.parse(midi_in_file)
     transition_heap = []
 
@@ -113,50 +114,50 @@ def parse_file(base_dir, midi_file, count_dicts):
             # or we could do all possible combinations
             # for now, we do nothing, and instead jitter the notes using the JITTER_FACTOR
             # to break ties.
+            # print held_notes
             note_transitions.append(held_notes.copy())
-            print held_notes
+    
+    per_file_counts[file_key] = transition_summary(note_transitions)
 
-    on_counts, off_counts, all_counts = transition_summary(note_transitions, (on_counts, off_counts, all_counts))
-
-def transition_summary(note_transitions, count_dicts):
-    on_counts, off_counts, all_counts = count_dicts
-    # make transition dict from transition summary
-    curr_global_state = tuple()
+def transition_summary(note_transitions):
+    on_counts = dict()
+    off_counts = dict()
+    all_counts = dict()
+    
+    curr_held_notes = tuple()
     
     for held_notes in note_transitions:
-        next_global_state = tuple(sorted(held_notes.keys()))
+        next_held_notes = tuple(sorted(held_notes.keys()))
         # we only want to look at notes within a neighbourhood of something happening
         # otherwise nothing->nothing dominates the data
-        domain = set(curr_global_state + next_global_state)
+        domain = set(curr_held_notes + next_held_notes)
         for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
             neighborhood = []
             # find ON notes:
-            for i in curr_global_state:
+            for i in curr_held_notes:
                 rel_pitch = i - local_pitch
                 if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
                     neighborhood.append(rel_pitch)
             neighborhood = tuple(neighborhood)
+            
             all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
-            if local_pitch in next_global_state:
+            if local_pitch in next_held_notes:
                 on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
             else:
                 off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
-        curr_global_state = tuple(next_global_state)
+        curr_held_notes = tuple(next_held_notes)
     
     return on_counts, off_counts, all_counts
 
-def parse_if_midi(count_dicts, file_dir, file_list):
-    print (count_dicts, file_dir, file_list)
+def parse_if_midi(per_file_counts, file_dir, file_list):
+    print (per_file_counts, file_dir, file_list)
     for f in file_list:
         if f.lower().endswith('mid'):
-            print "parsing", f
-            parse_file(file_dir, f, count_dicts)
+            parse_file(file_dir, f, per_file_counts)
 
-on_counts = dict()
-off_counts = dict()
-all_counts = dict()
+per_file_counts= dict()
 
-os.path.walk(MIDI_BASE_DIR, parse_if_midi, (on_counts, off_counts, all_counts))
+os.path.walk(MIDI_BASE_DIR, parse_if_midi, per_file_counts)
 
 # #Convert to arrays for regression - left columns predictors, right 2 responses
 # predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
@@ -167,13 +168,16 @@ os.path.walk(MIDI_BASE_DIR, parse_if_midi, (on_counts, off_counts, all_counts))
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
 # But sod it; we ain't doing analysis in python right now; let's pump this out to R
-fieldnames = [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['ons', 'offs']
+fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['ons', 'offs']
 
 with open(CSV_OUT_PATH, 'w') as handle:
     writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
     writer.writerow(fieldnames)
-    for i, predictor in enumerate(sorted(all_counts.keys())):
-        writer.writerow(
-          [(1 if i in predictor else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + 
-          [on_counts.get(predictor, 0), off_counts.get(predictor, 0)]
-        )
+    for file_key, (on_counts, off_counts, all_counts) in per_file_counts.iteritems():
+        
+        for i, neighborhood in enumerate(sorted(all_counts.keys())):
+            writer.writerow(
+              [file_key] +
+              [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
+              [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
+            )
