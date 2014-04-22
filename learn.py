@@ -25,16 +25,24 @@ TIME_SMEAR = 0.1251
 JITTER_FACTOR = 0.001
 
 #TODO:
-#trim neighbourhood size at statistical anlysis stage rather than re-run MIDI (low priority as this step is fast.)
+# trim neighbourhood size at statistical analysis stage rather than re-run MIDI (low priority as this step is fast.)
 # export inferred formula from R
 # implement midi player that uses this
 # could fit model condition on NUMBER OF HELD NOTES which woudl be faster to infer and to predict, and more accurate
 # but it would fail to generalise to crazy values and be fiddlier to implement, and lose the bonus feature of being able to compare harmonicity. Would this be a problem?
-# current model is very ugly - 90% of coefficients are non-zero, so something is messed up
-# # could try to make python do something nicer with chords - don't conflate transitions for example, but break cords down into interleaved events. (random? or bottom-up?)
-# source which track gave us which transitions and attempto to cross-valiate not on pure random folds, but on generalising to new pieces from the same genre
-# elastic net could give us nicer coefficient ordering
-# however, this ANOVA-like design means that an arbitarily-good fit will always be over-favoured.
+# current model is very ugly, and has marginal gain from decreasing regularisation, quickly saturating
+# elastic net could give us nicer coefficient ordering?
+# What I really want is smoothing that favours spectrally-meaningful relations
+# # such as projecting onto harmonic space
+# # note that otherwise, I am missing out (really?) under-represented transitions in the data.
+# # NB I should check that treating each note event as independent actually corresponds to meaningful bayesian inversion
+# improved feature ideas:
+# # Distance in 4ths or 5ths, or more.
+# # feature vector of approximate prime decomposition of ratios
+# # number of held notes
+# # track total dissonance of held notes (dist from just intonation)
+# source which track gave us which transitions and attemp to to cross-valiate not on pure random folds, but on generalising to new pieces from the same genre
+
 
 # Doubts and caveats:
 # This will possibly unduly favour notes on the edge of the range
