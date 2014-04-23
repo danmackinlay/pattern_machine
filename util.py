@@ -49,11 +49,11 @@ detune_12_tone = tuple(
     ]
 )
 
-def total_detunedness(neighbourhood):
+def total_detunedness(neighborhood):
     """
     ad hoc measure of how much this scale differs from just intonation
     """
-    return sum([util.detune_12_tone[i] for i in fold_to_octave(neighborhood)])
+    return sum([detune_12_tone[i] for i in fold_to_octave(neighborhood)])
 
 # decompose into powers of (2,3,5,7)
 prime_ratios_12_tone = (
@@ -94,5 +94,25 @@ def span_in_5ths(neighborhood):
     for i in xrange(12):
         if _span5[i].issuperset(folded_hood):
             return i
+        if _span7[i].issuperset(folded_hood):
+            return i
+
+def span_in_5ths_up(neighborhood):
+    """
+    how many 5ths do I need to jump to encompass this entire set of pitches?
+    NB implicitly starts from the tonic.
+    """
+    folded_hood = fold_to_octave(neighborhood)
+    for i in xrange(12):
+        if _span5[i].issuperset(folded_hood):
+            return i
+
+def span_in_5ths_down(neighborhood):
+    """
+    how many 5ths do I need to jump to encompass this entire set of pitches?
+    NB implicitly starts from the tonic.
+    """
+    folded_hood = fold_to_octave(neighborhood)
+    for i in xrange(12):
         if _span7[i].issuperset(folded_hood):
             return i
