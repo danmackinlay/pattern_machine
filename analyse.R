@@ -33,8 +33,9 @@ source.notes = read.csv("rag-11.csv", header=TRUE)
 source.notes$file = as.factor(source.notes$file)
 
 note.log.model = function(notes.data, ...) {
-  notes.predictor.names = colnames(notes.data)[substr(names(notes.data),1,1)=="X"]
-  notes.successes = notes.data[rep(row.names(notes.data), notes.data$ons),]
+  notes.predictor.names = colnames(source.notes)[2:length(colnames(source.notes))-2]
+  notes.predictor.names = notes.predictor.names[notes.predictor.names != "X0"]
+  notes.successes = notes.data[rep(row.names(notes.data), round(notes.data$ons/case.scale.factor)),]
   notes.successes$ons=NULL
   notes.successes$offs=NULL
   notes.successes$response=1

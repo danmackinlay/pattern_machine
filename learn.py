@@ -169,7 +169,7 @@ os.path.walk(MIDI_BASE_DIR, parse_if_midi, per_file_counts)
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
 # But sod it; we ain't doing analysis in python right now; let's pump this out to R
-fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['ons', 'offs']
+fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['detune', 'span']+ ['ons', 'offs']
 
 with open(CSV_OUT_PATH, 'w') as handle:
     writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
@@ -180,5 +180,6 @@ with open(CSV_OUT_PATH, 'w') as handle:
             writer.writerow(
               [file_key] +
               [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
+              [total_detunedness(neighborhood), span_in_5ths(neighborhood)] +
               [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
             )
