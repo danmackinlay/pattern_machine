@@ -122,3 +122,15 @@ def span_in_5ths_down(neighborhood):
     for i in xrange(12):
         if _span7[i].issuperset(folded_hood):
             return i
+
+def ad(v1, v2):
+    return tuple([s1+s2 for s1,s2 in zip(v1,v2)])
+
+def pitches_to_ratios(pitchset):
+    n=(0,0,0,0)
+    d=(0,0,0,0)
+    for p in fold_to_octave(pitchset):
+        n=ad(n,prime_ratios_12_tone[p][0])
+        d=ad(d,prime_ratios_12_tone[p][1])
+    return n,d
+    
