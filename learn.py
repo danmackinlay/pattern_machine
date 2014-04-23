@@ -6,13 +6,15 @@ from music21.note import Note, NotRest, Rest
 from music21.chord import Chord
 import csv
 from heapq import heappush, heapify, heappop
+from util import total_detunedness, span_in_5ths
+
 
 # how far I look to find neighbours
 # perfect 5th
 # NEIGHBORHOOD_RADIUS = 6
 # 1 octave:
 NEIGHBORHOOD_RADIUS = 11
-# 1.5 octave (LARGE data set)
+# 1.5 octave (LARGE data set to use raw)
 # NEIGHBORHOOD_RADIUS = 17
 
 # how much to extend notes so that even momentary ones influence the future state
@@ -150,7 +152,6 @@ def transition_summary(note_transitions):
     return on_counts, off_counts, all_counts
 
 def parse_if_midi(per_file_counts, file_dir, file_list):
-    print (per_file_counts, file_dir, file_list)
     for f in file_list:
         if f.lower().endswith('mid'):
             parse_file(file_dir, f, per_file_counts)

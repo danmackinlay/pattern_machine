@@ -4,6 +4,11 @@ library("glmnet")
 require(doMC)
 registerDoMC(cores=2)
 
+###settings
+# how many cases we throw out (oversampling of cases means the data set blows up)
+case.scale.factor = 24
+
+
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 # Could also model, conditional on environment, which note goes on.
 # More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
@@ -24,7 +29,8 @@ registerDoMC(cores=2)
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-source.notes = read.csv("rag-06.csv", header=TRUE)
+source.notes = read.csv("rag-11.csv", header=TRUE)
+source.notes$file = as.factor(source.notes$file)
 
 note.log.model = function(notes.data, ...) {
   notes.predictor.names = colnames(notes.data)[substr(names(notes.data),1,1)=="X"]
@@ -32,7 +38,7 @@ note.log.model = function(notes.data, ...) {
   notes.successes$ons=NULL
   notes.successes$offs=NULL
   notes.successes$response=1
-  notes.fails = notes.data[rep(row.names(notes.data), notes.data$offs),]
+  notes.fails = notes.data[rep(row.names(notes.data), round(notes.data$offs/case.scale.factor)),]
   notes.fails$ons=NULL
   notes.fails$offs=NULL
   notes.fails$response=0
@@ -50,6 +56,7 @@ note.log.model = function(notes.data, ...) {
                         family="binomial",
                         type.logistic="modified.Newton",
                         alpha=1, parallel=TRUE,
+                        foldid=unclass(notes.data$file),
                         ...)
   #)
   return(notes.fit)
