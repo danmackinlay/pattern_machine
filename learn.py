@@ -34,22 +34,17 @@ JITTER_FACTOR = 0.001
 # but it would fail to generalise to crazy values and be fiddlier to implement, and lose the bonus feature of being able to compare harmonicity. Would this be a problem?
 # current model is very ugly, and has marginal gain from decreasing regularisation, quickly saturating
 # elastic net could give us nicer coefficient ordering?
-# we could have more state by using a very simple decay model, where notes have a decay length calibrated to mean number of notes in song, such that 
+# we could have more state by using a very simple decay model, where notes have a decay length calibrated to mean number of notes in song, such that
+# experiment with longer note smears
 # What I really want is smoothing that favours spectrally-meaningful relations
 # # such as projecting onto harmonic space
 # # note that otherwise, I am missing out (really?) under-represented transitions in the data.
 # # NB I should check that treating each note event as independent actually corresponds to meaningful bayesian inversion
 # improved feature ideas:
-# # Distance in 4ths or 5ths, or more.
 # # feature vector of approximate prime decomposition of ratios
 # # number of held notes
-# # track total dissonance of held notes (dist from just intonation)
-# source which track gave us which transitions and attemp to to cross-valiate not on pure random folds, but on generalising to new pieces from the same genre
-# TRIM MOST OF THE CASES - we won't gain much apart from memory-waste by having 2*10^6 cases - we have 1-2 order of magnitude more cases than note onsets.
-
 
 # Doubts and caveats:
-# This will possibly unduly favour notes on the edge of the range
 # Seems that we might not want to penalise repeating a note a lot etc
 # We could extend and or delay notes randomly by a small amount to soften chord transitions
 # Interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
