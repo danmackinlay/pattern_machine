@@ -51,15 +51,19 @@ note.log.model = function(notes.data, ...) {
   notes.formula = as.formula(paste("~(", paste(notes.predictor.names, collapse="+"), ")^2"))
   notes.predictors.sparse=sparse.model.matrix(notes.formula, notes.data)
   notes.response=as.matrix(notes.data$response)
-  #notes.fit.time = system.time( //don't seem to work with multicore
-  notes.fit = cv.glmnet(notes.predictors.sparse,
+  notes.fit = 0
+  notes.fit.time = system.time( #note this only works for <- assignment!
+    notes.fit <- cv.glmnet(notes.predictors.sparse,
                         notes.response,
                         family="binomial",
                         type.logistic="modified.Newton",
-                        alpha=1, parallel=TRUE,
+                        alpha=1,
+                        parallel=TRUE,
                         foldid=unclass(notes.data$file),
-                        ...)
-  #)
+                        ...
+    )
+  )
+  print(notes.fit.time)
   return(notes.fit)
 }
 
