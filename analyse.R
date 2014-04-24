@@ -71,8 +71,8 @@ note.log.model = function(notes.data, ...) {
 # i.e. the note ADDITION model
 notes.off = source.notes[source.notes$X0==0,]
 notes.off[names(notes.off)=="X0"] = NULL
-notes.off.predictor.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
-notes.off$totalHeld=rowSums(notes.off[notes.off.predictor.names])
+notes.off.held.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
+notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
 #remove initial nodes - i.e. there has to be one other note in range for this note to switch on
 notes.off = subset(notes.off, totalHeld>0)
 notes.off$totalHeld = NULL
@@ -82,8 +82,8 @@ notes.off.fit = note.log.model(notes.off)
 # i.e. note removal.
 notes.on = source.notes[source.notes$X0==1,]
 notes.on[names(notes.on)=="X0"] = NULL
-notes.on.predictor.names = colnames(notes.on)[substr(names(notes.on),1,1)=="X"]
-notes.on$totalHeld=rowSums(notes.on[notes.on.predictor.names])
+notes.on.held.names = colnames(notes.on)[substr(names(notes.on),1,1)=="X"]
+notes.on$totalHeld=rowSums(notes.on[notes.on.held.names])
 #remove terminal nodes
 # I.e. this note has to be interacting with at least one other note for us to care if it goes off
 notes.on = subset(notes.on, totalHeld>0)
@@ -91,7 +91,7 @@ notes.on$totalHeld = NULL
 notes.on.fit = note.log.model(notes.on)
 
 # #data to fit the COMBINED model, for tracking consonance
-# notes.all.predictor.names = colnames(source.notes)[substr(names(source.notes),1,1)=="X"]
+# notes.all.held.names = colnames(source.notes)[substr(names(source.notes),1,1)=="X"]
 # notes.all = source.notes
 # notes.all$totalHeld=rowSums(source.notes[substr(names(source.notes),1,1)=="X"])
 # #remove initial nodes
