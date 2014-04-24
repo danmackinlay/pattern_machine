@@ -19,12 +19,15 @@ NEIGHBORHOOD_RADIUS = 11
 
 # how much to extend notes so that even momentary ones influence the future state
 # measured in... crotchets?
-TIME_SMEAR = 0.1251
+TIME_SMEAR = 1.5
 # Floating point is probably adequate for machine-transcribed scores.
 # Could get messy for real notes.
 # We break cords apart by jittering based on pitch
 #JITTER_FACTOR = 0.0
 JITTER_FACTOR = 0.001
+#when calculating note rate, aggregate notes this close together:
+ONSET_TOLERANCE = 0.06
+
 
 #TODO:
 # trim neighbourhood size at statistical analysis stage rather than re-run MIDI (low priority as this step is fast.)
@@ -64,19 +67,32 @@ def parse_file(base_dir, midi_file, per_file_counts):
     midi_in_file = os.path.join(base_dir, midi_file)
     file_key = midi_in_file[len(MIDI_BASE_DIR):]
     print "parsing", file_key
-    
     note_stream = converter.parse(midi_in_file)
+    
+    # do some analysis first
+    start_time = note_stream.flat.notes.offsetMap[0]['offset']
+    end_time = note_stream.flat.notes.offsetMap[-1]['endTime']
+    midi_length = end_time-start_time
+    curr_time = start_time
+    thinned_intervals = []
+    for ev in note_stream.flat.notes.offsetMap:
+        next_time = ev['offset']
+        if next_time > curr_time + ONSET_TOLERANCE:
+            thinned_intervals.append(next_time-curr_time)
+            curr_time = next_time
+    time_step = TIME_SMEAR * sum(thinned_intervals)/ len(thinned_intervals)
+    
     transition_heap = []
 
     # flattening doesn't squash parallel events down or give us nice note offs
     # push note ons and offs onto a heap to do this more gracefully
-    for next_elem in note_stream.flat.offsetMap:
+    for next_elem in note_stream.flat.notes.offsetMap:
         event = next_elem['element']
         #only handle Notes and Chords
         if not isinstance(event, NotRest):
             continue
         on_time = next_elem['offset']
-        off_time = next_elem['endTime'] + TIME_SMEAR
+        off_time = max(next_elem['endTime'], on_time + time_step)
         pitches = []
         if hasattr(event, 'pitch'):
             pitches = [event.pitch]
