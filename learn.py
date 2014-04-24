@@ -28,6 +28,7 @@ JITTER_FACTOR = 0.001
 
 #TODO:
 # trim neighbourhood size at statistical analysis stage rather than re-run MIDI (low priority as this step is fast.)
+# go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway.
 # export inferred formula from R
 # implement midi player that uses this
 # could fit model condition on NUMBER OF HELD NOTES which woudl be faster to infer and to predict, and more accurate
@@ -36,6 +37,7 @@ JITTER_FACTOR = 0.001
 # elastic net could give us nicer coefficient ordering?
 # we could have more state by using a very simple decay model, where notes have a decay length calibrated to mean number of notes in song, such that
 # experiment with longer note smears
+# experiment with adaptive note smearing
 # What I really want is smoothing that favours spectrally-meaningful relations
 # # such as projecting onto harmonic space
 # # note that otherwise, I am missing out (really?) under-represented transitions in the data.
@@ -43,10 +45,10 @@ JITTER_FACTOR = 0.001
 # improved feature ideas:
 # # feature vector of approximate prime decomposition of ratios
 # # number of held notes
-
+# # time since last note at a given relative pitch
+# # span in 5ths at various time offsets
 # Doubts and caveats:
 # Seems that we might not want to penalise repeating a note a lot etc
-# We could extend and or delay notes randomly by a small amount to soften chord transitions
 # Interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
 # # Convolution amplitude (effectively Fourier comparison)
 # # mutual information of square waves at specified frequency (discrete distribution!)
