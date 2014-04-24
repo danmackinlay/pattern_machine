@@ -6,7 +6,7 @@ from music21.note import Note, NotRest, Rest
 from music21.chord import Chord
 import csv
 from heapq import heappush, heapify, heappop
-from util import total_detunedness, span_in_5ths
+from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 
 
 # how far I look to find neighbours
@@ -70,17 +70,19 @@ def parse_file(base_dir, midi_file, per_file_counts):
     note_stream = converter.parse(midi_in_file)
     
     # do some analysis first
-    start_time = note_stream.flat.notes.offsetMap[0]['offset']
-    end_time = note_stream.flat.notes.offsetMap[-1]['endTime']
-    midi_length = end_time-start_time
-    curr_time = start_time
+    first_event = note_stream.flat.notes.offsetMap[0]['offset']
+    last_event = note_stream.flat.notes.offsetMap[-1]['offset']
+    midi_length = last_event-first_event
+    curr_time = first_event
     thinned_intervals = []
     for ev in note_stream.flat.notes.offsetMap:
         next_time = ev['offset']
         if next_time > curr_time + ONSET_TOLERANCE:
             thinned_intervals.append(next_time-curr_time)
             curr_time = next_time
-    time_step = TIME_SMEAR * sum(thinned_intervals)/ len(thinned_intervals)
+    mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
+    time_step = TIME_SMEAR * mean_note_time
+    print "mean inter-event time", time_step
     
     transition_heap = []
 
@@ -182,7 +184,7 @@ os.path.walk(MIDI_BASE_DIR, parse_if_midi, per_file_counts)
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
 # But sod it; we ain't doing analysis in python right now; let's pump this out to R
-fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['detune', 'span']+ ['ons', 'offs']
+fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['detune', 'span', 'spanup', 'spandown']+ ['ons', 'offs']
 
 with open(CSV_OUT_PATH, 'w') as handle:
     writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
@@ -193,6 +195,7 @@ with open(CSV_OUT_PATH, 'w') as handle:
             writer.writerow(
               [file_key] +
               [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
-              [total_detunedness(neighborhood), span_in_5ths(neighborhood)] +
+              [total_detunedness(neighborhood), span_in_5ths(neighborhood),
+                span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
               [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
             )

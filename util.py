@@ -105,7 +105,7 @@ def span_in_5ths(neighborhood):
 
 def span_in_5ths_up(neighborhood):
     """
-    how many 5ths do I need to jump to encompass this entire set of pitches?
+    how many 5ths do I need to jump up to encompass this entire set of pitches?
     NB implicitly starts from the tonic.
     """
     folded_hood = fold_to_octave(neighborhood)
@@ -115,7 +115,7 @@ def span_in_5ths_up(neighborhood):
 
 def span_in_5ths_down(neighborhood):
     """
-    how many 5ths do I need to jump to encompass this entire set of pitches?
+    how many 5ths do I need to jump down to encompass this entire set of pitches?
     NB implicitly starts from the tonic.
     """
     folded_hood = fold_to_octave(neighborhood)
