@@ -65,33 +65,12 @@ note.log.model = function(notes.data, notes.formula, ...) {
   print(notes.fit.time)
   return(notes.fit)
 }
-export.formula <- function (coefs.matrix) {
-#cast to string for export
-#   coef.list = list()
-#   for (n in row.names(coefs.matrix)) {
-#     if (coefs.matrix[n,] !=0) coef.list[n] = coefs.matrix[n,]
-#   }
-  export.formula = "["
+coefs.as.json <- function (coefs.matrix) {
+  coef.list = list()
   for (n in row.names(coefs.matrix)) {
-    if (coefs.matrix[n,] !=0) {
-      export.formula = paste(export.formula, "[")
-      coef.bit = strsplit(
-        str_replace_all(str_replace_all(n, "X",""), "[.]", "-"), ":"
-      )
-      export.formula = paste(
-        export.formula, 
-        paste(
-          coef.bit
-        ), sep=", "
-      )
-      export.formula = paste(export.formula, coefs.matrix[n,], sep=", ")
-      export.formula = paste(export.formula, "]")
-      export.formula = paste(export.formula, "]")
-      #coef.list[n] = coefs.matrix[n,]
-    }
+    if (coefs.matrix[n,] !=0) coef.list[n] = coefs.matrix[n,]
   }
-  export.formula = paste(export.formula, "]")
-  return(export.formula)
+  return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
 }
 
 # data to fit the note model, GIVEN THE CURRENT NOTE IS OFF
@@ -111,3 +90,8 @@ notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
 notes.off = subset(notes.off, totalHeld>0)
 notes.off$totalHeld = NULL
 
+notes.off.fit = note.log.model(notes.off, notes.off.formula)
+
+h <- file("coef-11.json", "w")
+cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
+close(h)
