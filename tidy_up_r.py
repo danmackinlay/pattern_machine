@@ -14,7 +14,6 @@ def tidy_json_model(file_path):
     predictor_pairs = [[[], r_model.pop(u'(Intercept)')[0]]]
 
     for this_predictor_string, [this_coef] in r_model.iteritems():
-        print "*", this_predictor_string, this_coef
         this_predictor_chunks = this_predictor_string.split(":")
         this_predictor_refs = []
         for chunk in this_predictor_chunks:
@@ -33,4 +32,24 @@ def write_json_model(model, path):
     with open(path, "w") as f:
         dump(model, f)
 
+def sc_string(model):
+    """code-generate an SC function
+    This SC function returns logit probability from a note volume array, nState, for a given pitch i
+    """
+    super_terms = []
+    for refs, coef in model:
+        terms = []
+        for i in refs:
+            subterm = ["(nState[i"]
+            if i>=0: subterm.append("+")
+            subterm.append(str(i))
+            subterm.append("]?0)")
+            terms.append("".join(subterm))
+        if coef<0:
+            terms.append("("+str(coef)+")")
+        else:
+            terms.append(str(coef))
+        super_terms.append("("+"*".join(terms)+")")
+    return " + ".join(super_terms)
+    
 model = tidy_json_model("coef-11.json")
