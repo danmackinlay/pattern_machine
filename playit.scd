@@ -50,3 +50,12 @@
 };
 ~notelm.value(i:5, nState:[0,0,0,0,0,0,0,1,0,0,0,0,0]);
 20.collect(~notelm.value(_,[0,0,0,0,0,0,0,1,0,0,0,0,0]));
+~n=Noteomata.new;
+~n.nextOnProbs;
+~n.addNote(46);
+~n.addNote(47);
+~n.addNote(48);
+~n.addNote(51);
+~n.nextOnProbs.do({|v,i| [i,v].postln;});
+~n.nextNote(2);
+IdentitySet.newFrom(~n.nextOnProbs)-IdentitySet[71,72,73];
