@@ -2,7 +2,7 @@
 //~mankymodel = (~here +/+ "coef-11.json").parseYAMLFile;
 ~noteson = [0,0,0,1,0,0,1,0];
 ~notelm = {|i, nState|
-	((-4.96464116)) +
+((-4.96464116)) +
 ((nState[i-7]?0)*(nState[i-6]?0)*(-0.17156896)) +
 ((nState[i-5]?0)*(nState[i-4]?0)*(-0.02200252)) +
 ((nState[i-7]?0)*(nState[i-5]?0)*(-0.3471564)) +
@@ -49,4 +49,4 @@
 ((nState[i-9]?0)*(nState[i-1]?0)*(-0.45750474));
 };
 ~notelm.value(i:5, nState:[0,0,0,0,0,0,0,1,0,0,0,0,0]);
-
+20.collect(~notelm.value(_,[0,0,0,0,0,0,0,1,0,0,0,0,0]));

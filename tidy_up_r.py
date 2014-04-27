@@ -50,6 +50,6 @@ def sc_string(model, i_name="i", nstate_name="nState"):
         else:
             terms.append(str(coef))
         super_terms.append("("+"*".join(terms)+")")
-    return " + \n".join(super_terms) + ";"
+    return " +\n\t".join(super_terms) + ";"
 
 model = tidy_json_model("coef-11.json")
