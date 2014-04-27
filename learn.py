@@ -63,7 +63,7 @@ MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")
 CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
 
-def parse_file(base_dir, midi_file, per_file_counts):
+def parse_midi_file(base_dir, midi_file, per_file_counts):
     midi_in_file = os.path.join(base_dir, midi_file)
     file_key = midi_in_file[len(MIDI_BASE_DIR):]
     print "parsing", file_key
@@ -169,7 +169,7 @@ def transition_summary(note_transitions):
 def parse_if_midi(per_file_counts, file_dir, file_list):
     for f in file_list:
         if f.lower().endswith('mid'):
-            parse_file(file_dir, f, per_file_counts)
+            parse_midi_file(file_dir, f, per_file_counts)
 
 per_file_counts= dict()
 
