@@ -32,7 +32,7 @@ def write_json_model(model, path):
     with open(path, "w") as f:
         dump(model, f)
 
-def sc_string(model):
+def sc_string(model, i_name="i", nstate_name="nState"):
     """code-generate an SC function
     This SC function returns logit probability from a note volume array, nState, for a given pitch i
     """
@@ -40,7 +40,7 @@ def sc_string(model):
     for refs, coef in model:
         terms = []
         for i in refs:
-            subterm = ["(nState[i"]
+            subterm = ["("+nstate_name+"["+i_name]
             if i>=0: subterm.append("+")
             subterm.append(str(i))
             subterm.append("]?0)")
@@ -50,6 +50,6 @@ def sc_string(model):
         else:
             terms.append(str(coef))
         super_terms.append("("+"*".join(terms)+")")
-    return " + ".join(super_terms)
-    
+    return " + \n".join(super_terms) + ";"
+
 model = tidy_json_model("coef-11.json")
