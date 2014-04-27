@@ -84,14 +84,11 @@ notes.off.held.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
 #use only held notes
 notes.off.predictor.names  = notes.off.held.names
 notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2"))
-
 notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
 #remove initial nodes - i.e. there has to be one other note in range for this note to switch on
 notes.off = subset(notes.off, totalHeld>0)
 notes.off$totalHeld = NULL
-
 notes.off.fit = note.log.model(notes.off, notes.off.formula)
-
-h <- file("coef-11.json", "w")
+h <- file("coef-off-11.json", "w")
 cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
 close(h)
