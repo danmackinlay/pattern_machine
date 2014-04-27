@@ -1,6 +1,5 @@
 Noteomata {
 	var <nState;
-	var <nStateMask;
 	var <heldNotes;
 	var <allNotes;
 	
@@ -9,18 +8,15 @@ Noteomata {
 	}
 	init {
 		nState = Array.fill(128,0);
-		nStateMask = Array.fill(128,1);
 		heldNotes = IdentitySet.new(128);
 		allNotes = (0..127);
 	}
 	add {|i|
 		nState[i]=1;
-		nStateMask[i]=0;
 		heldNotes.add(i);
 	}
 	remove {|i|
 		nState[i]=0;
-		nStateMask[i]=1;
 		heldNotes.remove(i);
 	}
 	lowest{
@@ -75,7 +71,7 @@ Noteomata {
 		((nState[i-10]?0)*(nState[i-3]?0)*(-0.04303883)) +
 		((nState[i-9]?0)*(nState[i-1]?0)*(-0.45750474));
 	}
-	*invLogit{|x=0,a=1,b=0|
+	invLogit{|x=0,a=1,b=0|
 		var e=(a*x+b).exp;
 		^e/(1+e);
 	}
@@ -85,18 +81,22 @@ Noteomata {
 		nextCandidates = IdentitySet.newFrom(
 			(((this.lowest-12).max(0))..((this.highest+12).min(127)))
 		)-heldNotes;
-		nextCandidates.do({|i| 
-			nextProb[i] = this.class.invLogit(this.lm(i), a, b);
+		nextCandidates.do({|i|
+			nextProb[i] = this.invLogit(this.lm(i), a, b);
 		});
 		^nextProb.normalizeSum;
 	}
 	choose {|a=1, b=0|
 		^allNotes.wchoose(this.nextOnProbs(a,b));
 	}
-	on {|a=1, b=0|
+	nextOn {|a=1, b=0|
 		var nextPitch = this.choose(a,b);
 		this.add(nextPitch);
 		^nextPitch;
 	}
-	
+	nextOff {
+		var nextPitch = heldNotes.choose;
+		this.remove(nextPitch);
+		^nextPitch;
+	}
 }
