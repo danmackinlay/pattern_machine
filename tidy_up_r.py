@@ -3,13 +3,14 @@ because R is a fairly filthy language
 with no scalars and horrible string handling.
 
 Parses model matrix colnames into references and unpacks the single entry coefficient arrays.
+
+Outputs as JSON - but why not code generate for SC? life is short.
 """
 
 from json import dump, load
 
 r_model = load(open("coef-11.json"))
-predictor_refs = [[]]
-predictor_coefs = [r_model.pop(u'(Intercept)')[0]]
+predictor_pairs = [[[], r_model.pop(u'(Intercept)')[0]]]
 
 for this_predictor_string, [this_coef] in r_model.iteritems():
     print "*", this_predictor_string, this_coef
@@ -24,7 +25,6 @@ for this_predictor_string, [this_coef] in r_model.iteritems():
         else:
             ref = int(chunk)
         this_predictor_refs.append(ref)
-    predictor_refs.append(this_predictor_refs)
-    predictor_coefs.append(this_coef)
-    print this_predictor_refs, this_coef
+    predictor_pairs.append([this_predictor_refs,this_coef])
+
 
