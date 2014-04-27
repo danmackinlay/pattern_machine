@@ -1,6 +1,5 @@
 ~here = "/Users/dan/src/python/arpeggiate_by_numbers";
-~mankymodel = (~here +/+ "coef-11.json").parseYAMLFile;
-~s=IdentitySet[1,3,5];
+//~mankymodel = (~here +/+ "coef-11.json").parseYAMLFile;
 ~noteson = [0,0,0,1,0,0,1,0];
 ~notelm = {|i, nState|
 	((-4.96464116)) +
@@ -49,4 +48,5 @@
 ((nState[i-10]?0)*(nState[i-3]?0)*(-0.04303883)) +
 ((nState[i-9]?0)*(nState[i-1]?0)*(-0.45750474));
 };
-~noteslm.value(1, #[0,0,0,0,0,0,1,1,0,0,0,0,1]);
+~notelm.value(i:5, nState:[0,0,0,0,0,0,0,1,0,0,0,0,0]);
+
