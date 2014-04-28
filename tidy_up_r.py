@@ -26,7 +26,7 @@ def tidy_json_model(file_path):
                 ref = int(chunk)
             this_predictor_refs.append(ref)
         predictor_pairs.append([this_predictor_refs,this_coef])
-    return(predictor_pairs)
+    return(sorted(predictor_pairs))
 
 def write_json_model(model, path):
     with open(path, "w") as f:
