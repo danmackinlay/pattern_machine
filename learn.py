@@ -8,7 +8,6 @@ import csv
 from heapq import heappush, heapify, heappop
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 
-
 # how far I look to find neighbours
 # perfect 5th
 # NEIGHBORHOOD_RADIUS = 6
@@ -31,33 +30,32 @@ ONSET_TOLERANCE = 0.06
 
 #TODO:
 # trim neighbourhood size at statistical analysis stage rather than re-run MIDI (low priority as this step is fast.)
-# go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway.
+# call into R using rpy2, to avoid this horrible manual way of doing things
 # export inferred formula from R
 # implement midi player that uses this
 # could fit model condition on NUMBER OF HELD NOTES which woudl be faster to infer and to predict, and more accurate
-# but it would fail to generalise to crazy values and be fiddlier to implement, and lose the bonus feature of being able to compare harmonicity. Would this be a problem?
-# current model is very ugly, and has marginal gain from decreasing regularisation, quickly saturating
-# elastic net could give us nicer coefficient ordering?
-# we could have more state by using a very simple decay model, where notes have a decay length calibrated to mean number of notes in song, such that
+# but it would fail to generalise to crazy values and be fiddlier to implement.
+# current model is ugly but works - Nto guarnateed to respect hierarchicality but seems to anyway.
+# go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway. NB - large data sets.
 # experiment with longer note smears
 # experiment with adaptive note smearing
 # What I really want is smoothing that favours spectrally-meaningful relations
 # # such as projecting onto harmonic space
 # # note that otherwise, I am missing out (really?) under-represented transitions in the data.
 # # NB I should check that treating each note event as independent actually corresponds to meaningful bayesian inversion
-# improved feature ideas:
-# # feature vector of approximate prime decomposition of ratios
-# # number of held notes
-# # time since last note at a given relative pitch
-# # span in 5ths at various time offsets
 # Doubts and caveats:
-# Seems that we might not want to penalise repeating a note a lot etc
 # Interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
 # # Convolution amplitude (effectively Fourier comparison)
 # # mutual information of square waves at specified frequency (discrete distribution!)
 # # # or Pearson statistic!
 # # or mutual information of wavelength count at specified frequency
 # # could be windowed. Real human hearing is, after all...
+# improved feature ideas:
+# # feature vector of approximate prime decomposition of ratios
+# # number of held notes
+# # time since last note at a given relative pitch
+# # span in 5ths at various time offsets
+# # f-divergence between spectral band occupancy folded onto one octave (free "smoothing" param to calibrate, slow, but more intuitive. Not great realtime...)
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")

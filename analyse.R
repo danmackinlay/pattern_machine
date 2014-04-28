@@ -18,11 +18,11 @@ case.scale.factor = 24
 
 # See packages glmnet, liblineaR, rms
 # NB liblineaR has python binding
-# NB glmnet and liblineaR do not support interaction terms natively
-# NB glm doesn't support penalised regression.
-# or traditional AIC style: http://data.princeton.edu/R/glms.html
-# see also http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
-#and http://www.jstatsoft.org/v33/i01/paper
+# if we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
+# OR even do hierarchical penalised regression using http://cran.r-project.org/web/packages/glinternet/index.html
+# For now
+# see http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
+# and http://www.jstatsoft.org/v33/i01/paper
 
 #if this DOESN'T work, could go to a discrete PGM model, such as
 # http://cran.r-project.org/web/packages/catnet/vignettes/catnet.pdf
