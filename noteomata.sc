@@ -86,6 +86,11 @@ Noteomata {
 		((nState[i+11]?0)*(-0.56899063));
 	}
 	lmOff{|i|
+		/* NB the logit probabilities here are inverted w/respect to what we expect
+		reflecting likely a note is to be ON in the next time step,
+		so we add a (*-1) at the end
+		*/
+		(
 		((-5.39498548)) +
 		((nState[i-11]?0)*(-0.81201252)) +
 		((nState[i-11]?0)*(nState[i-8]?0)*(-0.33081911)) +
@@ -144,7 +149,8 @@ Noteomata {
 		((nState[i+8]?0)*(-0.59470818)) +
 		((nState[i+9]?0)*(-0.33404362)) +
 		((nState[i+10]?0)*(-0.44344859)) +
-		((nState[i+11]?0)*(-0.47676943));
+		((nState[i+11]?0)*(-0.47676943)))
+		*(-1);
 	}
 	invLogit{|x=0,a=1,b=0|
 		var e=(a*x+b).exp;
@@ -173,20 +179,20 @@ Noteomata {
 		^allNotes.wchoose(this.nextOnProbs(a,b));
 	}
 	chooseOff {|a=1, b=0|
-		^(heldNotes.size>0}.if({
+		^(heldNotes.size>0).if({
 			allNotes.wchoose(this.nextOffProbs(a,b));
 			}, {
 				nil
 			}
 		);
 	}
-	nextOn {|a=1, b=0|
-		var nextPitch = this.chooseOn(a,b);
+	pushOn {|i, a=1, b=0|
+		var nextPitch = i ?? {this.chooseOn(a,b);};
 		this.add(nextPitch);
 		^nextPitch;
 	}
-	nextOff {|a=1, b=0|
-		var nextPitch = this.chooseOff(a,b);
+	popOff {|i, a=1, b=0|
+		var nextPitch = i?? {this.chooseOff(a,b);};
 		this.remove(nextPitch);
 		^nextPitch;
 	}
