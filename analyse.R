@@ -52,14 +52,15 @@ note.log.model = function(notes.data, notes.formula, ...) {
   notes.response=as.matrix(notes.data$response)
   notes.fit = 0
   notes.fit.time = system.time( #note this only works for <- assignment!
-    notes.fit <- cv.glmnet(notes.predictors.sparse,
-                        notes.response,
-                        family="binomial",
-                        type.logistic="modified.Newton",
-                        alpha=1,
-                        parallel=TRUE,
-                        foldid=unclass(notes.data$file),
-                        ...
+    notes.fit <- cv.glmnet(
+      notes.predictors.sparse,
+      notes.response,
+      family="binomial",
+      type.logistic="modified.Newton",
+      alpha=1,
+      parallel=TRUE,
+      foldid=unclass(notes.data$file),
+      ...
     )
   )
   print(notes.fit.time)

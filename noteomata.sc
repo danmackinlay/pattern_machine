@@ -1,7 +1,6 @@
 /*
 stochastic cellular automata implementing harmonies
-The model in this case comes from lasso regression on conditional note transitions in a corpus of
-midi files
+The model in this case comes from lasso regression on conditional note transitions in a corpus of midi files
 
 TODO:
 * swap note model
@@ -9,6 +8,8 @@ TODO:
 * dynamic default start note distribution
 * multiple off-note models
 * handle multiple voices with shared note list
+* handle repeated notes - using IdentityBag, or a PriorityQueue
+* the latter is nice because we can keep track of an internal time
 */
 
 Noteomata {
