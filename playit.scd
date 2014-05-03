@@ -12,8 +12,8 @@
 ~n.nextOnProbs.plot;
 ~n.nextOn(2);
 ~n.nextOn;
-~n.nextOff;
-~n.heldNotes.choose;
+~n.heldNotes;
+~n.age(0.2);
 ~n.remove;
 IdentitySet.newFrom(~n.nextOnProbs)-IdentitySet[71,72,73];
 

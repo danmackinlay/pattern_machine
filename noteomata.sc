@@ -10,34 +10,36 @@ TODO:
 * handle multiple voices with shared note list
 * handle repeated notes - using IdentityBag, or a PriorityQueue
 * the latter is nice because we can keep track of an internal time
+* nah, make it something that returns nice events from timestamps, e.g. an b
 */
 
 Noteomata {
 	var <nState;
 	var <heldNotes;
 	var <allNotes;
+	var <window=1;
 	
 	*new {
 		^super.new.init;
 	}
 	init {
 		nState = Array.fill(128,0);
-		heldNotes = IdentitySet.new(128);
+		heldNotes = IdentityDictionary.new(128);
 		allNotes = (0..127);
 	}
 	add {|i|
 		nState[i]=1;
-		heldNotes.add(i);
+		heldNotes[i]=0.0;
 	}
 	remove {|i|
 		nState[i]=0;
-		heldNotes.remove(i);
+		heldNotes.removeAt(i);
 	}
 	lowest{
-		^heldNotes.minItem ? 64;
+		^heldNotes.keys.minItem ? 64;
 	}
 	highest{
-		^heldNotes.maxItem ? 64;
+		^heldNotes.keys.maxItem ? 64;
 	}
 	lmOn {|i|
 		^(-4.96464116) +
@@ -85,73 +87,6 @@ Noteomata {
 		((nState[i+10]?0)*(-0.65407107)) +
 		((nState[i+11]?0)*(-0.56899063));
 	}
-	lmOff{|i|
-		/* NB the logit probabilities here are inverted w/respect to what we expect
-		reflecting likely a note is to be ON in the next time step,
-		so we add a (*-1) at the end
-		*/
-		(
-		((-5.39498548)) +
-		((nState[i-11]?0)*(-0.81201252)) +
-		((nState[i-11]?0)*(nState[i-8]?0)*(-0.33081911)) +
-		((nState[i-11]?0)*(nState[i-3]?0)*(-0.00484306)) +
-		((nState[i-10]?0)*(-0.32721688)) +
-		((nState[i-10]?0)*(nState[i-9]?0)*(-0.18726971)) +
-		((nState[i-10]?0)*(nState[i-7]?0)*(-0.23819043)) +
-		((nState[i-10]?0)*(nState[i-6]?0)*1.26172181) +
-		((nState[i-10]?0)*(nState[i-5]?0)*(-0.20922032)) +
-		((nState[i-10]?0)*(nState[i-3]?0)*(-0.56285579)) +
-		((nState[i-9]?0)*(nState[i-8]?0)*(-0.34617873)) +
-		((nState[i-9]?0)*(nState[i-7]?0)*(-0.58608671)) +
-		((nState[i-9]?0)*(nState[i-6]?0)*(-0.78579402)) +
-		((nState[i-9]?0)*(nState[i-5]?0)*0.17596177) +
-		((nState[i-9]?0)*(nState[i-4]?0)*2.2767305) +
-		((nState[i-9]?0)*(nState[i-3]?0)*0.27260348) +
-		((nState[i-9]?0)*(nState[i-1]?0)*(-0.81010215)) +
-		((nState[i-9]?0)*(nState[i+8]?0)*0.98047865) +
-		((nState[i-8]?0)*(nState[i-7]?0)*(-0.0581614)) +
-		((nState[i-8]?0)*(nState[i-6]?0)*(-0.139325)) +
-		((nState[i-8]?0)*(nState[i-5]?0)*1.79978889) +
-		((nState[i-8]?0)*(nState[i-4]?0)*(-0.91943901)) +
-		((nState[i-8]?0)*(nState[i-2]?0)*0.39296407) +
-		((nState[i-8]?0)*(nState[i+1]?0)*(-0.3298326)) +
-		((nState[i-7]?0)*(-0.02313544)) +
-		((nState[i-7]?0)*(nState[i-6]?0)*(-0.61750279)) +
-		((nState[i-7]?0)*(nState[i-5]?0)*(-0.48198278)) +
-		((nState[i-7]?0)*(nState[i-3]?0)*1.77053988) +
-		((nState[i-7]?0)*(nState[i-2]?0)*(-0.50818431)) +
-		((nState[i-7]?0)*(nState[i+9]?0)*(-0.06539239)) +
-		((nState[i-6]?0)*(nState[i-5]?0)*(-0.19485706)) +
-		((nState[i-6]?0)*(nState[i-4]?0)*0.22389953) +
-		((nState[i-6]?0)*(nState[i-1]?0)*(-0.17789939)) +
-		((nState[i-6]?0)*(nState[i+2]?0)*(-0.19821903)) +
-		((nState[i-5]?0)*0.01619571) +
-		((nState[i-5]?0)*(nState[i-3]?0)*(-0.65543173)) +
-		((nState[i-5]?0)*(nState[i-1]?0)*(-0.53707009)) +
-		((nState[i-4]?0)*0.18540016) +
-		((nState[i-4]?0)*(nState[i-1]?0)*(-0.02458103)) +
-		((nState[i-4]?0)*(nState[i+7]?0)*0.14423396) +
-		((nState[i-3]?0)*0.41369007) +
-		((nState[i-3]?0)*(nState[i+1]?0)*(-0.10266089)) +
-		((nState[i-3]?0)*(nState[i+3]?0)*(-0.93592823)) +
-		((nState[i-3]?0)*(nState[i+5]?0)*(-0.41679382)) +
-		((nState[i-2]?0)*(nState[i-1]?0)*0.31918143) +
-		((nState[i-2]?0)*(nState[i+3]?0)*(-0.11018514)) +
-		((nState[i-1]?0)*(-0.04131232)) +
-		((nState[i-1]?0)*(nState[i+3]?0)*(-0.0810695)) +
-		((nState[i+1]?0)*(-0.37274377)) +
-		((nState[i+2]?0)*(-0.05085987)) +
-		((nState[i+3]?0)*(-0.20609268)) +
-		((nState[i+4]?0)*(-0.48166712)) +
-		((nState[i+5]?0)*(-0.21707927)) +
-		((nState[i+6]?0)*(-0.9870534)) +
-		((nState[i+7]?0)*(-0.15548124)) +
-		((nState[i+8]?0)*(-0.59470818)) +
-		((nState[i+9]?0)*(-0.33404362)) +
-		((nState[i+10]?0)*(-0.44344859)) +
-		((nState[i+11]?0)*(-0.47676943)))
-		*(-1);
-	}
 	invLogit{|x=0,a=1,b=0|
 		var e=(a*x+b).exp;
 		^e/(1+e);
@@ -161,16 +96,8 @@ Noteomata {
 		var nextProb = Array.fill(128,0);
 		nextCandidates = IdentitySet.newFrom(
 			(((this.lowest-12).max(0))..((this.highest+12).min(127)))
-		)-heldNotes;
+		)-heldNotes.keys;
 		nextCandidates.do({|i|
-			nextProb[i] = this.invLogit(this.lmOn(i), a, b);
-		});
-		^nextProb.normalizeSum;
-	}
-	nextOffProbs {|a=1, b=0|
-		var nextCandidates;
-		var nextProb = Array.fill(128,0);
-		heldNotes.do({|i|
 			nextProb[i] = this.invLogit(this.lmOn(i), a, b);
 		});
 		^nextProb.normalizeSum;
@@ -178,22 +105,16 @@ Noteomata {
 	chooseOn {|a=1, b=0|
 		^allNotes.wchoose(this.nextOnProbs(a,b));
 	}
-	chooseOff {|a=1, b=0|
-		^(heldNotes.size>0).if({
-			allNotes.wchoose(this.nextOffProbs(a,b));
-			}, {
-				nil
-			}
-		);
-	}
-	pushOn {|i, a=1, b=0|
-		var nextPitch = i ?? {this.chooseOn(a,b);};
+	pushOn {|a=1, b=0|
+		var nextPitch = this.chooseOn(a,b);
 		this.add(nextPitch);
 		^nextPitch;
 	}
-	popOff {|i, a=1, b=0|
-		var nextPitch = i?? {this.chooseOff(a,b);};
-		this.remove(nextPitch);
-		^nextPitch;
+	age{|step=0.5|
+		heldNotes.keysValuesDo({|note, age|
+			age = age + step;
+			heldNotes[note] = age;
+			(age>window).if({this.remove(note)});
+		});
 	}
 }
