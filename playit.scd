@@ -10,17 +10,30 @@
 ~n.add(51);
 ~n.nextOnProbs.do({|v,i| [i,v].postln;});
 ~n.nextOnProbs.plot;
-~n.nextOn(2);
-~n.nextOn;
+~n.pushOn;
 ~n.heldNotes;
 ~n.age(0.2);
-~n.remove;
-IdentitySet.newFrom(~n.nextOnProbs)-IdentitySet[71,72,73];
 
-
-
+(
+~n=Noteomata.new;
+~state = (\n: Noteomata.new);
+~innotes = Pbind(
+	\dur, Pwhite(0.0,1,8)
+).collect(
+	{|in|
+		in['midinote']=~state[\n].pushOn;
+		in.delta.postln;
+		~state[\n].age(in.delta);
+		in;
+	}
+).collect(_.postln).play();
+)
+(
+~state.n.heldNotes;
+)
 //Storing state? See Pattern Guide 06g
 MIDIClient.init;    // if not already done
+
 
 /*
 The \midi event type supports the following commands, chosen in the event by the \midicmd key: \allNotesOff, \bend, \control, \noteOff, \noteOn, \polyTouch, \program, \smpte, \songPtr, \sysex, \touch. The default is \noteOn. When playing a note (noteOn), by default the corresponding noteOff message will be sent after the note's sustain time.
