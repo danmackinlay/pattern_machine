@@ -13,14 +13,15 @@
 ~n.pushOn;
 ~n.heldNotes;
 ~n.age(0.2);
-
+60.rrand(72);
 (
-~n=Noteomata.new;
-~state = (\n: Noteomata.new);
+~n=Noteomata.new(window:2);
+~state = (\n: ~n);
 ~innotes = Pbind(
-	\dur, Pwhite(0.0,1,8)
+	\delta, Prand([1/4,1/8,1/3],16)
 ).collect(
 	{|in|
+		in.asCompileString.postln;
 		in['midinote']=~state[\n].pushOn;
 		in.delta.postln;
 		~state[\n].age(in.delta);
@@ -29,7 +30,7 @@
 ).collect(_.postln).play();
 )
 (
-~state.n.heldNotes;
+~n.heldNotes;
 )
 //Storing state? See Pattern Guide 06g
 MIDIClient.init;    // if not already done

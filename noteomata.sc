@@ -8,19 +8,20 @@ TODO:
 * dynamic default start note distribution
 * multiple off-note models
 * handle multiple voices with shared note list
-* handle repeated notes - using IdentityBag, or a PriorityQueue
-* the latter is nice because we can keep track of an internal time
 * nah, make it something that returns nice events from timestamps, e.g. an b
 */
 
 Noteomata {
+	var <window;
+	var <>defA;
+	var <>defB;
+	var <>defaultNote;
 	var <nState;
 	var <heldNotes;
 	var <allNotes;
-	var <window=1;
 	
-	*new {
-		^super.new.init;
+	*new {|window=1, a=1,b=0,defaultNote|
+		^super.newCopyArgs(window,a,b,defaultNote?{60.rrand(72)}).init;
 	}
 	init {
 		nState = Array.fill(128,0);
@@ -87,11 +88,11 @@ Noteomata {
 		((nState[i+10]?0)*(-0.65407107)) +
 		((nState[i+11]?0)*(-0.56899063));
 	}
-	invLogit{|x=0,a=1,b=0|
-		var e=(a*x+b).exp;
+	invLogit{|x=0,a,b|
+		var e=((a?defA)*x+(b?defB)).exp;
 		^e/(1+e);
 	}
-	nextOnProbs {|a=1, b=0|
+	nextOnProbs {|a, b|
 		var nextCandidates;
 		var nextProb = Array.fill(128,0);
 		nextCandidates = IdentitySet.newFrom(
@@ -102,15 +103,22 @@ Noteomata {
 		});
 		^nextProb.normalizeSum;
 	}
-	chooseOn {|a=1, b=0|
-		^allNotes.wchoose(this.nextOnProbs(a,b));
+	chooseOn {|a, b|
+		^(heldNotes.size>0).if({
+			allNotes.wchoose(this.nextOnProbs(a,b));
+			}, {
+				defaultNote.value
+		});
 	}
-	pushOn {|a=1, b=0|
+	pushOn {|a, b|
 		var nextPitch = this.chooseOn(a,b);
 		this.add(nextPitch);
 		^nextPitch;
 	}
 	age{|step=0.5|
+		/*
+		Handles which notes are current and ditches those that are not
+		*/
 		heldNotes.keysValuesDo({|note, age|
 			age = age + step;
 			heldNotes[note] = age;
