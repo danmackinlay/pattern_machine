@@ -7,7 +7,10 @@ from music21.chord import Chord
 import csv
 from heapq import heappush, heapify, heappop
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
+import random
 
+# keep the jitter reproducible
+random.seed(12345)
 # how far I look to find neighbours
 # perfect 5th
 # NEIGHBORHOOD_RADIUS = 6
@@ -17,14 +20,14 @@ NEIGHBORHOOD_RADIUS = 11
 # NEIGHBORHOOD_RADIUS = 17
 
 # how much to extend notes so that even momentary ones influence the future state
-# measured in... crotchets?
+# measured in mean inter-onset durations.
 TIME_SMEAR = 1.5
 # Floating point is probably adequate for machine-transcribed scores.
 # Could get messy for real notes.
 # We break cords apart by jittering based on pitch
 #JITTER_FACTOR = 0.0
-JITTER_FACTOR = 0.001
-#when calculating note rate, aggregate notes this close together:
+JITTER_FACTOR = 0.01
+#when calculating note rate, aggregate notes this close together (JITTER_FACTOR ignored for those)
 ONSET_TOLERANCE = 0.06
 
 
@@ -33,7 +36,7 @@ ONSET_TOLERANCE = 0.06
 # call into R using rpy2, to avoid this horrible manual way of doing things
 # export inferred formula from R
 # implement midi player that uses this
-# could fit model condition on NUMBER OF HELD NOTES which woudl be faster to infer and to predict, and more accurate
+# could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
 # but it would fail to generalise to crazy values and be fiddlier to implement.
 # current model is ugly but works - Nto guarnateed to respect hierarchicality but seems to anyway.
 # go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway. NB - large data sets.
@@ -100,7 +103,10 @@ def parse_midi_file(base_dir, midi_file, per_file_counts):
             pitches = event.pitches
         for pitch in pitches:
             #insert a small jitter here to break chords apart- base notes first
-            jitter = JITTER_FACTOR*(pitch.midi-64.0)/64
+            #jitter = JITTER_FACTOR*float(pitch.midi)/128.0
+            #insert a small jitter here to break chords apart- random-style
+            jitter = JITTER_FACTOR*random.random()
+            
             heappush(transition_heap, (on_time+jitter, 1, pitch.midi))
             heappush(transition_heap, (off_time+jitter, -1, pitch.midi))
 

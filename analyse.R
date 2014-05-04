@@ -84,7 +84,7 @@ notes.off.held.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
 #notes.off.predictor.names = colnames(source.notes)[2:(length(colnames(source.notes))-2)]
 ##use only held notes
 notes.off.predictor.names  = notes.off.held.names
-notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^2"))
+notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^3"))
 notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
 #remove initial nodes - i.e. there has to be one other note in range for this note to switch on
 notes.off = subset(notes.off, totalHeld>0)
@@ -94,23 +94,24 @@ h <- file("coef-off-11.json", "w")
 cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
 close(h)
 
-# data to fit the note model, GIVEN THE CURRENT NOTE IS ON
-# i.e. the note REMOVAL model
-# with the new onset-led model, this shuould be nearly trivial, ht inverse of the above up to 
-# some exceptionally long-held notes. But it is handy to have around
-notes.on = source.notes[source.notes$X0==0,]
-notes.on[names(notes.on)=="X0"] = NULL
-notes.on.held.names = colnames(notes.on)[substr(names(notes.on),1,1)=="X"]
-##use all predictors
-#notes.on.predictor.names = colnames(source.notes)[2:(length(colnames(source.notes))-2)]
-##use only held notes
-notes.on.predictor.names  = notes.on.held.names
-notes.on.formula = as.formula(paste("~(", paste(notes.on.predictor.names, collapse="+"), ")^2"))
-notes.on$totalHeld=rowSums(notes.on[notes.on.held.names])
-#remove terminal nodes - i.e. there has to be one other note in range for this note to switch off
-notes.on = subset(notes.on, totalHeld>1)
-notes.on$totalHeld = NULL
-notes.on.fit = note.log.model(notes.on, notes.on.formula)
-h <- file("coef-on-11.json", "w")
-cat(coefs.as.json(coef(notes.on.fit, s="lambda.1se")), file=h)
-close(h)
+# # data to fit the note model, GIVEN THE CURRENT NOTE IS ON
+# # i.e. the note REMOVAL model
+# # with the new onset-led model, this should be nearly trivial -
+# # the inverse of the above up to
+# # some exceptionally long-held notes. But it is handy to have around
+# notes.on = source.notes[source.notes$X0==0,]
+# notes.on[names(notes.on)=="X0"] = NULL
+# notes.on.held.names = colnames(notes.on)[substr(names(notes.on),1,1)=="X"]
+# ##use all predictors
+# #notes.on.predictor.names = colnames(source.notes)[2:(length(colnames(source.notes))-2)]
+# ##use only held notes
+# notes.on.predictor.names  = notes.on.held.names
+# notes.on.formula = as.formula(paste("~(", paste(notes.on.predictor.names, collapse="+"), ")^2"))
+# notes.on$totalHeld=rowSums(notes.on[notes.on.held.names])
+# #remove terminal nodes - i.e. there has to be one other note in range for this note to switch off
+# notes.on = subset(notes.on, totalHeld>1)
+# notes.on$totalHeld = NULL
+# notes.on.fit = note.log.model(notes.on, notes.on.formula)
+# h <- file("coef-on-11.json", "w")
+# cat(coefs.as.json(coef(notes.on.fit, s="lambda.1se")), file=h)
+# close(h)
