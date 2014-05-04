@@ -15,6 +15,7 @@ case.scale.factor = 24
 # Could also model, conditional on environment, which note goes on.
 # More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
 # this would possibly more interpretable. But I would lose a lot of speed when I throw out sparsity.
+# should try and attribute amt of error to each song
 
 # See packages glmnet, liblineaR, rms
 # NB liblineaR has python binding

@@ -8,20 +8,23 @@ TODO:
 * dynamic default start note distribution
 * multiple off-note models
 * handle multiple voices with shared note list
-* nah, make it something that returns nice events from timestamps, e.g. an b
+* favour central or distant notes
+* have a bag of "virtual" notes here that constrain whcih other notes play
+* never consider more than say, *n* most recent notes
 */
 
 Noteomata {
 	var <window;
 	var <>defA;
 	var <>defB;
+	var <>maxJump;
 	var <>defaultNote;
 	var <nState;
 	var <heldNotes;
 	var <allNotes;
 	
-	*new {|window=1, a=1,b=0,defaultNote|
-		^super.newCopyArgs(window,a,b,defaultNote?{60.rrand(72)}).init;
+	*new {|window=1, a=1,b=0,maxJump=12,defaultNote|
+		^super.newCopyArgs(window,a,b,maxJump,defaultNote?{60.rrand(72)}).init;
 	}
 	init {
 		nState = Array.fill(128,0);
@@ -96,7 +99,7 @@ Noteomata {
 		var nextCandidates;
 		var nextProb = Array.fill(128,0);
 		nextCandidates = IdentitySet.newFrom(
-			(((this.lowest-12).max(0))..((this.highest+12).min(127)))
+			(((this.lowest-maxJump).max(0))..((this.highest+maxJump).min(127)))
 		)-heldNotes.keys;
 		nextCandidates.do({|i|
 			nextProb[i] = this.invLogit(this.lmOn(i), a, b);

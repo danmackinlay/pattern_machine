@@ -13,9 +13,8 @@
 ~n.pushOn;
 ~n.heldNotes;
 ~n.age(0.2);
-60.rrand(72);
 (
-~n=Noteomata.new(window:2);
+~n=Noteomata.new(window:2, defaultNote:48, maxJump:7);
 ~state = (\n: ~n);
 ~innotes = Pbind(
 	\delta, Prand([1/4,1/8,1/3],16)
@@ -23,8 +22,8 @@
 	{|in|
 		in.asCompileString.postln;
 		in['midinote']=~state[\n].pushOn;
-		in.delta.postln;
 		~state[\n].age(in.delta);
+		{~state[\n].nextOnProbs.plot}.defer;
 		in;
 	}
 ).collect(_.postln).play();
