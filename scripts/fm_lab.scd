@@ -18,7 +18,7 @@ fork {
 			Out.ar(out,
 				carrier
 			);
-		}, [0.05, 0.05, 0.5, 0.05]
+		}, rates:[0.5, 0.05,0.05,0.05]
 	).add;
 	s.sync;
 	~fmguy = Synth(\basic_fm, [
@@ -26,12 +26,13 @@ fork {
 		\freq, 440,
 		\modFreqRatio, 2,
 		\fModAmp, 0,
-		\aModAmp, 0],
-		target: s,
+		\aModAmp, 0
+		], target: s,
 		addAction:\addToTail
 	);
 }
 )
+
 (
 ~fmguy.set(\fModAmp, 0.1);
 ~fmguy.set(\fModAmp, 0.3);
@@ -40,7 +41,7 @@ fork {
 ~fmguy.set(\aModAmp, 0);
 ~fmguy.set(\aModAmp, 0.1);
 ~fmguy.set(\aModAmp, 2);
-
+~fmguy.get(\out, _.postln);
 )
 /* TODO:
 Envelope.
@@ -107,7 +108,8 @@ fork {
 )
 ~ampBus.getSynchronous;
 ~freqBus.getSynchronous;
-~fmguy.map(\fModAmp, ~mouseXBus);
+~fmguy.map(\aModAmp, ~mouseYBus);
+~mouseyguy.set(\maxval, 2);
 ~fmguy.map(\fModAmp, ~mouseXBus);
 ~mousexguy.set(\maxval, 4);
 ~fmguy.map(\freq, ~freqBus);
