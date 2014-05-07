@@ -108,27 +108,34 @@ PSCorrelate {
 	}
 	*gaussGaussToGauss {|rho, thisRand, otherRand|
 		//output a covariate with specified correlation rho
-		^(thisRand * rho) + ((1-(rho.squared)).sqrt * otherRand);
+		^(thisRand * rho) + ((1-(rho.squared)).sqrt * (otherRand ?? {0.gauss(1)}));
 	}
 	*gaussGaussToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussGaussToGauss(rho, thisRand, otherRand));
+		^PSPsi(this.gaussGaussToGauss(rho, thisRand, otherRand ?? {0.gauss(1)}));
 	}
 	*gaussUnifToGauss {|rho, thisRand, otherRand|
-		^this.gaussGaussToGauss(rho, thisRand, PSInvPsi(otherRand));
+		^this.gaussGaussToGauss(rho, thisRand, otherRand.notNil.if(
+			{PSInvPsi(otherRand)},
+			{0.gauss(1)})
+		);
 	}
 	*gaussUnifToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussUnifToGauss(rho, thisRand, otherRand));
+		^PSPsi(this.gaussUnifToGauss(rho, thisRand, otherRand ?? {1.0.rand;}));
 	}
 	*unifGaussToGauss {|rho, thisRand, otherRand|
-		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand);
+		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand ?? {0.gauss(1)});
 	}
 	*unifGaussToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand));
+		^PSPsi(this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand ?? {0.gauss(1)}));
 	}
 	*unifUnifToGauss {|rho, thisRand, otherRand|
-		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), PSInvPsi(otherRand));
+		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand.notNil.if(
+			{PSInvPsi(otherRand)},
+			{0.gauss(1)}));
 	}
 	*unifUnifToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussUnifToGauss(rho, PSInvPsi(thisRand), PSInvPsi(otherRand)));
+		^PSPsi(this.gaussUnifToGauss(rho, PSInvPsi(thisRand), otherRand.notNil.if(
+			{PSInvPsi(otherRand)},
+			{0.gauss(1)})));
 	}
 }
