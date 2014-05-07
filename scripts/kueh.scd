@@ -2,7 +2,7 @@ s=~serverboot.(prox:\local, device:\internal);
 (
 fork {
 	var state;
-	~state = state = (\baseCorr: 0.9, \baseVal:1);
+	~state = state = (\baseCorr: 0.0, \baseVal:1);
 	state.sampPath = ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise-edit.wav";
 	state.sampLen = 60;
 	state.sampBuf = Buffer.alloc(s, s.sampleRate * state.sampLen, 1);
@@ -57,33 +57,38 @@ fork {
 	p = Pbind(
 		\type, \note,
 		\instrument, \snip,
-		\baseRand, PSCorr(
-			Pfunc({state.baseCorr}),
-			Pfunc({state.baseVal}),
-			Pgauss(length:64)
-		),
+		\baseRand, Pfuncn({PSCorr(
+			state.baseCorr,
+			state.baseVal,
+		)}, 32),
 		\hasGate, false,
 		\buf, state.sampBuf,
 		\group, state.sourceGroup,
+		\baseDelta, 1/4,
 		//Now we do fun stuff
-		\db, PSPsi(
-			PSCorr(0.9, Pkey(\baseRand)),-20.0,0.0
-		),
-		\pan, PSPsi(PSCorr(0.9, Pkey(\baseRand)),-1.0,1.0),
-		\delta, 1/8,
-		\offset, 10.8,
-	).collect({|in|
+	).collect({|ev|
+		ev.db = PSPsi(PSCorr(0.0, ev.baseRand),-20.0,0.0);
+		ev.pan = PSPsi(PSCorr(0.0, ev.baseRand),-1.0,1.0);
+		ev[\delta] = state.baseDelta;
+		//ev.test = PSCorr(0, ev.baseRand);
+		ev[\timingOffset] = PSPsi(
+			PSCorr(0, ev.baseRand),
+			0.0, ev.baseDelta);
+		ev[\offset] = PSPsi(
+			PSCorr(0, ev.baseRand),
+			0.0, state.sampLen/2);
+		ev;
+	}).collect({|in|
 		in.asCompileString.postln;
 		in;
 	}).play;
 };
 )
 ~state;
-
 ~sampBuf.plot;
 ~sampBuf.play;
 ~sampBuf.query;
-
+PSCorr(0,0.6)
 // 2ch source
 (
 a = SynthDef(\src2x2, {
