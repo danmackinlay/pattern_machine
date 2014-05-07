@@ -2,7 +2,7 @@ s=~serverboot.(prox:\local, device:\internal);
 (
 fork {
 	var state;
-	~state = state = ();
+	~state = state = (\baseCorr: 0.9, \baseVal:1);
 	state.sampPath = ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise-edit.wav";
 	state.sampLen = 60;
 	state.sampBuf = Buffer.alloc(s, s.sampleRate * state.sampLen, 1);
@@ -57,7 +57,11 @@ fork {
 	p = Pbind(
 		\type, \note,
 		\instrument, \snip,
-		\baseRand, Pgauss(length:32),
+		\baseRand, PSCorr(
+			Pfunc({state.baseCorr}),
+			Pfunc({state.baseVal}),
+			Pgauss(length:64)
+		),
 		\hasGate, false,
 		\buf, state.sampBuf,
 		\group, state.sourceGroup,
