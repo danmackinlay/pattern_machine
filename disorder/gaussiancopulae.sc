@@ -2,6 +2,19 @@
 Todo: make supplied RV optional
 See also http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some faster, simpler, albeit inaccurate algorithms and 
 http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simpler algorithms
+
+I'm not quote sure how to handle graceful conversions to UGens and also vector input values here. Compare:
+~steps1 = Array.series(3001, 0, 1)/3000;
+~steps33 = Array.series(3001, -1500, 1)/500;
+~steps33.plot;
+PSPsi(PSInvPsi(~steps1)).plot;
+PSInvPsi(~steps1).plot;
+PSPsi(~steps33).plot;
+~steps33.collect(PSCorr(0.5, _)).plot;
+PSCorr(0.9, ~steps33, {0.gauss(1)}.dup(~steps33.size)).plot;
+PSCorr(0.9, ~steps33).plot;
+PSCorr.v(0.9, ~steps33).plot;
+
 */
 
 /*

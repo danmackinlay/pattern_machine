@@ -74,16 +74,8 @@ fork {
 	}).play;
 };
 )
-~state
-~steps1 = Array.series(3001, 0, 1)/3000;
-~steps33 = Array.series(3001, -1500, 1)/500;
-~steps33.plot;
-PSPsi(PSInvPsi(~steps1)).plot;
-PSInvPsi(~steps1).plot;
-PSPsi(~steps33).plot;
-~steps33.collect(PSCorr(0.5, _)).plot;
-~steps33.collect(PSCorr(0.9, _)).plot;
-PSCorr(0.9, ~steps33, {0.gauss(1)}.dup(~steps33.size)).plot;
+~state;
+
 ~sampBuf.plot;
 ~sampBuf.play;
 ~sampBuf.query;
