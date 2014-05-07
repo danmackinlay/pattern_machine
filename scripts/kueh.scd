@@ -1,27 +1,30 @@
 s=~serverboot.(prox:\local, device:\internal);
 (
 fork {
-	~sampPath= ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise-edit.wav";
-	~sampLen = 60;
-	~sampBuf = Buffer.alloc(s, s.sampleRate * ~sampLen, 1);
+	var state;
+	~state = state = ();
+	state.sampPath = ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise-edit.wav";
+	state.sampLen = 60;
+	state.sampBuf = Buffer.alloc(s, s.sampleRate * state.sampLen, 1);
 	s.sync;
-	~sampBuf.readChannel(~sampPath, channels:[0]);
+	state.sampBuf.readChannel(state.sampPath, channels:[0]);
 	s.sync;
-	~outBus = Bus.new(\audio,0,2,s);
-	~sourceGroup = Group.new(s,'addToHead');
+	state.outBus = Bus.new(\audio,0,2,s);
+	state.sourceGroup = Group.new(s,'addToHead');
 	s.sync;
-	~fxgroupGroup1 = Group.new(~sourceGroup,'addAfter');
+	state.fxMasterGroup = Group.new(state.sourceGroup,'addAfter');
+	state.fxGroups = List.new;
 	s.sync;
-	~fxgroupGroup2 = Group.new(~sourceGroup,'addAfter');
-	s.sync;
-	~fxgroupGroup3 = Group.new(~sourceGroup,'addAfter');
-	s.sync;
-	~fxgroupGroup4 = Group.new(~sourceGroup,'addAfter');
+	4.do({
+		state.fxGroups.add(
+			Group.new(state.fxMasterGroup,'addToTail'))
+	});
 	SynthDef(\snip,
 		{|out=0, rate=1, amp=1.0, attackTime=0.05, releaseTime=1.0, startPos=0, buf=0, pan|
 			var env,playr;
 			env = EnvGen.kr(
 				Env.perc(attackTime, releaseTime),
+				levelScale: amp,
 				gate: 1,
 				doneAction: 2
 			);
@@ -33,7 +36,6 @@ fork {
 					trigger: 1,
 					startPos: startPos*SampleRate.ir,
 				),
-				//SinOsc.ar,
 				pos: pan,
 				level: env
 			);
@@ -46,26 +48,39 @@ fork {
 		var signal;
 		signal = In.ar(outbus, 2);
 		ReplaceOut.ar(outbus,
-			FreeVerb2.ar( // FreeVerb2 - true stereo UGen
-				signal[0], // Left channel
-				signal[1], // Right Channel
+			FreeVerb2.ar(
+				signal[0],
+				signal[1],
 				mix, room, damp, amp));
 	}).add;
 	s.sync;
 	p = Pbind(
 		\type, \note,
-		\db,-10,
-		\pan, 0,
-		\delta, Prand([0,0,1/4,1/8,1/3],16),
-		\group, ~sourceGroup,
-		//\hasGate, false,
-		\buf, ~sampBuf,
 		\instrument, \snip,
+		\baseRand, Pgauss(length:16),
+		\hasGate, false,
+		\buf, state.sampBuf,
+		\group, state.sourceGroup,
+		\db, PSPsi(PSCorr(0.9, Pkey(\baseRand))).linlin(0.0,1.0,-20.0,0.0),
+		\pan, PSPsi(PSCorr(0.9, Pkey(\baseRand))).linlin(0.0,1.0,-1.0,1.0),
+		\delta, 1/2,
 		\offset, 10.8,
-	).collect(_.postln).play;
+	).collect({|in|
+		in.asCompileString.postln;
+		in;
+	}).play;
 };
 )
-
+~state
+~steps1 = Array.series(3001, 0, 1)/3000;
+~steps33 = Array.series(3001, -1500, 1)/500;
+~steps33.plot;
+PSPsi(PSInvPsi(~steps1)).plot;
+PSInvPsi(~steps1).plot;
+PSPsi(~steps33).plot;
+~steps33.collect(PSCorr(0.5, _)).plot;
+~steps33.collect(PSCorr(0.9, _)).plot;
+PSCorr(0.9, ~steps33, {0.gauss(1)}.dup(~steps33.size)).plot;
 ~sampBuf.plot;
 ~sampBuf.play;
 ~sampBuf.query;
