@@ -38,10 +38,10 @@ PSInvPsi {
 
 	classvar pLow = 0.02425;
 
-	*new{|p|
+	*new{|p, mul=1,add=0|
 		var isRightSide;
 		isRightSide = (p>0.5)*1;
-		^(1-(2*isRightSide))*this.leftSide(p.fold(0.0,0.5));
+		^(1-(2*isRightSide))*this.leftSide(p.fold(0.0,0.5))*mul +add;
 	}
 	*leftSide{|p|
 		var isLow;
@@ -95,11 +95,11 @@ PSPsi {
 	classvar b5 = 529.232;
 	classvar b6 = -1665.13;
 
-	*new{|p|
+	*new{|p, minval=0, maxval=1|
 		var flip;
 		p = p.clip(-5,5);
 		flip = 1-((p<0.0)*2);
-		^0.5+(flip*this.halfPsi(flip*p));
+		^0.5+(flip*this.halfPsi(flip*p)).linlin(0,1,minval,maxval);
 	}
 	*halfPsi {|p|
 		^(((a1*p+a2)*p+a3)*p+a4)*p /

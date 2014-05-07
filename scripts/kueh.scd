@@ -57,13 +57,16 @@ fork {
 	p = Pbind(
 		\type, \note,
 		\instrument, \snip,
-		\baseRand, Pgauss(length:16),
+		\baseRand, Pgauss(length:32),
 		\hasGate, false,
 		\buf, state.sampBuf,
 		\group, state.sourceGroup,
-		\db, PSPsi(PSCorr(0.9, Pkey(\baseRand))).linlin(0.0,1.0,-20.0,0.0),
-		\pan, PSPsi(PSCorr(0.9, Pkey(\baseRand))).linlin(0.0,1.0,-1.0,1.0),
-		\delta, 1/2,
+		//Now we do fun stuff
+		\db, PSPsi(
+			PSCorr(0.9, Pkey(\baseRand)),-20.0,0.0
+		),
+		\pan, PSPsi(PSCorr(0.9, Pkey(\baseRand)),-1.0,1.0),
+		\delta, 1/8,
 		\offset, 10.8,
 	).collect({|in|
 		in.asCompileString.postln;
