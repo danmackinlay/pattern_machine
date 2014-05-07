@@ -113,6 +113,10 @@ PSCorr {
 		//output a covariate with specified correlation rho, with default value
 		^this.gaussGaussToGauss(rho, thisRand, otherRand ?? {0.gauss(1)});
 	}
+	*v {|rho, thisRand, otherRand|
+		//output a covariate with specified correlation rho, with vector default value
+		^this.gaussGaussToGauss(rho, thisRand, otherRand ?? {{0.gauss(1)}.dup(~steps33.size)});
+	}
 	*gaussGaussToGauss {|rho, thisRand, otherRand|
 		//output a covariate with specified correlation rho
 		^(thisRand * rho) + ((1-(rho.squared)).sqrt * otherRand);
