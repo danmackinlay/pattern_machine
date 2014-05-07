@@ -1,8 +1,8 @@
 s=~serverboot.(prox:\local, device:\internal);
 (
 fork {
-	~sampPath= ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise.wav";
-	~sampLen = 0;
+	~sampPath= ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise-edit.wav";
+	~sampLen = 60;
 	~sampBuf = Buffer.alloc(s, s.sampleRate * ~sampLen, 1);
 	s.sync;
 	~sampBuf.readChannel(~sampPath, channels:[0]);
@@ -10,15 +10,15 @@ fork {
 	~outBus = Bus.new(\audio,0,2,s);
 	~sourceGroup = Group.new(s,'addToHead');
 	s.sync;
-	~fxgroupGroup1 = Group.new(~sourceGroup,'addToHead');
+	~fxgroupGroup1 = Group.new(~sourceGroup,'addAfter');
 	s.sync;
-	~fxgroupGroup2 = Group.new(~sourceGroup,'addToHead');
+	~fxgroupGroup2 = Group.new(~sourceGroup,'addAfter');
 	s.sync;
-	~fxgroupGroup3 = Group.new(~sourceGroup,'addToHead');
+	~fxgroupGroup3 = Group.new(~sourceGroup,'addAfter');
 	s.sync;
-	~fxgroupGroup4 = Group.new(~sourceGroup,'addToHead');
+	~fxgroupGroup4 = Group.new(~sourceGroup,'addAfter');
 	SynthDef(\snip,
-		{|out=0,rate=1,attackTime=0.05,releaseTime=0.05, startPos=0, bufnum=0, pan|
+		{|out=0, rate=1, amp=1.0, attackTime=0.05, releaseTime=1.0, startPos=0, buf=0, pan|
 			var env,playr;
 			env = EnvGen.kr(
 				Env.perc(attackTime, releaseTime),
@@ -28,10 +28,12 @@ fork {
 			playr = Pan2.ar(
 				PlayBuf.ar(
 					numChannels:1,
-					bufnum:bufnum,
+					bufnum:buf,
 					rate: rate,
-					startPos: startPos,
+					trigger: 1,
+					startPos: startPos*SampleRate.ir,
 				),
+				//SinOsc.ar,
 				pos: pan,
 				level: env
 			);
@@ -49,12 +51,24 @@ fork {
 				signal[1], // Right Channel
 				mix, room, damp, amp));
 	}).add;
+	s.sync;
+	p = Pbind(
+		\type, \note,
+		\db,-10,
+		\pan, 0,
+		\delta, Prand([0,0,1/4,1/8,1/3],16),
+		\group, ~sourceGroup,
+		//\hasGate, false,
+		\buf, ~sampBuf,
+		\instrument, \snip,
+		\offset, 10.8,
+	).collect(_.postln).play;
 };
 )
 
-// FreeVerb2 - demo synthdef
-(
-)
+~sampBuf.plot;
+~sampBuf.play;
+~sampBuf.query;
 
 // 2ch source
 (

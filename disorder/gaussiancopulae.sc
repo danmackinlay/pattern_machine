@@ -1,7 +1,7 @@
 /* Gaussian copula calcs and Pseudo-Ugens*/
-// Todo: make supplied RV option
+// Todo: make supplied RV optional
 // See also http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some faster, simpler, albeit inaccurate algorithms and 
-// http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simplet algorithms
+// http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simpler algorithms
 
 PSInvPsi {
 	//gaussian quantile function
@@ -100,7 +100,8 @@ PSPsi {
 	}
 }
 
-PSGaussCorrelate {
+//Gaussian copula correlates
+PSCorrelate {
 	*new {|rho, thisRand, otherRand|
 		//output a covariate with specified correlation rho, with default value
 		^this.gaussGaussToGauss(rho, thisRand, otherRand ?? {0.gauss(1)});
