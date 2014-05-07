@@ -1,11 +1,16 @@
-/* Gaussian copula calcs and Pseudo-Ugens*/
-// Todo: make supplied RV option
-// See also http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some faster, simpler, albeit inaccurate algorithms and 
-// http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simplet algorithms
+/* Gaussian copula calcs and Pseudo-Ugens
+Todo: make supplied RV optional
+See also http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some faster, simpler, albeit inaccurate algorithms and 
+http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simpler algorithms
+*/
+
+/*
+Gaussian quantile function
+Converts a uniform RV to a Gaussian on.
+http://home.online.no/~pjacklam/notes/invnorm/#The_algorithm
+*/
 
 PSInvPsi {
-	//gaussian quantile function
-	//http://home.online.no/~pjacklam/notes/invnorm/#The_algorithm
 	classvar a1 = -3.969683028665376e+01;
 	classvar a2 =  2.209460984245205e+02;
 	classvar a3 = -2.759285104469687e+02;
@@ -60,7 +65,9 @@ PSInvPsi {
 }
 
 /*
-gaussian CDF
+Gaussian CDF
+Converts a Gaussian RV to a uniform one.
+
 From Mathematica using
 MiniMaxApproximation[1/2 Erfc[-(x/Sqrt[2])],{x,{0,5},5,6},Bias->-0.0][[2,1]]
 (0.5 + 0.14471 x - 0.0475766 x^2 + 0.0103247 x^3 + 0.00770533 x^4 - 0.00173843 x^5)/
@@ -100,7 +107,8 @@ PSPsi {
 	}
 }
 
-PSGaussCorrelate {
+//Gaussian copula correlates
+PSCorr {
 	*new {|rho, thisRand, otherRand|
 		//output a covariate with specified correlation rho, with default value
 		^this.gaussGaussToGauss(rho, thisRand, otherRand ?? {0.gauss(1)});
