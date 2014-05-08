@@ -161,6 +161,24 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
     table = table_handle.create_table('/', 'note_transitions', table_description)
 
+    def write_table_row(note_times, next_time_stamp, next_note, file_key):
+        domain = set(note_times.keys() + [next_note])
+        
+        #now we regress what transitions have just happened, conditional on the local env
+        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
+            # create a new row for each local note environment
+            table.row['file'] = file_key
+            
+            for this_note, this_time_stamp in note_times.iteritems():
+                rel_pitch = next_note - local_pitch
+                if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
+                    table.row[r_name_for_i[rel_pitch]] = MAX_AGE - next_time_stamp + this_time_stamp
+                if rel_pitch == 0:
+                    table.row['success'] = 1
+                else:
+                    table.row['success'] = 0
+            table.row.append()
+
     def parse_midi_file(base_dir, midi_file, per_file_counts):
         """workhorse function
         does too much, for reasons of efficiency
@@ -193,22 +211,8 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                     if next_time_stamp-this_time_stamp>MAX_AGE:
                         del(note_times[this_note])
                 
-                domain = set(note_times.keys() + [next_note])
-                
-                #now we regress what transitions have just happened, conditional on the local env
-                for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
-                    # create a new row for each local note environment
-                    table.row['file'] = file_key
-                    
-                    for this_note, this_time_stamp in note_times.iteritems():
-                        rel_pitch = next_note - local_pitch
-                        if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
-                            table.row[r_name_for_i[rel_pitch]] = MAX_AGE - next_time_stamp + this_time_stamp
-                        if rel_pitch == 0:
-                            table.row['success'] = 1
-                        else:
-                            table.row['success'] = 0
-                    table.row.append()
+                #table writer can have a bash
+                write_table_row(note_times, next_time_stamp, next_note, file_key)
                 
                 #for the next time step, we need to include the new note:                
                 note_times[next_note] = next_time_stamp
