@@ -80,11 +80,13 @@ for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1):
     i_for_r_name[r_name] = i
 
 table_description = {
-    'success': tables.IntCol(1),
+    'success': tables.IntCol(1, dflt=0),
     'file': tables.StringCol(50),
+    'time': tables.FloatCol(),
+    'count': tables.UIntCol(),
 }
 for r_name in r_name_for_i.values():
-    table_description[r_name]=tables.FloatCol()
+    table_description[r_name]=tables.FloatCol(dflt=0.0)
 
 csv_fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
             ['detune', 'span', 'spanup', 'spandown'] +\
@@ -166,23 +168,32 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
             table_description,
             filters=tables.Filters(complevel=1))
 
+    table.attrs.max_age = MAX_AGE
+
     def write_table_row(note_times, next_time_stamp, next_note, file_key):
         domain = set(note_times.keys() + [next_note])
 
+        #import pdb;pdb.set_trace()
         #now we regress what transitions have just happened, conditional on the local env
         for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
             # create a new row for each local note environment
-            table.row['file'] = file_key
 
+            # count how many predictors we actually have
+            count = 0
             for this_note, this_time_stamp in note_times.iteritems():
-                rel_pitch = next_note - local_pitch
+                rel_pitch = this_note - local_pitch
                 if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
-                    table.row[r_name_for_i[rel_pitch]] = MAX_AGE - next_time_stamp + this_time_stamp
-                if rel_pitch == 0:
+                    count = count + 1
+                    this_age = MAX_AGE - next_time_stamp + this_time_stamp
+                    table.row[r_name_for_i[rel_pitch]] = this_age
+                    tedious = False
+                if next_note == local_pitch:
                     table.row['success'] = 1
-                else:
-                    table.row['success'] = 0
-            table.row.append()
+            if count>0:
+                table.row['file'] = file_key
+                table.row['time'] = next_time_stamp
+                table.row['count'] = count
+                table.row.append()
 
     def parse_midi_file(base_dir, midi_file, per_file_counts):
         """workhorse function
