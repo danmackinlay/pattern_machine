@@ -32,7 +32,6 @@ JITTER_FACTOR = 0.01
 #when calculating note rate, aggregate notes this close together (JITTER_FACTOR ignored for those)
 ONSET_TOLERANCE = 0.06
 
-
 #TODO:
 # trim neighbourhood size at statistical analysis stage rather than re-run MIDI (low priority as this step is fast.)
 # call into R using rpy2, to avoid this horrible manual way of doing things
@@ -94,9 +93,9 @@ def transition_summary(note_transitions, threshold=0):
     on_counts = dict()
     off_counts = dict()
     all_counts = dict()
-    
+
     curr_held_notes = tuple()
-    
+
     for held_notes in note_transitions:
         next_held_notes = tuple(sorted([n for n,t in held_notes.iteritems() if t>threshold]))
         # we only want to look at notes within a neighbourhood of something happening
@@ -110,14 +109,14 @@ def transition_summary(note_transitions, threshold=0):
                 if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
                     neighborhood.append(rel_pitch)
             neighborhood = tuple(neighborhood)
-            
+
             all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
             if local_pitch in next_held_notes:
                 on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
             else:
                 off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
         curr_held_notes = tuple(next_held_notes)
-    
+
     return on_counts, off_counts, all_counts
 
 def analyse_times(note_stream):
@@ -147,7 +146,7 @@ def analyse_times(note_stream):
 with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
     csv_writer.writerow(csv_fieldnames)
-    
+
     def write_csv_row(counts):
         on_counts, off_counts, all_counts = counts
         for i, neighborhood in enumerate(sorted(all_counts.keys())):
@@ -163,12 +162,12 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
     def write_table_row(note_times, next_time_stamp, next_note, file_key):
         domain = set(note_times.keys() + [next_note])
-        
+
         #now we regress what transitions have just happened, conditional on the local env
         for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
             # create a new row for each local note environment
             table.row['file'] = file_key
-            
+
             for this_note, this_time_stamp in note_times.iteritems():
                 rel_pitch = next_note - local_pitch
                 if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
@@ -204,29 +203,29 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                 #insert a small jitter here to break chords apart, random-style
                 on_times = sorted([(on_time + JITTER_FACTOR*random.random(), p) for p in pitches])
                 #TODO: restore the old strum-style chord breaking.
-        
+
             for next_time_stamp, next_note in on_times:
                 # first we increment time, which involves deleting notes too old to love
                 for this_note, this_time_stamp in note_times.items():
                     if next_time_stamp-this_time_stamp>MAX_AGE:
                         del(note_times[this_note])
-                
+
                 #table writer can have a bash
                 write_table_row(note_times, next_time_stamp, next_note, file_key)
-                
-                #for the next time step, we need to include the new note:                
+
+                #for the next time step, we need to include the new note:
                 note_times[next_note] = next_time_stamp
-                
+
                 # For the CSV file we append the next note to the transition info
                 # NB this means that CSV ignores the note's own prior state, a difference with the full data.
                 next_transition = dict([
                     (this_note, MAX_AGE - next_time_stamp + this_time_stamp)
                     for this_note, this_time_stamp in note_times.iteritems()
                 ])
-        
+
         # CSV writer can haz pound of flesh
         write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
-        
+
         #keep data around despite ourselves
         per_file_counts[file_key] = list(note_transitions)
 
@@ -234,7 +233,6 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         for f in file_list:
             if f.lower().endswith('mid'):
                 parse_midi_file(file_dir, f, transitions)
-    
+
     transitions = dict()
     os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
-
