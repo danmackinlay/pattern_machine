@@ -20,11 +20,9 @@ NEIGHBORHOOD_RADIUS = 11
 # 1.5 octave (LARGE data set)
 # NEIGHBORHOOD_RADIUS = 17
 
-# radius of time-step function
-TIME_STEP_RADIUS = 0.5
-# How many to measure
-TIME_STEPS = 3
-MAX_AGE = TIME_STEPS*TIME_STEP_RADIUS
+# All influence decays by...
+MAX_AGE = 1.5
+# for the one-step model we take even less:
 ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 
 # We break chords apart by jittering
@@ -35,9 +33,11 @@ ONSET_TOLERANCE = 0.06
 
 #TODO:
 # save note timestamps, just in case
+# save note size, just in case.
+# save MAX_AGE in metadata
 # do i even need jitter, as long as order (randomly?) chord note onsets?
 # check the hdf5 output. suspiciously sparse atm.
-# explicidtly use R-happy names for CSV, for clarity
+# explicitly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things
 # could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
 # but it would fail to generalise to crazy values and be fiddlier to implement.
