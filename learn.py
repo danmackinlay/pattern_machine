@@ -10,8 +10,6 @@ from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_
 import random
 import warnings
 
-#TODO: compress hdf5 data.
-
 # keep the jitter reproducible
 random.seed(12345)
 # how far I look to find neighbours
@@ -163,7 +161,9 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     #ignore warnings for that bit; I know my column names are annoying.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        table = table_handle.create_table('/', 'note_transitions', table_description)
+        table = table_handle.create_table('/', 'note_transitions',
+            table_description,
+            filters=tables.Filters(complevel=1))
 
     def write_table_row(note_times, next_time_stamp, next_note, file_key):
         domain = set(note_times.keys() + [next_note])
