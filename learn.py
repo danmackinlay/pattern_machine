@@ -8,6 +8,9 @@ import csv
 import tables
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 import random
+import warnings
+
+#TODO: compress hdf5 data.
 
 # keep the jitter reproducible
 random.seed(12345)
@@ -157,8 +160,10 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                 span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
               [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
             )
-
-    table = table_handle.create_table('/', 'note_transitions', table_description)
+    #ignore warnings for that bit; I know my column names are annoying.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        table = table_handle.create_table('/', 'note_transitions', table_description)
 
     def write_table_row(note_times, next_time_stamp, next_note, file_key):
         domain = set(note_times.keys() + [next_note])
@@ -236,3 +241,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
     transitions = dict()
     os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
+
+def get_table():
+    table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
+    return table_handle.get_node('/', 'note_transitions')
