@@ -24,7 +24,7 @@ TIME_STEP_RADIUS = 0.5
 # How many to measure
 TIME_STEPS = 3
 MAX_AGE = TIME_STEPS*TIME_STEP_RADIUS
-ROUGH_NEWNESS_THRESHOLD = 0.5 
+ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 
 # We break chords apart by jittering
 #JITTER_FACTOR = 0.0
@@ -184,17 +184,18 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
             if hasattr(event, 'pitches'):
                 pitches = [p.midi for p in event.pitches]
                 #insert a small jitter here to break chords apart, random-style
-                on_times = sorted([on_time + JITTER_FACTOR*random.random() for i in pitches])
+                on_times = sorted([(on_time + JITTER_FACTOR*random.random(), p) for p in pitches])
                 #TODO: restore the old strum-style chord breaking.
         
-            for next_time_stamp, next_note in zip(on_times, pitches):
-                # first we increment time:
+            for next_time_stamp, next_note in on_times:
+                # first we increment time, which involves deleting notes too old to love
                 for this_note, this_time_stamp in note_times.items():
                     if next_time_stamp-this_time_stamp>MAX_AGE:
                         del(note_times[this_note])
                 
                 domain = set(note_times.keys() + [next_note])
                 
+                #now we regress what transitions have just happened, conditional on the local env
                 for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
                     # create a new row for each local note environment
                     table.row['file'] = file_key
@@ -202,24 +203,22 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                     for this_note, this_time_stamp in note_times.iteritems():
                         rel_pitch = next_note - local_pitch
                         if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
-                            table.row[r_name_for_i[rel_pitch]] = 1-float(next_time_stamp-this_time_stamp)/MAX_AGE
+                            table.row[r_name_for_i[rel_pitch]] = MAX_AGE - next_time_stamp + this_time_stamp
                         if rel_pitch == 0:
                             table.row['success'] = 1
                         else:
                             table.row['success'] = 0
                     table.row.append()
                 
+                #for the next time step, we need to include the new note:                
+                note_times[next_note] = next_time_stamp
+                
                 # For the CSV file we append the next note to the transition info
                 # NB this means that CSV ignores the note's own prior state, a difference with the full data.
                 next_transition = dict([
-                    (this_note, 1-float(next_time_stamp-this_time_stamp)/MAX_AGE)
+                    (this_note, MAX_AGE - next_time_stamp + this_time_stamp)
                     for this_note, this_time_stamp in note_times.iteritems()
                 ])
-                next_transition[next_note] = 1.0
-                note_transitions.append(next_transition)
-                
-                #for the next time step, we need to include the new note:
-                note_times[next_note] = next_time_stamp
         
         # CSV writer can haz pound of flesh
         write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
@@ -234,3 +233,4 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     
     transitions = dict()
     os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
+

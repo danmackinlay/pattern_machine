@@ -1,3 +1,5 @@
+s=~serverboot.(prox:\local, device:\internal);
+ServerOptions.inDevices;
 ~here = "/Users/dan/src/python/arpeggiate_by_numbers";
 
 ~notelm.value(i:5, nState:[0,0,0,0,0,0,0,1,0,0,0,0,0]);
@@ -17,7 +19,7 @@
 ~n=Noteomata.new(window:2, defaultNote:48, maxJump:7);
 ~state = (\n: ~n);
 ~innotes = Pbind(
-	\delta, Prand([1/4,1/8,1/3],16)
+	\delta, Prand([0,0,1/4,1/8,1/3],16)
 ).collect(
 	{|in|
 		in.asCompileString.postln;
