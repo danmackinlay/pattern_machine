@@ -5,7 +5,6 @@ from music21 import converter, instrument, midi
 from music21.note import Note, NotRest, Rest
 from music21.chord import Chord
 import csv
-from heapq import heappush, heapify, heappop
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 import random
 
@@ -16,15 +15,17 @@ random.seed(12345)
 # NEIGHBORHOOD_RADIUS = 6
 # 1 octave:
 NEIGHBORHOOD_RADIUS = 11
-# 1.5 octave (LARGE data set to use raw)
+# 1.5 octave (LARGE data set)
 # NEIGHBORHOOD_RADIUS = 17
 
-# how much to extend notes so that even momentary ones influence the future state
-# measured in mean inter-onset durations.
-TIME_SMEAR = 1.5
-# Floating point is probably adequate for machine-transcribed scores.
-# Could get messy for real notes.
-# We break cords apart by jittering based on pitch
+# radius of time-step function
+TIME_STEP_RADIUS = 0.5
+# How many to measure
+TIME_STEPS = 3
+MAX_AGE = TIME_STEPS*TIME_STEP_RADIUS
+ROUGH_NEWNESS_THRESHOLD = 0.5 
+
+# We break chords apart by jittering
 #JITTER_FACTOR = 0.0
 JITTER_FACTOR = 0.01
 #when calculating note rate, aggregate notes this close together (JITTER_FACTOR ignored for those)
@@ -62,85 +63,72 @@ ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")
-CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
+CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-cont-%02d.csv' % NEIGHBORHOOD_RADIUS)
+CSV_WRITER = None
+
+class CsvSummaryWriter(object):
+    def open(self):
+        # But sod it; we ain't doing analysis in python right now; let's pump this out to R
+        fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
+            ['detune', 'span', 'spanup', 'spandown'] +\
+            ['ons', 'offs']
+
+        with open(CSV_OUT_PATH, 'w') as handle:
+            writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
+            writer.writerow(fieldnames)
+
+    def write(self, file_key, counts):
+        with open(CSV_OUT_PATH, 'a') as handle:
+            writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
+            on_counts, off_counts, all_counts = counts
+            for i, neighborhood in enumerate(sorted(all_counts.keys())):
+                writer.writerow(
+                  [file_key] +
+                  [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
+                  [total_detunedness(neighborhood), span_in_5ths(neighborhood),
+                    span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
+                  [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
+                )
 
 def parse_midi_file(base_dir, midi_file, per_file_counts):
     midi_in_file = os.path.join(base_dir, midi_file)
     file_key = midi_in_file[len(MIDI_BASE_DIR):]
     print "parsing", file_key
     note_stream = converter.parse(midi_in_file)
-    
-    # do some analysis first
-    first_event = note_stream.flat.notes.offsetMap[0]['offset']
-    last_event = note_stream.flat.notes.offsetMap[-1]['offset']
-    midi_length = last_event-first_event
-    curr_time = first_event
-    thinned_intervals = []
-    for ev in note_stream.flat.notes.offsetMap:
-        next_time = ev['offset']
-        if next_time > curr_time + ONSET_TOLERANCE:
-            thinned_intervals.append(next_time-curr_time)
-            curr_time = next_time
-    mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
-    time_step = TIME_SMEAR * mean_note_time
-    print "mean inter-event time", time_step
-    
-    transition_heap = []
+    note_transitions = []
+    note_times = dict()
 
-    # flattening doesn't squash parallel events down or give us nice note offs
-    # push note ons and offs onto a heap to do this more gracefully
     for next_elem in note_stream.flat.notes.offsetMap:
         event = next_elem['element']
         #only handle Notes and Chords
         if not isinstance(event, NotRest):
             continue
         on_time = next_elem['offset']
-        off_time = max(next_elem['endTime'], on_time + time_step)
-        pitches = []
         if hasattr(event, 'pitch'):
-            pitches = [event.pitch]
+            pitches = [event.pitch.midi]
+            on_times = [on_time]
         if hasattr(event, 'pitches'):
-            pitches = event.pitches
-        for pitch in pitches:
-            #insert a small jitter here to break chords apart- base notes first
-            #jitter = JITTER_FACTOR*float(pitch.midi)/128.0
-            #insert a small jitter here to break chords apart- random-style
-            jitter = JITTER_FACTOR*random.random()
+            pitches = [p.midi for p in event.pitches]
+            #insert a small jitter here to break chords apart, random-style
+            on_times = sorted([on_time + JITTER_FACTOR*random.random() for i in pitches])
+            #TODO: restore the old strum-style chord breaking.
+        
+        for time_stamp, pitch in zip(on_times, pitches):
+            note_times[pitch] = time_stamp
+            for note, n_time in note_times.items():
+                if time_stamp-n_time>MAX_AGE:
+                    del(note_times[note])
             
-            heappush(transition_heap, (on_time+jitter, 1, pitch.midi))
-            heappush(transition_heap, (off_time+jitter, -1, pitch.midi))
-
-    note_transitions = []
-    held_notes = dict()
-    time_stamp = 0.0
-
-    while True:
-        try:
-            next_time_stamp, action, pitch = heappop(transition_heap)
-        except IndexError:
-            break
-        time_delta = next_time_stamp - time_stamp
-        this_pitch_count = held_notes.get(pitch, 0) + action
-        if this_pitch_count < 0:
-            print "warning, negative pitch count for %d at offset %f" % (pitch, next_time_stamp)
-        if this_pitch_count > 0:
-            held_notes[pitch] = this_pitch_count
-        else:
-            del(held_notes[pitch])
-
-        if next_time_stamp > time_stamp:
-            #time actually advanced.
-            # we could randomise the tranistions that have happened,
-            # or we could sort them
-            # or we could do all possible combinations
-            # for now, we do nothing, and instead jitter the notes using the JITTER_FACTOR
-            # to break ties.
-            # print held_notes
-            note_transitions.append(held_notes.copy())
+            note_transitions.append(dict([
+                (note, 1-float(time_stamp-n_time)/MAX_AGE)
+                for note, n_time in note_times.iteritems()
+            ]))
     
-    per_file_counts[file_key] = transition_summary(note_transitions)
+    CSV_WRITER.write(file_key, transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
+    per_file_counts[file_key] = list(note_transitions)
 
-def transition_summary(note_transitions):
+def transition_summary(note_transitions, threshold=0):
+    #binomial note summary
     on_counts = dict()
     off_counts = dict()
     all_counts = dict()
@@ -148,11 +136,11 @@ def transition_summary(note_transitions):
     curr_held_notes = tuple()
     
     for held_notes in note_transitions:
-        next_held_notes = tuple(sorted(held_notes.keys()))
+        next_held_notes = tuple(sorted([n for n,t in held_notes.iteritems() if t>threshold]))
         # we only want to look at notes within a neighbourhood of something happening
         # otherwise nothing->nothing dominates the data
         domain = set(curr_held_notes + next_held_notes)
-        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain)+NEIGHBORHOOD_RADIUS+1):
+        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
             neighborhood = []
             # find ON notes:
             for i in curr_held_notes:
@@ -170,14 +158,31 @@ def transition_summary(note_transitions):
     
     return on_counts, off_counts, all_counts
 
-def parse_if_midi(per_file_counts, file_dir, file_list):
+def parse_if_midi(transitions, file_dir, file_list):
     for f in file_list:
         if f.lower().endswith('mid'):
-            parse_midi_file(file_dir, f, per_file_counts)
+            parse_midi_file(file_dir, f, transitions)
 
-per_file_counts= dict()
+def analyse_times(note_stream):
+    # do some analysis of note inter-arrival times to check our tempo assumptions
+    # not currenlty used.
+    first_event = note_stream.flat.notes.offsetMap[0]['offset']
+    last_event = note_stream.flat.notes.offsetMap[-1]['offset']
+    midi_length = last_event-first_event
+    curr_time = first_event
+    thinned_intervals = []
+    for ev in note_stream.flat.notes.offsetMap:
+        next_time = ev['offset']
+        if next_time > curr_time + ONSET_TOLERANCE:
+            thinned_intervals.append(next_time-curr_time)
+            curr_time = next_time
+    mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
+    return(mean_note_time)
 
-os.path.walk(MIDI_BASE_DIR, parse_if_midi, per_file_counts)
+transitions = dict()
+CSV_WRITER = CsvSummaryWriter()
+CSV_WRITER.open()
+os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
 
 # #Convert to arrays for regression - left columns predictors, right 2 responses
 # predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
@@ -187,19 +192,3 @@ os.path.walk(MIDI_BASE_DIR, parse_if_midi, per_file_counts)
 #     regressors[i][0] = all_counts.get(predictor, 0)
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
-# But sod it; we ain't doing analysis in python right now; let's pump this out to R
-fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] + ['detune', 'span', 'spanup', 'spandown']+ ['ons', 'offs']
-
-with open(CSV_OUT_PATH, 'w') as handle:
-    writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
-    writer.writerow(fieldnames)
-    for file_key, (on_counts, off_counts, all_counts) in per_file_counts.iteritems():
-        
-        for i, neighborhood in enumerate(sorted(all_counts.keys())):
-            writer.writerow(
-              [file_key] +
-              [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
-              [total_detunedness(neighborhood), span_in_5ths(neighborhood),
-                span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
-              [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
-            )
