@@ -5,6 +5,7 @@ from music21 import converter, instrument, midi
 from music21.note import Note, NotRest, Rest
 from music21.chord import Chord
 import csv
+import tables
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 import random
 
@@ -63,69 +64,30 @@ ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")
-CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-cont-%02d.csv' % NEIGHBORHOOD_RADIUS)
-CSV_WRITER = None
+CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
+TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.h5' % NEIGHBORHOOD_RADIUS)
 
-class CsvSummaryWriter(object):
-    def open(self):
-        # But sod it; we ain't doing analysis in python right now; let's pump this out to R
-        fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
+r_name_for_i = dict()
+i_for_r_name = dict()
+
+for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1):
+    if i<0:
+        r_name = "X." + str(abs(i))
+    else:
+        r_name = "X" + str(i)
+    r_name_for_i[i] = r_name
+    i_for_r_name[r_name] = i
+
+table_description = {
+    'success': tables.IntCol(1),
+    'file': tables.StringCol(50),
+}
+for r_name in r_name_for_i.values():
+    table_description[r_name]=tables.FloatCol()
+
+csv_fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
             ['detune', 'span', 'spanup', 'spandown'] +\
             ['ons', 'offs']
-
-        with open(CSV_OUT_PATH, 'w') as handle:
-            writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
-            writer.writerow(fieldnames)
-
-    def write(self, file_key, counts):
-        with open(CSV_OUT_PATH, 'a') as handle:
-            writer = csv.writer(handle, quoting=csv.QUOTE_NONNUMERIC)
-            on_counts, off_counts, all_counts = counts
-            for i, neighborhood in enumerate(sorted(all_counts.keys())):
-                writer.writerow(
-                  [file_key] +
-                  [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
-                  [total_detunedness(neighborhood), span_in_5ths(neighborhood),
-                    span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
-                  [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
-                )
-
-def parse_midi_file(base_dir, midi_file, per_file_counts):
-    midi_in_file = os.path.join(base_dir, midi_file)
-    file_key = midi_in_file[len(MIDI_BASE_DIR):]
-    print "parsing", file_key
-    note_stream = converter.parse(midi_in_file)
-    note_transitions = []
-    note_times = dict()
-
-    for next_elem in note_stream.flat.notes.offsetMap:
-        event = next_elem['element']
-        #only handle Notes and Chords
-        if not isinstance(event, NotRest):
-            continue
-        on_time = next_elem['offset']
-        if hasattr(event, 'pitch'):
-            pitches = [event.pitch.midi]
-            on_times = [on_time]
-        if hasattr(event, 'pitches'):
-            pitches = [p.midi for p in event.pitches]
-            #insert a small jitter here to break chords apart, random-style
-            on_times = sorted([on_time + JITTER_FACTOR*random.random() for i in pitches])
-            #TODO: restore the old strum-style chord breaking.
-        
-        for time_stamp, pitch in zip(on_times, pitches):
-            note_times[pitch] = time_stamp
-            for note, n_time in note_times.items():
-                if time_stamp-n_time>MAX_AGE:
-                    del(note_times[note])
-            
-            note_transitions.append(dict([
-                (note, 1-float(time_stamp-n_time)/MAX_AGE)
-                for note, n_time in note_times.iteritems()
-            ]))
-    
-    CSV_WRITER.write(file_key, transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
-    per_file_counts[file_key] = list(note_transitions)
 
 def transition_summary(note_transitions, threshold=0):
     #binomial note summary
@@ -158,14 +120,9 @@ def transition_summary(note_transitions, threshold=0):
     
     return on_counts, off_counts, all_counts
 
-def parse_if_midi(transitions, file_dir, file_list):
-    for f in file_list:
-        if f.lower().endswith('mid'):
-            parse_midi_file(file_dir, f, transitions)
-
 def analyse_times(note_stream):
     # do some analysis of note inter-arrival times to check our tempo assumptions
-    # not currenlty used.
+    # not currently used, since I have removed the unusual note-times from my current data set
     first_event = note_stream.flat.notes.offsetMap[0]['offset']
     last_event = note_stream.flat.notes.offsetMap[-1]['offset']
     midi_length = last_event-first_event
@@ -179,11 +136,6 @@ def analyse_times(note_stream):
     mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
     return(mean_note_time)
 
-transitions = dict()
-CSV_WRITER = CsvSummaryWriter()
-CSV_WRITER.open()
-os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
-
 # #Convert to arrays for regression - left columns predictors, right 2 responses
 # predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
 # regressors = np.zeros((len(all_counts), 2), dtype='int32')
@@ -192,3 +144,93 @@ os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
 #     regressors[i][0] = all_counts.get(predictor, 0)
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
+with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
+    csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
+    csv_writer.writerow(csv_fieldnames)
+    
+    def write_csv_row(counts):
+        on_counts, off_counts, all_counts = counts
+        for i, neighborhood in enumerate(sorted(all_counts.keys())):
+            csv_writer.writerow(
+              [file_key] +
+              [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
+              [total_detunedness(neighborhood), span_in_5ths(neighborhood),
+                span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
+              [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
+            )
+
+    table = table_handle.create_table('/', 'note_transitions', table_description)
+
+    def parse_midi_file(base_dir, midi_file, per_file_counts):
+        """workhorse function
+        does too much, for reasons of efficiency
+        plus the inconvenient os.path.walk API"""
+        midi_in_file = os.path.join(base_dir, midi_file)
+        file_key = midi_in_file[len(MIDI_BASE_DIR):]
+        print "parsing", file_key
+        note_stream = converter.parse(midi_in_file)
+        note_transitions = []
+        note_times = dict()
+
+        for next_elem in note_stream.flat.notes.offsetMap:
+            event = next_elem['element']
+            #only handle Notes and Chords
+            if not isinstance(event, NotRest):
+                continue
+            on_time = next_elem['offset']
+            if hasattr(event, 'pitch'):
+                pitches = [event.pitch.midi]
+                on_times = [on_time]
+            if hasattr(event, 'pitches'):
+                pitches = [p.midi for p in event.pitches]
+                #insert a small jitter here to break chords apart, random-style
+                on_times = sorted([on_time + JITTER_FACTOR*random.random() for i in pitches])
+                #TODO: restore the old strum-style chord breaking.
+        
+            for next_time_stamp, next_note in zip(on_times, pitches):
+                # first we increment time:
+                for this_note, this_time_stamp in note_times.items():
+                    if next_time_stamp-this_time_stamp>MAX_AGE:
+                        del(note_times[this_note])
+                
+                domain = set(note_times.keys() + [next_note])
+                
+                for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
+                    # create a new row for each local note environment
+                    table.row['file'] = file_key
+                    
+                    for this_note, this_time_stamp in note_times.iteritems():
+                        rel_pitch = next_note - local_pitch
+                        if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
+                            table.row[r_name_for_i[rel_pitch]] = 1-float(next_time_stamp-this_time_stamp)/MAX_AGE
+                        if rel_pitch == 0:
+                            table.row['success'] = 1
+                        else:
+                            table.row['success'] = 0
+                    table.row.append()
+                
+                # For the CSV file we append the next note to the transition info
+                # NB this means that CSV ignores the note's own prior state, a difference with the full data.
+                next_transition = dict([
+                    (this_note, 1-float(next_time_stamp-this_time_stamp)/MAX_AGE)
+                    for this_note, this_time_stamp in note_times.iteritems()
+                ])
+                next_transition[next_note] = 1.0
+                note_transitions.append(next_transition)
+                
+                #for the next time step, we need to include the new note:
+                note_times[next_note] = next_time_stamp
+        
+        # CSV writer can haz pound of flesh
+        write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
+        
+        #keep data around despite ourselves
+        per_file_counts[file_key] = list(note_transitions)
+
+    def parse_if_midi(transitions, file_dir, file_list):
+        for f in file_list:
+            if f.lower().endswith('mid'):
+                parse_midi_file(file_dir, f, transitions)
+    
+    transitions = dict()
+    os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
