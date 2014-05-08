@@ -34,10 +34,11 @@ JITTER_FACTOR = 0.01
 ONSET_TOLERANCE = 0.06
 
 #TODO:
-# trim neighbourhood size at statistical analysis stage rather than re-run MIDI (low priority as this step is fast.)
+# save note timestamps, just in case
+# do i even need jitter, as long as order (randomly?) chord note onsets?
+# check the hdf5 output. suspiciously sparse atm.
+# explicidtly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things
-# export inferred formula from R
-# implement midi player that uses this
 # could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
 # but it would fail to generalise to crazy values and be fiddlier to implement.
 # current model is ugly but works - Nto guarnateed to respect hierarchicality but seems to anyway.

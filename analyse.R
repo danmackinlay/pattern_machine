@@ -32,6 +32,9 @@ case.scale.factor = 24
 # http://www.bnlearn.com/
 # but let's stay simple.
 
+#TODO: HDF and float values are the future. see http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf
+
+
 source.notes = read.csv("rag-11.csv", header=TRUE)
 source.notes$file = as.factor(source.notes$file)
 
