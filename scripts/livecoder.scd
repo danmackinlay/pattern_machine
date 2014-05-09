@@ -17,14 +17,14 @@ Pbind(\degree, Pfunc({~state[\degree]}), \octave, 4).play(TempoClock.default);
 ~steps1 = Array.series(3001, 0, 1)/3000;
 ~steps33 = Array.series(3001, -1500, 1)/500;
 ~steps.plot;
-PSPsi(PSInvPsi(~steps1)).plot;
-PSInvPsi(~steps1).plot;
-PSPsi(~steps33).plot;
+PSPhi(PSInvPhi(~steps1)).plot;
+PSInvPhi(~steps1).plot;
+PSPhi(~steps33).plot;
 ~rng = LinCongRNG.new;
-~steps1.collect({|i| PSGaussCorrelate.unifGaussToGauss(0.99, i, PSInvPsi(~rng.next))}).plot;
+~steps1.collect({|i| PSGaussCorrelate.unifGaussToGauss(0.99, i, PSInvPhi(~rng.next))}).plot;
 ~steps1.collect({|i| PSGaussCorrelate.unifGaussToGauss(0.99, i, ~rng.next)}).plot;
 PSGaussCorrelate.unifGaussToGauss(0.99, 0.99, 0.1)
-{PSInvPsi(LFSaw.ar(mul:0.5, add:0.5))}.plot;
+{PSInvPhi(LFSaw.ar(mul:0.5, add:0.5))}.plot;
 
 SynthDef(\bell,
 	{ arg specArray, trig, decay=0.04, noise=0.03, freqScale=1.0, timeScale=1.0;

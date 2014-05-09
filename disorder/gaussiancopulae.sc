@@ -7,9 +7,9 @@ I'm not quote sure how to handle graceful conversions to UGens and also vector i
 ~steps1 = Array.series(3001, 0, 1)/3000;
 ~steps33 = Array.series(3001, -1500, 1)/500;
 ~steps33.plot;
-PSPsi(PSInvPsi(~steps1)).plot;
-PSInvPsi(~steps1).plot;
-PSPsi(~steps33).plot;
+PSPhi(PSInvPhi(~steps1)).plot;
+PSInvPhi(~steps1).plot;
+PSPhi(~steps33).plot;
 ~steps33.collect(PSCorr(0.5, _)).plot;
 PSCorr(0.9, ~steps33, {0.gauss(1)}.dup(~steps33.size)).plot;
 PSCorr(0.9, ~steps33).plot;
@@ -23,7 +23,7 @@ Converts a uniform RV to a Gaussian on.
 http://home.online.no/~pjacklam/notes/invnorm/#The_algorithm
 */
 
-PSInvPsi {
+PSInvPhi {
 	classvar a1 = -3.969683028665376e+01;
 	classvar a2 =  2.209460984245205e+02;
 	classvar a3 = -2.759285104469687e+02;
@@ -96,7 +96,7 @@ HornerForm[MiniMaxApproximation[ (1/2 Erfc[-(x/Sqrt[2])] -1/2)/x, {x,{0.1,5},3,5
 (-1665.13+x (529.232 +x (-414.991+x (80.874 +x (-28.0145+1.0x)))))
 */
 
-PSPsi {
+PSPhi {
 	classvar a1 = -3.13535;
 	classvar a2 = -54.6369;
 	classvar a3 = 211.052;
@@ -108,13 +108,13 @@ PSPsi {
 	classvar b5 = 529.232;
 	classvar b6 = -1665.13;
 
-	*new{|p, minval=0, maxval=1|
+	*new{|p, minval=0.0, maxval=1.0|
 		var flip;
 		p = p.clip(-5,5);
 		flip = 1-((p<0.0)*2);
-		^(0.5+(flip*this.halfPsi(flip*p))).linlin(0,1,minval,maxval);
+		^(0.5+(flip*this.halfPhi(flip*p))).linlin(0.0,1.0,minval,maxval);
 	}
-	*halfPsi {|p|
+	*halfPhi {|p|
 		^(((a1*p+a2)*p+a3)*p+a4)*p /
 			(((((p+b2)*p+b3)*p+b4)*p+b5)*p+b6);
 	}
@@ -135,24 +135,24 @@ PSCorr {
 		^(thisRand * rho) + ((1-(rho.squared)).sqrt * otherRand);
 	}
 	*gaussGaussToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussGaussToGauss(rho, thisRand, otherRand));
+		^PSPhi(this.gaussGaussToGauss(rho, thisRand, otherRand));
 	}
 	*gaussUnifToGauss {|rho, thisRand, otherRand|
-		^this.gaussGaussToGauss(rho, thisRand, PSInvPsi(otherRand));
+		^this.gaussGaussToGauss(rho, thisRand, PSInvPhi(otherRand));
 	}
 	*gaussUnifToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussUnifToGauss(rho, thisRand, otherRand));
+		^PSPhi(this.gaussUnifToGauss(rho, thisRand, otherRand));
 	}
 	*unifGaussToGauss {|rho, thisRand, otherRand|
-		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand);
+		^this.gaussGaussToGauss(rho, PSInvPhi(thisRand), otherRand);
 	}
 	*unifGaussToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussGaussToGauss(rho, PSInvPsi(thisRand), otherRand));
+		^PSPhi(this.gaussGaussToGauss(rho, PSInvPhi(thisRand), otherRand));
 	}
 	*unifUnifToGauss {|rho, thisRand, otherRand|
-		^this.gaussGaussToGauss(rho, PSInvPsi(thisRand), PSInvPsi(otherRand));
+		^this.gaussGaussToGauss(rho, PSInvPhi(thisRand), PSInvPhi(otherRand));
 	}
 	*unifUnifToUnif {|rho, thisRand, otherRand|
-		^PSPsi(this.gaussUnifToGauss(rho, PSInvPsi(thisRand), PSInvPsi(otherRand)));
+		^PSPhi(this.gaussUnifToGauss(rho, PSInvPhi(thisRand), PSInvPhi(otherRand)));
 	}
 }
