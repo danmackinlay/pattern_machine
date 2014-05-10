@@ -31,7 +31,11 @@ ONSET_TOLERANCE = 0.06
 #TODO:
 # http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.mmwrite.html#scipy.io.mmwrite
 # http://stat.ethz.ch/R-manual/R-devel/library/Matrix/html/externalFormats.html
-# save MAX_AGE in metadata
+# save metadata:
+# # MAX_AGE
+# # matrix dimensions
+# # source dataset
+# # factor mapping
 # bludgeon R into actually reading the fucking metadata Grrrr R.
 # explicitly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things, and also R
