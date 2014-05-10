@@ -148,7 +148,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     obs_counter = 0
     obs_list = []
     p_list = []
-    age_list = []
+    recence_list = []
 
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
     csv_writer.writerow(csv_fieldnames)
@@ -190,9 +190,9 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                 rel_pitch = this_note - local_pitch
                 if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
                     n_held_notes += 1
-                    this_age = MAX_AGE - next_time_stamp + this_time_stamp
+                    this_recence = MAX_AGE - next_time_stamp + this_time_stamp
                     p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
-                    age_list.append(this_age)
+                    recence_list.append(this_recence)
                     obs_list.append(obs_counter)
                 if next_note == local_pitch:
                     result = 1
@@ -263,7 +263,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
     filt = tables.Filters(complevel=5)
     
-    table_handle.create_carray('/','v_obs',
+    table_handle.create_carray('/','v_obsid',
         atom=tables.Int32Atom(), shape=(len(obs_list),),
         title="obsID",
         filters=filt)[:] = obs_list
@@ -271,10 +271,10 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         atom=tables.Int32Atom(), shape=(len(p_list),),
         title="pitch index",
         filters=filt)[:] = p_list
-    table_handle.create_carray('/','v_age',
-        atom=tables.Float32Atom(), shape=(len(age_list),),
-        title="age",
-        filters=filt)[:] = age_list
+    table_handle.create_carray('/','v_recence',
+        atom=tables.Float32Atom(), shape=(len(recence_list),),
+        title="recence",
+        filters=filt)[:] = recence_list
 
 def get_table():
     table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
