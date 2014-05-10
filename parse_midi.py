@@ -26,11 +26,12 @@ MAX_AGE = 1.5
 ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 
 #TODO:
-# save note timestamps, just in case
+# Shall I switch to memory-sparse matrices? possibly.
+# http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.mmwrite.html#scipy.io.mmwrite
+# http://stat.ethz.ch/R-manual/R-devel/library/Matrix/html/externalFormats.html
 # save note size, just in case.
 # save MAX_AGE in metadata
 # do i even need jitter, as long as order (randomly?) chord note onsets?
-# check the hdf5 output. suspiciously sparse atm.
 # explicitly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things
 # could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
