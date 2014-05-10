@@ -35,7 +35,6 @@ ONSET_TOLERANCE = 0.06
 # # matrix dimensions
 # # source dataset
 # # factor mapping
-# ditch transitions var to save memory; yagni
 # bludgeon R into actually reading the fucking metadata Grrrr R.
 # explicitly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things, and also R
@@ -158,7 +157,6 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     obs_list = []
     p_list = []
     age_list = []
-    transitions = dict()
 
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
     csv_writer.writerow(csv_fieldnames)
@@ -263,9 +261,6 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
         # CSV writer can haz pound of flesh
         write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
-
-        #keep data around despite ourselves
-        transitions[file_key] = list(note_transitions)
 
     def parse_if_midi(_, file_dir, file_list):
         for f in file_list:
