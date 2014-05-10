@@ -144,14 +144,6 @@ def analyse_times(note_stream):
     mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
     return(mean_note_time)
 
-# #Convert to arrays for regression - left columns predictors, right 2 responses
-# predictors = np.zeros((len(all_counts), 2*NEIGHBORHOOD_RADIUS+1), dtype='int32')
-# regressors = np.zeros((len(all_counts), 2), dtype='int32')
-# for i, predictor in enumerate(sorted(all_counts.keys())):
-#     predictors[i][np.array(predictor, dtype='int32') + NEIGHBORHOOD_RADIUS] = 1
-#     regressors[i][0] = all_counts.get(predictor, 0)
-#     regressors[i][1] = on_counts.get(predictor, 0)
-
 with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
     obs_counter = 0
     obs_list = []
@@ -181,12 +173,12 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     obs_table.attrs.maxAge = MAX_AGE
     obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
-    def write_obs_metadata(note_times, next_time_stamp, next_note, file_key):
+    def fan_out_event(note_times, next_time_stamp, next_note, file_key):
         global obs_counter
-        "turn one event into a set of observations - one of which is a success."
+        """turn one event into a set of observations - one of which is a success.
+        Send this to a file."""
         domain = set(note_times.keys() + [next_note])
 
-        #import pdb;pdb.set_trace()
         #now we record what transitions have just happened, conditional on the local env
         for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
             # count how many predictors we actually have
@@ -231,12 +223,12 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
             if not isinstance(event, NotRest):
                 continue
             next_time_stamp = next_elem['offset']
-            
+
             # first we increment time, which involves deleting notes too old to love
             for this_note, this_time_stamp in note_times.items():
                 if next_time_stamp-this_time_stamp>MAX_AGE:
                     del(note_times[this_note])
-            
+
             if hasattr(event, 'pitch'):
                 pitches = [event.pitch.midi]
             if hasattr(event, 'pitches'):
@@ -247,7 +239,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
             for next_note in pitches:
                 #table writer can have a bash
-                write_obs_metadata(note_times, next_time_stamp, next_note, file_key)
+                fan_out_event(note_times, next_time_stamp, next_note, file_key)
 
                 #for the next time step, we need to include the new note:
                 note_times[next_note] = next_time_stamp
