@@ -36,6 +36,8 @@ ONSET_TOLERANCE = 0.06
 # # matrix dimensions
 # # source dataset
 # # factor mapping
+# switch to CArray to save disk bloat http://pytables.github.io/usersguide/libref/homogenous_storage.html#carrayclassdescr
+# ditch transitions var to save memory; yagni
 # bludgeon R into actually reading the fucking metadata Grrrr R.
 # explicitly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things, and also R
@@ -69,27 +71,32 @@ CSV_BASE_PATH = os.path.normpath("./")
 CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
 TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.h5' % NEIGHBORHOOD_RADIUS)
 
+#Map between relative pitches, array columns and r-friendly relative pitch names
 r_name_for_i = dict()
 i_for_r_name = dict()
+p_for_r_name = dict()
+r_name_for_p = dict()
 
-for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1):
-    if i<0:
+for i in xrange(2*NEIGHBORHOOD_RADIUS+1):
+    p = i - NEIGHBORHOOD_RADIUS
+    if p<0:
         r_name = "X." + str(abs(i))
     else:
         r_name = "X" + str(i)
+    r_name_for_p[p] = r_name
+    p_for_r_name[r_name] = p
     r_name_for_i[i] = r_name
     i_for_r_name[r_name] = i
 
-table_description = {
-    'success': tables.IntCol(1, dflt=0),
-    'file': tables.StringCol(50),
-    'time': tables.FloatCol(),
-    'count': tables.UIntCol(),
+meta_table_description = {
+    'result': tables.IntCol(1, dflt=0), #success/fail
+    'file': tables.StringCol(50), # factor: which sourcefile
+    'time': tables.FloatCol(), # event time
+    'heldNotes': tables.UIntCol(), # of predictors
+    'obsID': tables.UIntCol(), # obsID for matching with the other data
 }
-for r_name in r_name_for_i.values():
-    table_description[r_name]=tables.FloatCol(dflt=0.0)
 
-csv_fieldnames = ["file"] + [str(i) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
+csv_fieldnames = ["file"] + sorted([r_name_for_p[p] for p in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)]) +\
             ['detune', 'span', 'spanup', 'spandown'] +\
             ['ons', 'offs']
 
@@ -149,6 +156,12 @@ def analyse_times(note_stream):
 #     regressors[i][1] = on_counts.get(predictor, 0)
 
 with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
+    obs_counter = 0
+    obs_list = []
+    p_list = []
+    age_list = []
+    transitions = dict()
+
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
     csv_writer.writerow(csv_fieldnames)
 
@@ -165,38 +178,47 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     #ignore warnings for that bit; I know my column names are annoying.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        table = table_handle.create_table('/', 'note_transitions',
-            table_description,
+        obs_table = table_handle.create_table('/', 'note_meta',
+            meta_table_description,
             filters=tables.Filters(complevel=1))
 
-    table.attrs.max_age = MAX_AGE
+    obs_table.attrs.maxAge = MAX_AGE
+    obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
-    def write_table_row(note_times, next_time_stamp, next_note, file_key):
+    def write_obs_metadata(note_times, next_time_stamp, next_note, file_key):
+        global obs_counter
+        "turn one event into a set of observations - one of which is a success."
         domain = set(note_times.keys() + [next_note])
 
         #import pdb;pdb.set_trace()
-        #now we regress what transitions have just happened, conditional on the local env
+        #now we record what transitions have just happened, conditional on the local env
         for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
-            # create a new row for each local note environment
-
             # count how many predictors we actually have
-            count = 0
+            n_held_notes = 0
+
+            # create a new row for each local note environment
+            result = 0
             for this_note, this_time_stamp in note_times.iteritems():
                 rel_pitch = this_note - local_pitch
                 if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
-                    count = count + 1
+                    n_held_notes += 1
                     this_age = MAX_AGE - next_time_stamp + this_time_stamp
-                    table.row[r_name_for_i[rel_pitch]] = this_age
-                    tedious = False
+                    p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
+                    age_list.append(this_age)
+                    obs_list.append(obs_counter)
                 if next_note == local_pitch:
-                    table.row['success'] = 1
-            if count>0:
-                table.row['file'] = file_key
-                table.row['time'] = next_time_stamp
-                table.row['count'] = count
-                table.row.append()
+                    result = 1
 
-    def parse_midi_file(base_dir, midi_file, per_file_counts):
+            if n_held_notes>0:
+                obs_table.row['file'] = file_key
+                obs_table.row['time'] = next_time_stamp
+                obs_table.row['heldNotes'] = n_held_notes
+                obs_table.row['obsID'] = obs_counter
+                obs_table.row['result'] = result
+                obs_table.row.append()
+                obs_counter += 1
+
+    def parse_midi_file(base_dir, midi_file):
         """workhorse function
         does too much, for reasons of efficiency
         plus the inconvenient os.path.walk API"""
@@ -229,7 +251,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
             for next_note in pitches:
                 #table writer can have a bash
-                write_table_row(note_times, next_time_stamp, next_note, file_key)
+                write_obs_metadata(note_times, next_time_stamp, next_note, file_key)
 
                 #for the next time step, we need to include the new note:
                 note_times[next_note] = next_time_stamp
@@ -245,15 +267,18 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
 
         #keep data around despite ourselves
-        per_file_counts[file_key] = list(note_transitions)
+        transitions[file_key] = list(note_transitions)
 
-    def parse_if_midi(transitions, file_dir, file_list):
+    def parse_if_midi(_, file_dir, file_list):
         for f in file_list:
             if f.lower().endswith('mid'):
-                parse_midi_file(file_dir, f, transitions)
+                parse_midi_file(file_dir, f)
 
-    transitions = dict()
-    os.path.walk(MIDI_BASE_DIR, parse_if_midi, transitions)
+    os.path.walk(MIDI_BASE_DIR, parse_if_midi, None)
+
+    table_handle.create_array('/','v_obs',np.array(obs_list, dtype='int32'), "obsID")
+    table_handle.create_array('/','v_p',np.array(p_list, dtype='int32'), "pitch index")
+    table_handle.create_array('/','v_age',np.array(age_list, dtype='float32'), "age")
 
 def get_table():
     table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
