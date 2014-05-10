@@ -51,6 +51,13 @@ nr = function(col, x0=1.0, width=0.25) {
 notes.float.predictor.names  = colnames(notes.float)[substr(names(notes.float),1,1)=="X"]
 notes.float.predictors = notes.float[,notes.float.predictor.names]
 
+#check out this suspiciously non-translation-invariant histogram:
+histtimes = function() {
+  ages=as.vector(as.matrix(notes.float.predictors))
+  hist(ages[ages>0],breaks=seq(0,1.56,1/64))
+}
+
+
 notes.float.formula = as.formula(paste("~(", paste(notes.float.predictor.names, collapse="+"), ")^3"))
 
 note.log.model = function(notes.data, notes.formula, ...) {
