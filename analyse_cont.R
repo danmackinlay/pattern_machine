@@ -10,6 +10,10 @@ require(rhdf5)
 ###settings
 # how many cases we throw out (oversampling of cases means the data set blows up)
 case.scale.factor = 24
+#can't work out how to extract this as attribute
+max.age = 1.5
+width = 0.25
+n.ages = 3
 
 
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
@@ -36,8 +40,18 @@ case.scale.factor = 24
 #TODO: HDF and float values are the future. see http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf
 notes.float = h5read("rag-11.h5", "/note_transitions")
 
-#source.notes = read.csv("rag-11.csv", header=TRUE)
-#source.notes$file = as.factor(source.notes$file)
+notes.float=notes.float[seq(1,4000000,100),]
+notes.float$file = as.factor(notes.float$file)
+
+#feature fn - only works on columns:
+nr = function(col, x0=1.0, width=0.25) {
+  return(pmax(width-abs(col-x0),0))
+}
+
+notes.float.predictor.names  = colnames(notes.float)[substr(names(notes.float),1,1)=="X"]
+notes.float.predictors = notes.float[,notes.float.predictor.names]
+
+notes.float.formula = as.formula(paste("~(", paste(notes.float.predictor.names, collapse="+"), ")^3"))
 
 note.log.model = function(notes.data, notes.formula, ...) {
   notes.successes = notes.data[rep(row.names(notes.data), round(notes.data$ons/case.scale.factor)),]
@@ -53,6 +67,9 @@ note.log.model = function(notes.data, notes.formula, ...) {
   rm(notes.successes)
   
   # the original data frame and formula
+  #Note that model.Matrix(*, sparse=TRUE) from package MatrixModels may be often be preferable to sparse.model.matrix() nowadays, as model.Matrix() returns modelMatrix objects with additional slots assign and contrasts which relate back to the variables used.
+  
+  
   notes.predictors.sparse=sparse.model.matrix(notes.formula, notes.data)
   notes.response=as.matrix(notes.data$response)
   notes.fit = 0
@@ -79,22 +96,20 @@ coefs.as.json <- function (coefs.matrix) {
   return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
 }
 
-# data to fit the note model, GIVEN THE CURRENT NOTE IS OFF
-# # i.e. the note ADDITION model
-# # with the new onset-led model, this is the only fit of relevence.
-# notes.off = source.notes[source.notes$X0==0,]
-# notes.off[names(notes.off)=="X0"] = NULL
-# notes.off.held.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
-# ##use all predictors
-# #notes.off.predictor.names = colnames(source.notes)[2:(length(colnames(source.notes))-2)]
-# ##use only held notes
-# notes.off.predictor.names  = notes.off.held.names
-# notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^3"))
-# notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
-# #remove initial nodes - i.e. there has to be one other note in range for this note to switch on
-# notes.off = subset(notes.off, totalHeld>0)
-# notes.off$totalHeld = NULL
-# notes.off.fit = note.log.model(notes.off, notes.off.formula)
-# h <- file("coef-off-11.json", "w")
-# cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
-# close(h)
+# data to fit the note model
+notes.off = source.notes[source.notes$X0==0,]
+notes.off[names(notes.off)=="X0"] = NULL
+notes.off.held.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
+##use all predictors
+#notes.off.predictor.names = colnames(source.notes)[2:(length(colnames(source.notes))-2)]
+##use only held notes
+notes.off.predictor.names  = notes.off.held.names
+notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^3"))
+notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
+#remove initial nodes - i.e. there has to be one other note in range for this note to switch on
+notes.off = subset(notes.off, totalHeld>0)
+notes.off$totalHeld = NULL
+notes.off.fit = note.log.model(notes.off, notes.off.formula)
+h <- file("coef-off-11.json", "w")
+cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
+close(h)
