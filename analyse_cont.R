@@ -12,9 +12,10 @@ require(rhdf5)
 case.scale.factor = 24
 #can't work out how to extract this as attribute
 max.age = 1.5
-width = 0.25
-n.ages = 3
 
+#local settings
+radius = 0.25
+n.ages = 3
 
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 # Could also model, conditional on environment, which note goes on.
@@ -37,26 +38,42 @@ n.ages = 3
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-#TODO: HDF and float values are the future. see http://www.bioconductor.org/packages/release/bioc/vignettes/rhdf5/inst/doc/rhdf5.pdf
-notes.float = h5read("rag-11.h5", "/note_transitions")
+notes.obsdata = h5read("rag-11.h5", "/note_meta")
+notes.obsdata$file = as.factor(notes.obsdata$file)
+notes.obsid = as.vector(h5read("rag-11.h5", '/v_obsid'))
+notes.p = as.vector(h5read("rag-11.h5", '/v_p'))
+notes.recence = as.vector(h5read("rag-11.h5", '/v_recence'))
+notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
 
-notes.float=notes.float[seq(1,4000000,100),]
-notes.float$file = as.factor(notes.float$file)
+#hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
 
-#feature fn - only works on columns:
-nr = function(col, x0=1.0, width=0.25) {
-  return(pmax(width-abs(col-x0),0))
+#optionally thing out data for testing
+#notes.obsdata=notes.obsdata[seq(1,4000000,100),]
+
+#triangular feature fn
+nr = function(col, x0=1.0, radius=0.25) {
+  return(pmax(radius-abs(col-x0),0))
 }
+
+feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
+  feat.val = nr(notes.recence, max.age, radius)
+  notes.mask = feat.val>0
+  return(
+    sparseMatrix(
+      i=notes.obsid[notes.mask],
+      j=notes.p[notes.mask],
+      x=feat.val[notes.mask],
+      dims=notes.dims,
+      index1=F
+    )
+  )
+}
+notes.f0.mat = feature.matrix(max.age, radius, 0)
+notes.f1.mat = feature.matrix(max.age-radius, radius, 1)
+notes.f2.mat = feature.matrix(max.age-2*radius, radius, 2)
 
 notes.float.predictor.names  = colnames(notes.float)[substr(names(notes.float),1,1)=="X"]
 notes.float.predictors = notes.float[,notes.float.predictor.names]
-
-#check out this suspiciously non-translation-invariant histogram:
-histtimes = function() {
-  ages=as.vector(as.matrix(notes.float.predictors))
-  hist(ages[ages>0],breaks=seq(0,1.56,1/64))
-}
-
 
 notes.float.formula = as.formula(paste("~(", paste(notes.float.predictor.names, collapse="+"), ")^3"))
 
