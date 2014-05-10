@@ -1,4 +1,3 @@
-import numpy as np
 from pprint import pprint
 import os
 from music21 import converter, instrument, midi
@@ -36,7 +35,6 @@ ONSET_TOLERANCE = 0.06
 # # matrix dimensions
 # # source dataset
 # # factor mapping
-# switch to CArray to save disk bloat http://pytables.github.io/usersguide/libref/homogenous_storage.html#carrayclassdescr
 # ditch transitions var to save memory; yagni
 # bludgeon R into actually reading the fucking metadata Grrrr R.
 # explicitly use R-happy names for CSV, for clarity
@@ -276,9 +274,20 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
     os.path.walk(MIDI_BASE_DIR, parse_if_midi, None)
 
-    table_handle.create_array('/','v_obs',np.array(obs_list, dtype='int32'), "obsID")
-    table_handle.create_array('/','v_p',np.array(p_list, dtype='int32'), "pitch index")
-    table_handle.create_array('/','v_age',np.array(age_list, dtype='float32'), "age")
+    filt = tables.Filters(complevel=5)
+    
+    table_handle.create_carray('/','v_obs',
+        atom=tables.Int32Atom(), shape=(len(obs_list),),
+        title="obsID",
+        filters=filt)[:] = obs_list
+    table_handle.create_carray('/','v_p',
+        atom=tables.Int32Atom(), shape=(len(p_list),),
+        title="pitch index",
+        filters=filt)[:] = p_list
+    table_handle.create_carray('/','v_age',
+        atom=tables.Float32Atom(), shape=(len(age_list),),
+        title="age",
+        filters=filt)[:] = age_list
 
 def get_table():
     table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
