@@ -25,12 +25,6 @@ MAX_AGE = 1.5
 # for the one-step model we take even less:
 ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 
-# We break chords apart by jittering
-#JITTER_FACTOR = 0.0
-JITTER_FACTOR = 0.01
-#when calculating note rate, aggregate notes this close together (JITTER_FACTOR ignored for those)
-ONSET_TOLERANCE = 0.06
-
 #TODO:
 # save note timestamps, just in case
 # save note size, just in case.
@@ -211,22 +205,22 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
             #only handle Notes and Chords
             if not isinstance(event, NotRest):
                 continue
-            on_time = next_elem['offset']
+            next_time_stamp = next_elem['offset']
+            
+            # first we increment time, which involves deleting notes too old to love
+            for this_note, this_time_stamp in note_times.items():
+                if next_time_stamp-this_time_stamp>MAX_AGE:
+                    del(note_times[this_note])
+            
             if hasattr(event, 'pitch'):
                 pitches = [event.pitch.midi]
-                on_times = [on_time]
             if hasattr(event, 'pitches'):
                 pitches = [p.midi for p in event.pitches]
-                #insert a small jitter here to break chords apart, random-style
-                on_times = sorted([(on_time + JITTER_FACTOR*random.random(), p) for p in pitches])
+                #randomize order:
+                pitches = random.sample(pitches, len(pitches))
                 #TODO: restore the old strum-style chord breaking.
 
-            for next_time_stamp, next_note in on_times:
-                # first we increment time, which involves deleting notes too old to love
-                for this_note, this_time_stamp in note_times.items():
-                    if next_time_stamp-this_time_stamp>MAX_AGE:
-                        del(note_times[this_note])
-
+            for next_note in pitches:
                 #table writer can have a bash
                 write_table_row(note_times, next_time_stamp, next_note, file_key)
 
