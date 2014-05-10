@@ -25,19 +25,21 @@ MAX_AGE = 1.5
 # for the one-step model we take even less:
 ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 
+#when calculating note rate, aggregate notes this close together
+ONSET_TOLERANCE = 0.06
+
 #TODO:
-# Shall I switch to memory-sparse matrices? possibly.
 # http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.mmwrite.html#scipy.io.mmwrite
 # http://stat.ethz.ch/R-manual/R-devel/library/Matrix/html/externalFormats.html
-# save note size, just in case.
 # save MAX_AGE in metadata
-# do i even need jitter, as long as order (randomly?) chord note onsets?
+# bludgeon R into actually reading the fucking metadata Grrrr R.
 # explicitly use R-happy names for CSV, for clarity
-# call into R using rpy2, to avoid this horrible manual way of doing things
+# call into R using rpy2, to avoid this horrible manual way of doing things, and also R
 # could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
 # but it would fail to generalise to crazy values and be fiddlier to implement.
-# current model is ugly but works - Nto guarnateed to respect hierarchicality but seems to anyway.
+# current model is ugly but works - Not guarnnteed to respect hierarchicality but seems to anyway.
 # go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway. NB - large data sets.
+# Shall I switch to memory-sparse matrices? possibly.
 # experiment with longer note smears
 # experiment with adaptive note smearing
 # What I really want is smoothing that favours spectrally-meaningful relations
