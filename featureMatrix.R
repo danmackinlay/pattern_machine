@@ -7,6 +7,7 @@ library("Matrix")
 # NB - this combination is not the same as "cubing" the formula -
 # still get interactions like X1:X1:X2, i.e. with 2 terms the same
 # This uses suspiciously much intermediate memory; why?
+# TODO implement include.orig in some memory-happy fashion
 
 test.mats = function(){
   r=c(1,2,3,4)
@@ -29,7 +30,7 @@ test.mats.sparse = function(){
   return(list(A=A,B=B))
 }
 
-pred.matrix.selfproduct = function(A, fn="*", include.self=F, ...){
+pred.matrix.selfproduct = function(A, fn="*", include.self=F, include.orig=F, ...){
   fn = match.fun(fn)
   aCols = 1:ncol(A)
   newcols = combn(aCols,2)
@@ -38,12 +39,13 @@ pred.matrix.selfproduct = function(A, fn="*", include.self=F, ...){
     newcols = cbind(rbind(aCols,aCols),newcols)
     newcols = newcols[,order(newcols[2,],newcols[1,])]
   }
+  newcolnames = paste(colnames(A)[newcols[1,]],colnames(A)[newcols[2,]],sep=":")
   prod=fn(A[,newcols[1,]],(A[,newcols[2,]]),...)
-  colnames(prod)=paste(colnames(A)[newcols[1,]],colnames(A)[newcols[2,]],sep=":")
+  colnames(prod)= newcolnames
   return(prod)
 }
 
-pred.matrix.product = function(A, B, fn="*", ...){
+pred.matrix.product = function(A, B, fn="*", include.orig=F, ...){
   fn = match.fun(fn)
   newcols=expand.grid(Bcol=1:ncol(B),Acol=1:ncol(A))
   prod=fn(A[,newcols$Acol],(B[,newcols$Bcol]), ...)
