@@ -9,9 +9,14 @@ library("jsonlite")
 require(rhdf5)
 source("featureMatrix.R")
 ###settings
-# how many cases we throw out (oversampling of cases means the data set blows up)
-# not currently used
-#case.scale.factor = 24
+# how many observations we throw out (oversampling of cases means the data set blows up)
+row.thin.factor = 30
+# how many we cut off the edge of note neighbourhood
+col.trim.count = 0
+
+trim.col = function(mat,n=0){
+  return(mat[,(n+1):(ncol(mat)-n)])
+}
 
 #can't work out how to extract this as attribute, although should as it is data-dependent
 max.age = 1.5
@@ -51,9 +56,6 @@ notes.colnames = h5read("rag-11.h5", "/col_names")
 
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
 
-#optionally thin out data for testing
-#notes.obsdata=notes.obsdata[seq(1,4000000,100),]
-
 #triangular feature fn
 feat.tri = function(col, x0=1.0, radius=0.25) {
   return(pmax(1.0-abs((col-x0)/radius),0))
@@ -68,7 +70,7 @@ feat.sin2 = function(...) {
   return(sin(pi/2*feat.tri(...))^2)
 }
 
-feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
+feature.matrix = function (x0=1.0, radius=0.25, f.num=0, col.trim.count=0) {
   feat.val = feat.tri(notes.recence, max.age, radius)
   notes.mask = feat.val>0
   #should i use the obsids as names here?
@@ -80,19 +82,27 @@ feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
       index1=F
   )
   colnames(fmat)=paste(notes.colnames$rname,f.num, sep='F')
-  return(fmat)
+  return(trim.col(fmat, col.trim.count))
 }
-notes.f = cBind(feature.matrix(max.age, radius, 0),
-                feature.matrix(max.age-radius, radius, 1),
-                feature.matrix(max.age-2*radius, radius, 2))
 
-notes.f.small = notes.f[1:100000,]
-notes.f.interact = cBind(notes.f.small,pred.matrix.selfproduct(notes.f.small, "*", include.self=F))
 
+notes.f = cBind(feature.matrix(max.age, radius, 0,col.trim.count),
+                feature.matrix(max.age-radius, radius, 1,col.trim.count),
+                feature.matrix(max.age-2*radius, radius, 2, col.trim.count))  
+
+if (row.thin.factor>1) {
+  n = nrow(notes.f)
+  samp = sample.int(n,floor(n/row.thin.factor))
+  notes.f = notes.f[samp,]
+  notes.obsdata = notes.obsdata[samp,]
+}
+
+notes.f.interact = cBind(notes.f,pred.matrix.selfproduct(notes.f, "*", include.self=F))
 notes.response=as.matrix(notes.obsdata$result)
+
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
-    notes.f,
+    notes.f.interact,
     notes.response,
     family="binomial",
     type.logistic="modified.Newton",
