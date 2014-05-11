@@ -77,9 +77,9 @@ r_name_for_p = dict()
 for i in xrange(2*NEIGHBORHOOD_RADIUS+1):
     p = i - NEIGHBORHOOD_RADIUS
     if p<0:
-        r_name = "X." + str(abs(i))
+        r_name = "X." + str(abs(p))
     else:
-        r_name = "X" + str(i)
+        r_name = "X" + str(p)
     r_name_for_p[p] = r_name
     p_for_r_name[r_name] = p
     r_name_for_i[i] = r_name
@@ -93,7 +93,7 @@ meta_table_description = {
     'obsID': tables.UIntCol(), # obsID for matching with the other data
 }
 
-csv_fieldnames = ["file"] + sorted([r_name_for_p[p] for p in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)]) +\
+csv_fieldnames = ["file"] + [r_name_for_p[p] for p in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
             ['detune', 'span', 'spanup', 'spandown'] +\
             ['ons', 'offs']
 
@@ -169,6 +169,12 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         obs_table = table_handle.create_table('/', 'note_meta',
             meta_table_description,
             filters=tables.Filters(complevel=1))
+    col_table = table_handle.create_table('/', 'col_names',
+        {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
+    for i in sorted(r_name_for_i.keys()):
+        col_table.row['i'] = i
+        col_table.row['rname'] = r_name_for_i[i]
+        col_table.row.append()
 
     obs_table.attrs.maxAge = MAX_AGE
     obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS

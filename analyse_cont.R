@@ -44,10 +44,11 @@ notes.obsid = as.vector(h5read("rag-11.h5", '/v_obsid'))
 notes.p = as.vector(h5read("rag-11.h5", '/v_p'))
 notes.recence = as.vector(h5read("rag-11.h5", '/v_recence'))
 notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
+notes.colnames = h5read("rag-11.h5", "/col_names")
 
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
 
-#optionally thing out data for testing
+#optionally thin out data for testing
 #notes.obsdata=notes.obsdata[seq(1,4000000,100),]
 
 #triangular feature fn
@@ -58,19 +59,21 @@ nr = function(col, x0=1.0, radius=0.25) {
 feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
   feat.val = nr(notes.recence, max.age, radius)
   notes.mask = feat.val>0
-  return(
-    sparseMatrix(
+  #should i use the obsids as names here?
+  fmat =sparseMatrix(
       i=notes.obsid[notes.mask],
       j=notes.p[notes.mask],
       x=feat.val[notes.mask],
       dims=notes.dims,
       index1=F
-    )
   )
+  colnames(fmat)=paste(notes.colnames$rname,f.num, sep='F')
+  return(fmat)
 }
 notes.f0.mat = feature.matrix(max.age, radius, 0)
 notes.f1.mat = feature.matrix(max.age-radius, radius, 1)
 notes.f2.mat = feature.matrix(max.age-2*radius, radius, 2)
+notes.f = cBind( notes.f0.mat,  notes.f1.mat,  notes.f2.mat)
 
 notes.float.predictor.names  = colnames(notes.float)[substr(names(notes.float),1,1)=="X"]
 notes.float.predictors = notes.float[,notes.float.predictor.names]
