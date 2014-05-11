@@ -52,8 +52,9 @@ notes.colnames = h5read("rag-11.h5", "/col_names")
 #notes.obsdata=notes.obsdata[seq(1,4000000,100),]
 
 #triangular feature fn
+#maybe differentiability would be nice in the kernel, at least if we are going to square it, a convex maximum
 nr = function(col, x0=1.0, radius=0.25) {
-  return(pmax(radius-abs(col-x0),0))
+  return(pmax(1.0-abs((col-x0)/radius),0))
 }
 
 feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
