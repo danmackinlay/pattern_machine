@@ -52,16 +52,24 @@ notes.colnames = h5read("rag-11.h5", "/col_names")
 #notes.obsdata=notes.obsdata[seq(1,4000000,100),]
 
 #triangular feature fn
-#maybe differentiability would be nice in the kernel, at least if we are going to square it, a convex maximum
-nr = function(col, x0=1.0, radius=0.25) {
+feat.tri = function(col, x0=1.0, radius=0.25) {
   return(pmax(1.0-abs((col-x0)/radius),0))
 }
 
+#peak-differntiable feature fn
+feat.sin = function(...) {
+  return(sin(pi/2*feat.tri(...)))
+}
+#everywhere differntiable feature fn
+feat.sin2 = function(...) {
+  return(sin(pi/2*feat.tri(...))^2)
+}
+
 feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
-  feat.val = nr(notes.recence, max.age, radius)
+  feat.val = feat.tri(notes.recence, max.age, radius)
   notes.mask = feat.val>0
   #should i use the obsids as names here?
-  fmat =sparseMatrix(
+  fmat = sparseMatrix(
       i=notes.obsid[notes.mask],
       j=notes.p[notes.mask],
       x=feat.val[notes.mask],
