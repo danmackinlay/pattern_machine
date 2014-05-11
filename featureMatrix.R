@@ -1,8 +1,7 @@
 # poor-man's model.matrix
 # works on matrices as well as data frames
 # does not support the fabulous complexity of "formula"
-# TODO: fix up colum ordering
-# - not quite right for e.g. 
+# TEST STRING:
 # - with(test.mats(),pred.matrix.product(pred.matrix.squared(A, "+"), A, "+"))
 # check preservation of sparseness
 test.mats = function(){
@@ -30,7 +29,7 @@ pred.matrix.squared = function(A, fn="*", include.self=T, ...){
 }
 pred.matrix.product = function(A, B, fn="*", ...){
   fn = match.fun(fn)
-  newcols=expand.grid(Acol=1:ncol(A),Bcol=1:ncol(B))
+  newcols=expand.grid(Bcol=1:ncol(B),Acol=1:ncol(A))
   prod=fn(A[,newcols$Acol],(B[,newcols$Bcol]), ...)
   colnames(prod)=paste(colnames(A)[newcols$Acol],colnames(B)[newcols$Bcol],sep=":")
   return(prod)
