@@ -3,14 +3,17 @@ library("Matrix")
 library("glmnet")
 library("stringr")
 library("jsonlite")
-require(doMC)
-registerDoMC(cores=2)
+#disable parallelism for now because of ram shortage
+#require(doMC)
+#registerDoMC(cores=2)
 require(rhdf5)
-
+source("featureMatrix.R")
 ###settings
 # how many cases we throw out (oversampling of cases means the data set blows up)
-case.scale.factor = 24
-#can't work out how to extract this as attribute
+# not currently used
+#case.scale.factor = 24
+
+#can't work out how to extract this as attribute, although should as it is data-dependent
 max.age = 1.5
 
 #local settings
@@ -83,9 +86,9 @@ notes.f = cBind(feature.matrix(max.age, radius, 0),
                 feature.matrix(max.age-radius, radius, 1),
                 feature.matrix(max.age-2*radius, radius, 2))
 
-#notes.formula = as.formula(paste("~(", paste(colnames(notes.f), collapse="+"), ")^2"))
-#Note that model.Matrix(*, sparse=TRUE) from package MatrixModels may be often be preferable to sparse.model.matrix() nowadays, as model.Matrix() returns modelMatrix objects with additional slots assign and contrasts which relate back to the variables used.  
-#notes.mega.f=sparse.model.matrix(notes.formula, notes.f)
+notes.f.small = notes.f[1:100000,]
+notes.f.interact = cBind(notes.f.small,pred.matrix.selfproduct(notes.f.small, "*", include.self=F))
+
 notes.response=as.matrix(notes.obsdata$result)
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
