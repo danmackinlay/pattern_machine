@@ -70,51 +70,27 @@ feature.matrix = function (x0=1.0, radius=0.25, f.num=0) {
   colnames(fmat)=paste(notes.colnames$rname,f.num, sep='F')
   return(fmat)
 }
-notes.f0.mat = feature.matrix(max.age, radius, 0)
-notes.f1.mat = feature.matrix(max.age-radius, radius, 1)
-notes.f2.mat = feature.matrix(max.age-2*radius, radius, 2)
-notes.f = cBind( notes.f0.mat,  notes.f1.mat,  notes.f2.mat)
+notes.f = cBind(feature.matrix(max.age, radius, 0),
+                feature.matrix(max.age-radius, radius, 1),
+                feature.matrix(max.age-2*radius, radius, 2))
 
-notes.float.predictor.names  = colnames(notes.float)[substr(names(notes.float),1,1)=="X"]
-notes.float.predictors = notes.float[,notes.float.predictor.names]
-
-notes.float.formula = as.formula(paste("~(", paste(notes.float.predictor.names, collapse="+"), ")^3"))
-
-note.log.model = function(notes.data, notes.formula, ...) {
-  notes.successes = notes.data[rep(row.names(notes.data), round(notes.data$ons/case.scale.factor)),]
-  notes.successes$ons=NULL
-  notes.successes$offs=NULL
-  notes.successes$response=1
-  notes.fails = notes.data[rep(row.names(notes.data), round(notes.data$offs/case.scale.factor)),]
-  notes.fails$ons=NULL
-  notes.fails$offs=NULL
-  notes.fails$response=0
-  notes.data = rbind(notes.successes, notes.fails)
-  rm(notes.fails)
-  rm(notes.successes)
-  
-  # the original data frame and formula
-  #Note that model.Matrix(*, sparse=TRUE) from package MatrixModels may be often be preferable to sparse.model.matrix() nowadays, as model.Matrix() returns modelMatrix objects with additional slots assign and contrasts which relate back to the variables used.
-  
-  
-  notes.predictors.sparse=sparse.model.matrix(notes.formula, notes.data)
-  notes.response=as.matrix(notes.data$response)
-  notes.fit = 0
-  notes.fit.time = system.time( #note this only works for <- assignment!
-    notes.fit <- cv.glmnet(
-      notes.predictors.sparse,
-      notes.response,
-      family="binomial",
-      type.logistic="modified.Newton",
-      alpha=1,
-      parallel=TRUE,
-      foldid=unclass(notes.data$file),
-      ...
-    )
+#notes.formula = as.formula(paste("~(", paste(colnames(notes.f), collapse="+"), ")^2"))
+#Note that model.Matrix(*, sparse=TRUE) from package MatrixModels may be often be preferable to sparse.model.matrix() nowadays, as model.Matrix() returns modelMatrix objects with additional slots assign and contrasts which relate back to the variables used.  
+#notes.mega.f=sparse.model.matrix(notes.formula, notes.f)
+notes.response=as.matrix(notes.obsdata$result)
+notes.fit.time = system.time( #note this only works for <- assignment!
+  notes.fit <- cv.glmnet(
+    notes.f,
+    notes.response,
+    family="binomial",
+    type.logistic="modified.Newton",
+    alpha=1,
+    #parallel=TRUE,
+    foldid=unclass(notes.obsdata$file)
   )
-  print(notes.fit.time)
-  return(notes.fit)
-}
+)
+print(notes.fit.time)
+
 coefs.as.json <- function (coefs.matrix) {
   coef.list = list()
   for (n in row.names(coefs.matrix)) {
@@ -122,21 +98,6 @@ coefs.as.json <- function (coefs.matrix) {
   }
   return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
 }
-
-# data to fit the note model
-notes.off = source.notes[source.notes$X0==0,]
-notes.off[names(notes.off)=="X0"] = NULL
-notes.off.held.names = colnames(notes.off)[substr(names(notes.off),1,1)=="X"]
-##use all predictors
-#notes.off.predictor.names = colnames(source.notes)[2:(length(colnames(source.notes))-2)]
-##use only held notes
-notes.off.predictor.names  = notes.off.held.names
-notes.off.formula = as.formula(paste("~(", paste(notes.off.predictor.names, collapse="+"), ")^3"))
-notes.off$totalHeld=rowSums(notes.off[notes.off.held.names])
-#remove initial nodes - i.e. there has to be one other note in range for this note to switch on
-notes.off = subset(notes.off, totalHeld>0)
-notes.off$totalHeld = NULL
-notes.off.fit = note.log.model(notes.off, notes.off.formula)
-h <- file("coef-off-11.json", "w")
+h <- file("coef-cont-11.json", "w")
 cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
 close(h)
