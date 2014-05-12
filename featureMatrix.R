@@ -44,22 +44,28 @@ pred.matrix.squared = function(A, fn="*", include.self=F, ...){
     colnames(prod)= newcolnames
     return(prod)
 }
-# Doesn't parse:
-# pred.matrix.cubed = function(A, fn="prod",  ...){
-#   #does not do "include self" terms yet
-#   fn = match.fun(fn)
-#   aCols = 1:ncol(A)
-#   aColNames = colnames(A)
-#   newcols = combn(aCols,3)
-#   newcolnames = paste(
-#     aColNames[newcols[1,]],
-#     aColNames[newcols[2,]],
-#     aColNames[newcols[3,]],
-#     sep=":")
-#   prod=fn(A[,newcols[1,]],A[,newcols[2,]],A[,newcols[3,]]...)
-#   colnames(prod)= newcolnames
-#   return(prod)
-# }
+pred.matrix.cubed = function(A, fn="*",  ...){
+  #does not do "include self" terms yet
+  fn = match.fun(fn)
+  aCols = 1:ncol(A)
+  aColNames = colnames(A)
+  newcols = combn(aCols,3)
+  newcolnames = paste(
+    aColNames[newcols[1,]],
+    aColNames[newcols[2,]],
+    aColNames[newcols[3,]],
+    sep=":")
+  product = fn(
+    A[,newcols[1,]],
+    A[,newcols[2,]],
+    ...)
+  product = fn(
+    product,
+    A[,newcols[3,]],
+    ...)
+  colnames(product) = newcolnames
+  return(product)
+}
 
 #I'd like this to do higher powers than 2, but it's tedious
 pred.matrix.selfproduct = function(A, power=2, fn="*",  ...){

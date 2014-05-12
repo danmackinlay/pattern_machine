@@ -50,6 +50,7 @@ radius = 0.25
 
 dissect.coefs = function(coefs){
   #horrifically inefficient fc, but I can't be arsed working out how to do this better in R
+  #it's not conceptually well-posed anyway
   coefmags = abs(coefs[summary(coefs)$i])[-1]
   coefnames = rownames(coefs)[summary(coefs)$i][-1]
   coeford = order(coefmags, decreasing=T)
@@ -132,7 +133,7 @@ if (row.thin.factor>1) {
   notes.obsdata = notes.obsdata[samp,]
 }
 
-notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f, "*"),pred.matrix.cubed(notes.f, "*"))
+notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f),pred.matrix.cubed(notes.f))
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
