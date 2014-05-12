@@ -49,23 +49,25 @@ radius = 0.25
 # but let's stay simple.
 
 dissect.coefs = function(coefs){
+  #horrifically inefficient fc, but I can't be arsed working out how to do this better in R
   coefmags = abs(coefs[summary(coefs)$i])[-1]
   coefnames = rownames(coefs)[summary(coefs)$i][-1]
   coeford = order(coefmags, decreasing=T)
-  coefchunks = list()
+  coefchunks = data.frame()
   for (i in 1:length(coefnames)) {
     for (j in as.vector(str_split(coefnames[[i]], "[:x]")[[1]])) {
-      if (is.null(coefchunks[[j]])) {
-        coefchunks[[j]] = 0
-      }
-      coefchunks[[j]] = coefchunks[[j]] + coefmags[i]
+      coefchunks = rbind(coefchunks, data.frame(name = j, mag=coefmags[i]))
     }
   }
+  coefchunks$name = as.factor(coefchunks$name)
+  coefsumm = data.frame()
+  for (j in levels(coefchunks$name)) {coefsumm = rbind(coefsumm, data.frame(name=j, mag = sum(coefchunks[coefchunks$name==j,"mag"])))}
+  coefsumm=coefsumm[order(coefsumm$mag,decreasing=T),]
   return(list(
     mag.imp=data.frame(
-      mags=coefmags,
-      names=coefnames[coeford]), 
-    chunks = coefchunks)
+      mag=coefmags,
+      name=as.factor(coefnames[coeford])), 
+    chunks = coefsumm)
   )
 }
 
@@ -120,8 +122,8 @@ notes.colnames = h5read("rag-11.h5", "/col_names")
 
 notes.f = cBind(feature.matrix(max.age, radius, 0,col.trim.count),
                 feature.matrix(max.age-radius, radius, 1,col.trim.count),
-                feature.matrix(max.age-2*radius, radius, 2,col.trim.count),
-                feature.matrix(max.age-4*radius, radius, 4, col.trim.count))  
+                feature.matrix(max.age-2*radius, radius, 2,col.trim.count)
+)  
 
 if (row.thin.factor>1) {
   n = nrow(notes.f)
@@ -130,7 +132,7 @@ if (row.thin.factor>1) {
   notes.obsdata = notes.obsdata[samp,]
 }
 
-notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f, "*"))
+notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f, "*"),pred.matrix.cubed(notes.f, "*"))
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
