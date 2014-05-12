@@ -30,16 +30,45 @@ test.mats.sparse = function(){
   return(list(A=A,B=B))
 }
 
-pred.matrix.selfproduct = function(A, fn="*", include.self=F, include.orig=F, ...){
+pred.matrix.squared = function(A, fn="*", include.self=F, ...){
+    fn = match.fun(fn)
+    aCols = 1:ncol(A)
+    newcols = combn(aCols,2)
+    if (include.self) {
+        #Can an element be paired with itself?
+          newcols = cbind(rbind(aCols,aCols),newcols)
+        newcols = newcols[,order(newcols[2,],newcols[1,])]
+    }
+    newcolnames = paste(colnames(A)[newcols[1,]],colnames(A)[newcols[2,]],sep=":")
+    prod=fn(A[,newcols[1,]],(A[,newcols[2,]]),...)
+    colnames(prod)= newcolnames
+    return(prod)
+}
+# Doesn't parse:
+# pred.matrix.cubed = function(A, fn="prod",  ...){
+#   #does not do "include self" terms yet
+#   fn = match.fun(fn)
+#   aCols = 1:ncol(A)
+#   aColNames = colnames(A)
+#   newcols = combn(aCols,3)
+#   newcolnames = paste(
+#     aColNames[newcols[1,]],
+#     aColNames[newcols[2,]],
+#     aColNames[newcols[3,]],
+#     sep=":")
+#   prod=fn(A[,newcols[1,]],A[,newcols[2,]],A[,newcols[3,]]...)
+#   colnames(prod)= newcolnames
+#   return(prod)
+# }
+
+#I'd like this to do higher powers than 2, but it's tedious
+pred.matrix.selfproduct = function(A, power=2, fn="*",  ...){
+  #TODO: include self-terms like X1:X1:X2
   fn = match.fun(fn)
   aCols = 1:ncol(A)
-  newcols = combn(aCols,2)
-  if (include.self) {
-    #Can an element be paired with itself?
-    newcols = cbind(rbind(aCols,aCols),newcols)
-    newcols = newcols[,order(newcols[2,],newcols[1,])]
-  }
-  newcolnames = paste(colnames(A)[newcols[1,]],colnames(A)[newcols[2,]],sep=":")
+  aColNames = colnames(A)
+  newcols = combn(aCols, power)
+  newcolnames = apply(newcols, 2, function(x){paste(aColNames[x],collapse=":")})
   prod=fn(A[,newcols[1,]],(A[,newcols[2,]]),...)
   colnames(prod)= newcolnames
   return(prod)

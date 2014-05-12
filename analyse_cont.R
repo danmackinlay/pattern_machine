@@ -8,11 +8,14 @@ library("jsonlite")
 #registerDoMC(cores=2)
 require(rhdf5)
 source("featureMatrix.R")
+
+#TODO: I have a lot of data here;
+# should probably throw over CV and do straight training/prediction split
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
 row.thin.factor = 30
 # how many we cut off the edge of note neighbourhood
-col.trim.count = 0
+col.trim.count = 2
 
 trim.col = function(mat,n=0){
   return(mat[,(n+1):(ncol(mat)-n)])
@@ -23,7 +26,6 @@ max.age = 1.5
 
 #local settings
 radius = 0.25
-n.ages = 3
 
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 # Could also model, conditional on environment, which note goes on.
@@ -46,15 +48,36 @@ n.ages = 3
 # http://www.bnlearn.com/
 # but let's stay simple.
 
-notes.obsdata = h5read("rag-11.h5", "/note_meta")
-notes.obsdata$file = as.factor(notes.obsdata$file)
-notes.obsid = as.vector(h5read("rag-11.h5", '/v_obsid'))
-notes.p = as.vector(h5read("rag-11.h5", '/v_p'))
-notes.recence = as.vector(h5read("rag-11.h5", '/v_recence'))
-notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
-notes.colnames = h5read("rag-11.h5", "/col_names")
+dissect.coefs = function(coefs){
+  coefmags = abs(coefs[summary(coefs)$i])[-1]
+  coefnames = rownames(coefs)[summary(coefs)$i][-1]
+  coeford = order(coefmags, decreasing=T)
+  coefchunks = list()
+  for (i in 1:length(coefnames)) {
+    print(c(coefnames[[i]], coefmags[[i]]))
+    for (j in str_split(coefnames[[i]], "[:x]")) {
+      if (is.null(coefchunks[[j]])) {
+        coefchunks[[j]] = 0
+      }
+      coefchunks[[j]] = coefchunks[[j]] + coefmags[i]
+    }
 
-#hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
+  }
+  return(list(
+    mag.imp=data.frame(
+      mags=coefmags,
+      names=coefnames[coeford]), 
+    chunks = coefchunks)
+  )
+}
+
+coefs.as.json <- function (coefs.matrix) {
+  coef.list = list()
+  for (n in row.names(coefs.matrix)) {
+    if (coefs.matrix[n,] !=0) coef.list[n] = coefs.matrix[n,]
+  }
+  return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
+}
 
 #triangular feature fn
 feat.tri = function(col, x0=1.0, radius=0.25) {
@@ -81,14 +104,26 @@ feature.matrix = function (x0=1.0, radius=0.25, f.num=0, col.trim.count=0) {
       dims=notes.dims,
       index1=F
   )
-  colnames(fmat)=paste(notes.colnames$rname,f.num, sep='F')
+  colnames(fmat)=paste(notes.colnames$rname,f.num, sep='xF')
   return(trim.col(fmat, col.trim.count))
 }
 
 
+#load actual data
+notes.obsdata = h5read("rag-11.h5", "/note_meta")
+notes.obsdata$file = as.factor(notes.obsdata$file)
+notes.obsid = as.vector(h5read("rag-11.h5", '/v_obsid'))
+notes.p = as.vector(h5read("rag-11.h5", '/v_p'))
+notes.recence = as.vector(h5read("rag-11.h5", '/v_recence'))
+notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
+notes.colnames = h5read("rag-11.h5", "/col_names")
+
+#hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
+
 notes.f = cBind(feature.matrix(max.age, radius, 0,col.trim.count),
                 feature.matrix(max.age-radius, radius, 1,col.trim.count),
-                feature.matrix(max.age-2*radius, radius, 2, col.trim.count))  
+                feature.matrix(max.age-2*radius, radius, 2,col.trim.count),
+                feature.matrix(max.age-4*radius, radius, 4, col.trim.count))  
 
 if (row.thin.factor>1) {
   n = nrow(notes.f)
@@ -97,7 +132,7 @@ if (row.thin.factor>1) {
   notes.obsdata = notes.obsdata[samp,]
 }
 
-notes.f.interact = cBind(notes.f,pred.matrix.selfproduct(notes.f, "*", include.self=F))
+notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f, "*"))
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
@@ -113,13 +148,6 @@ notes.fit.time = system.time( #note this only works for <- assignment!
 )
 print(notes.fit.time)
 
-coefs.as.json <- function (coefs.matrix) {
-  coef.list = list()
-  for (n in row.names(coefs.matrix)) {
-    if (coefs.matrix[n,] !=0) coef.list[n] = coefs.matrix[n,]
-  }
-  return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
-}
 h <- file("coef-cont-11.json", "w")
-cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
+cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)coefmags = abs(coefs[summary(coefs)$i])
 close(h)
