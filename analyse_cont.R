@@ -54,14 +54,12 @@ dissect.coefs = function(coefs){
   coeford = order(coefmags, decreasing=T)
   coefchunks = list()
   for (i in 1:length(coefnames)) {
-    print(c(coefnames[[i]], coefmags[[i]]))
-    for (j in str_split(coefnames[[i]], "[:x]")) {
+    for (j in as.vector(str_split(coefnames[[i]], "[:x]")[[1]])) {
       if (is.null(coefchunks[[j]])) {
         coefchunks[[j]] = 0
       }
       coefchunks[[j]] = coefchunks[[j]] + coefmags[i]
     }
-
   }
   return(list(
     mag.imp=data.frame(
