@@ -11,9 +11,10 @@ source("featureMatrix.R")
 
 #TODO: I have a lot of data here;
 # should probably throw over CV and do straight training/prediction split
+# todo: fits should know own AND NEIGHBOURS' base rates
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
-row.thin.factor = 30
+row.thin.factor = 6
 # how many we cut off the edge of note neighbourhood
 col.trim.count = 2
 
@@ -134,6 +135,7 @@ if (row.thin.factor>1) {
 }
 
 notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f),pred.matrix.cubed(notes.f))
+#notes.f.interact = cBind(notes.f,pred.matrix.squared(notes.f))
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
@@ -150,5 +152,6 @@ notes.fit.time = system.time( #note this only works for <- assignment!
 print(notes.fit.time)
 
 h <- file("coef-cont-11.json", "w")
-cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)coefmags = abs(coefs[summary(coefs)$i])
+cat(coefs.as.json(coef(notes.off.fit, s="lambda.1se")), file=h)
 close(h)
+coefmags = abs(coefs[summary(coefs)$i])

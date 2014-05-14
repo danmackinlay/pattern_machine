@@ -89,7 +89,7 @@ meta_table_description = {
     'result': tables.IntCol(1, dflt=0), #success/fail
     'file': tables.StringCol(50), # factor: which sourcefile
     'time': tables.FloatCol(), # event time
-    'rate': tables.FloatCol(), # event base rate
+    #'rate': tables.FloatCol(), # event base rate
     'heldNotes': tables.UIntCol(), # of predictors
     'obsID': tables.UIntCol(), # obsID for matching with the other data
 }
@@ -164,6 +164,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     obs_list = []
     p_list = []
     recence_list = []
+    centre_pitch_list = []
     mean_pitch_rate = [0.0] * 128
     
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
@@ -216,6 +217,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                     p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
                     recence_list.append(this_recence)
                     obs_list.append(obs_counter)
+                    centre_pitch_list.append(this_note)
                 if next_note == local_pitch:
                     result = 1
 
@@ -224,7 +226,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                 obs_table.row['time'] = next_time_stamp
                 obs_table.row['heldNotes'] = n_held_notes
                 obs_table.row['obsID'] = obs_counter
-                obs_table.row['rate'] = mean_pitch_rate[this_note]
+                #obs_table.row['rate'] = mean_pitch_rate[this_note]
                 obs_table.row['result'] = result
                 obs_table.row.append()
                 obs_counter += 1
@@ -299,6 +301,14 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         atom=tables.Float32Atom(), shape=(len(recence_list),),
         title="recence",
         filters=filt)[:] = recence_list
+    table_handle.create_carray('/','v_pitch',
+        atom=tables.Int32Atom(), shape=(len(centre_pitch_list),),
+        title="centre pitches",
+        filters=filt)[:] = centre_pitch_list
+    table_handle.create_carray('/','v_base_rate',
+        atom=tables.Float32Atom(), shape=(len(mean_pitch_rate),),
+        title="base rate",
+        filters=filt)[:] = mean_pitch_rate
 
 def get_table():
     table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
