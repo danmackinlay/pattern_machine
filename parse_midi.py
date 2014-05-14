@@ -89,6 +89,7 @@ meta_table_description = {
     'result': tables.IntCol(1, dflt=0), #success/fail
     'file': tables.StringCol(50), # factor: which sourcefile
     'time': tables.FloatCol(), # event time
+    'rate': tables.FloatCol(), # event base rate
     'heldNotes': tables.UIntCol(), # of predictors
     'obsID': tables.UIntCol(), # obsID for matching with the other data
 }
@@ -128,38 +129,43 @@ def transition_summary(note_transitions, threshold=0):
 
     return on_counts, off_counts, all_counts
 
-def analyse_times(note_stream):
+def analyze_times(note_stream):
     # do some analysis of note inter-arrival times to check our tempo assumptions
     # not currently used, since I have removed the unusual note-time pieces from my current data set
     first_event = note_stream.flat.notes.offsetMap[0]['offset']
     last_event = note_stream.flat.notes.offsetMap[-1]['offset']
-    midi_length = last_event-first_event
-    curr_time = first_event
-    pitch_counts = [0.0] * 128
+    midi_length = float(last_event-first_event)
+    curr_time_stamp = first_event
+    pitch_rates = [0.0] * 128
     thinned_intervals = []
-    for event in note_stream.flat.notes.offsetMap:
+    for next_elem in note_stream.flat.notes.offsetMap:
         #event density stats
-        next_time = event['offset']
-        if next_time > curr_time + ONSET_TOLERANCE:
-            thinned_intervals.append(next_time-curr_time)
-            curr_time = next_time
-        #indiviual pitch density stats:
+        event = next_elem['element']
+        #only handle Notes and Chords
+        if not isinstance(event, NotRest):
+            continue
+        next_time_stamp = next_elem['offset']
+        if next_time_stamp > curr_time_stamp + ONSET_TOLERANCE:
+            thinned_intervals.append(next_time_stamp-curr_time_stamp)
+            curr_time_stamp = next_time_stamp
+        #individual pitch density stats:
+        pitches = []
         if hasattr(event, 'pitch'):
             pitches = [event.pitch.midi]
         if hasattr(event, 'pitches'):
             pitches = [p.midi for p in event.pitches]
         for p in pitches:
-            pitch_counts[p] += 1
-        
-    mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
-    return(mean_note_time)
+            pitch_rates[p] += 1.0/midi_length
+    mean_event_time = sum(thinned_intervals)/len(thinned_intervals)
+    return mean_event_time, pitch_rates
 
 with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
     obs_counter = 0
     obs_list = []
     p_list = []
     recence_list = []
-
+    mean_pitch_rate = [0.0] * 128
+    
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
     csv_writer.writerow(csv_fieldnames)
 
@@ -190,7 +196,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
     def fan_out_event(note_times, next_time_stamp, next_note, file_key):
-        global obs_counter
+        global obs_counter, mean_pitch_rate
         """turn one event into a set of observations - one of which is a success.
         Send this to a file."""
         domain = set(note_times.keys() + [next_note])
@@ -218,6 +224,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                 obs_table.row['time'] = next_time_stamp
                 obs_table.row['heldNotes'] = n_held_notes
                 obs_table.row['obsID'] = obs_counter
+                obs_table.row['rate'] = mean_pitch_rate[this_note]
                 obs_table.row['result'] = result
                 obs_table.row.append()
                 obs_counter += 1
@@ -226,12 +233,14 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         """workhorse function
         does too much, for reasons of efficiency
         plus the inconvenient os.path.walk API"""
+        global mean_pitch_rate
         midi_in_file = os.path.join(base_dir, midi_file)
         file_key = midi_in_file[len(MIDI_BASE_DIR):]
         print "parsing", file_key
         note_stream = converter.parse(midi_in_file)
         note_transitions = []
         note_times = dict()
+        mean_event_time, mean_pitch_rate = analyze_times(note_stream)
 
         for next_elem in note_stream.flat.notes.offsetMap:
             event = next_elem['element']
