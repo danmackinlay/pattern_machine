@@ -257,10 +257,9 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
             if hasattr(event, 'pitch'):
                 pitches = [event.pitch.midi]
             if hasattr(event, 'pitches'):
-                pitches = [p.midi for p in event.pitches]
-                #randomize order:
-                pitches = random.sample(pitches, len(pitches))
-                #TODO: restore the old strum-style chord breaking.
+                pitches = sorted([p.midi for p in event.pitches])
+                ## OR: randomize order:
+                #pitches = random.sample(pitches, len(pitches))
 
             for next_note in pitches:
                 #table writer can have a bash
