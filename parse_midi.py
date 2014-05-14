@@ -65,8 +65,8 @@ ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 CSV_BASE_PATH = os.path.normpath("./")
-CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.csv' % NEIGHBORHOOD_RADIUS)
-TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag-%02d.h5' % NEIGHBORHOOD_RADIUS)
+CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag.csv')
+TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag.h5')
 
 #Map between relative pitches, array columns and r-friendly relative pitch names
 r_name_for_i = dict()
@@ -130,17 +130,27 @@ def transition_summary(note_transitions, threshold=0):
 
 def analyse_times(note_stream):
     # do some analysis of note inter-arrival times to check our tempo assumptions
-    # not currently used, since I have removed the unusual note-times from my current data set
+    # not currently used, since I have removed the unusual note-time pieces from my current data set
     first_event = note_stream.flat.notes.offsetMap[0]['offset']
     last_event = note_stream.flat.notes.offsetMap[-1]['offset']
     midi_length = last_event-first_event
     curr_time = first_event
+    pitch_counts = [0.0] * 128
     thinned_intervals = []
-    for ev in note_stream.flat.notes.offsetMap:
-        next_time = ev['offset']
+    for event in note_stream.flat.notes.offsetMap:
+        #event density stats
+        next_time = event['offset']
         if next_time > curr_time + ONSET_TOLERANCE:
             thinned_intervals.append(next_time-curr_time)
             curr_time = next_time
+        #indiviual pitch density stats:
+        if hasattr(event, 'pitch'):
+            pitches = [event.pitch.midi]
+        if hasattr(event, 'pitches'):
+            pitches = [p.midi for p in event.pitches]
+        for p in pitches:
+            pitch_counts[p] += 1
+        
     mean_note_time = sum(thinned_intervals)/ len(thinned_intervals)
     return(mean_note_time)
 
