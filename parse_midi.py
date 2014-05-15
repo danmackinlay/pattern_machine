@@ -211,6 +211,9 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
 
             # create a new row for each local note environment
             result = 0
+            if next_note == local_pitch:
+                result = 1
+
             for this_note, this_time_stamp in note_times.iteritems():
                 rel_pitch = this_note - local_pitch
                 if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
@@ -219,8 +222,6 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                     p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
                     recence_list.append(this_recence)
                     obs_list.append(obs_counter)
-                if next_note == local_pitch:
-                    result = 1
 
             if n_held_notes>0:
                 obs_table.row['file'] = file_key
@@ -279,6 +280,8 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                     (this_note, MAX_AGE - next_time_stamp + this_time_stamp)
                     for this_note, this_time_stamp in note_times.iteritems()
                 ])
+
+                event_counter += 1
 
         # CSV writer can haz pound of flesh
         write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
