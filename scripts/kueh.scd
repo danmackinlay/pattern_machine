@@ -1,9 +1,6 @@
 s=~serverboot.(prox:\local, device:\internal);
 //TODO: duck compressor input.
 //TODO: get external input in
-//TODO: get RCA to jack
-//TODO: bring Karin's book
-//TODO: pester Gabriel to get willy fliering
 (
 fork {
 	var state = ~state =(\baseCorr: 0.6, \baseVal:1, \meanDb:(-10), \dbRange:10);
