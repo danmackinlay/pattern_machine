@@ -89,9 +89,10 @@ meta_table_description = {
     'result': tables.IntCol(1, dflt=0), #success/fail
     'file': tables.StringCol(50), # factor: which sourcefile
     'time': tables.FloatCol(), # event time
-    #'rate': tables.FloatCol(), # event base rate
-    'heldNotes': tables.UIntCol(), # of predictors
-    'obsID': tables.UIntCol(), # obsID for matching with the other data
+    'heldNotes': tables.UIntCol(), # number of predictors
+    'thisNote': tables.UIntCol(), # midi note number for central pitch
+    'obsID': tables.UIntCol(), #  for matching with the other data
+    'eventID': tables.UIntCol(), # working out which event cause this
 }
 
 csv_fieldnames = ["file"] + [r_name_for_p[p] for p in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
@@ -131,7 +132,6 @@ def transition_summary(note_transitions, threshold=0):
 
 def analyze_times(note_stream):
     # do some analysis of note inter-arrival times to check our tempo assumptions
-    # not currently used, since I have removed the unusual note-time pieces from my current data set
     first_event = note_stream.flat.notes.offsetMap[0]['offset']
     last_event = note_stream.flat.notes.offsetMap[-1]['offset']
     midi_length = float(last_event-first_event)
@@ -160,12 +160,14 @@ def analyze_times(note_stream):
     return mean_event_time, pitch_rates
 
 with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
+    event_counter = 0
+    event_list = []
     obs_counter = 0
     obs_list = []
     p_list = []
     recence_list = []
-    centre_pitch_list = []
     mean_pitch_rate = [0.0] * 128
+    curr_delta = 0.0
     
     csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
     csv_writer.writerow(csv_fieldnames)
@@ -197,7 +199,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
     def fan_out_event(note_times, next_time_stamp, next_note, file_key):
-        global obs_counter, mean_pitch_rate
+        global event_counter, mean_pitch_rate, obs_counter
         """turn one event into a set of observations - one of which is a success.
         Send this to a file."""
         domain = set(note_times.keys() + [next_note])
@@ -217,7 +219,6 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                     p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
                     recence_list.append(this_recence)
                     obs_list.append(obs_counter)
-                    centre_pitch_list.append(this_note)
                 if next_note == local_pitch:
                     result = 1
 
@@ -226,16 +227,18 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
                 obs_table.row['time'] = next_time_stamp
                 obs_table.row['heldNotes'] = n_held_notes
                 obs_table.row['obsID'] = obs_counter
-                #obs_table.row['rate'] = mean_pitch_rate[this_note]
+                obs_table.row['eventID'] = event_counter
+                obs_table.row['thisNote'] = local_pitch
                 obs_table.row['result'] = result
                 obs_table.row.append()
+                obs_list.append(obs_counter)
                 obs_counter += 1
 
     def parse_midi_file(base_dir, midi_file):
         """workhorse function
         does too much, for reasons of efficiency
         plus the inconvenient os.path.walk API"""
-        global mean_pitch_rate
+        global mean_pitch_rate, event_counter
         midi_in_file = os.path.join(base_dir, midi_file)
         file_key = midi_in_file[len(MIDI_BASE_DIR):]
         print "parsing", file_key
@@ -301,15 +304,20 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
         atom=tables.Float32Atom(), shape=(len(recence_list),),
         title="recence",
         filters=filt)[:] = recence_list
-    table_handle.create_carray('/','v_pitch',
-        atom=tables.Int32Atom(), shape=(len(centre_pitch_list),),
-        title="centre pitches",
-        filters=filt)[:] = centre_pitch_list
     table_handle.create_carray('/','v_base_rate',
-        atom=tables.Float32Atom(), shape=(len(mean_pitch_rate),),
+        atom=tables.Float32Atom(), shape=(128,),
         title="base rate",
         filters=filt)[:] = mean_pitch_rate
+    # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
+    # BEWARE 1-BASED INDEXING IN R
+    base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
+        atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
+        title="rel base rate",
+        filters=filt)
+    _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
+    for i in xrange(128):
+        base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
 
 def get_table():
     table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
-    return table_handle.get_node('/', 'note_transitions')
+    return table_handle.get_node('/', 'note_meta')
