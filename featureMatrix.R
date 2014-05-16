@@ -67,9 +67,10 @@ pred.matrix.cubed = function(A, fn="*",  ...){
   return(product)
 }
 
-#I'd like this to do higher powers than 2, but it's tedious
+#Doesn't work; left here for reference
 pred.matrix.selfproduct = function(A, power=2, fn="*",  ...){
   #TODO: include self-terms like X1:X1:X2
+  #best done as triangular matrix or something (simplicial tensor?) Anyway, later.
   fn = match.fun(fn)
   aCols = 1:ncol(A)
   aColNames = colnames(A)
@@ -80,7 +81,7 @@ pred.matrix.selfproduct = function(A, power=2, fn="*",  ...){
   return(prod)
 }
 
-pred.matrix.product = function(A, B, fn="*", include.orig=F, ...){
+pred.matrix.product = function(A, B, fn="*", ...){
   fn = match.fun(fn)
   newcols=expand.grid(Bcol=1:ncol(B),Acol=1:ncol(A))
   prod=fn(A[,newcols$Acol],(B[,newcols$Bcol]), ...)

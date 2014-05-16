@@ -89,7 +89,6 @@ meta_table_description = {
     'result': tables.IntCol(1, dflt=0), #success/fail
     'file': tables.StringCol(50), # factor: which sourcefile
     'time': tables.FloatCol(), # event time
-    'heldNotes': tables.UIntCol(), # number of predictors
     'thisNote': tables.UIntCol(), # midi note number for central pitch
     'obsID': tables.UIntCol(), #  for matching with the other data
     'eventID': tables.UIntCol(), # working out which event cause this
@@ -226,7 +225,6 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
             if n_held_notes>0:
                 obs_table.row['file'] = file_key
                 obs_table.row['time'] = next_time_stamp
-                obs_table.row['heldNotes'] = n_held_notes
                 obs_table.row['obsID'] = obs_counter
                 obs_table.row['eventID'] = event_counter
                 obs_table.row['thisNote'] = local_pitch
