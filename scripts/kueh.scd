@@ -1,16 +1,25 @@
 s=~serverboot.(prox:\local, device:\internal);
 //TODO: duck compressor input.
 //TODO: get external input in
+
 (
+var state = ~state = (
+	\baseCorr: 0.6,
+	\baseVal:1,
+	\meanDb:(-10),
+	\dbRange:10,
+	\baseDelta: 0.5,
+);
 fork {
-	var state = ~state =(\baseCorr: 0.6, \baseVal:1, \meanDb:(-10), \dbRange:10);
-	//state.sampPath = ~zamples +/+ "hits-tuned/NS wind chimes 002-denoise-edit.wav";
-	state.sampPath = ~zamples +/+ "acapella/Lead Vocal.wav";
-	//state.sampPath = ~zamples +/+ "acapella/Ginuwine - Pony (A Capella).wav";
+	state.sampPaths = ["hits-tuned/NS wind chimes 002-denoise-edit.wav", "acapella/Lead Vocal.wav",  "SupercolliderAuxiliary/Stevie Wonder - For Your Love (Acapella).aiff"].collect(~zamples +/+ _);
 	state.sampLen = 60;
-	state.sampBuf = Buffer.alloc(s, s.sampleRate * state.sampLen, 1);
+	state.sampBufs = Buffer.allocConsecutive(
+		state.sampPaths.size,
+		s, s.sampleRate * state.sampLen, 1);
 	s.sync;
-	state.sampBuf.readChannel(state.sampPath, channels:[0]);
+	state.sampBufs.do({|buf,ind|
+		[\loadin, buf,ind,state.sampPaths[ind]].postln;
+		buf.readChannel(state.sampPaths[ind], channels:[0])});
 	s.sync;
 	state.outBus = Bus.new(\audio,0,2,s);
 	state.sourceGroup = Group.new(s,'addToHead');
@@ -55,17 +64,19 @@ fork {
 			state.baseVal,
 		)}, inf),
 		\hasGate, false,
-		\buf, state.sampBuf,
+		\buf, Prand(state.sampBufs, inf),
 		\group, state.sourceGroup,
 		//Now we do fun stuff
 	).collect({|ev|
+		ev.postln;
+		state.postln;
 		ev[\db] = PSPhi(PSCorr(0.0, ev.baseRand), {state.meanDb-state.dbRange}.value, {state.meanDb-state.dbRange}.value);
 		ev[\pan] = PSPhi(PSCorr(0.0, ev.baseRand),-1.0,1.0);
 		ev[\delta] = {state.baseDelta}.value;
 		//ev.test = PSCorr(0, ev.baseRand);
 		ev[\timingOffset] = PSPhi(
 			PSCorr(0.8, ev.baseRand),
-			0.0, ev.baseDelta);
+			0.0, ev.delta);
 		ev[\startPos] = PSPhi(
 			PSCorr(0.8, ev.baseRand),
 			0.0, state.sampLen/2);
@@ -76,8 +87,8 @@ fork {
 			PSCorr(0.8, ev.baseRand),
 			0, 3).floor];
 		ev;
-	}).collect({|in|
-		in.postln;
+	}).collect({|ev|
+		ev.postln;
 		//state.asString.post;
 	}).play;
 };
