@@ -142,12 +142,4 @@ fork {
 ~plotmags.(~fft3, \fast);
 ~plotmags.(~fft4, \mask);
 ~plotmags.(~fft5, \peak);
-~state.sampLen;
-~state[\baseVal]= (-1);
-~state[\baseVal]= (1);
-~state[\baseCorr]= 0.8;
-~state.meanDb=(-8);
-~state.baseDelta=1/2;
-~state.baseCorr;
-~state.baseVal;
 
