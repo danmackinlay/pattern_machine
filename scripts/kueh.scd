@@ -7,24 +7,30 @@ s=~serverboot.(prox:\local, device:\internal);
 //TODO: morphing reverb?
 //TODO: base detune
 //TODO: chaos parameter
-//TODO: midi interaction
+//TODO: midi interaction (CCAllocator?)
 //TODO: intersting interaction
+//TODO: PCA-style decomposition of param values (how to get full range? -inv gaussian map?)
+//TODO: Two flocks
 (
 var state = ~state = (
 	\baseCorr: 0.6,
 	\baseVal:1,
+	\sampLen: 60,
+	\baseSampOffset:15,
+	\timeStep: 1/4,
+	\subTimeStep: 1/4,
+	\subLength: 4,
 	\meanDb:(-10),
 	\dbRange:10,
-	\timeStep: 1/4,
 	\jitter: 1.0,
 	\sampPaths: [
-		"hits-tuned/NS wind chimes 002-denoise-edit.wav",
-		"acapella/Lead Vocal.wav",
-		"SupercolliderAuxiliary/Stevie Wonder - For Your Love (Acapella).aiff"
-	].collect(~zamples +/+ _),
-	\sampLen: 60,
-	\subLength: Pwhite(1, 5, inf).asStream
-
+		"NS wind chimes 002-denoise-edit.aiff",
+		"Lead Vocal.aiff",
+		"Stevie Wonder - For Your Love (Acapella).aiff",
+		"133_bigbowl2-edit.wav",
+		"21646_madjad_Indonesian_Thum_Loop_2_.wav"
+	].collect(~zamples +/+ "SupercolliderAuxiliary" +/+ _),
+	\clock: TempoClock.new(100.0/60.0),
 );
 fork {
 	state.sampBufs = Buffer.allocConsecutive(
@@ -37,6 +43,7 @@ fork {
 	state.outBus = Bus.new(\audio,0,2,s);
 	state.sourceGroup = Group.new(s,'addToHead');
 	s.sync;
+	state.currBuf = 1;
 	state.fxMasterGroup = Group.new(state.sourceGroup,'addAfter');
 	state.fxGroups = List.new;
 	s.sync;
@@ -45,7 +52,7 @@ fork {
 			Group.new(state.fxMasterGroup, 'addToTail'))
 	});
 	SynthDef(\snip,
-		{|out=0, rate=1, amp=1.0, attackTime=0.05, releaseTime=1.0, startPos=0, buf=0, pan=0|
+		{|out=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, startPos=0, buf=0, pan=0|
 			var env,playr;
 			env = EnvGen.kr(
 				Env.perc(attackTime, releaseTime),
@@ -57,7 +64,7 @@ fork {
 				PlayBuf.ar(
 					numChannels:1,
 					bufnum:buf,
-					rate: rate,
+					rate: pitchRatio,
 					trigger: 1,
 					startPos: startPos*SampleRate.ir,
 				),
@@ -68,48 +75,67 @@ fork {
 		},
 		[],
 	).add;
-	state[\subPattern] = Pbind(
+	//basic info
+	state[\baseSubPattern] = Pbind(
 		\type, \note,
 		\instrument, \snip,
 		\hasGate, false,
 		\buf, state.sampBufs[0],
 		\group, state.sourceGroup,
-		\rate, Prand([1/3,1/2,1,1.5], inf),
-		//see also Pstep for bar-related
-		\startPos, Pseries({0.1.linrand(state.sampLen/2)}, {0.0.linrand(1)}),
-		\pan, Pwhite(-1.0, 1.0, inf),
 		\db, Pfunc({
 			(state.meanDb-state.dbRange
 		).rrand(state.meanDb-state.dbRange)}),
+	);
+	//defaults to mess with. Break out into alternatives?
+	state[\superSubPattern1]= Pbind(
+		\pitchRatio, 1,
+		//see also Pstep for bar-related
+		\startPos, Pseries({0.1.linrand(state.sampLen/2)}, {0.0.linrand(1.0)}),
+		\pan, Pwhite(-1.0, 1.0, inf),
 		\releaseTime, Pwhite(0.1, 3, inf),
 	);
 	s.sync;
 	~masterPattern = Pspawner({|spawner|
-		var streams, clatter, i=0;
+		var streams, clatter;
 		streams = List.new;
-		60.do({
+		120.do({|i|
+			//logic introduce timing disorder
+			var timeOffset=0.0, sampOffset=0.0, subTimeStep=0.0, sampStep=0.0;
 			spawner.wait(state[\timeStep]);
+			timeOffset = state[\jitter].linrand*state[\timeStep];
+			sampOffset = (state[\jitter].rand2+1)*
+			  state[\baseSampOffset];
+			subTimeStep = (state[\jitter].rand2+1)*
+			  state[\subTimeStep];
+			//nb this is actually in seconds; should grab clock time maybe?
+			sampStep = (state[\jitter].rand2+1)*
+			  state[\subTimeStep];
+			[i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
+			state.sampBufs[state.currBuf];
 			streams.add(spawner.par(
 				pattern: Pfin(
 					state[\subLength].value,
 					Pbindf(
-						state[\subPattern],
-						//\buf, Prand(state.sampBufs, inf)
+						state[\baseSubPattern] <>
+						state[\superSubPattern1],
+						\buf, state.sampBufs[state.currBuf],
+						\startPos, Pseries(
+							sampOffset,
+							sampStep),
+						//\pitchRatio, Prand([1/3,1/2,1,1.5], inf),
 					)
 				),
-				delta: state[\jitter].linrand;
+				delta: timeOffset;
 			));
-			i= i+1;
 		});
-	}).play;
+	}).play(state.clock, quant: #[4,0,0]);
 };
 )
-~masterPattern;
 ~state.meanDb=(-50);
-
-~sampBuf.plot;
-~sampBuf.play;
-~sampBuf.query;
+~state.currBuf=4;
+~state.sampBufs[1].plot;
+~state.sampBufs[1].play;
+~state.sampBufs[1].query;
 
 // 2ch source
 (
