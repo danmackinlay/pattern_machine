@@ -1,7 +1,14 @@
 s=~serverboot.(prox:\local, device:\internal);
 //TODO: duck compressor input.
 //TODO: get external input in
-
+//TODO: LFOs
+//TODO: reverb distance thing
+//TODO: pitch match?
+//TODO: morphing reverb?
+//TODO: base detune
+//TODO: chaos parameter
+//TODO: midi interaction
+//TODO: intersting interaction
 (
 var state = ~state = (
 	\baseCorr: 0.6,
@@ -68,7 +75,8 @@ fork {
 		\buf, state.sampBufs[0],
 		\group, state.sourceGroup,
 		\rate, Prand([1/3,1/2,1,1.5], inf),
-		\startPos, Pwhite(0.1, state.sampLen/2),
+		//see also Pstep for bar-related
+		\startPos, Pseries({0.1.linrand(state.sampLen/2)}, {0.0.linrand(1)}),
 		\pan, Pwhite(-1.0, 1.0, inf),
 		\db, Pfunc({
 			(state.meanDb-state.dbRange
@@ -126,4 +134,26 @@ SynthDef(\FreeVerb2x2, {
 			signal[1],
 			mix, room, damp, amp));
 }).add;
+)
+///To offline pitchtrack:
+// First the synthdef
+(
+	SynthDef(\help_param, { |inbufnum, outbufnum|
+		var source, amp, freq, hasfreq;
+		source = PlayBuf.ar(1, inbufnum, BufRateScale.kr(inbufnum));
+		amp = Amplitude.kr(source);
+		BufWr.kr(amp, outbufnum, Phasor.ar(0, BufRateScale.kr(outbufnum) * ControlRate.ir / SampleRate.ir, 0, BufFrames.kr(outbufnum)), 0);
+		Out.ar(0, source.dup);
+	}).store;
+)
+// Then we process the files
+(
+	Score.batchNRT(
+	"~/svn/soundsamples/beatboxes/*.wav",	// Input path pattern - note the asterisk wildcard
+	"~/dataoutput/parameters",		// Output path
+	\help_param,
+	outputnameadd: "-parameters",
+	outputlengthfunc: {|indur| ((indur) * 44100 / 64).postln}, // Note the way the durations are scaled to the (standard) control rate
+	plot:true
+	);
 )
