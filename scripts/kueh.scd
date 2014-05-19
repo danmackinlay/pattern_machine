@@ -1,4 +1,5 @@
 s=~serverboot.(prox:\local, device:\internal);
+s=~serverboot.(prox:\local, device:\rme);
 //TODO: duck compressor input.
 //TODO: get external input in
 //TODO: LFOs
@@ -11,18 +12,33 @@ s=~serverboot.(prox:\local, device:\internal);
 //TODO: intersting interaction
 //TODO: PCA-style decomposition of param values (how to get full range? -inv gaussian map?)
 //TODO: Two flocks
+//TODO: choose some control parameters, and map them
+//TODO: make pattern more modular by letting it Penvir in a sttings dict. maybe.
+//TODO: LIMITER
+// Granular delay? Nah not this time, keep it pure.
+//see also: "https://github.com/crucialfelix/API/blob/master/JSON.sc"
+//"https://github.com/crucialfelix/API" and
+//"https://github.com/crucialfelix/supercolliderjs"
+// Two posibilities here:
+// Explicit melody layers
+// forming a melody out of grainclouds by raw copula
+// Control mappings for all intersting params
+
 (
 var state = ~state = (
-	\baseCorr: 0.6,
-	\baseVal:1,
 	\sampLen: 60,
 	\baseSampOffset:15,
 	\timeStep: 1/4,
-	\subTimeStep: 1/4,
+	\subTimeStep: 1/8,
 	\subLength: 4,
-	\meanDb:(-10),
-	\dbRange:10,
+	\meanDb:(-5),
+	\dbRange:5s,
+	\skittishness: 1.0,
+	\seed: 4523,
+	\reseedInterval:4,
 	\jitter: 1.0,
+	\meanPos: 0.125,
+	\posRange: 0.125,
 	\sampPaths: [
 		"NS wind chimes 002-denoise-edit.aiff",
 		"Lead Vocal.aiff",
@@ -33,26 +49,8 @@ var state = ~state = (
 	\clock: TempoClock.new(100.0/60.0),
 );
 fork {
-	state.sampBufs = Buffer.allocConsecutive(
-		state.sampPaths.size,
-		s, s.sampleRate * state.sampLen, 1);
-	s.sync;
-	state.sampBufs.do({|buf,ind|
-		[\loadin, buf,ind,state.sampPaths[ind]].postln;
-		buf.readChannel(state.sampPaths[ind], channels:[0])});
-	state.outBus = Bus.new(\audio,0,2,s);
-	state.sourceGroup = Group.new(s,'addToHead');
-	s.sync;
-	state.currBuf = 1;
-	state.fxMasterGroup = Group.new(state.sourceGroup,'addAfter');
-	state.fxGroups = List.new;
-	s.sync;
-	4.do({
-		state.fxGroups.add(
-			Group.new(state.fxMasterGroup, 'addToTail'))
-	});
 	SynthDef(\snip,
-		{|out=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, startPos=0, buf=0, pan=0|
+		{|out=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, sampleStartPos=0, buf=0, pan=0|
 			var env,playr;
 			env = EnvGen.kr(
 				Env.perc(attackTime, releaseTime),
@@ -66,7 +64,7 @@ fork {
 					bufnum:buf,
 					rate: pitchRatio,
 					trigger: 1,
-					startPos: startPos*SampleRate.ir,
+					sampleStartPos: sampleStartPos*SampleRate.ir,
 				),
 				pos: pan,
 				level: env
@@ -75,12 +73,118 @@ fork {
 		},
 		[],
 	).add;
+	SynthDef(\snip__8,
+		{|out=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, sampleStartPos=0, buf=0, pos=0|
+			var env,playr;
+			env = EnvGen.kr(
+				Env.perc(attackTime, releaseTime),
+				levelScale: amp,
+				gate: 1,
+				doneAction: 2
+			);
+			playr = PanAz.ar(
+				numChans:8,
+				in: PlayBuf.ar(
+					numChannels:1,
+					bufnum:buf,
+					rate: pitchRatio,
+					trigger: 1,
+					sampleStartPos: sampleStartPos*SampleRate.ir,
+				),
+				pos: pos,
+				level: env
+			);
+			Out.ar(out, playr);
+		},
+		[],
+	).add;
+	//Reverb unit with bonus dry sidemix
+	SynthDef(\freeverbside__2_2, {
+		|outbus=0, mix=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
+		var signal;
+		signal = In.ar(outbus, 2);
+		signal = FreeVerb2.ar(
+			signal[0],
+			signal[1],
+			mix: mix,
+			room: room*(index/100 +1),
+			damp: damp,
+			amp: amp
+		);
+		//Freeverb is a little low rent and rings a lot; phase that away
+		signal = AllpassC.ar(signal,
+			maxdelaytime:0.1,
+			delaytime: SinOsc.ar(
+				index/73+0.02,
+				mul:0.005,
+				add: 0.021+(index/150)),
+			decaytime:0.051);
+		signal = signal + (In.ar(sidebus, 2)*sidebusAmp);
+		ReplaceOut.ar(outbus,
+			signal
+			//+SinOsc.ar(freq:220*(1+index), mul: 0.01)
+		);
+	}).add;
+	SynthDef(\jack__2, {
+		|inbus, outbus|
+		Out.ar(outbus,In.ar(inbus, 2));
+	}).add;
+	state.sampBufs = Buffer.allocConsecutive(
+		state.sampPaths.size,
+		s, s.sampleRate * state.sampLen, 1);
+	s.sync;
+	state.sampBufs.do({|buf,ind|
+		[\loadin, buf,ind,state.sampPaths[ind]].postln;
+		buf.readChannel(state.sampPaths[ind], channels:[0])});
+	state.outBus = Bus.new(\audio,0,2,s);
+	state.sideBus = Bus.alloc(\audio,s,8);
+	state.sourceGroup = Group.new(s,'addToHead');
+
+	s.sync;
+	state.currBuf = 1;
+	state.fxMasterGroup = Group.new(state.sourceGroup,'addAfter');
+	state.fxSynths = List.new;
+	// state.reverbControls=Bus.control(s,4);
+	s.sync;
+	// state.reverbRoom=Bus.newFrom(state.reverbControls, 0, 1);
+	// state.reverbMix=Bus.newFrom(state.reverbControls, 1, 1);
+	// state.reverbDamp=Bus.newFrom(state.reverbControls, 2, 1);
+	//3 successive reverbs
+	3.do({|i|
+		state.fxSynths.add(
+			Synth.new(\freeverbside__2_2, [
+				\outbus, Bus.newFrom(state.sideBus, 0, 2),
+				\sidebus, Bus.newFrom(state.sideBus, i*2+2, 2),
+				\mix, 1,
+				\room, 0.85,
+				\damp, 0.2,
+				\amp, 1.1, //fades a little
+				\sidebusAmp, 1.0,
+				\index, i,
+			], state.fxMasterGroup, 'addToTail')
+		);
+		s.sync;
+	});
+	// 3.do({|i|
+	// 	state.fxSynths.add(
+	// 		Synth.new(\jack__2, [
+	// 			\outbus, Bus.newFrom(state.sideBus, 0, 2),
+	// 			\inbus, Bus.newFrom(state.sideBus, i*2+2, 2),
+	// 		], state.fxMasterGroup, 'addToTail')
+	// 	);
+	// 	s.sync;
+	// });
+	state.jackSynth=Synth.new(\jack__2, [
+		\outbus, state.outBus,
+		\inbus, Bus.newFrom(state.sideBus, 0, 2)
+		], state.fxMasterGroup, 'addToTail');
 	//basic info
 	state[\baseSubPattern] = Pbind(
 		\type, \note,
-		\instrument, \snip,
+		\instrument, \snip__8,
 		\hasGate, false,
 		\buf, state.sampBufs[0],
+		\out, state.sideBus,
 		\group, state.sourceGroup,
 		\db, Pfunc({
 			(state.meanDb-state.dbRange
@@ -90,15 +194,14 @@ fork {
 	state[\superSubPattern1]= Pbind(
 		\pitchRatio, 1,
 		//see also Pstep for bar-related
-		\startPos, Pseries({0.1.linrand(state.sampLen/2)}, {0.0.linrand(1.0)}),
-		\pan, Pwhite(-1.0, 1.0, inf),
+		\sampleStartPos, Pseries({0.1.linrand(state.sampLen/2)}, {0.0.linrand(1.0)}),
 		\releaseTime, Pwhite(0.1, 3, inf),
 	);
 	s.sync;
 	~masterPattern = Pspawner({|spawner|
 		var streams, clatter;
 		streams = List.new;
-		120.do({|i|
+		3000.do({|i|
 			//logic introduce timing disorder
 			var timeOffset=0.0, sampOffset=0.0, subTimeStep=0.0, sampStep=0.0;
 			spawner.wait(state[\timeStep]);
@@ -119,10 +222,11 @@ fork {
 						state[\baseSubPattern] <>
 						state[\superSubPattern1],
 						\buf, state.sampBufs[state.currBuf],
-						\startPos, Pseries(
+						\sampleStartPos, Pseries(
 							sampOffset,
 							sampStep),
 						//\pitchRatio, Prand([1/3,1/2,1,1.5], inf),
+						\pos, state.posRange.bilinrand + state.meanPos,
 					)
 				),
 				delta: timeOffset;
@@ -131,36 +235,24 @@ fork {
 	}).play(state.clock, quant: #[4,0,0]);
 };
 )
+~state.sideBus.scope;
+s.makeGui;
+~state.meanPos=0;
+~state.meanPos=0.25;
+~state.meanPos=0.875;
+~state.meanPos=1;
+~state.meanPos=1.75;
+~state.meanPos=2;
+~state.posRange=0;
 ~state.meanDb=(-50);
-~state.currBuf=4;
+~state.currBuf=3;
+~state.jitter=0;
 ~state.sampBufs[1].plot;
 ~state.sampBufs[1].play;
 ~state.sampBufs[1].query;
+~state.clock.tempo=70/60;
+~state.clock.tempo=30/60;
 
-// 2ch source
-(
-a = SynthDef(\src2x2, {
-    Out.ar(0,
-        Decay.ar(Impulse.ar(1), 0.25, LFCub.ar(1200, 0, 0.1)) ! 2 +
-        Pan2.ar(
-            Decay.ar(Impulse.ar(1, pi), 0.1, WhiteNoise.ar(0.1)),
-            LFNoise1.kr(0.5).range(-1, 1)
-        )
-    )
-}).play;
-)
-(
-SynthDef(\FreeVerb2x2, {
-	|outbus, mix=0.25, room=0.15, damp=0.5, amp=1.0|
-	var signal;
-	signal = In.ar(outbus, 2);
-	ReplaceOut.ar(outbus,
-		FreeVerb2.ar(
-			signal[0],
-			signal[1],
-			mix, room, damp, amp));
-}).add;
-)
 ///To offline pitchtrack:
 // First the synthdef
 (
