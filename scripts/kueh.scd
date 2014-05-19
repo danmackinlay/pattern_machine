@@ -27,7 +27,7 @@ s=~serverboot.(prox:\local, device:\rme);
 (
 var state = ~state = (
 	\sampLen: 60,
-	\baseSampOffset:15,
+	\baseSampStartPos:15,
 	\timeStep: 1/4,
 	\subTimeStep: 1/8,
 	\subLength: 4,
@@ -37,8 +37,8 @@ var state = ~state = (
 	\seed: 4523,
 	\reseedInterval:4,
 	\jitter: 1.0,
-	\meanPos: 0.125,
-	\posRange: 0.125,
+	\meanPos: 1.75,
+	\posRange: 0.0625,
 	\sampPaths: [
 		"NS wind chimes 002-denoise-edit.aiff",
 		"Lead Vocal.aiff",
@@ -64,7 +64,7 @@ fork {
 					bufnum:buf,
 					rate: pitchRatio,
 					trigger: 1,
-					sampleStartPos: sampleStartPos*SampleRate.ir,
+					startPos: sampleStartPos*BufSampleRate.kr(buf),
 				),
 				pos: pan,
 				level: env
@@ -87,9 +87,9 @@ fork {
 				in: PlayBuf.ar(
 					numChannels:1,
 					bufnum:buf,
-					rate: pitchRatio,
+					rate: pitchRatio*BufRateScale.kr(buf),
 					trigger: 1,
-					sampleStartPos: sampleStartPos*SampleRate.ir,
+					startPos: sampleStartPos*BufSampleRate.kr(buf),
 				),
 				pos: pos,
 				level: env
@@ -112,13 +112,14 @@ fork {
 			amp: amp
 		);
 		//Freeverb is a little low rent and rings a lot; phase that away
-		signal = AllpassC.ar(signal,
+		signal = OnePole.ar(AllpassC.ar(signal,
 			maxdelaytime:0.1,
 			delaytime: SinOsc.ar(
 				index/73+0.02,
 				mul:0.005,
 				add: 0.021+(index/150)),
-			decaytime:0.051);
+			decaytime:0.051),
+			coef: 0.5, mul: 1.5);
 		signal = signal + (In.ar(sidebus, 2)*sidebusAmp);
 		ReplaceOut.ar(outbus,
 			signal
@@ -156,8 +157,8 @@ fork {
 				\outbus, Bus.newFrom(state.sideBus, 0, 2),
 				\sidebus, Bus.newFrom(state.sideBus, i*2+2, 2),
 				\mix, 1,
-				\room, 0.85,
-				\damp, 0.2,
+				\room, 0.1,
+				\damp, 1.0,
 				\amp, 1.1, //fades a little
 				\sidebusAmp, 1.0,
 				\index, i,
@@ -194,7 +195,6 @@ fork {
 	state[\superSubPattern1]= Pbind(
 		\pitchRatio, 1,
 		//see also Pstep for bar-related
-		\sampleStartPos, Pseries({0.1.linrand(state.sampLen/2)}, {0.0.linrand(1.0)}),
 		\releaseTime, Pwhite(0.1, 3, inf),
 	);
 	s.sync;
@@ -207,7 +207,7 @@ fork {
 			spawner.wait(state[\timeStep]);
 			timeOffset = state[\jitter].linrand*state[\timeStep];
 			sampOffset = (state[\jitter].rand2+1)*
-			  state[\baseSampOffset];
+			  state[\baseSampStartPos];
 			subTimeStep = (state[\jitter].rand2+1)*
 			  state[\subTimeStep];
 			//nb this is actually in seconds; should grab clock time maybe?
@@ -224,15 +224,16 @@ fork {
 						\buf, state.sampBufs[state.currBuf],
 						\sampleStartPos, Pseries(
 							sampOffset,
-							sampStep),
+							sampStep, inf),
 						//\pitchRatio, Prand([1/3,1/2,1,1.5], inf),
 						\pos, state.posRange.bilinrand + state.meanPos,
+						\delta, subTimeStep,
 					)
 				),
 				delta: timeOffset;
 			));
 		});
-	}).play(state.clock, quant: #[4,0,0]);
+	}).collect(_.postln).play(state.clock, quant: #[4,0,0]);
 };
 )
 ~state.sideBus.scope;
@@ -245,8 +246,14 @@ s.makeGui;
 ~state.meanPos=2;
 ~state.posRange=0;
 ~state.meanDb=(-50);
-~state.currBuf=3;
-~state.jitter=0;
+~state.currBuf=1;
+~state.jitter=0.1;
+~state.jitter=0.05;
+~state.jitter=0.0;
+~state.subTimeStep=1/128;
+~state.subTimeStep=1/3;
+~state.baseSampStartPos=100000;//doesn't seem to ACUTALLY work
+~state.baseSampStartPos=0;//doesn't seem to ACTUALLY work
 ~state.sampBufs[1].plot;
 ~state.sampBufs[1].play;
 ~state.sampBufs[1].query;
