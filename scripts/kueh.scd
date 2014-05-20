@@ -26,10 +26,9 @@ s=~serverboot.(prox:\local, device:\rme);
 // Control mappings for all intersting params
 // reverb system is not in correct ring arrangment. needs z-crossing
 ~here = "/Users/dan/src/sc/pattern_machine/scripts";
-this.executeFile(~here +/+ "kuehsynths.scd").value(s);
 
 (
-var state = ~state = (
+var linperturb,state = ~state = (
 	\sampLen: 60,
 	\baseSampStartPos:15,
 	\timeStep: 1/4,
@@ -41,8 +40,10 @@ var state = ~state = (
 	\seed: 4523,
 	\reseedInterval:4,
 	\jitter: 1.0,
-	\meanPos: 1.75,
+	\meanPos: -0.5,
 	\posRange: 0.0625,
+	\meanDist: 0.0,
+	\distRange: 1.0,
 	\sampPaths: [
 		"NS wind chimes 002-denoise-edit.aiff",
 		"Lead Vocal.aiff",
@@ -52,7 +53,11 @@ var state = ~state = (
 	].collect(~zamples +/+ "SupercolliderAuxiliary" +/+ _),
 	\clock: TempoClock.new(100.0/60.0),
 );
+linperturb = {|center, dev, lo=0, hi=1|
+	(dev.asFloat.bilinrand + center).max(lo).min(hi);
+};
 CmdPeriod.doOnce { state.clock.stop };
+this.executeFile(~here +/+ "kuehsynths.scd").value(s);
 
 fork {
 	state.sampBufs = Buffer.allocConsecutive(
@@ -85,8 +90,8 @@ fork {
 	3.do({|i|
 		state.fxSynths.add(
 			Synth.new(\gverbside__2_2, [
-				\outbus, Bus.newFrom(state.sideBus, 0, 2),
-				\sidebus, Bus.newFrom(state.sideBus, i*2+2, 2),
+				\outbus, Bus.newFrom(state.sideBus, 6, 2),
+				\sidebus, Bus.newFrom(state.sideBus, 4-(i*2), 2),
 				\room, 0.1,
 				\damping, 0.4,
 				\amp, 1.5, //fades a little
@@ -108,7 +113,7 @@ fork {
 	// CmdPeriod.doOnce { state.fxSynths.do({|i| i.free;}) };
 	state.jackSynth=Synth.new(\jack__2, [
 		\outbus, state.outBus,
-		\inbus, Bus.newFrom(state.sideBus, 0, 2)
+		\inbus, Bus.newFrom(state.sideBus, 6, 2)
 		], state.fxMasterGroup, 'addToTail');
 	// CmdPeriod.doOnce { state.jackSynth.free};
 	//basic info
@@ -158,27 +163,32 @@ fork {
 							sampOffset,
 							sampStep, inf),
 						//\pitchRatio, Prand([1/3,1/2,1,1.5], inf),
-						\pos, state.posRange.asFloat.bilinrand + state.meanPos.post,
+						\pos, linperturb.(state.meanPos, state.posRange, -1, 1),
+						\dist, linperturb.(state.meanDist, state.distRange, 0, 3),
 						\delta, subTimeStep,
 					)
 				),
 				delta: timeOffset;
 			));
 		});
-	}).play(state.clock, quant: #[4,0,0]);
+	}).play(state.clock, quant: #[4,0,0.1]);
 	this.executeFile(~here +/+ "kuehmidi.scd").value(state);
 };
 )
+
 ~state.sideBus.scope;
 s.makeGui;
-~state.meanPos=0;
-~state.meanPos=0.25;
-~state.meanPos=0.875;
-~state.meanPos=0.5;
-~state.meanPos=1.825;
-~state.meanPos=1.5;
-~state.posRange=0;
-~state.posRange=2;
+~state.meanPos=-1; //left
+~state.meanPos=0; //centre
+~state.meanPos=1; //right
+~state.posRange=0; //no spread
+~state.posRange=2; //all spread
+~state.meanDist=0; //front
+~state.meanDist=1.5; //middle
+~state.meanDist=3; //back
+~state.distRange=0; //no spread
+~state.distRange=2; //all spread
+
 ~state.meanDb=(-50);
 ~state.currBuf=1;
 ~state.jitter=0.1;
