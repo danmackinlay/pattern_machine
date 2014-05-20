@@ -249,7 +249,7 @@ fork {
 							sampOffset,
 							sampStep, inf),
 						//\pitchRatio, Prand([1/3,1/2,1,1.5], inf),
-						\pos, state.posRange.bilinrand + state.meanPos,
+						\pos, state.posRange.asFloat.bilinrand + state.meanPos.post,
 						\delta, subTimeStep,
 					)
 				),
