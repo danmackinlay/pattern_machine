@@ -155,7 +155,8 @@ fork {
 				delta: timeOffset;
 			));
 		});
-	}).collect(_.postln).play(state.clock, quant: #[4,0,0]);
+	}).play(state.clock, quant: #[4,0,0]);
+	this.executeFile(~here +/+ "kuehmidi.scd").value(state);
 };
 )
 ~state.sideBus.scope;
