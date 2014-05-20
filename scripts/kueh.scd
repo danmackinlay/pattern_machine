@@ -60,6 +60,7 @@ CmdPeriod.doOnce { state.clock.stop };
 this.executeFile(~here +/+ "kuehsynths.scd").value(s);
 
 fork {
+	this.executeFile(~here +/+ "kuehmidi.scd").value(~state);
 	state.sampBufs = Buffer.allocConsecutive(
 		state.sampPaths.size,
 		s, s.sampleRate * state.sampLen, 1);
@@ -188,7 +189,7 @@ s.makeGui;
 ~state.meanDist=3; //back
 ~state.distRange=0; //no spread
 ~state.distRange=2; //all spread
-
+~state.meanPos;
 ~state.meanDb=(-50);
 ~state.currBuf=1;
 ~state.jitter=0.1;
