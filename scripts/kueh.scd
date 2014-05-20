@@ -52,10 +52,14 @@ var state = ~state = (
 	].collect(~zamples +/+ "SupercolliderAuxiliary" +/+ _),
 	\clock: TempoClock.new(100.0/60.0),
 );
+CmdPeriod.doOnce { state.clock.stop };
+
 fork {
 	state.sampBufs = Buffer.allocConsecutive(
 		state.sampPaths.size,
 		s, s.sampleRate * state.sampLen, 1);
+	CmdPeriod.doOnce { state.sampBufs.do({|b| b.free;}) };
+
 	s.sync;
 	state.sampBufs.do({|buf,ind|
 		[\loadin, buf,ind,state.sampPaths[ind]].postln;
@@ -63,10 +67,14 @@ fork {
 	state.outBus = Bus.new(\audio,0,2,s);
 	state.sideBus = Bus.alloc(\audio,s,8);
 	state.sourceGroup = Group.new(s,'addToHead');
-
+	CmdPeriod.doOnce { state.outBus.free };
+	CmdPeriod.doOnce { state.sideBus.free };
+	CmdPeriod.doOnce { state.sourceGroup.free };
 	s.sync;
 	state.currBuf = 1;
 	state.fxMasterGroup = Group.new(state.sourceGroup,'addAfter');
+	CmdPeriod.doOnce { state.fxMasterGroup.free };
+
 	state.fxSynths = List.new;
 	// state.reverbControls=Bus.control(s,4);
 	s.sync;
@@ -97,10 +105,12 @@ fork {
 	// 	);
 	// 	s.sync;
 	// });
+	// CmdPeriod.doOnce { state.fxSynths.do({|i| i.free;}) };
 	state.jackSynth=Synth.new(\jack__2, [
 		\outbus, state.outBus,
 		\inbus, Bus.newFrom(state.sideBus, 0, 2)
 		], state.fxMasterGroup, 'addToTail');
+	// CmdPeriod.doOnce { state.jackSynth.free};
 	//basic info
 	state[\baseSubPattern] = Pbind(
 		\type, \note,
