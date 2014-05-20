@@ -9,6 +9,7 @@ s=~serverboot.(prox:\local, device:\rme);
 //TODO: morphing reverb?
 //TODO: base detune
 //TODO: chaos parameter
+//TODO: live record?
 //TODO: midi interaction (CCAllocator?)
 //TODO: intersting interaction
 //TODO: PCA-style decomposition of param values (how to get full range? -inv gaussian map?)
@@ -26,7 +27,6 @@ s=~serverboot.(prox:\local, device:\rme);
 // Control mappings for all intersting params
 // reverb system is not in correct ring arrangment. needs z-crossing
 ~here = "/Users/dan/src/sc/pattern_machine/scripts";
-
 (
 var linperturb,state = ~state = (
 	\sampLen: 60,
@@ -102,15 +102,6 @@ fork {
 		);
 		s.sync;
 	});
-	// 3.do({|i|
-	// 	state.fxSynths.add(
-	// 		Synth.new(\jack__2, [
-	// 			\outbus, Bus.newFrom(state.sideBus, 0, 2),
-	// 			\inbus, Bus.newFrom(state.sideBus, i*2+2, 2),
-	// 		], state.fxMasterGroup, 'addToTail')
-	// 	);
-	// 	s.sync;
-	// });
 	// CmdPeriod.doOnce { state.fxSynths.do({|i| i.free;}) };
 	state.jackSynth=Synth.new(\jack__2, [
 		\outbus, state.outBus,
@@ -151,9 +142,10 @@ fork {
 			//nb this is actually in seconds; should grab clock time maybe?
 			sampStep = (state[\jitter].rand2+1)*
 			  state[\subTimeStep];
-			[i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
+			//[\time, thisThread.clock.nextTimeOnGrid, thisThread.clock.nextTimeOnGrid, thisThread.clock.beatInBar].postln;
+			//[\subvars, i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
 			state.sampBufs[state.currBuf];
-			streams.add(spawner.par(
+			spawner.par(
 				pattern: Pfin(
 					state[\subLength].value,
 					Pbindf(
@@ -170,7 +162,7 @@ fork {
 					)
 				),
 				delta: timeOffset;
-			));
+			);
 		});
 	}).play(state.clock, quant: #[4,0,0.1]);
 	this.executeFile(~here +/+ "kuehmidi.scd").value(state);
@@ -204,26 +196,3 @@ s.makeGui;
 ~state.sampBufs[1].query;
 ~state.clock.tempo=70/60;
 ~state.clock.tempo=30/60;
-
-///To offline pitchtrack:
-// First the synthdef
-(
-	SynthDef(\help_param, { |inbufnum, outbufnum|
-		var source, amp, freq, hasfreq;
-		source = PlayBuf.ar(1, inbufnum, BufRateScale.kr(inbufnum));
-		amp = Amplitude.kr(source);
-		BufWr.kr(amp, outbufnum, Phasor.ar(0, BufRateScale.kr(outbufnum) * ControlRate.ir / SampleRate.ir, 0, BufFrames.kr(outbufnum)), 0);
-		Out.ar(0, source.dup);
-	}).store;
-)
-// Then we process the files
-(
-	Score.batchNRT(
-	"~/svn/soundsamples/beatboxes/*.wav",	// Input path pattern - note the asterisk wildcard
-	"~/dataoutput/parameters",		// Output path
-	\help_param,
-	outputnameadd: "-parameters",
-	outputlengthfunc: {|indur| ((indur) * 44100 / 64).postln}, // Note the way the durations are scaled to the (standard) control rate
-	plot:true
-	);
-)
