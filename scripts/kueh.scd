@@ -176,13 +176,12 @@ fork {
 	//3 successive reverbs
 	3.do({|i|
 		state.fxSynths.add(
-			Synth.new(\freeverbside__2_2, [
+			Synth.new(\gverbside__2_2, [
 				\outbus, Bus.newFrom(state.sideBus, 0, 2),
 				\sidebus, Bus.newFrom(state.sideBus, i*2+2, 2),
-				\mix, 1,
 				\room, 0.1,
-				\damp, 1.0,
-				\amp, 1.1, //fades a little
+				\damping, 0.4,
+				\amp, 1.5, //fades a little
 				\sidebusAmp, 1.0,
 				\index, i,
 			], state.fxMasterGroup, 'addToTail')
@@ -265,9 +264,10 @@ s.makeGui;
 ~state.meanPos=0.25;
 ~state.meanPos=0.875;
 ~state.meanPos=1;
-~state.meanPos=1.75;
+~state.meanPos=1.825;
 ~state.meanPos=2;
 ~state.posRange=0;
+~state.posRange=2;
 ~state.meanDb=(-50);
 ~state.currBuf=1;
 ~state.jitter=0.1;
