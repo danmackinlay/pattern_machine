@@ -23,7 +23,7 @@ s=~serverboot.(prox:\local, device:\rme);
 // Explicit melody layers
 // forming a melody out of grainclouds by raw copula
 // Control mappings for all intersting params
-
+// reverb system is not in correct ring arrangment. needs z-crossing
 (
 var state = ~state = (
 	\sampLen: 60,
@@ -92,9 +92,10 @@ fork {
 					startPos: sampleStartPos*BufSampleRate.kr(buf),
 				),
 				pos: pos,
-				level: env
+				level: env,
+				orientation: 0.5,
 			);
-			Out.ar(out, playr);
+			Out.ar(out, playr.at([0,1,2,7,6,3,5,4]));
 		},
 		[],
 	).add;
@@ -128,7 +129,7 @@ fork {
 	}).add;
 	//Reverb unit with bonus dry sidemix
 	SynthDef(\gverbside__2_2, {
-		|outbus=0, mix=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel:1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
+		|outbus=0, mix=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
 		var signal;
 		signal = In.ar(outbus, 2);
 		signal = Mix.new(GVerb.ar(
@@ -263,9 +264,9 @@ s.makeGui;
 ~state.meanPos=0;
 ~state.meanPos=0.25;
 ~state.meanPos=0.875;
-~state.meanPos=1;
+~state.meanPos=0.5;
 ~state.meanPos=1.825;
-~state.meanPos=2;
+~state.meanPos=1.5;
 ~state.posRange=0;
 ~state.posRange=2;
 ~state.meanDb=(-50);
