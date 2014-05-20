@@ -87,18 +87,20 @@ s.waitForBoot ({
 		|outbus=0, mix=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
 		var signal;
 		signal = In.ar(outbus, 2);
-		signal = Mix.new(GVerb.ar(
-			signal,
-			drylevel: 1,
-			roomsize: roomsize*(index/100 +1),
-			damping: damping,
-			taillevel: taillevel,
-			revtime: revtime,
-			drylevel: 0,
-			maxroomsize:400,
-			earlyreflevel:earlyreflevel,
-			mul: amp,
-		));
+		signal = signal.collect({|chan|
+			GVerb.ar(
+				chan,
+				drylevel: 0,
+				roomsize: roomsize*(index/100 +1),
+				damping: damping,
+				taillevel: taillevel,
+				revtime: revtime,
+				drylevel: 0,
+				maxroomsize:400,
+				earlyreflevel:earlyreflevel,
+				mul: amp,
+			)[0]; //thow out a channel
+		});
 		signal = signal + (In.ar(sidebus, 2)*sidebusAmp);
 		ReplaceOut.ar(outbus,
 			signal
