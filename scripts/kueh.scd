@@ -30,24 +30,25 @@ s=~serverboot.(prox:\local, device:\rme);
 (
 var linperturb,state = ~state = (
 	\sampLen: 60,
-	\baseSampStartPos:15,
 	\timeStep: 1/4,
 	\subTimeStep: 1/8,
-	\subLength: 4,
+	\meanSubLength: 2.0,
 	\skittishness: 1.0,
 	\jitter: 1.0,
 	\beatsPerBar: 16,
 	\reseedInt: 16,
 	\seed: 5,
 	\timeShuffleRange: 2.0,
+	\meanSampStartPos:15.0,
+	\sampStartPosRange:1.0,
 	\density: 0.5,
-	\meanDb:(-5),
-	\dbRange:5,
+	\meanDb:(-5.0),
+	\dbRange:5.0,
 	\meanPos: -0.5,
 	\posRange: 0.0625,
 	\meanDist: 0.0,
 	\distRange: 1.0,
-	\ratios: [1,1.5,2],
+	\ratios: [1,1.5,2.0],
 	\sampPaths: [
 		"NS wind chimes 002-denoise-edit.aiff",
 		"Lead Vocal.aiff",
@@ -59,7 +60,7 @@ var linperturb,state = ~state = (
 );
 state.clock.schedAbs(0, {state.clock.beatsPerBar = state.beatsPerBar;});
 linperturb = {|center, dev, lo=0, hi=1|
-	(dev.asFloat.bilinrand + center).max(lo).min(hi);
+	(dev.asFloat.rand2 + center).max(lo).min(hi);
 };
 CmdPeriod.doOnce { state.clock.stop };
 this.executeFile(~here +/+ "kuehsynths.scd").value(s);
@@ -133,7 +134,7 @@ fork {
 	);
 	s.sync;
 	~masterPattern = Pspawner({|spawner|
-		var avgBeatStrength=2.0;
+		var avgBeatStrength=1.0;
 		3000.do({|i|
 			var realBeatInBar, beatInBar, perturbedBeatInBar, roundedBeatInBar, beatError, beatStrength;
 			var timeOffset=0.0, sampOffset=0.0, subTimeStep=0.0, sampStep=0.0;
@@ -141,7 +142,6 @@ fork {
 				(
 					(thisThread.clock.beats % state.reseedInt)==0
 				).if {
-					[\boom].postln;
 					thisThread.randSeed = state.seed;
 				};
 			});
@@ -149,25 +149,26 @@ fork {
 			beatInBar = ( state.timeShuffleRange.sum3rand + realBeatInBar).wrap(0,16);
 			//careful = variable gets recycled here:
 			roundedBeatInBar = (beatInBar*16).round(1);
-			beatStrength = roundedBeatInBar.asInt.gcd(64).log2+1;
+			beatStrength = roundedBeatInBar.asInt.gcd(64).log2;
 			beatError = roundedBeatInBar-(beatInBar*16);
 			//lazy hack to work out mean beat weighting
-			avgBeatStrength = (avgBeatStrength* 0.99) + (beatStrength*0.01);
-			//(should be 2)
+			avgBeatStrength = (avgBeatStrength* 0.98) + (beatStrength*0.02);
+			//(should be ca 1)
 			[\time, thisThread.clock.beats, realBeatInBar,beatInBar, roundedBeatInBar, beatStrength, avgBeatStrength].postln;
 			// timeOffset = state[\jitter].linrand*state[\timeStep];
-			sampOffset = (state[\jitter].rand2+1)*
-			  state[\baseSampStartPos];
+			sampOffset = linperturb.(state.meanSampStartPos, state.sampStartPosRange, 5.0, 40.0);
+			subTimeStep = linperturb.(state.subTimeStep*state.jitter, state.subTimeStep, 5.0, 40.0);
+
 			subTimeStep = (state[\jitter].rand2+1)*
 			  state[\subTimeStep];
 			//nb this is actually in seconds; should grab clock time maybe?
 			sampStep = (state[\jitter].rand2+1)*
 			  state[\subTimeStep];
 			//[\subvars, i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
-			(state.density * beatStrength /(avgBeatStrength)).coin.if({
+			(state.density * beatStrength /(avgBeatStrength+1)).coin.if({
 				spawner.par(
 					pattern: Pfin(
-						state[\subLength].value,
+						(state.meanSubLength.max(1.0)-1.0) * (1.0.rand.log.neg.min(20)) +1,
 						Pbindf(
 							state[\baseSubPattern] <>
 							state[\superSubPattern1],
@@ -193,27 +194,27 @@ fork {
 
 ~state.sideBus.scope;
 s.makeGui;
-~state.meanPos=-1; //left
-~state.meanPos=0; //centre
-~state.meanPos=1; //right
-~state.posRange=0; //no spread
-~state.posRange=2; //all spread
-~state.meanDist=0; //front
+~state.meanPos=-1.0; //left
+~state.meanPos=0.0; //centre
+~state.meanPos=1.0; //right
+~state.posRange=0.0; //no spread
+~state.posRange=2.0; //all spread
+~state.meanDist=0.0; //front
 ~state.meanDist=1.5; //middle
-~state.meanDist=3; //back
-~state.distRange=0; //no spread
-~state.distRange=2; //all spread
+~state.meanDist=3.0; //back
+~state.distRange=0.0; //no spread
+~state.distRange=2.0; //all spread
 ~state.meanPos;
-~state.meanDb=(-10);
-~state.density=0.1;
+~state.meanDb=(-10.0);
+~state.density=0.5;
 ~state.currBuf=1;
 ~state.jitter=0.1;
 ~state.jitter=0.05;
 ~state.jitter=0.0;
 ~state.subTimeStep=1/128;
 ~state.subTimeStep=1/3;
-~state.baseSampStartPos=100000;//doesn't seem to ACTUALLY work
-~state.baseSampStartPos=0;//doesn't seem to ACTUALLY work
+~state.meanSampStartPos=15;
+~state.meanSampStartPos=0;
 ~state.sampBufs[1].plot;
 ~state.sampBufs[1].play;
 ~state.sampBufs[1].query;
