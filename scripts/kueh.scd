@@ -42,13 +42,17 @@ var linperturb,state = ~state = (
 	\meanSampStartPos:15.0,
 	\sampStartPosRange:1.0,
 	\density: 0.5,
-	\meanDb:(-5.0),
+	\meanDb:(-10.0),
 	\dbRange:5.0,
 	\meanPos: -0.5,
 	\posRange: 0.0625,
 	\meanDist: 0.0,
 	\distRange: 1.0,
-	\ratios: [1,1.5,2.0],
+	\meanRatio: 0,
+	\ratioRange: 0,
+	\bufRange: 0,
+	\meanBuf: 1,
+	\ratios: [1,1.5,4/3,3/4,1/2,7/8],
 	\sampPaths: [
 		"NS wind chimes 002-denoise-edit.aiff",
 		"Lead Vocal.aiff",
@@ -83,7 +87,6 @@ fork {
 	CmdPeriod.doOnce { state.sideBus.free };
 	CmdPeriod.doOnce { state.sourceGroup.free };
 	s.sync;
-	state.currBuf = 1;
 	state.fxMasterGroup = Group.new(state.sourceGroup,'addAfter');
 	CmdPeriod.doOnce { state.fxMasterGroup.free };
 
@@ -135,8 +138,8 @@ fork {
 	s.sync;
 	~masterPattern = Pspawner({|spawner|
 		var avgBeatStrength=1.0;
-		3000.do({|i|
-			var realBeatInBar, beatInBar, perturbedBeatInBar, roundedBeatInBar, beatError, beatStrength;
+		inf.do({|i|
+			var realBeatInBar, beatInBar, perturbedBeatInBar, roundedBeatInBar, beatError, beatStrength, reps;
 			var timeOffset=0.0, sampOffset=0.0, subTimeStep=0.0, sampStep=0.0;
 			(state.reseedInt>0).if({
 				(
@@ -156,27 +159,33 @@ fork {
 			//(should be ca 1)
 			[\time, thisThread.clock.beats, realBeatInBar,beatInBar, roundedBeatInBar, beatStrength, avgBeatStrength].postln;
 			// timeOffset = state[\jitter].linrand*state[\timeStep];
-			sampOffset = linperturb.(state.meanSampStartPos, state.sampStartPosRange, 5.0, 40.0);
+			sampOffset = linperturb.(state.meanSampStartPos, state.sampStartPosRange, 0.0, 40.0);
 			subTimeStep = linperturb.(state.subTimeStep*state.jitter, state.subTimeStep, 5.0, 40.0);
-
-			subTimeStep = (state[\jitter].rand2+1)*
-			  state[\subTimeStep];
 			//nb this is actually in seconds; should grab clock time maybe?
-			sampStep = (state[\jitter].rand2+1)*
-			  state[\subTimeStep];
-			//[\subvars, i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
+			sampStep = linperturb.(state.subTimeStep*state.jitter, state.subTimeStep, 0.0, 2.0);
+			reps = ((state.meanSubLength.max(1.0)-1.0) * (1.0.rand.log.neg.min(20)) +1).asInt;
+			//[\subvars, timeOffset, sampOffset, subTimeStep, sampStep, reps].postln;
 			(state.density * beatStrength /(avgBeatStrength+1)).coin.if({
 				spawner.par(
 					pattern: Pfin(
-						(state.meanSubLength.max(1.0)-1.0) * (1.0.rand.log.neg.min(20)) +1,
+						reps,
 						Pbindf(
 							state[\baseSubPattern] <>
 							state[\superSubPattern1],
-							\buf, state.sampBufs[state.currBuf],
+							\buf, Pindex(state.sampBufs,
+								Pwhite(
+									((state.meanBuf)-(state.bufRange)),((state.meanBuf)+(state.bufRange)), inf
+							).wrap(0,state.ratios.size),
+							inf),
 							\sampleStartPos, Pseries(
 								sampOffset,
 								sampStep, inf),
-							//\pitchRatio, Prand([1/3,1/2,1,1.5], inf),
+							\pitchRatio, Pindex(
+								state.ratios,
+								Pwhite(
+										((state.meanRatio)-(state.ratioRange)),((state.meanRatio)+(state.ratioRange)), inf
+								).wrap(0,state.ratios.size),
+							inf),
 							\pos, linperturb.(state.meanPos, state.posRange, -1, 1),
 							\dist, linperturb.(state.meanDist, state.distRange, 0, 3),
 							\delta, subTimeStep,
@@ -207,7 +216,10 @@ s.makeGui;
 ~state.meanPos;
 ~state.meanDb=(-10.0);
 ~state.density=0.5;
-~state.currBuf=1;
+~state.meanBuf=5;
+~state.bufRange=2;
+~state.meanRatio=1;
+~state.ratioRange=2;
 ~state.jitter=0.1;
 ~state.jitter=0.05;
 ~state.jitter=0.0;

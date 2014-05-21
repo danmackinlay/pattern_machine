@@ -36,13 +36,21 @@ var mapController = {|state|
 		\distRange, [0.0,1.0].asSpec,
 		\density, [0.0,2.0].asSpec,
 		\timeShuffleRange, [0.0,8.0].asSpec,
+		\meanSampStartPos, [0.0, 40.0].asSpec,
+		\sampStartPosRange, [0.0, 10.0].asSpec,
+		\meanBuf, [0, 5].asSpec,
+		\bufRange, [0.0, 5.0].asSpec,
+		\meanRatio, [0, 5].asSpec,
+		\ratioRange, [0.0, 5.0].asSpec,
 	];
 	stateMeta.pairsDo({|key, spec, i|
 		var chan, num;
 		# chan, num = sliderMeta[i/2];
 		MIDIFunc.cc({|val,num,chan,src|
+			var mapped = spec.map(val/127.0);
 			//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-			state[key] = spec.map(val/127.0);
+			state[key] = mapped;
+			[key, mapped].postln;
 			//state.asCompileString.postln;
 		}, ccNum: num, chan: chan);
 	});
