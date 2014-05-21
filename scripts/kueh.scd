@@ -131,9 +131,8 @@ fork {
 		var streams, clatter;
 		streams = List.new;
 		3000.do({|i|
-			//logic introduce timing disorder
 			var timeOffset=0.0, sampOffset=0.0, subTimeStep=0.0, sampStep=0.0;
-			spawner.wait(state[\timeStep]);
+			[\time, thisThread.clock.nextTimeOnGrid, thisThread.clock.beats, thisThread.clock.beatInBar].postln;
 			timeOffset = state[\jitter].linrand*state[\timeStep];
 			sampOffset = (state[\jitter].rand2+1)*
 			  state[\baseSampStartPos];
@@ -142,8 +141,7 @@ fork {
 			//nb this is actually in seconds; should grab clock time maybe?
 			sampStep = (state[\jitter].rand2+1)*
 			  state[\subTimeStep];
-			//[\time, thisThread.clock.nextTimeOnGrid, thisThread.clock.nextTimeOnGrid, thisThread.clock.beatInBar].postln;
-			//[\subvars, i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
+			[\subvars, i, timeOffset, sampOffset, subTimeStep, sampStep].postln;
 			state.sampBufs[state.currBuf];
 			spawner.par(
 				pattern: Pfin(
@@ -163,8 +161,9 @@ fork {
 				),
 				delta: timeOffset;
 			);
+			spawner.wait(state[\timeStep]);
 		});
-	}).play(state.clock, quant: #[4,0,0.1]);
+	}).play(state.clock, quant: #[4,0,0.0]);
 	this.executeFile(~here +/+ "kuehmidi.scd").value(state);
 };
 )
