@@ -40,6 +40,8 @@ var linperturb,state = ~state = (
 	\seed: 4523,
 	\reseedInterval:4,
 	\jitter: 1.0,
+	\timeShuffleRange: 1.0,
+	\ratios: [1,1.5,2],
 	\meanPos: -0.5,
 	\posRange: 0.0625,
 	\meanDist: 0.0,
@@ -51,8 +53,10 @@ var linperturb,state = ~state = (
 		"133_bigbowl2-edit.wav",
 		"21646_madjad_Indonesian_Thum_Loop_2_.wav"
 	].collect(~zamples +/+ "SupercolliderAuxiliary" +/+ _),
+	\beatsPerBar: 16,
 	\clock: TempoClock.new(100.0/60.0),
 );
+state.clock.schedAbs(0, {state.clock.beatsPerBar = state.beatsPerBar;});
 linperturb = {|center, dev, lo=0, hi=1|
 	(dev.asFloat.bilinrand + center).max(lo).min(hi);
 };
@@ -131,8 +135,16 @@ fork {
 		var streams, clatter;
 		streams = List.new;
 		3000.do({|i|
+			var realBeatInBar, beatInBar, perturbedBeatInBar, roundedBeatInBar, beatError, beatStrength;
 			var timeOffset=0.0, sampOffset=0.0, subTimeStep=0.0, sampStep=0.0;
-			[\time, thisThread.clock.nextTimeOnGrid, thisThread.clock.beats, thisThread.clock.beatInBar].postln;
+			realBeatInBar = thisThread.clock.beatInBar;
+			beatInBar = ( state.timeShuffleRange.bilinrand + realBeatInBar).wrap(0,16);
+			//careful = variable gets recycled here:
+			roundedBeatInBar = (beatInBar*16).round(1);
+			beatStrength = roundedBeatInBar.asInt.gcd(64).log2;
+			beatError = roundedBeatInBar-(beatInBar*16);
+
+			[\time, thisThread.clock.beats, realBeatInBar,beatInBar, roundedBeatInBar, beatStrength].postln;
 			timeOffset = state[\jitter].linrand*state[\timeStep];
 			sampOffset = (state[\jitter].rand2+1)*
 			  state[\baseSampStartPos];
