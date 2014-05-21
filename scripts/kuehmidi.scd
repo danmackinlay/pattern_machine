@@ -28,10 +28,14 @@ var mapController = {|state|
 		[1, 23],
 	];
 	stateMeta =  [
-		\meanPos, [-1,1].asSpec,
-		\posRange, [0,1].asSpec,
-		\meanDist, [0,3].asSpec,
-		\distRange, [0,1].asSpec,
+		\meanDb, [-50.0,0.0].asSpec,
+		\dbRange, [0.0,20.0].asSpec,
+		\meanPos, [-1.0,1.0].asSpec,
+		\posRange, [0.0,1.0].asSpec,
+		\meanDist, [0.0,3.0].asSpec,
+		\distRange, [0.0,1.0].asSpec,
+		\density, [0.0,2.0].asSpec,
+		\timeShuffleRange, [0.0,8.0].asSpec,
 	];
 	stateMeta.pairsDo({|key, spec, i|
 		var chan, num;
