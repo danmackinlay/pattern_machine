@@ -24,12 +24,14 @@ MAX_AGE = 1.5
 # for the one-step model we take even less:
 ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 
-#when calculating note rate, aggregate notes this close together
+#when calculating event rate, aggregate notes this close together
 ONSET_TOLERANCE = 0.06
 
 #TODO:
-# http://docs.scipy.org/doc/scipy/reference/generated/scipy.io.mmwrite.html#scipy.io.mmwrite
-# http://stat.ethz.ch/R-manual/R-devel/library/Matrix/html/externalFormats.html
+# hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
+# trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
+# use feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
+# Switch to pure python using liblinear http://www.csie.ntu.edu.tw/~cjlin/liblinear/
 # save metadata:
 # # MAX_AGE
 # # matrix dimensions
@@ -318,6 +320,7 @@ with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w'
     _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
     for i in xrange(128):
         base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
+    #it would also be a very convenient time to generate exotic features here based on this sparse matrix form
 
 def get_table():
     table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
