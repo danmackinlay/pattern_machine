@@ -17,7 +17,7 @@ source("featureMatrix.R")
 
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
-row.thin.factor = 6
+row.thin.factor = 1
 # how many we cut off the edge of note neighbourhood
 col.trim.count = 0
 
