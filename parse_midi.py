@@ -208,7 +208,6 @@ def parse():
                     obs_table.row['thisNote'] = local_pitch
                     obs_table.row['result'] = result
                     obs_table.row.append()
-                    obs_list.append(obs_counter)
                     obs_counter += 1
 
         def parse_midi_file(base_dir, midi_file):
