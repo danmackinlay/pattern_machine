@@ -9,23 +9,7 @@ from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_
 import random
 import warnings
 
-# keep everything reproducible
-random.seed(12345)
-# how far I look to find neighbours
-# perfect 5th
-# NEIGHBORHOOD_RADIUS = 6
-# 1 octave:
-NEIGHBORHOOD_RADIUS = 11
-# 1.5 octave (LARGE data set)
-# NEIGHBORHOOD_RADIUS = 17
-
-# All influence decays by...
-MAX_AGE = 1.5
-# for the one-step model we take even less:
-ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
-
-#when calculating event rate, aggregate notes this close together
-ONSET_TOLERANCE = 0.06
+from config import *
 
 ###PROBABILISTIC CONCERNS
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
@@ -91,41 +75,6 @@ ONSET_TOLERANCE = 0.06
 # # span in 5ths at various time offsets (nope, didn't work)
 # # f-divergence between spectral band occupancy folded onto one octave (free "smoothing" param to calibrate, slow, but more intuitive. Not great realtime...)
 
-MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
-CSV_BASE_PATH = os.path.normpath("./")
-CSV_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag.csv')
-TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag.h5')
-
-#Map between relative pitches, array columns and r-friendly relative pitch names
-r_name_for_i = dict()
-i_for_r_name = dict()
-p_for_r_name = dict()
-r_name_for_p = dict()
-
-for i in xrange(2*NEIGHBORHOOD_RADIUS+1):
-    p = i - NEIGHBORHOOD_RADIUS
-    if p<0:
-        r_name = "X." + str(abs(p))
-    else:
-        r_name = "X" + str(p)
-    r_name_for_p[p] = r_name
-    p_for_r_name[r_name] = p
-    r_name_for_i[i] = r_name
-    i_for_r_name[r_name] = i
-
-meta_table_description = {
-    'result': tables.IntCol(1, dflt=0), #success/fail
-    'file': tables.StringCol(50), # factor: which sourcefile
-    'time': tables.FloatCol(), # event time
-    'thisNote': tables.UIntCol(), # midi note number for central pitch
-    'obsID': tables.UIntCol(), #  for matching with the other data
-    'eventID': tables.UIntCol(), # working out which event cause this
-}
-
-csv_fieldnames = ["file"] + [r_name_for_p[p] for p in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +\
-            ['detune', 'span', 'spanup', 'spandown'] +\
-            ['ons', 'offs']
-
 def transition_summary(note_transitions, threshold=0):
     #binomial note summary
     on_counts = dict()
@@ -186,168 +135,166 @@ def analyze_times(note_stream):
     mean_event_time = sum(thinned_intervals)/len(thinned_intervals)
     return mean_event_time, pitch_rates
 
-with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
-    event_counter = 0
-    event_list = []
-    obs_counter = 0
-    obs_list = []
-    p_list = []
-    recence_list = []
-    mean_pitch_rate = [0.0] * 128
-    curr_delta = 0.0
+def parse():
+    with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
+        event_counter = 0
+        event_list = []
+        obs_counter = 0
+        obs_list = []
+        p_list = []
+        recence_list = []
+        mean_pitch_rate = [0.0] * 128
+        curr_delta = 0.0
     
-    csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
-    csv_writer.writerow(csv_fieldnames)
+        csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
+        csv_writer.writerow(csv_fieldnames)
 
-    def write_csv_row(counts):
-        on_counts, off_counts, all_counts = counts
-        for i, neighborhood in enumerate(sorted(all_counts.keys())):
-            csv_writer.writerow(
-              [file_key] +
-              [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
-              [total_detunedness(neighborhood), span_in_5ths(neighborhood),
-                span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
-              [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
-            )
-    #ignore warnings for that bit; I know my column names are annoying.
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        obs_table = table_handle.create_table('/', 'note_meta',
-            meta_table_description,
-            filters=tables.Filters(complevel=1))
-    col_table = table_handle.create_table('/', 'col_names',
-        {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
-    for i in sorted(r_name_for_i.keys()):
-        col_table.row['i'] = i
-        col_table.row['rname'] = r_name_for_i[i]
-        col_table.row.append()
+        def write_csv_row(counts):
+            on_counts, off_counts, all_counts = counts
+            for i, neighborhood in enumerate(sorted(all_counts.keys())):
+                csv_writer.writerow(
+                  [file_key] +
+                  [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
+                  [total_detunedness(neighborhood), span_in_5ths(neighborhood),
+                    span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
+                  [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
+                )
+        #ignore warnings for that bit; I know my column names are annoying.
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            obs_table = table_handle.create_table('/', 'note_meta',
+                meta_table_description,
+                filters=tables.Filters(complevel=1))
+        col_table = table_handle.create_table('/', 'col_names',
+            {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
+        for i in sorted(r_name_for_i.keys()):
+            col_table.row['i'] = i
+            col_table.row['rname'] = r_name_for_i[i]
+            col_table.row.append()
 
-    obs_table.attrs.maxAge = MAX_AGE
-    obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
+        obs_table.attrs.maxAge = MAX_AGE
+        obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
-    def fan_out_event(note_times, next_time_stamp, next_note, file_key):
-        global event_counter, mean_pitch_rate, obs_counter
-        """turn one event into a set of observations - one of which is a success.
-        Send this to a file."""
-        domain = set(note_times.keys() + [next_note])
+        def fan_out_event(note_times, next_time_stamp, next_note, file_key):
+            global event_counter, mean_pitch_rate, obs_counter
+            """turn one event into a set of observations - one of which is a success.
+            Send this to a file."""
+            domain = set(note_times.keys() + [next_note])
 
-        #now we record what transitions have just happened, conditional on the local env
-        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
-            # count how many predictors we actually have
-            n_held_notes = 0
+            #now we record what transitions have just happened, conditional on the local env
+            for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
+                # count how many predictors we actually have
+                n_held_notes = 0
 
-            # create a new row for each local note environment
-            result = 0
-            if next_note == local_pitch:
-                result = 1
+                # create a new row for each local note environment
+                result = 0
+                if next_note == local_pitch:
+                    result = 1
 
-            for this_note, this_time_stamp in note_times.iteritems():
-                rel_pitch = this_note - local_pitch
-                if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
-                    n_held_notes += 1
-                    this_recence = MAX_AGE - next_time_stamp + this_time_stamp
-                    p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
-                    recence_list.append(this_recence)
+                for this_note, this_time_stamp in note_times.iteritems():
+                    rel_pitch = this_note - local_pitch
+                    if abs(rel_pitch) <= NEIGHBORHOOD_RADIUS:
+                        n_held_notes += 1
+                        this_recence = MAX_AGE - next_time_stamp + this_time_stamp
+                        p_list.append(rel_pitch+NEIGHBORHOOD_RADIUS) # 0-based array indexing
+                        recence_list.append(this_recence)
+                        obs_list.append(obs_counter)
+
+                if n_held_notes>0:
+                    obs_table.row['file'] = file_key
+                    obs_table.row['time'] = next_time_stamp
+                    obs_table.row['obsID'] = obs_counter
+                    obs_table.row['eventID'] = event_counter
+                    obs_table.row['thisNote'] = local_pitch
+                    obs_table.row['result'] = result
+                    obs_table.row.append()
                     obs_list.append(obs_counter)
+                    obs_counter += 1
 
-            if n_held_notes>0:
-                obs_table.row['file'] = file_key
-                obs_table.row['time'] = next_time_stamp
-                obs_table.row['obsID'] = obs_counter
-                obs_table.row['eventID'] = event_counter
-                obs_table.row['thisNote'] = local_pitch
-                obs_table.row['result'] = result
-                obs_table.row.append()
-                obs_list.append(obs_counter)
-                obs_counter += 1
+        def parse_midi_file(base_dir, midi_file):
+            """workhorse function
+            does too much, for reasons of efficiency
+            plus the inconvenient os.path.walk API"""
+            global mean_pitch_rate, event_counter
+            midi_in_file = os.path.join(base_dir, midi_file)
+            file_key = midi_in_file[len(MIDI_BASE_DIR):]
+            print "parsing", file_key
+            note_stream = converter.parse(midi_in_file)
+            note_transitions = []
+            note_times = dict()
+            mean_event_time, mean_pitch_rate = analyze_times(note_stream)
 
-    def parse_midi_file(base_dir, midi_file):
-        """workhorse function
-        does too much, for reasons of efficiency
-        plus the inconvenient os.path.walk API"""
-        global mean_pitch_rate, event_counter
-        midi_in_file = os.path.join(base_dir, midi_file)
-        file_key = midi_in_file[len(MIDI_BASE_DIR):]
-        print "parsing", file_key
-        note_stream = converter.parse(midi_in_file)
-        note_transitions = []
-        note_times = dict()
-        mean_event_time, mean_pitch_rate = analyze_times(note_stream)
+            for next_elem in note_stream.flat.notes.offsetMap:
+                event = next_elem['element']
+                #only handle Notes and Chords
+                if not isinstance(event, NotRest):
+                    continue
+                next_time_stamp = next_elem['offset']
 
-        for next_elem in note_stream.flat.notes.offsetMap:
-            event = next_elem['element']
-            #only handle Notes and Chords
-            if not isinstance(event, NotRest):
-                continue
-            next_time_stamp = next_elem['offset']
+                # first we increment time, which involves deleting notes too old to love
+                for this_note, this_time_stamp in note_times.items():
+                    if next_time_stamp-this_time_stamp>MAX_AGE:
+                        del(note_times[this_note])
 
-            # first we increment time, which involves deleting notes too old to love
-            for this_note, this_time_stamp in note_times.items():
-                if next_time_stamp-this_time_stamp>MAX_AGE:
-                    del(note_times[this_note])
+                if hasattr(event, 'pitch'):
+                    pitches = [event.pitch.midi]
+                if hasattr(event, 'pitches'):
+                    pitches = sorted([p.midi for p in event.pitches])
+                    ## OR: randomize order:
+                    #pitches = random.sample(pitches, len(pitches))
 
-            if hasattr(event, 'pitch'):
-                pitches = [event.pitch.midi]
-            if hasattr(event, 'pitches'):
-                pitches = sorted([p.midi for p in event.pitches])
-                ## OR: randomize order:
-                #pitches = random.sample(pitches, len(pitches))
+                for next_note in pitches:
+                    #table writer can have a bash
+                    fan_out_event(note_times, next_time_stamp, next_note, file_key)
 
-            for next_note in pitches:
-                #table writer can have a bash
-                fan_out_event(note_times, next_time_stamp, next_note, file_key)
+                    #for the next time step, we need to include the new note:
+                    note_times[next_note] = next_time_stamp
 
-                #for the next time step, we need to include the new note:
-                note_times[next_note] = next_time_stamp
+                    # For the CSV file we append the next note to the transition info
+                    # NB this means that CSV ignores the note's own prior state, a difference with the full data.
+                    next_transition = dict([
+                        (this_note, MAX_AGE - next_time_stamp + this_time_stamp)
+                        for this_note, this_time_stamp in note_times.iteritems()
+                    ])
 
-                # For the CSV file we append the next note to the transition info
-                # NB this means that CSV ignores the note's own prior state, a difference with the full data.
-                next_transition = dict([
-                    (this_note, MAX_AGE - next_time_stamp + this_time_stamp)
-                    for this_note, this_time_stamp in note_times.iteritems()
-                ])
+                    event_counter += 1
 
-                event_counter += 1
+            # CSV writer can haz pound of flesh
+            write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
 
-        # CSV writer can haz pound of flesh
-        write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
+        def parse_if_midi(_, file_dir, file_list):
+            for f in file_list:
+                if f.lower().endswith('mid'):
+                    parse_midi_file(file_dir, f)
 
-    def parse_if_midi(_, file_dir, file_list):
-        for f in file_list:
-            if f.lower().endswith('mid'):
-                parse_midi_file(file_dir, f)
+        os.path.walk(MIDI_BASE_DIR, parse_if_midi, None)
 
-    os.path.walk(MIDI_BASE_DIR, parse_if_midi, None)
-
-    filt = tables.Filters(complevel=5)
+        filt = tables.Filters(complevel=5)
     
-    table_handle.create_carray('/','v_obsid',
-        atom=tables.Int32Atom(), shape=(len(obs_list),),
-        title="obsID",
-        filters=filt)[:] = obs_list
-    table_handle.create_carray('/','v_p',
-        atom=tables.Int32Atom(), shape=(len(p_list),),
-        title="pitch index",
-        filters=filt)[:] = p_list
-    table_handle.create_carray('/','v_recence',
-        atom=tables.Float32Atom(), shape=(len(recence_list),),
-        title="recence",
-        filters=filt)[:] = recence_list
-    table_handle.create_carray('/','v_base_rate',
-        atom=tables.Float32Atom(), shape=(128,),
-        title="base rate",
-        filters=filt)[:] = mean_pitch_rate
-    # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
-    # BEWARE 1-BASED INDEXING IN R
-    base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
-        atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
-        title="rel base rate",
-        filters=filt)
-    _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
-    for i in xrange(128):
-        base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
-    #it would also be a very convenient time to generate exotic features here based on this sparse matrix form
+        table_handle.create_carray('/','v_obsid',
+            atom=tables.Int32Atom(), shape=(len(obs_list),),
+            title="obsID",
+            filters=filt)[:] = obs_list
+        table_handle.create_carray('/','v_p',
+            atom=tables.Int32Atom(), shape=(len(p_list),),
+            title="pitch index",
+            filters=filt)[:] = p_list
+        table_handle.create_carray('/','v_recence',
+            atom=tables.Float32Atom(), shape=(len(recence_list),),
+            title="recence",
+            filters=filt)[:] = recence_list
+        table_handle.create_carray('/','v_base_rate',
+            atom=tables.Float32Atom(), shape=(128,),
+            title="base rate",
+            filters=filt)[:] = mean_pitch_rate
+        # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
+        # BEWARE 1-BASED INDEXING IN R
+        base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
+            atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
+            title="rel base rate",
+            filters=filt)
+        _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
+        for i in xrange(128):
+            base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
+        #it would also be a very convenient time to generate exotic features here based on this sparse matrix form
 
-def get_table():
-    table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
-    return table_handle.get_node('/', 'note_meta')
