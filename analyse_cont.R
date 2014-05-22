@@ -34,27 +34,6 @@ max.age = 1.5
 #local settings
 radius = 0.125
 
-# Am I doing this wrong? I could model odds of each note sounding conditional on environment.
-# Could also model, conditional on environment, which note goes on.
-# More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
-# this would possibly more interpretable. But I would lose a lot of speed when I throw out sparsity.
-# should try and attribute amt of error to each song
-
-# See packages glmnet, liblineaR, rms
-# NB liblineaR has python binding
-# if we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
-# OR even do hierarchical penalised regression using http://cran.r-project.org/web/packages/glinternet/index.html
-# For now
-# see http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
-# and http://www.jstatsoft.org/v33/i01/paper
-
-#if this DOESN'T work, could go to a discrete PGM model, such as
-# http://cran.r-project.org/web/packages/catnet/vignettes/catnet.pdf
-# https://r-forge.r-project.org/R/?group_id=1487
-# gRaphHD http://www.jstatsoft.org/v37/i01/
-# http://www.bnlearn.com/
-# but let's stay simple.
-
 dissect.coefs = function(coefs){
   #horrifically inefficient, but I can't be arsed working out how to do this better in R
   #it's not conceptually well-posed anyway
