@@ -27,12 +27,13 @@ ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 0.75, 0.25)
 #when calculating event rate, aggregate notes this close together
 ONSET_TOLERANCE = 0.06
 
+###PROBABILISTIC CONCERNS
 # Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 # Could also model, conditional on environment, which note goes on.
-# More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
-# this would possibly more interpretable. But I would lose a lot of speed when I throw out sparsity.
 # should try and attribute amt of error to each song
+# I could go to AIC or BIC instead of cross validation to save CPU cycles
 
+#### IMPLMEMENTING LINEAR MODEL
 # See R packages glmnet, liblineaR, rms
 # NB liblineaR has python binding
 # if we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
@@ -41,7 +42,7 @@ ONSET_TOLERANCE = 0.06
 # see http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
 # and http://www.jstatsoft.org/v33/i01/paper
 
-#if this DOESN'T work, could go to a discrete PGM model, such as
+# if this DOESN'T work, could go to a discrete PGM model, such as
 # http://cran.r-project.org/web/packages/catnet/vignettes/catnet.pdf
 # https://r-forge.r-project.org/R/?group_id=1487
 # gRaphHD http://www.jstatsoft.org/v37/i01/
@@ -49,7 +50,7 @@ ONSET_TOLERANCE = 0.06
 # but let's stay simple.
 
 
-#TODO:
+###TODO:
 # hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 # trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
 # use feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
@@ -63,19 +64,20 @@ ONSET_TOLERANCE = 0.06
 # explicitly use R-happy names for CSV, for clarity
 # call into R using rpy2, to avoid this horrible manual way of doing things, and also R
 # could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
+
+### FEATURE CONCERNS
 # but it would fail to generalise to crazy values and be fiddlier to implement.
 # current model is ugly but works - Not guarnnteed to respect hierarchicality but seems to anyway.
 # go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway. NB - large data sets.
-# Shall I switch to memory-sparse matrices? possibly.
 # experiment with longer note smears
 # experiment with adaptive note smearing
-# What I really want is smoothing that favours spectrally-meaningful relations
+# I would like to capture spectrally-meaningful relations
 # # such as projecting onto harmonic space
 # # note that otherwise, I am missing out (really?) under-represented transitions in the data.
-# # NB I should check that treating each note event as independent actually corresponds to meaningful bayesian inversion
-
-
-# Doubts and caveats:
+# # I could use Dictionary learning http://scikit-learn.org/stable/modules/decomposition.html#dictionary-learning to reduce the number of features from the combinatorial combinations (feels weird; am I guaranteed this will capture *important* features?)
+# # I could use PCA - http://scikit-learn.org/stable/modules/decomposition.html#approximate-pca
+# # I could use NNMF - http://scikit-learn.org/stable/modules/decomposition.html#non-negative-matrix-factorization-nmf-or-nnmf
+# # TruncatedSVD also looks sparse-friendly and is linguistics-based - i.e. polysemy friendly
 # Interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
 # # Convolution amplitude (effectively Fourier comparison)
 # # mutual information of square waves at specified frequency (discrete distribution!)
@@ -84,9 +86,9 @@ ONSET_TOLERANCE = 0.06
 # # could be windowed. Real human hearing is, after all...
 # improved feature ideas:
 # # feature vector of approximate prime decomposition of ratios
-# # number of held notes
-# # time since last note at a given relative pitch
-# # span in 5ths at various time offsets
+# # number of held notes (nope, no good)
+# # time since last note at a given relative pitch (not clear what to do with this yet)
+# # span in 5ths at various time offsets (nope, didn't work)
 # # f-divergence between spectral band occupancy folded onto one octave (free "smoothing" param to calibrate, slow, but more intuitive. Not great realtime...)
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
