@@ -1,20 +1,16 @@
 s=~serverboot.(prox:\local, device:\internal);
 s=~serverboot.(prox:\local, device:\rme);
+s.makeGui;
 
 //TODO: duck compressor input.
-//TODO: get external input in
 //TODO: LFOs
-//TODO: reverb distance thing
 //TODO: pitch match?
 //TODO: morphing reverb?
 //TODO: base detune
-//TODO: chaos parameter
-//TODO: live record?
 //TODO: midi interaction (CCAllocator?)
 //TODO: intersting interaction
 //TODO: PCA-style decomposition of param values (how to get full range? -inv gaussian map?)
 //TODO: Two flocks
-//TODO: choose some control parameters, and map them
 //TODO: make pattern more modular by letting it Penvir in a sttings dict. maybe.
 //TODO: LIMITER
 // Granular delay? Nah not this time, keep it pure.
@@ -26,14 +22,21 @@ s=~serverboot.(prox:\local, device:\rme);
 // forming a melody out of grainclouds by raw copula
 // Control mappings for all intersting params
 // reverb system is not in correct ring arrangment. needs z-crossing
-~here = "/Users/dan/src/sc/pattern_machine/scripts";
 (
-var linperturb,state = ~state = (
+Synth.new(\rec, [\in, 0, \buf, ~state.sampBufs[3]],s);
+~state.sampBufs[0].plot;
+~state.sampBufs[0].play;
+~state.sampBufs.do({|buf,ind|[\loadin, buf,ind, ~state.sampPaths[ind]].postln;	buf.readChannel(~state.sampPaths[ind], channels:[0])});
+
+~here = "/Users/dan/src/sc/pattern_machine/scripts";
+~state=nil;
+(
+var linperturb,state;
+state = ~state ?? (
 	\sampLen: 60,
 	\timeStep: 1/4,
 	\subTimeStep: 1/8,
 	\meanSubLength: 2.0,
-	\skittishness: 1.0,
 	\jitter: 1.0,
 	\beatsPerBar: 16,
 	\reseedInt: 16,
@@ -43,10 +46,10 @@ var linperturb,state = ~state = (
 	\sampStartPosRange:1.0,
 	\density: 0.5,
 	\meanDb:(-10.0),
-	\dbRange:5.0,
+	\houseness: 1.0,
 	\meanPos: -0.5,
 	\posRange: 0.0625,
-	\meanDist: 0.0,
+	\meanDist: 3.0,
 	\distRange: 1.0,
 	\meanRatio: 0,
 	\ratioRange: 0,
@@ -60,14 +63,15 @@ var linperturb,state = ~state = (
 		"133_bigbowl2-edit.wav",
 		"21646_madjad_Indonesian_Thum_Loop_2_.wav"
 	].collect(~zamples +/+ "SupercolliderAuxiliary" +/+ _),
-	\clock: TempoClock.new(100.0/60.0),
 );
+~state = state;
+state[\clock] = TempoClock.new(120.0/60.0);
+CmdPeriod.doOnce { state.clock.stop };
+this.executeFile(~here +/+ "kuehsynths.scd").value(s);
 state.clock.schedAbs(0, {state.clock.beatsPerBar = state.beatsPerBar;});
 linperturb = {|center, dev, lo=0, hi=1|
 	(dev.asFloat.rand2 + center).max(lo).min(hi);
 };
-CmdPeriod.doOnce { state.clock.stop };
-this.executeFile(~here +/+ "kuehsynths.scd").value(s);
 
 fork {
 	this.executeFile(~here +/+ "kuehmidi.scd").value(~state);
@@ -103,7 +107,7 @@ fork {
 				\outbus, Bus.newFrom(state.sideBus, 6, 2),
 				\sidebus, Bus.newFrom(state.sideBus, 4-(i*2), 2),
 				\room, 0.1,
-				\damping, 0.4,
+				\damping, 0.6,
 				\amp, 1.5, //fades a little
 				\sidebusAmp, 1.0,
 				\index, i,
@@ -125,15 +129,11 @@ fork {
 		\buf, state.sampBufs[0],
 		\out, state.sideBus,
 		\group, state.sourceGroup,
-		\db, Pfunc({
-			(state.meanDb-state.dbRange
-		).rrand(state.meanDb-state.dbRange)}),
 	);
 	//defaults to mess with. Break out into alternatives?
 	state[\superSubPattern1]= Pbind(
 		\pitchRatio, 1,
 		//see also Pstep for bar-related
-		\releaseTime, Pwhite(0.1, 3, inf),
 	);
 	s.sync;
 	~masterPattern = Pspawner({|spawner|
@@ -157,9 +157,10 @@ fork {
 			//lazy hack to work out mean beat weighting
 			avgBeatStrength = (avgBeatStrength* 0.98) + (beatStrength*0.02);
 			//(should be ca 1)
-			[\time, thisThread.clock.beats, realBeatInBar,beatInBar, roundedBeatInBar, beatStrength, avgBeatStrength].postln;
+			//[\time, thisThread.clock.beats, realBeatInBar,beatInBar, roundedBeatInBar, beatStrength, avgBeatStrength].postln;
 			// timeOffset = state[\jitter].linrand*state[\timeStep];
-			sampOffset = linperturb.(state.meanSampStartPos, state.sampStartPosRange, 0.0, 40.0);
+			//sampOffset = linperturb.(state.meanSampStartPos, state.sampStartPosRange, 0.0, 40.0);
+			sampOffset = state.meanSampStartPos + (beatInBar* state.sampStartPosRange);
 			subTimeStep = linperturb.(state.subTimeStep*state.jitter, state.subTimeStep, 5.0, 40.0);
 			//nb this is actually in seconds; should grab clock time maybe?
 			sampStep = linperturb.(state.subTimeStep*state.jitter, state.subTimeStep, 0.0, 2.0);
@@ -189,6 +190,8 @@ fork {
 							\pos, linperturb.(state.meanPos, state.posRange, -1, 1),
 							\dist, linperturb.(state.meanDist, state.distRange, 0, 3),
 							\delta, subTimeStep,
+							\db, state.meanDb + (state.houseness*(beatStrength-1)),
+							\releaseTime, (beatStrength+1).reciprocal
 						)
 					),
 					delta: timeOffset

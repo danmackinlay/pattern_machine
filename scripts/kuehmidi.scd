@@ -28,12 +28,12 @@ var mapController = {|state|
 		[1, 23],
 	];
 	stateMeta =  [
-		\meanDb, [-50.0,0.0].asSpec,
-		\dbRange, [0.0,20.0].asSpec,
-		\meanPos, [-1.0,1.0].asSpec,
+		\meanDb, [-50.0,10.0].asSpec,
+		\houseness, [0.0,5.0].asSpec,
+		\meanSubLength, [1,4].asSpec,
 		\posRange, [0.0,1.0].asSpec,
 		\meanDist, [0.0,3.0].asSpec,
-		\distRange, [0.0,1.0].asSpec,
+		\distRange, [0.0,1.5].asSpec,
 		\density, [0.0,2.0].asSpec,
 		\timeShuffleRange, [0.0,8.0].asSpec,
 		\meanSampStartPos, [0.0, 40.0].asSpec,
@@ -42,6 +42,8 @@ var mapController = {|state|
 		\bufRange, [0.0, 5.0].asSpec,
 		\meanRatio, [0, 5].asSpec,
 		\ratioRange, [0.0, 5.0].asSpec,
+		\seed, ControlSpec(0, maxval: 16, warp: 'lin', step: 1),
+		\reseedInt, ControlSpec(0.1, maxval: 32, warp: 'exp', step: 1),
 	];
 	stateMeta.pairsDo({|key, spec, i|
 		var chan, num;

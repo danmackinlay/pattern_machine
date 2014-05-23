@@ -94,7 +94,7 @@ s.waitForBoot ({
 				roomsize: roomsize*(index/100 +1),
 				damping: damping,
 				taillevel: taillevel,
-				revtime: revtime,
+				revtime: revtime*(index/100 +1),
 				drylevel: 0,
 				maxroomsize:400,
 				earlyreflevel:earlyreflevel,
@@ -107,10 +107,13 @@ s.waitForBoot ({
 			//+SinOsc.ar(freq:220*(1+index), mul: 0.01)
 		);
 	}).add.dumpUGens;
-	SynthDef(\jack__2, {
-		|inbus, outbus|
+	SynthDef(\jack__2, {|inbus, outbus|
 		Out.ar(outbus,In.ar(inbus, 2));
 	}).add;
+	SynthDef(\rec, {|buf=0, in=0|
+			RecordBuf.ar(SoundIn.ar(in),bufnum:buf,loop:0,doneAction:2);
+	}).add;
+
 }, 10000);
 };
 loadSynths;
