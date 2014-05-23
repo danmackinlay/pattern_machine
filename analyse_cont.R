@@ -1,5 +1,4 @@
 library("Matrix")
-#library("LiblineaR")
 library("glmnet")
 library("stringr")
 library("jsonlite")
@@ -37,43 +36,25 @@ source("featureMatrix.R")
 
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
-row.thin.factor = 6
+row.thin.factor = 5
 # how many we cut off the edge of note neighbourhood
 col.trim.count = 0
+# which file has the data
+h5.file.name = "rag.h5"
 
-#function to trim rows from a sparse matrix (also removes entirely rows which are all 0, which is only appropriate for this particular model.)
+#can't work out how to extract this as attribute, although should as it is data-dependent
+max.age = 1.5
+radius = 0.125
+
+
+#function to trim rows from a sparse matrix
+#(also removes entirely rows which are all 0, which is only appropriate for this particular model.)
+#seems to be broken in the sparse case.
 trim.col = function(mat,n=0){
   trimmed = mat[,(n+1):(ncol(mat)-n)]
   mask = rowSums(mat)>0
   return(list(trimmed=trimmed[mask,], mask = mask))
 }
-
-#can't work out how to extract this as attribute, although should as it is data-dependent
-max.age = 1.5
-
-#local settings
-radius = 0.125
-
-# Am I doing this wrong? I could model odds of each note sounding conditional on environment.
-# Could also model, conditional on environment, which note goes on.
-# More tractable, I could condition for note-on probabilities given the *number* of simultaneous notes
-# this would possibly more interpretable. But I would lose a lot of speed when I throw out sparsity.
-# should try and attribute amt of error to each song
-
-# See packages glmnet, liblineaR, rms
-# NB liblineaR has python binding
-# if we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
-# OR even do hierarchical penalised regression using http://cran.r-project.org/web/packages/glinternet/index.html
-# For now
-# see http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
-# and http://www.jstatsoft.org/v33/i01/paper
-
-#if this DOESN'T work, could go to a discrete PGM model, such as
-# http://cran.r-project.org/web/packages/catnet/vignettes/catnet.pdf
-# https://r-forge.r-project.org/R/?group_id=1487
-# gRaphHD http://www.jstatsoft.org/v37/i01/
-# http://www.bnlearn.com/
-# but let's stay simple.
 
 dissect.coefs = function(coefs){
   #horrifically inefficient, but I can't be arsed working out how to do this better in R
@@ -113,11 +94,11 @@ feat.tri = function(col, x0=1.0, radius=0.25) {
   return(pmax(1.0-abs((col-x0)/radius),0))
 }
 
-#peak-differntiable feature fn
+#peak-differentiable feature fn
 feat.sin = function(...) {
   return(sin(pi/2*feat.tri(...)))
 }
-#everywhere differntiable feature fn
+#everywhere differentiable feature fn
 feat.sin2 = function(...) {
   return(sin(pi/2*feat.tri(...))^2)
 }
@@ -150,35 +131,44 @@ feature.matrix = function (sourceSparseMat, x0=1.0, radius=0.25, f.num=0) {
 }
 
 #load actual data
-notes.obsdata = h5read("rag-11.h5", "/note_meta")
+notes.obsdata = h5read(h5.file.name, "/note_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
-notes.obsid = as.vector(h5read("rag-11.h5", '/v_obsid'))
-notes.p = as.vector(h5read("rag-11.h5", '/v_p'))
-notes.recence = as.vector(h5read("rag-11.h5", '/v_recence'))
+notes.obsid = as.vector(h5read(h5.file.name, '/v_obsid'))
+notes.p = as.vector(h5read(h5.file.name, '/v_p'))
+notes.recence = as.vector(h5read(h5.file.name, '/v_recence'))
 notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
-notes.colnames = h5read("rag-11.h5", "/col_names")
+notes.colnames = h5read(h5.file.name, "/col_names")
 
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
-#THIS IS NOW A MESS AND COLUMN TRIMMING IS TEMPORARILY NOT SUPPORTED
 notes.base.f = basic.obs.matrix()
 
 if (row.thin.factor>1) {
   n = nrow(notes.base.f)
-  samp = sample.int(n,floor(n/row.thin.factor))
+  samp = sort.int(sample.int(n,floor(n/row.thin.factor)))
   notes.base.f = notes.base.f[samp,]
   notes.obsdata = notes.obsdata[samp,]
 }
+#THIS IS NOW A MESS AND COLUMN TRIMMING IS TEMPORARILY NOT SUPPORTED
 if (col.trim.count>0) {
   trimmed = trim.col(notes.base.f)
   notes.base.f = trimmed$trimmed
   notes.obsdata = notes.obsdata[trimmed$mask,]
 }
+
+#50000 columns
 notes.f0 = feature.matrix(notes.base.f, max.age, radius, 0)
+notes.f1 = feature.matrix(notes.base.f, max.age-1*radius, radius, 1)
 notes.f4 = feature.matrix(notes.base.f, max.age-4*radius, radius, 4)
-notes.f = cBind(notes.f0, pred.matrix.squared(notes.f0))
-notes.f = cBind(notes.f, notes.f4, pred.matrix.product(notes.f, notes.f4))
-notes.f = cBind(notes.f, pred.matrix.cubed(notes.f0))
+notes.fall = cBind(notes.f0, pred.matrix.squared(notes.f0), notes.f1, notes.f4)
+notes.f = cBind(notes.fall, pred.matrix.squared(notes.fall))
+
 #A mere 8000 columns.
+# notes.f0 = feature.matrix(notes.base.f, max.age, radius, 0)
+# notes.f4 = feature.matrix(notes.base.f, max.age-4*radius, radius, 4)
+# notes.f = cBind(notes.f0, pred.matrix.squared(notes.f0))
+# notes.f = cBind(notes.f, notes.f4, pred.matrix.product(notes.f, notes.f4))
+# notes.f = cBind(notes.f, pred.matrix.cubed(notes.f0))
+# #A mere 8000 columns.
 
 notes.response=as.matrix(notes.obsdata$result)
 
@@ -189,8 +179,9 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     family="binomial",
     type.logistic="modified.Newton",
     alpha=1,
+    dfmax=500,
     #parallel=TRUE,
-    foldid=unclass(notes.obsdata$file)
+    foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
 )
 print(notes.fit.time)
