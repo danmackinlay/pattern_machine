@@ -34,6 +34,7 @@ from config import *
 # but let's stay simple.
 
 
+
 ###TODO:
 # hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 # trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
@@ -50,7 +51,32 @@ from config import *
 # could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
 
 ### FEATURE CONCERNS
-# but it would fail to generalise to crazy values and be fiddlier to implement.
+#TODO: I have a lot of data here;
+# should probably throw over CV and do straight training/prediction split
+# todo: fits should know own AND NEIGHBOURS' base rates
+# remove rows, and disambiguate what remains. (trimming columns leads to spurious duplicates with 0 notes in)
+# Add a logical feature specifying bar position; possibly fit separate models for each
+
+# Bonus datasets I jsut noticed on http://deeplearning.net/datasets/
+# Piano-midi.de: classical piano pieces (http://www.piano-midi.de/)
+# Nottingham : over 1000 folk tunes (http://abc.sourceforge.net/NMD/)
+# MuseData: electronic library of classical music scores (http://musedata.stanford.edu/)
+# JSB Chorales: set of four-part harmonized chorales (http://www.jsbchorales.net/index.shtml)
+
+# see also the deep learning approach: http://deeplearning.net/tutorial/rnnrbm.html#rnnrbm andd
+# http://www-etud.iro.umontreal.ca/~boulanni/ICML2012.pdf
+
+# Deep learning feels like overkill, but i feel like i could do some *un*principled feature construction;
+# we suspect marginal changes in features have a linear effect, fine
+# but we also suspect that interaction terms are critical;
+# can we manufacture some hopefully-good features without an exhuastive, expensive, simultaneous optimisation over all of them?
+# Naive approach: walk through term-interaction space, discrectized. Start with one predictor, and add additional predictors randomly (greedily) if the combination has improved deviance wrt the mean. it "feels" like features shoudl be positive or negative
+# # If i wanted features that did not naturally look discrete i coudl fit minature linear models to each combination?
+# # Or make features that correspond to being "near" some value
+# # it seems like boolean opeartions on features should also be allowed - intersections and unions and such
+# # this could be  naturally accomplished by generating each generation of eatures from the previous and ditching the crappy ones. This feels dangerously close to evolutionary algorithms, or maybe random forests or somesuch. vectorisable tho.
+# I could always give up and infer hidden markov states. sigh.
+
 # current model is ugly but works - Not guarnnteed to respect hierarchicality but seems to anyway.
 # go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway. NB - large data sets.
 # experiment with longer note smears
