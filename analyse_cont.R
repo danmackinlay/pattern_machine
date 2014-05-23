@@ -16,11 +16,16 @@ source("featureMatrix.R")
 
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
-row.thin.factor = 10
+row.thin.factor = 5
 # how many we cut off the edge of note neighbourhood
 col.trim.count = 0
 # which file has the data
 h5.file.name = "rag.h5"
+
+#can't work out how to extract this as attribute, although should as it is data-dependent
+max.age = 1.5
+radius = 0.125
+
 
 #function to trim rows from a sparse matrix
 #(also removes entirely rows which are all 0, which is only appropriate for this particular model.)
@@ -30,12 +35,6 @@ trim.col = function(mat,n=0){
   mask = rowSums(mat)>0
   return(list(trimmed=trimmed[mask,], mask = mask))
 }
-
-#can't work out how to extract this as attribute, although should as it is data-dependent
-max.age = 1.5
-
-#local settings
-radius = 0.125
 
 dissect.coefs = function(coefs){
   #horrifically inefficient, but I can't be arsed working out how to do this better in R
@@ -121,15 +120,15 @@ notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
 notes.colnames = h5read(h5.file.name, "/col_names")
 
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
-#THIS IS NOW A MESS AND COLUMN TRIMMING IS TEMPORARILY NOT SUPPORTED
 notes.base.f = basic.obs.matrix()
 
 if (row.thin.factor>1) {
   n = nrow(notes.base.f)
-  samp = sample.int(n,floor(n/row.thin.factor))
+  samp = sort.int(sample.int(n,floor(n/row.thin.factor)))
   notes.base.f = notes.base.f[samp,]
   notes.obsdata = notes.obsdata[samp,]
 }
+#THIS IS NOW A MESS AND COLUMN TRIMMING IS TEMPORARILY NOT SUPPORTED
 if (col.trim.count>0) {
   trimmed = trim.col(notes.base.f)
   notes.base.f = trimmed$trimmed
@@ -162,7 +161,7 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     alpha=1,
     dfmax=500,
     #parallel=TRUE,
-    foldid=unclass(notes.obsdata$file)
+    foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
 )
 print(notes.fit.time)
