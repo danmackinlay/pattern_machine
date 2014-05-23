@@ -32,7 +32,6 @@ p_for_r_name = dict()
 r_name_for_p = dict()
 
 
-
 for i in xrange(2*NEIGHBORHOOD_RADIUS+1):
     p = i - NEIGHBORHOOD_RADIUS
     if p<0:
