@@ -3,8 +3,8 @@ library("glmnet")
 library("stringr")
 library("jsonlite")
 #disable parallelism for now because of ram shortage
-#require(doMC)
-#registerDoMC(cores=2)
+require(doMC)
+registerDoMC(cores=4)
 require(rhdf5)
 source("featureMatrix.R")
 
@@ -135,11 +135,10 @@ if (col.trim.count>0) {
   notes.obsdata = notes.obsdata[trimmed$mask,]
 }
 
-#50000 columns
+#165000 columns
 notes.f0 = feature.matrix(notes.base.f, max.age, radius, 0)
-notes.f1 = feature.matrix(notes.base.f, max.age-1*radius, radius, 1)
 notes.f4 = feature.matrix(notes.base.f, max.age-4*radius, radius, 4)
-notes.fall = cBind(notes.f0, pred.matrix.squared(notes.f0), notes.f1, notes.f4)
+notes.fall = cBind(notes.f0, pred.matrix.squared(notes.f0), notes.f4, pred.matrix.squared(notes.f4))
 notes.f = cBind(notes.fall, pred.matrix.squared(notes.fall))
 
 #A mere 8000 columns.
@@ -159,8 +158,8 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     family="binomial",
     type.logistic="modified.Newton",
     alpha=1,
-    dfmax=500,
-    #parallel=TRUE,
+    dfmax=1000,
+    parallel=TRUE,
     foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
 )
