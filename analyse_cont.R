@@ -17,9 +17,10 @@ source("featureMatrix.R")
 
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
-row.thin.factor = 1
+row.thin.factor = 6
 # how many we cut off the edge of note neighbourhood
 col.trim.count = 0
+h5.file.name = "rag.h5"
 
 #function to trim rows from a sparse matrix (also removes entirely rows which are all 0, which is only appropriate for this particular model.)
 trim.col = function(mat,n=0){
@@ -72,11 +73,11 @@ feat.tri = function(col, x0=1.0, radius=0.25) {
   return(pmax(1.0-abs((col-x0)/radius),0))
 }
 
-#peak-differntiable feature fn
+#peak-differentiable feature fn
 feat.sin = function(...) {
   return(sin(pi/2*feat.tri(...)))
 }
-#everywhere differntiable feature fn
+#everywhere differentiable feature fn
 feat.sin2 = function(...) {
   return(sin(pi/2*feat.tri(...))^2)
 }
@@ -109,13 +110,13 @@ feature.matrix = function (sourceSparseMat, x0=1.0, radius=0.25, f.num=0) {
 }
 
 #load actual data
-notes.obsdata = h5read("rag-11.h5", "/note_meta")
+notes.obsdata = h5read(h5.file.name, "/note_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
-notes.obsid = as.vector(h5read("rag-11.h5", '/v_obsid'))
-notes.p = as.vector(h5read("rag-11.h5", '/v_p'))
-notes.recence = as.vector(h5read("rag-11.h5", '/v_recence'))
+notes.obsid = as.vector(h5read(h5.file.name, '/v_obsid'))
+notes.p = as.vector(h5read(h5.file.name, '/v_p'))
+notes.recence = as.vector(h5read(h5.file.name, '/v_recence'))
 notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
-notes.colnames = h5read("rag-11.h5", "/col_names")
+notes.colnames = h5read(h5.file.name, "/col_names")
 
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
 #THIS IS NOW A MESS AND COLUMN TRIMMING IS TEMPORARILY NOT SUPPORTED
