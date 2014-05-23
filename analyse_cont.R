@@ -19,10 +19,12 @@ source("featureMatrix.R")
 # how many observations we throw out (oversampling of cases means the data set blows up)
 row.thin.factor = 6
 # how many we cut off the edge of note neighbourhood
-col.trim.count = 0
+col.trim.count = 2
 h5.file.name = "rag.h5"
 
-#function to trim rows from a sparse matrix (also removes entirely rows which are all 0, which is only appropriate for this particular model.)
+#function to trim rows from a sparse matrix
+#(also removes entirely rows which are all 0, which is only appropriate for this particular model.)
+#seems to be broken in the sparse case.
 trim.col = function(mat,n=0){
   trimmed = mat[,(n+1):(ncol(mat)-n)]
   mask = rowSums(mat)>0
@@ -133,12 +135,21 @@ if (col.trim.count>0) {
   notes.base.f = trimmed$trimmed
   notes.obsdata = notes.obsdata[trimmed$mask,]
 }
+
+#50000 columns
 notes.f0 = feature.matrix(notes.base.f, max.age, radius, 0)
+notes.f1 = feature.matrix(notes.base.f, max.age-1*radius, radius, 1)
 notes.f4 = feature.matrix(notes.base.f, max.age-4*radius, radius, 4)
-notes.f = cBind(notes.f0, pred.matrix.squared(notes.f0))
-notes.f = cBind(notes.f, notes.f4, pred.matrix.product(notes.f, notes.f4))
-notes.f = cBind(notes.f, pred.matrix.cubed(notes.f0))
+notes.fall = cBind(notes.f0, pred.matrix.squared(notes.f0), notes.f1, notes.f4)
+notes.f = cBind(notes.fall, pred.matrix.squared(notes.fall))
+
 #A mere 8000 columns.
+# notes.f0 = feature.matrix(notes.base.f, max.age, radius, 0)
+# notes.f4 = feature.matrix(notes.base.f, max.age-4*radius, radius, 4)
+# notes.f = cBind(notes.f0, pred.matrix.squared(notes.f0))
+# notes.f = cBind(notes.f, notes.f4, pred.matrix.product(notes.f, notes.f4))
+# notes.f = cBind(notes.f, pred.matrix.cubed(notes.f0))
+# #A mere 8000 columns.
 
 notes.response=as.matrix(notes.obsdata$result)
 
