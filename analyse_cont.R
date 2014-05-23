@@ -1,5 +1,4 @@
 library("Matrix")
-#library("LiblineaR")
 library("glmnet")
 library("stringr")
 library("jsonlite")
@@ -17,9 +16,10 @@ source("featureMatrix.R")
 
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
-row.thin.factor = 6
+row.thin.factor = 10
 # how many we cut off the edge of note neighbourhood
-col.trim.count = 2
+col.trim.count = 0
+# which file has the data
 h5.file.name = "rag.h5"
 
 #function to trim rows from a sparse matrix
@@ -160,6 +160,7 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     family="binomial",
     type.logistic="modified.Newton",
     alpha=1,
+    dfmax=500,
     #parallel=TRUE,
     foldid=unclass(notes.obsdata$file)
   )
