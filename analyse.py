@@ -1,7 +1,7 @@
 from config import *
 import numpy as np
 import scipy as sp
-from scipy.sparse import coo_matrix
+from scipy.sparse import coo_matrix, dok_matrix
 import tables
 
 def square_feature(A, center=2.0, radius=0.125):
@@ -73,6 +73,11 @@ f4 = f4.tocsc()
 f4.eliminate_zeros()
 
 #Now, let's manufacture features.
+#first make everythign sparse for consistent multiplying. (expensive for the barcode!)
+results_sparse = dok_matrix(meta_result.reshape(meta_result.shape+(1,))).tocsc()[:,0]
+note_barcode_sparse = dok_matrix(note_barcode_arr).tocsc()
+
+#now, hold features in arrays for consistency
 feature_names = []
 features = []
 
@@ -85,10 +90,11 @@ features += [f2[:, i] for i in xrange(f2.shape[1])]
 feature_names += ["F4" + r_name_for_i[i] for i in xrange(f4.shape[1])]
 features += [f4[:, i] for i in xrange(f4.shape[1])]
 
-feature_names += ["b" + str(i+1) for i in xrange(note_barcode_arr.shape[1])]
-features += [note_barcode_arr[:,i] for i in xrange(note_barcode_arr.shape[1])]
+feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
+features += [note_barcode_arr[:,i] for i in xrange(note_barcode_sparse.shape[1])]
 
 #one new feature
 proposed_feat = features[12].multiply( features[15])
 proposed_sum = proposed_feat.sum()
-proposed_succ = proposed_feat.multiply(meta_result)
+
+proposed_succ = proposed_feat.multiply(results_sparse)
