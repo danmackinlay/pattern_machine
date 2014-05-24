@@ -32,6 +32,7 @@ meta_result = note_meta.read(field="result").astype(np.int32)
 meta_this_note = note_meta.read(field="thisNote").astype(np.int32)
 meta_note_time = note_meta.read(field="time").astype(np.float32)
 
+base_size = len(meta_obsid)
 base_success_rate = meta_result.mean()
 
 note_barcode = table_handle.get_node('/', 'note_barcode')
@@ -107,13 +108,62 @@ feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
 features += [note_barcode_sparse[:,i] for i in xrange(note_barcode_sparse.shape[1])]
 
 feature_bases = [(i,) for i in xrange(len(features))]
+used_bases = set(feature_bases)
 feature_sizes = [f.sum() for f in features]
 feature_successes = [f.multiply(results_sparse).sum() for f in features]
 feature_probs = [float(feature_successes[i])/feature_sizes[i] for i in xrange(len(feature_sizes))]
-feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
+#feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
+feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 
-#one new feature
-proposed_feat = features[12].multiply(features[15])
-proposed_size = proposed_feat.sum()
+# Here begins an unprinciple feature search. Lazily we will assume that success features
+# contain all the relevent information
 
-proposed_succ = proposed_feat.multiply(results_sparse).sum()
+min_size = base_size/10000
+p_val_thresh = 10e-2
+max_features = 1000
+n_features = 0
+
+while True:
+    i, j = 0, 0
+    while True:
+        i, j = sorted(sample(xrange(len(features)), 2))
+        if (i,j) not in used_bases: break
+    prop_name = feature_names[i] + ":" + feature_names[j]
+    print "trying", prop_name
+    prob_i = feature_probs[i]
+    prob_j = feature_probs[j]
+    # pval_i = feature_pvals[i]
+    # pval_j = feature_pvals[j]
+    proposed_feat = features[i].multiply(features[j])
+    proposed_size = proposed_feat.sum()
+    if proposed_size<min_size:
+        print "too small!"
+        continue
+    proposed_succ = proposed_feat.multiply(results_sparse).sum()
+    proposed_prob = float(proposed_succ)/proposed_size
+    # proposed_pval = max(
+    #     lik_test(proposed_size, proposed_succ, prob_i),
+    #     lik_test(proposed_size, proposed_succ, prob_j),
+    # )
+    parent_lik = max(
+        log_lik_ratio(proposed_size, proposed_succ, prob_i),
+        log_lik_ratio(proposed_size, proposed_succ, prob_j),
+    )
+    proposed_lik = log_lik_ratio(proposed_size, proposed_succ, base_success_rate)
+    if proposed_lik<=parent_lik:
+        print "that didn't help"
+        #NB this is a greedy heuristic
+        continue
+    #Otherwise, we have a contender. Add it to the pool.
+    n_features += 1
+    features.append(proposed_feat)
+    print "including", prop_name
+    feature_names.append(prop_name)
+    prop_basis = tuple(sorted(feature_bases[i] + feature_bases[j]))
+    feature_bases.append(prop_basis)
+    used_bases.add(prop_basis)
+    feature_sizes.append(proposed_size)
+    feature_successes.append(proposed_succ)
+    feature_probs.append(proposed_prob)
+    if n_features >= max_features: break
+    
