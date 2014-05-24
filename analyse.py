@@ -2,7 +2,14 @@ from config import *
 import numpy as np
 import scipy as sp
 from scipy.sparse import coo_matrix, dok_matrix
+from scipy.stats import power_divergence
+
 import tables
+
+def lik_test(N,Y,p0):
+    "likelihood ratio/ G-test"
+    Y0 = int(round(p0*N))
+    return power_divergence(f_obs=[N-Y,Y], f_exp=[N-Y0,Y0], lambda_="log-likelihood")[1]
 
 def square_feature(A, center=2.0, radius=0.125):
     return ((A-center)<radius).astype(np.int32)
@@ -91,10 +98,16 @@ feature_names += ["F4" + r_name_for_i[i] for i in xrange(f4.shape[1])]
 features += [f4[:, i] for i in xrange(f4.shape[1])]
 
 feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
-features += [note_barcode_arr[:,i] for i in xrange(note_barcode_sparse.shape[1])]
+features += [note_barcode_sparse[:,i] for i in xrange(note_barcode_sparse.shape[1])]
+
+feature_bases = [(i,) for i in xrange(len(features))]
+feature_sizes = [f.sum() for f in features]
+feature_successes = [f.multiply(results_sparse).sum() for f in features]
+feature_probs = [float(feature_successes[i])/feature_sizes[i] for i in xrange(len(feature_sizes))]
+feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 
 #one new feature
-proposed_feat = features[12].multiply( features[15])
-proposed_sum = proposed_feat.sum()
+proposed_feat = features[12].multiply(features[15])
+proposed_size = proposed_feat.sum()
 
-proposed_succ = proposed_feat.multiply(results_sparse)
+proposed_succ = proposed_feat.multiply(results_sparse).sum()
