@@ -103,7 +103,7 @@ from config import *
 # # f-divergence between spectral band occupancy folded onto one octave (free "smoothing" param to calibrate, slow, but more intuitive. Not great realtime...)
 
 meta_table_description = {
-    'result': tables.IntCol(1, dflt=0), #success/fail
+    'result': tables.IntCol(dflt=0), #success/fail
     'file': tables.StringCol(50), # factor: which sourcefile
     'time': tables.FloatCol(), # event time
     'thisNote': tables.UIntCol(), # midi note number for central pitch
@@ -113,11 +113,11 @@ meta_table_description = {
 
 barcode_table_description = {
     'obsID': tables.UIntCol(), #  for matching with the other data
-    'b5': tables.IntCol(1, dflt=0),
-    'b4': tables.IntCol(1, dflt=0),
-    'b3': tables.IntCol(1, dflt=0),
-    'b2': tables.IntCol(1, dflt=0),
-    'b1': tables.IntCol(1, dflt=0),
+    'b5': tables.IntCol(),
+    'b4': tables.IntCol(),
+    'b3': tables.IntCol(),
+    'b2': tables.IntCol(),
+    'b1': tables.IntCol(),
 }
 
 
