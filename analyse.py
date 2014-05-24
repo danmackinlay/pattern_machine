@@ -120,12 +120,13 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 
 min_size = base_size/10000
 p_val_thresh = 10e-2
-max_features = 1000
+max_features = 10000
 n_features = 0
 
 while True:
     i, j = 0, 0
     while True:
+        #should we be weighting the parent features somehow?
         i, j = sorted(sample(xrange(len(features)), 2))
         if (i,j) not in used_bases: break
     prop_name = feature_names[i] + ":" + feature_names[j]
@@ -134,36 +135,39 @@ while True:
     prob_j = feature_probs[j]
     # pval_i = feature_pvals[i]
     # pval_j = feature_pvals[j]
-    proposed_feat = features[i].multiply(features[j])
-    proposed_size = proposed_feat.sum()
-    if proposed_size<min_size:
-        print "too small!"
+    prop_feat = features[i].multiply(features[j])
+    prop_size = prop_feat.sum()
+    if prop_size<min_size:
+        #pretty arbitrary here
         continue
-    proposed_succ = proposed_feat.multiply(results_sparse).sum()
-    proposed_prob = float(proposed_succ)/proposed_size
-    # proposed_pval = max(
-    #     lik_test(proposed_size, proposed_succ, prob_i),
-    #     lik_test(proposed_size, proposed_succ, prob_j),
+    prop_succ = prop_feat.multiply(results_sparse).sum()
+    prop_prob = float(prop_succ)/prop_size
+    # prop_pval = max(
+    #     lik_test(prop_size, prop_succ, prob_i),
+    #     lik_test(prop_size, prop_succ, prob_j),
     # )
     parent_lik = max(
-        log_lik_ratio(proposed_size, proposed_succ, prob_i),
-        log_lik_ratio(proposed_size, proposed_succ, prob_j),
+        log_lik_ratio(prop_size, prop_succ, prob_i),
+        log_lik_ratio(prop_size, prop_succ, prob_j),
     )
-    proposed_lik = log_lik_ratio(proposed_size, proposed_succ, base_success_rate)
-    if proposed_lik<=parent_lik:
-        print "that didn't help"
+    prop_lik = log_lik_ratio(prop_size, prop_succ, base_success_rate)
+    if prop_lik<=parent_lik:
         #NB this is a greedy heuristic
+        # and it ignores behaviour of negated variable
         continue
     #Otherwise, we have a contender. Add it to the pool.
     n_features += 1
-    features.append(proposed_feat)
+    features.append(prop_feat)
     print "including", prop_name
     feature_names.append(prop_name)
     prop_basis = tuple(sorted(feature_bases[i] + feature_bases[j]))
     feature_bases.append(prop_basis)
     used_bases.add(prop_basis)
-    feature_sizes.append(proposed_size)
-    feature_successes.append(proposed_succ)
-    feature_probs.append(proposed_prob)
+    feature_sizes.append(prop_size)
+    feature_successes.append(prop_succ)
+    feature_probs.append(prop_prob)
+    feature_liks.append(prop_lik)
     if n_features >= max_features: break
-    
+
+# Here's an arbitrary way of guessing the comparative importance of these:
+ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_names[i]) for i in xrange(len(features))])
