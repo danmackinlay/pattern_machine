@@ -17,7 +17,7 @@ col.trim.count = 0
 h5.file.name = "rag.h5"
 
 #can't work out how to extract this as attribute, although should as it is data-dependent
-max.age = 1.5
+max.age = 2.0
 radius = 0.125
 
 
@@ -112,7 +112,6 @@ notes.p = as.vector(h5read(h5.file.name, '/v_p'))
 notes.recence = as.vector(h5read(h5.file.name, '/v_recence'))
 notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
 notes.colnames = h5read(h5.file.name, "/col_names")
-
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
 notes.base.f = basic.obs.matrix()
 

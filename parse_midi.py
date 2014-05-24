@@ -8,6 +8,7 @@ import tables
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 import random
 import warnings
+import math
 
 from config import *
 
@@ -101,6 +102,25 @@ from config import *
 # # span in 5ths at various time offsets (nope, didn't work)
 # # f-divergence between spectral band occupancy folded onto one octave (free "smoothing" param to calibrate, slow, but more intuitive. Not great realtime...)
 
+meta_table_description = {
+    'result': tables.IntCol(1, dflt=0), #success/fail
+    'file': tables.StringCol(50), # factor: which sourcefile
+    'time': tables.FloatCol(), # event time
+    'thisNote': tables.UIntCol(), # midi note number for central pitch
+    'obsID': tables.UIntCol(), #  for matching with the other data
+    'eventID': tables.UIntCol(), # working out which event cause this
+}
+
+barcode_table_description = {
+    'obsID': tables.UIntCol(), #  for matching with the other data
+    'b5': tables.IntCol(1, dflt=0),
+    'b4': tables.IntCol(1, dflt=0),
+    'b3': tables.IntCol(1, dflt=0),
+    'b2': tables.IntCol(1, dflt=0),
+    'b1': tables.IntCol(1, dflt=0),
+}
+
+
 def transition_summary(note_transitions, threshold=0):
     #binomial note summary
     on_counts = dict()
@@ -193,6 +213,9 @@ def parse():
             obs_table = table_handle.create_table('/', 'note_meta',
                 meta_table_description,
                 filters=tables.Filters(complevel=1))
+            barcode_table = table_handle.create_table('/', 'note_barcode',
+                barcode_table_description,
+                filters=tables.Filters(complevel=1))
         col_table = table_handle.create_table('/', 'col_names',
             {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
         for i in sorted(r_name_for_i.keys()):
@@ -229,6 +252,7 @@ def parse():
                         obs_list.append(obs_counter)
 
                 if n_held_notes>0:
+                    barcode = int(math.floor((next_time_stamp % 4.0 + 0.99/8) * 4.0))
                     obs_table.row['file'] = file_key
                     obs_table.row['time'] = next_time_stamp
                     obs_table.row['obsID'] = obs_counter
@@ -236,6 +260,12 @@ def parse():
                     obs_table.row['thisNote'] = local_pitch
                     obs_table.row['result'] = result
                     obs_table.row.append()
+                    barcode_table.row['obsID'] = obs_counter
+                    barcode_table.row['b4'] = (barcode & 8) /8
+                    barcode_table.row['b3'] = (barcode & 4) /4
+                    barcode_table.row['b2'] = (barcode & 2) /2
+                    barcode_table.row['b1'] = (barcode & 1)
+                    barcode_table.row.append()
                     obs_counter += 1
 
         def parse_midi_file(base_dir, midi_file):
