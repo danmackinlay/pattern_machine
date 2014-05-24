@@ -4,7 +4,6 @@ import scipy as sp
 from scipy.sparse import coo_matrix, dok_matrix
 from scipy.stats import power_divergence
 from random import randint, sample
-from math import log
 
 import tables
 
@@ -15,8 +14,8 @@ def lik_test(N,Y,p0):
     return power_divergence(f_obs=[N-Y,Y], f_exp=[N-Y0,Y0], lambda_="log-likelihood")[1]
 
 def log_lik_ratio(N,Y,p0):
-    p1 = float(Y)/N
-    return Y*(log(p1/p0))+(Y-N)*log((1-p1)/(1-p0))
+    Y0 = int(round(p0*N))
+    return power_divergence(f_obs=[N-Y,Y], f_exp=[N-Y0,Y0], lambda_="log-likelihood")[0]
 
 def square_feature(A, center=2.0, radius=0.125):
     return ((A-center)<radius).astype(np.int32)
