@@ -113,16 +113,16 @@ used_bases = set(feature_bases)
 feature_sizes = [f.sum() for f in features]
 feature_successes = [f.multiply(results_sparse).sum() for f in features]
 feature_probs = [float(feature_successes[i])/feature_sizes[i] for i in xrange(len(feature_sizes))]
-#feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
+feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 
 # Here begins an unprinciple feature search. Lazily we will assume that success features
 # contain all the relevent information
 
 min_size = base_size/10000
-p_val_thresh = 10e-2
+p_val_thresh = 0.05 #loose! multiple comparision prob
 max_features = 1000
-tol = 1.1
+#tol = 1.01
 
 while True:
     i, j = 0, 0
@@ -136,8 +136,6 @@ while True:
     print "trying", prop_name
     prob_i = feature_probs[i]
     prob_j = feature_probs[j]
-    # pval_i = feature_pvals[i]
-    # pval_j = feature_pvals[j]
     prop_feat = features[i].multiply(features[j])
     prop_size = prop_feat.sum()
     if prop_size<min_size:
@@ -145,16 +143,19 @@ while True:
         continue
     prop_succ = prop_feat.multiply(results_sparse).sum()
     prop_prob = float(prop_succ)/prop_size
-    # prop_pval = max(
-    #     lik_test(prop_size, prop_succ, prob_i),
-    #     lik_test(prop_size, prop_succ, prob_j),
-    # )
-    parent_lik = max(
-        log_lik_ratio(prop_size, prop_succ, prob_i),
-        log_lik_ratio(prop_size, prop_succ, prob_j),
+    prop_pval = max(
+        lik_test(prop_size, prop_succ, prob_i),
+        lik_test(prop_size, prop_succ, prob_j),
     )
+    parent_lik = max(
+        feature_liks[i],
+        feature_liks[j],
+    )
+    # Base success rate is the wrong criterion here; it should be whether our marginal probs
+    # are different than the parents:
     prop_lik = log_lik_ratio(prop_size, prop_succ, base_success_rate)
-    if prop_lik<=parent_lik*tol:
+    
+    if prop_pval>p_val_thresh:
         #NB this is a greedy heuristic
         # and it ignores behaviour of negated variable; 2x2 Chi2 would be better
         continue
@@ -167,6 +168,7 @@ while True:
     feature_successes.append(prop_succ)
     feature_probs.append(prop_prob)
     feature_liks.append(prop_lik)
+    feature_pvals.append(prop_pval)
     if len(features) >= max_features: break
 
 # Here's an arbitrary way of guessing the comparative importance of these:
@@ -196,27 +198,27 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # So we go to R:
 mega_features = sp.sparse.hstack(features).tocsr()
 
-with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
-    filt = tables.Filters(complevel=5)
-
-    table_handle.create_carray('/','v_indices',
-        atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
-        title="indices",
-        filters=filt)[:] = mega_features.indices
-    table_handle.create_carray('/','v_indptr',
-        atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
-        title="index ptr",
-        filters=filt)[:] = mega_features.indptr
-    table_handle.create_carray('/','v_data',
-        atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
-        title="data",
-        filters=filt)[:] = mega_features.data
-    table_handle.create_carray('/','v_colnames',
-        atom=tables.StringAtom(
-            max([len(n) for n in feature_names])
-        ), shape=(len(feature_names),),
-        title="data",
-        filters=filt)[:] = feature_names
+# with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
+#     filt = tables.Filters(complevel=5)
+# 
+#     table_handle.create_carray('/','v_indices',
+#         atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
+#         title="indices",
+#         filters=filt)[:] = mega_features.indices
+#     table_handle.create_carray('/','v_indptr',
+#         atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
+#         title="index ptr",
+#         filters=filt)[:] = mega_features.indptr
+#     table_handle.create_carray('/','v_data',
+#         atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
+#         title="data",
+#         filters=filt)[:] = mega_features.data
+#     table_handle.create_carray('/','v_colnames',
+#         atom=tables.StringAtom(
+#             max([len(n) for n in feature_names])
+#         ), shape=(len(feature_names),),
+#         title="data",
+#         filters=filt)[:] = feature_names
 
 # rgr_lasso = Lasso(alpha=0.001)
 # rgr_lasso.fit(proj_operator, proj.ravel())

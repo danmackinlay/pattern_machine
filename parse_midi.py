@@ -193,7 +193,7 @@ def parse():
     recence_list = []
     mean_pitch_rate = [0.0] * 128
     curr_delta = 0.0
-    with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(TABLE_OUT_PATH, 'w') as table_handle:
+    with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
         csv_writer.writerow(csv_fieldnames)
 
