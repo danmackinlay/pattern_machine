@@ -131,6 +131,7 @@ while True:
         i, j = sorted(sample(xrange(len(features)), 2))
         prop_basis = tuple(sorted(set(feature_bases[i]+feature_bases[j])))
         if prop_basis not in used_bases: break
+    used_bases.add(prop_basis)
     prop_name = ":".join([feature_names[f] for f in prop_basis])
     print "trying", prop_name
     prob_i = feature_probs[i]
@@ -162,7 +163,6 @@ while True:
     print "including", prop_name
     feature_names.append(prop_name)
     feature_bases.append(prop_basis)
-    used_bases.add(prop_basis)
     feature_sizes.append(prop_size)
     feature_successes.append(prop_succ)
     feature_probs.append(prop_prob)
