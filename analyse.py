@@ -122,6 +122,7 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 min_size = base_size/10000
 p_val_thresh = 10e-2
 max_features = 1000
+tol = 1.1
 
 while True:
     i, j = 0, 0
@@ -152,9 +153,9 @@ while True:
         log_lik_ratio(prop_size, prop_succ, prob_j),
     )
     prop_lik = log_lik_ratio(prop_size, prop_succ, base_success_rate)
-    if prop_lik<=parent_lik:
+    if prop_lik<=parent_lik*tol:
         #NB this is a greedy heuristic
-        # and it ignores behaviour of negated variable
+        # and it ignores behaviour of negated variable; 2x2 Chi2 would be better
         continue
     #Otherwise, we have a contender. Add it to the pool.
     features.append(prop_feat)
@@ -170,7 +171,8 @@ while True:
 
 # Here's an arbitrary way of guessing the comparative importance of these:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
-# I could prune the least intersting half and repeat the process?
+# I could prune the least interesting half and repeat the process?
+# Also note a suspicious number have the same "rank" - something is spurious with my reasoning
 # patience; let's fit a model first.
 
 #recommended feature format.
