@@ -131,7 +131,7 @@ while True:
         i, j = sorted(sample(xrange(len(features)), 2))
         prop_basis = tuple(sorted(set(feature_bases[i]+feature_bases[j])))
         if prop_basis not in used_bases: break
-    prop_name = ":".join([feature_names[i] for i in prop_basis])
+    prop_name = ":".join([feature_names[f] for f in prop_basis])
     print "trying", prop_name
     prob_i = feature_probs[i]
     prob_j = feature_probs[j]
