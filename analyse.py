@@ -176,12 +176,26 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # patience; let's fit a model first.
 
 #recommended feature format.
-#TODO: CV
+#TODO: CV http://scikit-learn.org/stable/modules/cross_validation.html#cross-validation
+# http://scikit-learn.org/stable/modules/grid_search.html#grid-search
+# logistic unsupported for naticve CV boo
+# http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LassoCV.html
+# Documentation is scanty:
+# Multi-core parallelism using joblib.Parallel
+# TODO: give a simple teaser example here.
+# Checkout the official joblib documentation:
+# http://packages.python.org/joblib/
+# A sample algorithmic trick: warm restarts for cross validation
+# TODO: demonstrate the warm restart tricks for cross validation of linear regression with Coordinate Descent.
+
 mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
 mega_target = meta_result.astype(np.float64)
 mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 mod.fit(mega_features, mega_target)
 
+# NB this might be quicker with SGD
+# http://scikit-learn.org/stable/modules/sgd.html#sgd
+# mod = = SGDClassifier(loss="log", penalty="l1", shuffle=True)
 # rgr_lasso = Lasso(alpha=0.001)
 # rgr_lasso.fit(proj_operator, proj.ravel())
 # rec_l1 = rgr_lasso.coef_.reshape(l, l)
