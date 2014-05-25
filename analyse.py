@@ -24,7 +24,7 @@ def square_feature(A, center=2.0, radius=0.125):
 def triangle_feature(A, center=2.0, radius=0.125):
     return (1.0-np.abs(A-center)/radius)*((A-center)<radius)
 
-table_handle = tables.open_file(TABLE_OUT_PATH, 'r')
+table_handle = tables.open_file(BASIC_TABLE_OUT_PATH, 'r')
 note_meta = table_handle.get_node('/', 'note_meta')
 n_obs = note_meta.nrows
 
@@ -121,8 +121,7 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 
 min_size = base_size/10000
 p_val_thresh = 10e-2
-max_features = 10000
-n_features = 0
+max_features = 1000
 
 while True:
     i, j = 0, 0
@@ -177,24 +176,46 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 #recommended feature format.
 #TODO: CV http://scikit-learn.org/stable/modules/cross_validation.html#cross-validation
 # http://scikit-learn.org/stable/modules/grid_search.html#grid-search
-# logistic unsupported for naticve CV boo
+# logistic unsupported for native CV boo
 # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LassoCV.html
-# Documentation is scanty:
-# Multi-core parallelism using joblib.Parallel
-# TODO: give a simple teaser example here.
-# Checkout the official joblib documentation:
+# Documentation is scanty, but parallelism thorugh joblib:
 # http://packages.python.org/joblib/
 # A sample algorithmic trick: warm restarts for cross validation
 # TODO: demonstrate the warm restart tricks for cross validation of linear regression with Coordinate Descent.
-
-mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
-mega_target = meta_result.astype(np.float64)
-mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
-mod.fit(mega_features, mega_target)
-
 # NB this might be quicker with SGD
 # http://scikit-learn.org/stable/modules/sgd.html#sgd
 # mod = = SGDClassifier(loss="log", penalty="l1", shuffle=True)
+# Incredibly slow:
+# mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
+# mega_target = meta_result.astype(np.float64)
+# mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
+# mod.fit(mega_features, mega_target)
+
+# So we go to R:
+mega_features = sp.sparse.hstack(features).tocsr()
+
+with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
+    filt = tables.Filters(complevel=5)
+
+    table_handle.create_carray('/','v_indices',
+        atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
+        title="indices",
+        filters=filt)[:] = mega_features.indices
+    table_handle.create_carray('/','v_indptr',
+        atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
+        title="index ptr",
+        filters=filt)[:] = mega_features.indptr
+    table_handle.create_carray('/','v_data',
+        atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
+        title="data",
+        filters=filt)[:] = mega_features.data
+    table_handle.create_carray('/','v_colnames',
+        atom=tables.StringAtom(
+            max([len(n) for n in feature_names])
+        ), shape=(len(feature_names),),
+        title="data",
+        filters=filt)[:] = feature_names
+
 # rgr_lasso = Lasso(alpha=0.001)
 # rgr_lasso.fit(proj_operator, proj.ravel())
 # rec_l1 = rgr_lasso.coef_.reshape(l, l)
