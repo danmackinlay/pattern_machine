@@ -129,8 +129,9 @@ while True:
     while True:
         #should we be weighting the parent features somehow?
         i, j = sorted(sample(xrange(len(features)), 2))
-        if (i,j) not in used_bases: break
-    prop_name = feature_names[i] + ":" + feature_names[j]
+        prop_basis = tuple(sorted(set(feature_bases[i]+feature_bases[j])))
+        if prop_basis not in used_bases: break
+    prop_name = ":".join([feature_names[i] for i in prop_basis])
     print "trying", prop_name
     prob_i = feature_probs[i]
     prob_j = feature_probs[j]
@@ -157,18 +158,16 @@ while True:
         # and it ignores behaviour of negated variable
         continue
     #Otherwise, we have a contender. Add it to the pool.
-    n_features += 1
     features.append(prop_feat)
     print "including", prop_name
     feature_names.append(prop_name)
-    prop_basis = tuple(sorted(feature_bases[i] + feature_bases[j]))
     feature_bases.append(prop_basis)
     used_bases.add(prop_basis)
     feature_sizes.append(prop_size)
     feature_successes.append(prop_succ)
     feature_probs.append(prop_prob)
     feature_liks.append(prop_lik)
-    if n_features >= max_features: break
+    if len(features) >= max_features: break
 
 # Here's an arbitrary way of guessing the comparative importance of these:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
