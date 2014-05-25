@@ -195,8 +195,8 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 # mod.fit(mega_features, mega_target)
 
-# So we go to R:
-mega_features = sp.sparse.hstack(features).tocsr()
+# So we go to R: (csr for liblineaR use, csc for R use)
+mega_features = sp.sparse.hstack(features).tocsc()
 
 with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
     filt = tables.Filters(complevel=5)
