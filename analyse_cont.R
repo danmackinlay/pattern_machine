@@ -7,6 +7,7 @@ require(doMC)
 registerDoMC(cores=4)
 require(rhdf5)
 source("featureMatrix.R")
+source("config.R")
 
 ###settings
 # how many observations we throw out (oversampling of cases means the data set blows up)
@@ -14,7 +15,6 @@ row.thin.factor = 5
 # how many we cut off the edge of note neighbourhood
 col.trim.count = 0
 # which file has the data
-h5.file.name = "rag.h5"
 
 #can't work out how to extract this as attribute, although should as it is data-dependent
 max.age = 2.0
@@ -24,71 +24,6 @@ radius = 0.125
 #function to trim rows from a sparse matrix
 #(also removes entirely rows which are all 0, which is only appropriate for this particular model.)
 #seems to be broken in the sparse case.
-trim.col = function(mat,n=0){
-  trimmed = mat[,(n+1):(ncol(mat)-n)]
-  mask = rowSums(mat)>0
-  return(list(trimmed=trimmed[mask,], mask = mask))
-}
-
-dissect.coefs = function(coefs){
-  #horrifically inefficient, but I can't be arsed working out how to do this better in R
-  #it's not conceptually well-posed anyway
-  scoefmags = (coefs[summary(coefs)$i])[-1]
-  coefmags = abs(scoefmags)
-  coefnames = rownames(coefs)[summary(coefs)$i][-1]
-  coeford = order(coefmags, decreasing=T)
-  coefchunks = data.frame()
-  for (i in 1:length(coefnames)) {
-    for (j in as.vector(str_split(coefnames[[i]], "[:x]")[[1]])) {
-      coefchunks = rbind(coefchunks, data.frame(name = j, mag=coefmags[i]))
-    }
-  }
-  coefchunks$name = as.factor(coefchunks$name)
-  coefsumm = data.frame()
-  for (j in levels(coefchunks$name)) {coefsumm = rbind(coefsumm, data.frame(name=j, mag = sum(coefchunks[coefchunks$name==j,"mag"])))}
-  coefsumm=coefsumm[order(coefsumm$mag,decreasing=T),]
-  return(list(
-    mag.imp=data.frame(
-      mag=scoefmags[coeford],
-      name=as.factor(coefnames[coeford])), 
-    chunks = coefsumm)
-  )
-}
-
-coefs.as.json <- function (coefs.matrix) {
-  coef.list = list()
-  for (n in row.names(coefs.matrix)) {
-    if (coefs.matrix[n,] !=0) coef.list[n] = coefs.matrix[n,]
-  }
-  return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
-}
-
-#triangular feature fn
-feat.tri = function(col, x0=1.0, radius=0.25) {
-  return(pmax(1.0-abs((col-x0)/radius),0))
-}
-
-#peak-differentiable feature fn
-feat.sin = function(...) {
-  return(sin(pi/2*feat.tri(...)))
-}
-#everywhere differentiable feature fn
-feat.sin2 = function(...) {
-  return(sin(pi/2*feat.tri(...))^2)
-}
-
-basic.obs.matrix = function () {
-  #should i use the obsids as names here?
-  fmat = sparseMatrix(
-      i=notes.obsid,
-      j=notes.p,
-      x=notes.recence,
-      dims=notes.dims,
-      index1=F
-  )
-  colnames(fmat)=paste(notes.colnames$rname)
-  return(fmat)
-}
 
 feature.matrix = function (sourceSparseMat, x0=1.0, radius=0.25, f.num=0) {
   feat.val = feat.tri(sourceSparseMat@x, max.age, radius)
@@ -105,13 +40,13 @@ feature.matrix = function (sourceSparseMat, x0=1.0, radius=0.25, f.num=0) {
 }
 
 #load actual data
-notes.obsdata = h5read(h5.file.name, "/note_meta")
+notes.obsdata = h5read(h5.file.name.basic.basic, "/note_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
-notes.obsid = as.vector(h5read(h5.file.name, '/v_obsid'))
-notes.p = as.vector(h5read(h5.file.name, '/v_p'))
-notes.recence = as.vector(h5read(h5.file.name, '/v_recence'))
+notes.obsid = as.vector(h5read(h5.file.name.basic.basic, '/v_obsid'))
+notes.p = as.vector(h5read(h5.file.name.basic.basic, '/v_p'))
+notes.recence = as.vector(h5read(h5.file.name.basic.basic, '/v_recence'))
 notes.dims = c(max(notes.obsid)+1, max(notes.p)+1)
-notes.colnames = h5read(h5.file.name, "/col_names")
+notes.colnames = h5read(h5.file.name.basic.basic, "/col_names")
 #hist(notes.recence, breaks=seq(0,1.56,1/64)-1/128)
 notes.base.f = basic.obs.matrix()
 

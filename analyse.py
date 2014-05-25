@@ -198,27 +198,31 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # So we go to R:
 mega_features = sp.sparse.hstack(features).tocsr()
 
-# with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
-#     filt = tables.Filters(complevel=5)
-# 
-#     table_handle.create_carray('/','v_indices',
-#         atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
-#         title="indices",
-#         filters=filt)[:] = mega_features.indices
-#     table_handle.create_carray('/','v_indptr',
-#         atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
-#         title="index ptr",
-#         filters=filt)[:] = mega_features.indptr
-#     table_handle.create_carray('/','v_data',
-#         atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
-#         title="data",
-#         filters=filt)[:] = mega_features.data
-#     table_handle.create_carray('/','v_colnames',
-#         atom=tables.StringAtom(
-#             max([len(n) for n in feature_names])
-#         ), shape=(len(feature_names),),
-#         title="data",
-#         filters=filt)[:] = feature_names
+with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
+    filt = tables.Filters(complevel=5)
+
+    table_handle.create_carray('/','v_indices',
+        atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
+        title="indices",
+        filters=filt)[:] = mega_features.indices
+    table_handle.create_carray('/','v_indptr',
+        atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
+        title="index ptr",
+        filters=filt)[:] = mega_features.indptr
+    table_handle.create_carray('/','v_data',
+        atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
+        title="data",
+        filters=filt)[:] = mega_features.data
+    table_handle.create_carray('/','v_col_names',
+        atom=tables.StringAtom(
+            max([len(n) for n in feature_names])
+        ), shape=(len(feature_names),),
+        title="colnames",
+        filters=filt)[:] = feature_names
+    table_handle.create_carray('/','v_datadims',
+        atom=tables.Int32Atom(), shape=(2,),
+        title="data dims",
+        filters=filt)[:] = mega_features.shape
 
 # rgr_lasso = Lasso(alpha=0.001)
 # rgr_lasso.fit(proj_operator, proj.ravel())
