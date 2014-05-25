@@ -1,8 +1,6 @@
 library("Matrix")
 library("glmnet")
 library("stringr")
-library("jsonlite")
-#disable parallelism for now because of ram shortage
 require(doMC)
 registerDoMC(cores=4)
 require(rhdf5)
@@ -26,8 +24,7 @@ notes.f = sparseMatrix(
   index1=F
 )
 colnames(notes.f)=paste(notes.colnames)
-notes.f=drop0(notes.f)
-
+rm(notes.obsidx, notes.obsptr, notes.vals)
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!

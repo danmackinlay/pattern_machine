@@ -116,7 +116,7 @@ feature_probs = [float(feature_successes[i])/feature_sizes[i] for i in xrange(le
 feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 
-# Here begins an unprinciple feature search. Lazily we will assume that success features
+# Here begins an unprincipled feature search. Lazily we will assume that success features
 # contain all the relevent information
 
 min_size = base_size/10000
@@ -197,6 +197,11 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 
 # So we go to R: (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack(features).tocsc()
+
+
+# Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual trials together while forgetting songs.
+
+#Todo also: predict inter-event times - this is also a classification task
 
 with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
     filt = tables.Filters(complevel=5)
