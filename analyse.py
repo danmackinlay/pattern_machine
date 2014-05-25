@@ -4,6 +4,7 @@ import scipy as sp
 from scipy.sparse import coo_matrix, dok_matrix
 from scipy.stats import power_divergence
 from random import randint, sample
+from sklearn.linear_model import Lasso, LogisticRegression
 
 import tables
 
@@ -170,4 +171,36 @@ while True:
     if n_features >= max_features: break
 
 # Here's an arbitrary way of guessing the comparative importance of these:
-ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_names[i]) for i in xrange(len(features))])
+ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
+# I could prune the least intersting half and repeat the process?
+# patience; let's fit a model first.
+
+#recommended feature format.
+#TODO: CV
+mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
+mega_target = meta_result.astype(np.float64)
+mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
+mod.fit(mega_features, mega_target)
+
+# rgr_lasso = Lasso(alpha=0.001)
+# rgr_lasso.fit(proj_operator, proj.ravel())
+# rec_l1 = rgr_lasso.coef_.reshape(l, l)
+# 
+# print("Computing regularization path ...")
+# start = datetime.now()
+# clf = linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
+# coefs_ = []
+# for c in cs:
+#     clf.set_params(C=c)
+#     clf.fit(X, y)
+#     coefs_.append(clf.coef_.ravel().copy())
+# print("This took ", datetime.now() - start)
+# 
+# coefs_ = np.array(coefs_)
+# pl.plot(np.log10(cs), coefs_)
+# ymin, ymax = pl.ylim()
+# pl.xlabel('log(C)')
+# pl.ylabel('Coefficients')
+# pl.title('Logistic Regression Path')
+# pl.axis('tight')
+# pl.show(
