@@ -1,6 +1,5 @@
 from pprint import pprint
 import os
-import csv
 import tables
 from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 import random

@@ -2,37 +2,6 @@ from music21 import converter, instrument, midi
 from music21.note import Note, NotRest, Rest
 from music21.chord import Chord
 
-def transition_summary(note_transitions, threshold=0):
-    #binomial note summary
-    on_counts = dict()
-    off_counts = dict()
-    all_counts = dict()
-
-    curr_held_notes = tuple()
-
-    for held_notes in note_transitions:
-        next_held_notes = tuple(sorted([n for n,t in held_notes.iteritems() if t>threshold]))
-        # we only want to look at notes within a neighbourhood of something happening
-        # otherwise nothing->nothing dominates the data
-        domain = set(curr_held_notes + next_held_notes)
-        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
-            neighborhood = []
-            # find ON notes:
-            for i in curr_held_notes:
-                rel_pitch = i - local_pitch
-                if abs(rel_pitch)<=NEIGHBORHOOD_RADIUS:
-                    neighborhood.append(rel_pitch)
-            neighborhood = tuple(neighborhood)
-
-            all_counts[neighborhood] = all_counts.get(neighborhood,0)+1
-            if local_pitch in next_held_notes:
-                on_counts[neighborhood] = on_counts.get(neighborhood,0)+1
-            else:
-                off_counts[neighborhood] = off_counts.get(neighborhood,0)+1
-        curr_held_notes = tuple(next_held_notes)
-
-    return on_counts, off_counts, all_counts
-
 def analyze_times(note_stream):
     # do some analysis of note inter-arrival times to check our tempo assumptions
     first_event = note_stream.flat.notes.offsetMap[0]['offset']
@@ -72,20 +41,7 @@ def parse():
     recence_list = []
     mean_pitch_rate = [0.0] * 128
     curr_delta = 0.0
-    with open(CSV_OUT_PATH, 'w') as csv_handle, tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
-        csv_writer = csv.writer(csv_handle, quoting=csv.QUOTE_NONNUMERIC)
-        csv_writer.writerow(csv_fieldnames)
-
-        def write_csv_row(counts):
-            on_counts, off_counts, all_counts = counts
-            for i, neighborhood in enumerate(sorted(all_counts.keys())):
-                csv_writer.writerow(
-                  [file_key] +
-                  [(1 if i in neighborhood else 0) for i in xrange(-NEIGHBORHOOD_RADIUS, NEIGHBORHOOD_RADIUS+1)] +
-                  [total_detunedness(neighborhood), span_in_5ths(neighborhood),
-                    span_in_5ths_up(neighborhood), span_in_5ths_down(neighborhood)] +
-                  [on_counts.get(neighborhood, 0), off_counts.get(neighborhood, 0)]
-                )
+    with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         #ignore warnings for that bit; I know my column names are annoying.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -186,17 +142,7 @@ def parse():
                     #for the next time step, we need to include the new note:
                     note_times[next_note] = next_time_stamp
 
-                    # For the CSV file we append the next note to the transition info
-                    # NB this means that CSV ignores the note's own prior state, a difference with the full data.
-                    next_transition = dict([
-                        (this_note, MAX_AGE - next_time_stamp + this_time_stamp)
-                        for this_note, this_time_stamp in note_times.iteritems()
-                    ])
-
                     event_counter += 1
-
-            # CSV writer can haz pound of flesh
-            write_csv_row(transition_summary(note_transitions, ROUGH_NEWNESS_THRESHOLD))
 
         def parse_if_midi(_, file_dir, file_list):
             for f in file_list:
