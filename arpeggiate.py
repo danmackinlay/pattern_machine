@@ -13,7 +13,6 @@ from sklearn.linear_model import Lasso, LogisticRegression
 from parse_midi import get_data_set
 from config import *
 
-
 meta_table_description = {
     'result': tables.IntCol(dflt=0), #success/fail
     'file': tables.StringCol(50), # factor: which sourcefile
@@ -27,8 +26,6 @@ meta_table_description = {
     'b2': tables.IntCol(),
     'b1': tables.IntCol(),
 }
-
-##################################
 
 def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
     n_obs = len(note_meta['obsId'])
