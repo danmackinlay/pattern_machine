@@ -1,7 +1,6 @@
 from pprint import pprint
 import os
 import tables
-from util import total_detunedness, span_in_5ths, span_in_5ths_up, span_in_5ths_down
 import random
 from random import randint, sample
 import warnings
@@ -11,98 +10,9 @@ from scipy.sparse import coo_matrix, dok_matrix
 from scipy.stats import power_divergence
 from sklearn.linear_model import Lasso, LogisticRegression
 
-from parse_midi import *
+from parse_midi import get_data_set
 from config import *
 
-###PROBABILISTIC CONCERNS
-# Am I doing this wrong? I could model odds of each note sounding conditional on environment.
-# Could also model, conditional on environment, which note goes on.
-# should try and attribute amt of error to each song
-# I could go to AIC or BIC instead of cross validation to save CPU cycles
-
-#### IMPLMEMENTING LINEAR MODEL
-# See R packages glmnet, liblineaR, rms
-# NB liblineaR has python binding
-# if we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
-# OR even do hierarchical penalised regression using http://cran.r-project.org/web/packages/glinternet/index.html
-# For now
-# see http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
-# and http://www.jstatsoft.org/v33/i01/paper
-
-# if this DOESN'T work, could go to a discrete PGM model, such as
-# http://cran.r-project.org/web/packages/catnet/vignettes/catnet.pdf
-# https://r-forge.r-project.org/R/?group_id=1487
-# gRaphHD http://www.jstatsoft.org/v37/i01/
-# http://www.bnlearn.com/
-# but let's stay simple.
-
-
-
-###TODO:
-# hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
-# trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
-# use feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
-# Switch to pure python using liblinear http://www.csie.ntu.edu.tw/~cjlin/liblinear/
-# save metadata:
-# # MAX_AGE
-# # matrix dimensions
-# # source dataset
-# # factor mapping
-# bludgeon R into actually reading the fucking metadata Grrrr R.
-# explicitly use R-happy names for CSV, for clarity
-# call into R using rpy2, to avoid this horrible manual way of doing things, and also R
-# could fit model condition on NUMBER OF HELD NOTES which would be faster to infer and to predict, and more accurate
-
-### FEATURE CONCERNS
-#TODO: I have a lot of data here;
-# should probably throw over CV and do straight training/prediction split
-# todo: fits should know own AND NEIGHBOURS' base rates
-# remove rows, and disambiguate what remains. (trimming columns leads to spurious duplicates with 0 notes in)
-# Add a logical feature specifying bar position; possibly fit separate models for each
-
-# Bonus datasets I jsut noticed on http://deeplearning.net/datasets/
-# Piano-midi.de: classical piano pieces (http://www.piano-midi.de/)
-# Nottingham : over 1000 folk tunes (http://abc.sourceforge.net/NMD/)
-# MuseData: electronic library of classical music scores (http://musedata.stanford.edu/)
-# JSB Chorales: set of four-part harmonized chorales (http://www.jsbchorales.net/index.shtml)
-
-# see also the deep learning approach: http://deeplearning.net/tutorial/rnnrbm.html#rnnrbm andd
-# http://www-etud.iro.umontreal.ca/~boulanni/ICML2012.pdf
-
-# Deep learning feels like overkill, but i feel like i could do some *un*principled feature construction;
-# we suspect marginal changes in features have a linear effect, fine
-# but we also suspect that interaction terms are critical;
-# can we manufacture some hopefully-good features without an exhuastive, expensive, simultaneous optimisation over all of them?
-# Naive approach: walk through term-interaction space, discrectized. Start with one predictor, and add additional predictors randomly (greedily) if the combination has improved deviance wrt the mean. it "feels" like features shoudl be positive or negative
-# # If i wanted features that did not naturally look discrete i coudl fit minature linear models to each combination?
-# # Or make features that correspond to being "near" some value
-# # it seems like boolean opeartions on features should also be allowed - intersections and unions and such
-# # this could be  naturally accomplished by generating each generation of eatures from the previous and ditching the crappy ones. This feels dangerously close to evolutionary algorithms, or maybe random forests or somesuch. vectorisable tho.
-# I could always give up and infer hidden markov states. sigh.
-
-# current model is ugly but works - Not guarnnteed to respect hierarchicality but seems to anyway.
-# go to "time-since-last-onset" rather than midi note hold times, which are very noisy anyway. NB - large data sets.
-# experiment with longer note smears
-# experiment with adaptive note smearing
-# I would like to capture spectrally-meaningful relations
-# # such as projecting onto harmonic space
-# # note that otherwise, I am missing out (really?) under-represented transitions in the data.
-# # I could use Dictionary learning http://scikit-learn.org/stable/modules/decomposition.html#dictionary-learning to reduce the number of features from the combinatorial combinations (feels weird; am I guaranteed this will capture *important* features?)
-# # I could use PCA - http://scikit-learn.org/stable/modules/decomposition.html#approximate-pca
-# # I could use NNMF - http://scikit-learn.org/stable/modules/decomposition.html#non-negative-matrix-factorization-nmf-or-nnmf
-# # TruncatedSVD also looks sparse-friendly and is linguistics-based - i.e. polysemy friendly
-# Interesting idea might be to use a kernel regression system. Possible kernels (pos def?)
-# # Convolution amplitude (effectively Fourier comparison)
-# # mutual information of square waves at specified frequency (discrete distribution!)
-# # # or Pearson statistic!
-# # or mutual information of wavelength count at specified frequency
-# # could be windowed. Real human hearing is, after all...
-# improved feature ideas:
-# # feature vector of approximate prime decomposition of ratios
-# # number of held notes (nope, no good)
-# # time since last note at a given relative pitch (not clear what to do with this yet)
-# # span in 5ths at various time offsets (nope, didn't work)
-# # f-divergence between spectral band occupancy folded onto one octave (free "smoothing" param to calibrate, slow, but more intuitive. Not great realtime...)
 
 meta_table_description = {
     'result': tables.IntCol(dflt=0), #success/fail
@@ -111,10 +21,6 @@ meta_table_description = {
     'thisNote': tables.UIntCol(), # midi note number for central pitch
     'obsID': tables.UIntCol(), #  for matching with the other data
     'eventID': tables.UIntCol(), # working out which event cause this
-}
-
-barcode_table_description = {
-    'obsID': tables.UIntCol(), #  for matching with the other data
     'b5': tables.IntCol(),
     'b4': tables.IntCol(),
     'b3': tables.IntCol(),
@@ -122,76 +28,91 @@ barcode_table_description = {
     'b1': tables.IntCol(),
 }
 
+##################################
 
-table_handle = tables.open_file(BASIC_TABLE_OUT_PATH, 'r')
-note_meta = table_handle.get_node('/', 'note_meta')
-n_obs = note_meta.nrows
+def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
+    n_obs = len(note_meta['obsId'])
+    obs_vec['obs_list'] = np.asarray(obs_list, dtype=np.int32)
+    obs_vec['p_list'] = np.asarray(p_list, dtype=np.int32)
+    obs_vec['recence_list'] = np.asarray(recence_list, dtype=np.float32)
+    obs_vec = coo_matrix(
+        (
+            obs_vec['recence_list'],
+            (obs_vec['obs_list'], obs_vec['p_list'] )
+        ),
+        shape=(n_obs, NEIGHBORHOOD_RADIUS*2+1)).tocsc()
+    mean_pitch_rate = np.asarray(mean_pitch_rate, dtype=np.float32)
 
-meta_obsid = note_meta.read(field="obsID").astype(np.int32)
-meta_result = note_meta.read(field="result").astype(np.int32)
-meta_this_note = note_meta.read(field="thisNote").astype(np.int32)
-meta_note_time = note_meta.read(field="time").astype(np.float32)
+    barcode_arr = np.zeros((n_obs,4), dtype=np.int32)
+    barcode_arr[:,0] = obs_meta['b1']
+    del(obs_meta['b1'])
+    barcode_arr[:,1] = obs_meta['b2']
+    obs_meta['b2']
+    barcode_arr[:,2] = obs_meta['b3']
+    obs_meta['b3']
+    barcode_arr[:,3] = obs_meta['b4']
+    obs_meta['b4']
+    obs_meta['barcode'] = barcode_arr
 
-base_size = len(meta_obsid)
-base_success_rate = meta_result.mean()
+    obs_meta['file'] = np.asarray(obs_meta['file'])
+    obs_meta['obsId'] = np.asarray(obs_meta['obsId'], dtype = np.int32)
+    obs_meta['eventId'] = np.asarray(obs_meta['eventId'], dtype = np.int32)
+    obs_meta['thisNote'] = np.asarray(obs_meta['thisNote'], dtype = np.int32)
+    obs_meta['result'] = np.asarray(obs_meta['result'], dtype = np.int32)
+    obs_meta['time'] = np.asarray(obs_meta['time'], dtype = np.float32)
 
-note_barcode = table_handle.get_node('/', 'note_barcode')
-note_barcode_arr = np.zeros((n_obs,4), dtype=np.int32)
-note_barcode_arr[:,0] = note_barcode.read(field="b1")
-note_barcode_arr[:,1] = note_barcode.read(field="b2")
-note_barcode_arr[:,2] = note_barcode.read(field="b3")
-note_barcode_arr[:,3] = note_barcode.read(field="b4")
+    return obs_meta, obs_vec, mean_pitch_rate
 
-n_basic_vars = note_meta.attrs.neighborhoodRadius * 2 + 1
+######################################### former analyse module
+obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(get_data_set())
+n_obs = note_meta['obsId'].size
+base_success_rate = note_meta["result"].mean()
+
+n_basic_vars = NEIGHBORHOOD_RADIUS * 2 + 1
 max_age = note_meta.attrs.maxAge
 
 base_rate = table_handle.get_node('/', 'v_base_rate').read().astype(np.float32)
 rel_base_rate = table_handle.get_node('/', 'v_rel_base_rate').read().astype(np.float32)
 col_names = [r['rname'] for r in table_handle.get_node('/', 'col_names').iterrows()]
-
-obs_id = table_handle.get_node('/', 'v_obsid').read().astype(np.int32)
-basic_var_id = table_handle.get_node('/', 'v_p').read().astype(np.int32)
-recence = table_handle.get_node('/', 'v_recence').read().astype(np.float32)
-
-f0 = coo_matrix(
+f0 = csc_matrix(
     (
-        square_feature(recence, max_age, 0.125),
-        (obs_id,basic_var_id))
-    ,
-    shape=(n_obs, n_basic_vars))
-f0 = f0.tocsc()
+        square_feature(obs_vec.data, max_age, 0.125),
+        obs_vec.indices,
+        obs_vec.indptr
+    ), shape=(n_obs, n_basic_vars)
+)
 f0.eliminate_zeros()
-f1 = coo_matrix(
+f1 = csc_matrix(
     (
-        square_feature(recence, max_age-0.25, 0.125),
-        (obs_id,basic_var_id))
-    ,
-    shape=(n_obs, n_basic_vars))
-f1 = f1.tocsc()
+        square_feature(obs_vec.data, max_age-0.25, 0.125),
+        obs_vec.indices,
+        obs_vec.indptr
+    ), shape=(n_obs, n_basic_vars)
+)
 f1.eliminate_zeros()
-f2 = coo_matrix(
+f2 = csc_matrix(
     (
-        square_feature(recence, max_age-0.5, 0.125),
-        (obs_id,basic_var_id))
-    ,
-    shape=(n_obs, n_basic_vars))
-f2 = f2.tocsc()
+        square_feature(obs_vec.data, max_age-0.5, 0.125),
+        obs_vec.indices,
+        obs_vec.indptr
+    ), shape=(n_obs, n_basic_vars)
+)
 f2.eliminate_zeros()
-f4 = coo_matrix(
+f4 = csc_matrix(
     (
-        square_feature(recence, max_age-1.0, 0.125),
-        (obs_id,basic_var_id))
-    ,
-    shape=(n_obs, n_basic_vars))
-f4 = f4.tocsc()
+        square_feature(obs_vec.data, max_age-1.0, 0.125),
+        obs_vec.indices,
+        obs_vec.indptr
+    ), shape=(n_obs, n_basic_vars)
+)
 f4.eliminate_zeros()
 
 #Now, let's manufacture features.
 #first make everythign sparse for consistent multiplying. (expensive for the barcode!)
-results_sparse = dok_matrix(meta_result.reshape(meta_result.shape+(1,))).tocsc()[:,0]
-note_barcode_sparse = dok_matrix(note_barcode_arr).tocsc()
+results_sparse = dok_matrix(note_meta["result"].reshape((note_meta["result"].shape,)+(1,))).tocsc()[:,0]
+note_barcode_sparse = dok_matrix(note_meta["barcode"]).tocsc()
 
-#now, hold features in arrays for consistency
+#now, hold features in arrays for uniform access
 feature_names = []
 features = []
 
@@ -218,10 +139,10 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 # Here begins an unprincipled feature search. Lazily we will assume that success features
 # contain all the relevent information
 
-min_size = base_size/10000
+min_size = n_obs/10000
 p_val_thresh = 0.05 #loose! multiple comparision prob
 max_features = 1000
-#tol = 1.01
+
 
 while True:
     i, j = 0, 0
@@ -288,7 +209,7 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # mod = SGDClassifier(loss="log", penalty="l1", shuffle=True)
 # Incredibly slow:
 # mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
-# mega_target = meta_result.astype(np.float64)
+# mega_target = note_meta["result"].astype(np.float64)
 # mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 # mod.fit(mega_features, mega_target)
 
@@ -299,28 +220,84 @@ mega_features = sp.sparse.hstack(features).tocsc()
 
 #Todo also: predict inter-event times - would be a natural multiple classification tastk
 
-with tables.open_file(FEATURIZED_TABLE_OUT_PATH, 'w') as table_handle:
+with tables.open_file(BASIC_TABLE_OUT_PATH, 'a') as table_handle:
+    #ignore warnings for that bit; I know my column names are annoying.
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        obs_table = table_handle.create_table('/', 'note_meta',
+            meta_table_description,
+            filters=tables.Filters(complevel=1))
+    for r in xrange(n_obs):
+        obs_table.row['file'] = obs_meta['file'][r]
+        obs_table.row['time'] = obs_meta['time'][r]
+        obs_table.row['obsID'] = obs_meta['obsID'][r]
+        obs_table.row['eventID'] = obs_meta['eventID'][r]
+        obs_table.row['thisNote'] = obs_meta['thisNote'][r]
+        obs_table.row['result'] = obs_meta['result'][r]
+        obs_table.row['obsID'] = obs_meta['obsID'][r]
+        obs_table.row['b4'] = obs_meta['b4'][r]
+        obs_table.row['b3'] = obs_meta['b3'][r]
+        obs_table.row['b2'] = obs_meta['b2'][r]
+        obs_table.row['b1'] = obs_meta['b1'][r]
+        obs_table.row.append()
+
+    col_table = table_handle.create_table('/', 'col_names',
+        {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
+    for i in sorted(r_name_for_i.keys()):
+        col_table.row['i'] = i
+        col_table.row['rname'] = r_name_for_i[i]
+        col_table.row.append()
+
+    obs_table.attrs.maxAge = MAX_AGE
+    obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
+
     filt = tables.Filters(complevel=5)
 
-    table_handle.create_carray('/','v_indices',
+    len_basic = obs_vec.size
+    table_handle.create_carray('/','v_obs_indices',
+        atom=tables.Int32Atom(), shape=(len_basic,),
+        title="obsID",
+        filters=filt)[:] = obs_vec.indices
+    table_handle.create_carray('/','v_obs_indptr',
+        atom=tables.Int32Atom(), shape=(len_basic,),
+        title="pitch index",
+        filters=filt)[:] = obs_vec.indptr
+    table_handle.create_carray('/','v_obs_data',
+        atom=tables.Float32Atom(), shape=(len_basic,),
+        title="recence",
+        filters=filt)[:] = obs_vec.data
+    table_handle.create_carray('/','v_base_rate',
+        atom=tables.Float32Atom(), shape=(128,),
+        title="base rate",
+        filters=filt)[:] = mean_pitch_rate
+    # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
+    # BEWARE 1-BASED INDEXING IN R
+    base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
+        atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
+        title="rel base rate",
+        filters=filt)
+    _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
+    for i in xrange(128):
+        base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
+    table_handle.create_carray('/','v_feature_indices',
         atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
         title="indices",
         filters=filt)[:] = mega_features.indices
-    table_handle.create_carray('/','v_indptr',
+    table_handle.create_carray('/','v_feature_indptr',
         atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
         title="index ptr",
         filters=filt)[:] = mega_features.indptr
-    table_handle.create_carray('/','v_data',
+    table_handle.create_carray('/','v_feature_data',
         atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
         title="data",
         filters=filt)[:] = mega_features.data
-    table_handle.create_carray('/','v_col_names',
+    table_handle.create_carray('/','v_feature_col_names',
         atom=tables.StringAtom(
             max([len(n) for n in feature_names])
         ), shape=(len(feature_names),),
         title="colnames",
         filters=filt)[:] = feature_names
-    table_handle.create_carray('/','v_datadims',
+    table_handle.create_carray('/','v_feature_datadims',
         atom=tables.Int32Atom(), shape=(2,),
         title="data dims",
         filters=filt)[:] = mega_features.shape
