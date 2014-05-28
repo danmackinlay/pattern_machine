@@ -1,8 +1,8 @@
 /*
  * TODO:
  *
- * turn this into a class to make it less horribly chaotic.
  * pause unused (analysis) synths
+ * record samples live
  * switch to TCP instead of UDP to avoid dropped packets
  * spectral improvements
    * colourise spectral display to indicate chromaticity
@@ -89,7 +89,7 @@ FLustre {
 	var <bandTimes;
 	var <nextBandRow;
 	var <timeStep;
-	
+
 	*new {|server,
 		workingDir,
 		nRingSpeakers=2,
@@ -141,7 +141,7 @@ FLustre {
 		allBpFreqs = (Array.series(nBpBandsTotal)/nBpBandsTotal).collect(freqMap);
 		sampleDuration = (sampleDisplayDuration*1.1);
 		visualizerCommand="open % --args width=% height=% respondport=%;pgrep -f -n FLustreDisplay".format(
-			workingDir +/+ "FLustreDisplay/application.macosx/FLustreDisplay.app".shellQuote,
+			workingDir +/+ "FLustreDisplay/application.macosx/FLustreDisplay.app",
 			pixWidth,
 			pixHeight,
 			touchListenPort
@@ -154,7 +154,7 @@ FLustre {
 
 	initICST {
 		syphonClientAddress.sendMsg("/SwitchSyphonClient", "FLustre", 1.0 );
-		trackerMasterAddress.sendMsg("/trackerMasterAddress/requestTuiostream", touchListenPort);
+		trackerMasterAddress.sendMsg("/trackerMaster/requestTuiostream", touchListenPort);
 	}
 	debugPostln {|msg, lvl=1| (lvl>=debugLvl).if({msg.postln})}
 
@@ -182,8 +182,10 @@ FLustre {
 			numFrames: numFrames,
 			action: {|buf|
 				//Note, the buffer *won't* actually be defined here, but rather blank
-				this.debugPostln(buf.asCompileString++buf.bufnum);
-				this.startAnalysis;
+				this.debugPostln("a:" ++ buf.asCompileString++buf.bufnum);
+				{this.debugPostln("b:" ++ buf.asCompileString++buf.bufnum)}.defer;
+				//Hack to force reanalysis after the buffer is reallly really loaded
+				{this.startAnalysis}.defer;
 			}
 		);
 	}
@@ -302,7 +304,8 @@ FLustre {
 				this.initICST;
 				server.sync;
 				//fill up with some dummy data
-				soundBuf.read(soundsDir +/+ "chimegongfrenzy.aif", numFrames: numFrames, action: {|buf| {buf.plot;}.defer});
+				soundBuf.read(soundsDir +/+ "chimegongfrenzy.aif", numFrames: numFrames, action: {|buf| \loadedfirstsound.postln; });
+				//or: soundBuf.read(soundsDir +/+ "chimegongfrenzy.aif", numFrames: numFrames, action: {|buf| \loadedfirstsound.postln;  {buf.plot;}.defer});
 				this.debugPostln([\here,workingDir],1);
 				analTrigger = Synth.new(\longtrigger,
 					[\bus, triggerBus, \dur, sampleDuration],
@@ -318,7 +321,7 @@ FLustre {
 				bandAnalyser.map(\gate, triggerBus);
 				OSCdef.newMatching(\pollbands, {|...argz| this.bandLogger(*argz)}, "/tr", argTemplate: [bandAnalyser.nodeID, nil, nil]);
 				OSCdef.newMatching(\pollend, {|...argz| visualizerAddress.sendMsg("/viz/stop");}, "/tr", argTemplate: [analTrigger.nodeID, 0, nil]);
-				//listen for notification from processing that the visualizer app has just started 
+				//listen for notification from processing that the visualizer app has just started
 				OSCdef.newMatching(\reanalyse, {|...argz| this.startAnalysis(*argz)}, "/viz/alive");
 				//launch said visualizer
 				this.launchViz;
@@ -392,14 +395,18 @@ FLustre {
 			touchSynths.removeAt(k).release;
 		});
 		touchesToStart.do({|k|
-			var coords = touchCoords[k]; //should not be empty by the end of the frame
-			this.debugPostln(["starting",k],0);
-
+			var ptr, freq, xpan, coords = touchCoords[k]; //should not be empty by the end of the frame
+			
+			ptr = bufPosMap.value(coords[0]);
+			freq = freqMap.value(coords[1]);
+			xpan = xPanMap.value(coords[0]);
+			this.debugPostln(["starting",k]++touchCoords[k]++[ptr, freq, xpan],0);
+			
 			touchSynths[k] = Synth.new(\harmonic_grain, [
 				\out, outputBuses,
-				\pointer, bufPosMap.value(coords[0]),
-				\freq, freqMap.value(coords[1]),
-				\xpan, xPanMap.value(coords[0]),
+				\pointer, ptr,
+				\freq, freq,
+				\xpan, xpan,
 				\buf, soundBuf
 			]);
 		});
