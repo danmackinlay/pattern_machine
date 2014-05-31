@@ -1,12 +1,16 @@
-//We create a an FM synth with very open parameters, and infer a manifold of optimal sickness.
+/*
+We create a an FM synth with very open parameters, and infer a manifold of optimal sickness.
 
-//This has 2 phases.
+This has 2 phases.
 
-//First, a convenient way of finding optimal parameters; This will prolly be through some random matrix projection.
+First, a convenient way of finding optimal parameters; This will prolly be through some random matrix projection.
 
-// Second infer a hyperplane (or even just a simplex?) defined by this and interpolate it.
+Second infer a hyperplane (or even just a simplex?) defined by this and interpolate it.
 
-// If I chose adroit marginal distributions, could I skip the second step entirely? Perhaps. That leads to a weird meta-optimisation propethy though - what are appropriate mappings? Also what gives me a PRNGs with continuous dependence on seed? and what is an appropriate scaling for the amtrix
+If I chose adroit marginal distributions, could I skip the second step entirely? Perhaps. That leads to a weird meta-optimisation property though - what are *appropriate* mappings?
+Also, what gives me PRNGs with continuous dependence on seed?
+And what is an appropriate scaling for the matrix?
+*/
 
 //Produces an RNG that returns a vector of uncorrelated pseudo-randoms indexed by a scalar
 ~randomPRNGFactory={|n=4, seed=3.7|
@@ -19,10 +23,21 @@
 		((aVals*innerSeed)+cVals)%1
 	};
 };
-~r=~randomPRNGFactory.();
-~r.(1.0001);
-~r.(1.001);
+~inDims = 2;
+~outDims = 5;
+~r=~randomPRNGFactory.(~inDims*~outDims);
+//probably could rescale to adjust variance here
+~transformMat = PSInvPhi(~r.(1.1)).asFloatArray/(~inDims.sqrt);
+~transformMat = Matrix.withFlatArray(~inDims,~outDims,~transformMat);
+~map = {|...params|
+	var paramMat=Matrix.withFlatArray(1,2,PSInvPhi(params)).postln;
+	PSPhi((paramMat*~transformMat).asFlatArray);
+};
+~map.(0.001,0.9);
+~map.(0.021,0.9);
 
+PSInvPhi(Array.series(1000, start: 0, step: 1/1000)).plot;
+PSPhi(Array.series(2000, start: -2, step: 1/500)).plot;
 SynthDef.new(\fmraw, {|freq,
 	harmonicfreqs,
 	ringModAmp,
