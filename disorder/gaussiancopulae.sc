@@ -1,7 +1,9 @@
 /* Gaussian copula calcs and Pseudo-Ugens
-Todo: make supplied RV optional
-See also http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some faster, simpler, albeit inaccurate algorithms and 
-http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some yet-simpler algorithms
+TODO: make supplied RV optional
+TODO: remove dependence on overloading - operator in boolean.sc
+TODO: switch to simpler less accurate algorithm
+http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some alternatives,
+http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some more
 
 I'm not quote sure how to handle graceful conversions to UGens and also vector input values here. Compare:
 ~steps1 = Array.series(3001, 0, 1)/3000;
