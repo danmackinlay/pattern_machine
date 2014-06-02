@@ -18,23 +18,22 @@ TODO: compressor:
 
 s=~serverboot.(prox:\local, device:\internal);
 s=~serverboot.(prox:\local, device:\rme);
-s.makeGui;
 (
 SynthDef.new(\decijules,
 	{|in,
 		out,
 		trajrate=1,
-		inlength=0.3,
+		len=0.3,
 		phase=3,
 		deltime=0.2,
-		trig=1,
+		gate=1,
 		attack=0.1,
 		release=1,
 		deldecay=1|
 	var traj, sig, pan, inenv, outenv;
 		traj = LFTri.kr(trajrate, iphase: phase);
-		inenv = EnvGen.kr(Env.sine(inlength),gate:trig);
-		outenv = EnvGen.kr(Env.perc(attack, release), gate:trig, doneAction:2);
+		inenv = EnvGen.kr(Env.asr(attackTime: attack, releaseTime:release, curve:\sine), gate:gate);
+		outenv = EnvGen.kr(Env.linen(attack, len, release,curve:\sine), gate:gate, doneAction:2);
 		sig=In.ar(in)*inenv;
 		sig=AllpassL.ar(sig, maxdelaytime: 3, delaytime:deltime, decaytime: deldecay);
 		sig=Pan2.ar(sig, traj, level: outenv);
@@ -54,7 +53,7 @@ fork {
 	~testsound = (
 		instrument: \playbuf__1,
 		out: inbus,
-		buf: testbuf,
+		bufnum: testbuf,
 		group: ingroup,
 		sendGate: false,//won't loop if not told
 	).play;
@@ -71,18 +70,20 @@ fork {
 	p = Pbind(
 		\instrument, \decijules,
 		\in, inbus,
-		//\in, 0,
 		\out, outbus,
 		\group, voxgroup,
-		\delta, Pn(0, 8),
+		\sustain, Pwhite(1.0,3.0,inf),//input gate
+		\len, Pwhite(2.0,10.0), //output gate
+		\attack, Pwhite(0.01,0.1,inf),
+		\release, Pwhite(2.0,10.0),
 		\phase, Pwhite(0.0,4.0,inf),
-		\trajrate, Pwhite(1.0,2.0,inf),
-		\deltime, Pwhite(0.001,1.0,inf).log.neg*0.3,
-		\attack, Pwhite(0.001,1.0,inf).log.neg*0.1,
-		\release, Pwhite(0.001,1.0,inf).log.neg*2,
-		\deldecay, Pwhite(0.001,1.0,inf).log.neg*1,
-		\inlength, 0.5,
+		\trajrate, Pwhite(0.05,1.0,inf),
+		\delta, Pn(0, 8),
+		\deltime, Pwhite(0.01,0.98,inf).log.neg*0.3,
+		\deldecay, (Pkey(\release) + Pkey(\len))*2,
+
 	).collect(_.postln);
+	{s.makeGui;}.defer;
 }
 )
 p.play;
