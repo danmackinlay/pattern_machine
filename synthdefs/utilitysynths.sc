@@ -5,7 +5,7 @@ PSUtilitySynthDefs {
 		});
 	}
 	*loadSynthDefs {
-		SynthDef.new(\limi__1, {|out, cutoff=50, pregain=1|
+		SynthDef.new(\limi__1, {|out, cutoff=30, pregain=1|
 			ReplaceOut.ar(
 				out,
 				Limiter.ar(
@@ -19,7 +19,7 @@ PSUtilitySynthDefs {
 				)
 			)
 		}).add;
-		SynthDef.new(\limi__2, {|out, cutoff=50, pregain=1|
+		SynthDef.new(\limi__2, {|out, cutoff=30, pregain=1|
 			ReplaceOut.ar(
 				out,
 				Limiter.ar(

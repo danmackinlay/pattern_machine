@@ -40,10 +40,9 @@ SynthDef.new(\decijules,
 		sig=Pan2.ar(sig, traj, level: outenv);
 		Out.ar(out, sig);
 }).add;
-
 )
 (
-var inbus, outbus, ingroup, delaygroup, postgroup, testsample, testbuf;
+var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf;
 testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
 fork {
 	ingroup = Group.new(s, \addToHead);
@@ -52,16 +51,29 @@ fork {
 	testbuf = Buffer.read(s, testsample);
 	s.sync;
 	~testbuf = testbuf;
-	delaygroup = Group.new(s, \addToTail);
+	~testsound = (
+		instrument: \playbuf__1,
+		out: inbus,
+		buf: testbuf,
+		group: ingroup,
+		sendGate: false,//won't loop if not told
+	).play;
+	voxgroup = Group.new(s, \addToTail);
+	s.sync;
+	fxgroup = Group.new(s, \addToTail);
 	s.sync;
 	postgroup = Group.new(s, \addToTail);
 	s.sync;
+	~limiter = (
+		instrument: \limi__2,
+		group: postgroup,
+	).play;
 	p = Pbind(
 		\instrument, \decijules,
-		//\in, inbus,
-		\in, 0,
+		\in, inbus,
+		//\in, 0,
 		\out, outbus,
-		\group, delaygroup,
+		\group, voxgroup,
 		\delta, Pn(0, 8),
 		\phase, Pwhite(0.0,4.0,inf),
 		\trajrate, Pwhite(1.0,2.0,inf),
