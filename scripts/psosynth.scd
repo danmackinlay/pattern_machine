@@ -58,7 +58,7 @@ s.waitForBoot({
 	/*******************/
 	//limiter, to avoid little accidents
 	~limi = Synth.after(~phenogroup, \limi__2,
-		[\outbus, ~swarmOut,
+		[\out, ~swarmOut,
 		\pregain, population.sqrt.reciprocal*8,
 		\cutoff, 40]);
 	{

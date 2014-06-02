@@ -23,7 +23,7 @@ s.makeGui;
 // Control mappings for all intersting params
 // reverb system is not in correct ring arrangment. needs z-crossing
 (
-Synth.new(\rec, [\in, 0, \buf, ~state.sampBufs[3]],s);
+Synth.new(\rec__1, [\in, 0, \buf, ~state.sampBufs[3]],s);
 ~state.sampBufs[0].plot;
 ~state.sampBufs[0].play;
 ~state.sampBufs.do({|buf,ind|[\loadin, buf,ind, ~state.sampPaths[ind]].postln;	buf.readChannel(~state.sampPaths[ind], channels:[0])});
@@ -117,8 +117,8 @@ fork {
 	});
 	// CmdPeriod.doOnce { state.fxSynths.do({|i| i.free;}) };
 	state.jackSynth=Synth.new(\jack__2, [
-		\outbus, state.outBus,
-		\inbus, Bus.newFrom(state.sideBus, 6, 2)
+		\out, state.outBus,
+		\in, Bus.newFrom(state.sideBus, 6, 2)
 		], state.fxMasterGroup, 'addToTail');
 	// CmdPeriod.doOnce { state.jackSynth.free};
 	//basic info

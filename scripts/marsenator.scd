@@ -40,6 +40,7 @@ SynthDef.new(\decijules,
 		sig=Pan2.ar(sig, traj, level: outenv);
 		Out.ar(out, sig);
 }).add;
+
 )
 (
 var inbus, outbus, ingroup, delaygroup, postgroup, testsample, testbuf;
@@ -73,4 +74,3 @@ fork {
 }
 )
 p.play;
-~testbuf.play(loop:true);
