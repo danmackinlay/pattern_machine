@@ -35,15 +35,15 @@ PSUtilitySynthDefs {
 		}).add;
 		SynthDef.new(\playbuf__1,
 			{|out,
-				buf,
+				bufnum,
 				loop=1,
 				gate=1,
 				rate=1|
 			var env,sig;
 			sig = PlayBuf.ar(
 				numChannels:1,
-				bufnum:buf,
-				rate: rate*BufRateScale.kr(buf),
+				bufnum:bufnum,
+				rate: rate*BufRateScale.kr(bufnum),
 				trigger: gate,
 				loop: loop,
 			);
@@ -61,8 +61,8 @@ PSUtilitySynthDefs {
 		SynthDef(\jack__2, {|in, out|
 			Out.ar(out, In.ar(in, 2));
 		}).add;
-		SynthDef(\rec__1, {|buf=0, in=0|
-			RecordBuf.ar(SoundIn.ar(in),bufnum:buf,loop:0,doneAction:2);
+		SynthDef(\rec__1, {|bufnum=0, in=0|
+			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;
 	}
 }
