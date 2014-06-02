@@ -57,4 +57,3 @@ SynthDef.new(\fmapped, {|freq,
 	mapBus,
 	trigger|
 }).add;
-QtImage
