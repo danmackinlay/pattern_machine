@@ -1,0 +1,10 @@
+#include <stdio.h>
+#include "normsinv.h"
+int main()
+{
+long double b;
+        scanf("%Lg",&b);
+        b=normsinv(b);
+        printf("\n%.20Le\n",b);
+        return 0;
+}
