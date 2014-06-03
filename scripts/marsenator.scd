@@ -10,10 +10,13 @@ That is not insurmountable; The question here is how i can *evolve* it interesti
 2 approximated sample-library stuff, batchNRT-style.
 
 Some stuttering would be nice too.
+There should be an adjustable delay instrument that gives us this.
 
-Simple idea, might work: evey grain controlled by correlation at specified level with "trajectory" oscillator
+Simple idea, might work: every grain controlled by correlation at specified level with "trajectory" oscillator
 
-TODO: compressor:
+TODO: compressor.
+TODO: delayscape
+TODO: bassier samples
 */
 
 s=~serverboot.(prox:\local, device:\internal);
@@ -45,7 +48,8 @@ var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf;
 testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
 fork {
 	ingroup = Group.new(s, \addToHead);
-	inbus = Bus.newFrom(s.inputBus,0,1);
+	//inbus = Bus.newFrom(s.inputBus,0,1);
+	inbus = Bus.audio(s,1);
 	outbus = Bus.new(\audio, 0, 2, s);
 	testbuf = Buffer.read(s, testsample);
 	s.sync;
