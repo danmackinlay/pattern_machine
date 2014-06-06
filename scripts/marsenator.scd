@@ -22,7 +22,10 @@ TODO: bassier samples
 s=~serverboot.(prox:\local, device:\internal);
 s=~serverboot.(prox:\local, device:\rme);
 (
-SynthDef.new(\decijules,
+var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf;
+testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
+fork {
+	SynthDef.new(\decijules,
 	{|in,
 		out,
 		trajrate=1,
@@ -41,12 +44,56 @@ SynthDef.new(\decijules,
 		sig=AllpassL.ar(sig, maxdelaytime: 3, delaytime:deltime, decaytime: deldecay);
 		sig=Pan2.ar(sig, traj, level: outenv);
 		Out.ar(out, sig);
-}).add;
-)
-(
-var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf;
-testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
-fork {
+	}).add;
+	envBuf = Buffer.alloc(s, 1024, 1);
+	s.sync;
+	envBuf.sine2([0.5], [1], asWavetable:true);
+	s.sync;
+	//envBuf.postln;{envBuf.plot}.defer;
+	SynthDef.new(\mutatingreverb, {
+		|out,
+		dry=0,
+		lforate=0.21,
+		delay=0.01,
+		gain=0.15,
+		gainvar=0.5,
+		delvar=0.5|
+		var sig,sigA, sigB, phaseA, trigA, trigB, envA, envB, delLo, delHi, gainLo, gainHi;
+		phaseA = LFSaw.kr(lforate);
+		trigA = phaseA < 0;
+		trigB = phaseA >= 0;
+		envA = Shaper.kr(envBuf, phaseA);
+		envB = Shaper.kr(envBuf, (phaseA+1).wrap2(1));
+		delLo = delay*(1-delvar);
+		delHi = delay*(1+delvar);
+		gainLo = gain*(1-gainvar);
+		gainHi = gain*(1+gainvar).min(1.5);
+		sig = In.ar(out);
+		sigA = DoubleNestedAllpassL.ar(sig,
+			maxdelay1: 0.5,
+			delay1: TRand.kr(delLo, delHi, trig:trigA),
+			gain1: TRand.kr(gainLo, gainHi, trig: trigA)*envA,
+			maxdelay2: 0.5,
+			delay2: TRand.kr(delLo, delHi, trig:trigA),
+			gain2: TRand.kr(gainLo, gainHi, trig: trigA)*envA,
+			maxdelay3: 0.5,
+			delay3: TRand.kr(delLo, delHi, trig:trigA),
+			gain3: TRand.kr(gainLo, gainHi, trig: trigA)*envA,
+			mul: 1, add: 0);
+		sigB = DoubleNestedAllpassL.ar(sig,
+			maxdelay1: 0.5,
+			delay1: TRand.kr(delLo, delHi, trig:trigB),
+			gain1: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
+			maxdelay2: 0.5,
+			delay2: TRand.kr(delLo, delHi, trig:trigB),
+			gain2: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
+			maxdelay3: 0.5,
+			delay3: TRand.kr(delLo, delHi, trig:trigB),
+			gain3: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
+			mul: 1, add: 0);
+		ReplaceOut.ar(out, dry*sig + sigA + sigB);
+	}).add;
+
 	ingroup = Group.new(s, \addToHead);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
 	inbus = Bus.audio(s,1);
@@ -67,9 +114,19 @@ fork {
 	s.sync;
 	postgroup = Group.new(s, \addToTail);
 	s.sync;
-	~limiter = (
+	~revLeft = (
+		instrument: \mutatingreverb,
+		group: fxgroup,
+		out: Bus.newFrom(outbus,0,1)
+	).play;
+	~revRight = (
+		instrument: \mutatingreverb,
+		group: fxgroup,
+		out: Bus.newFrom(outbus,1,1)
+	).play;	~limiter = (
 		instrument: \limi__2,
 		group: postgroup,
+		out:outbus,
 	).play;
 	p = Pbind(
 		\instrument, \decijules,
@@ -91,3 +148,4 @@ fork {
 }
 )
 p.play;
+(pitch: 5).play;
