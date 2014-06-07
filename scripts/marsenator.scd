@@ -21,8 +21,10 @@ TODO: bassier samples
 
 s=~serverboot.(prox:\local, device:\internal);
 s=~serverboot.(prox:\local, device:\rme);
+~state = 'foo';
 (
-var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf;
+var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state;
+state = ();
 testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
 fork {
 	SynthDef.new(\decijules,
@@ -118,7 +120,8 @@ fork {
 		instrument: \mutatingreverb,
 		group: fxgroup,
 		out: Bus.newFrom(outbus,1,1)
-	).play;	~limiter = (
+	).play;
+	~limiter = (
 		instrument: \limi__2,
 		group: postgroup,
 		out:outbus,
@@ -140,7 +143,14 @@ fork {
 
 	).collect(_.postln);
 	{s.makeGui;}.defer;
-}
+	state.putAll((
+		outbus: outbus,
+		inbus: inbus,
+		voxgroup: voxgroup,
+	));
+	~state = state;
+};
 )
+~state
 p.play;
-(pitch: 5).play;
+(pitch: 5, group: ~state.voxgroup, out:~state.outbus).play;
