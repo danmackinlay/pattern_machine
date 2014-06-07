@@ -45,11 +45,6 @@ fork {
 		sig=Pan2.ar(sig, traj, level: outenv);
 		Out.ar(out, sig);
 	}).add;
-	envBuf = Buffer.alloc(s, 1024, 1);
-	s.sync;
-	envBuf.sine2([0.5], [1], asWavetable:true);
-	s.sync;
-	//envBuf.postln;{envBuf.plot}.defer;
 	SynthDef.new(\mutatingreverb, {
 		|out,
 		dry=0,
@@ -62,8 +57,8 @@ fork {
 		phaseA = LFSaw.kr(lforate);
 		trigA = phaseA < 0;
 		trigB = phaseA >= 0;
-		envA = Shaper.kr(envBuf, phaseA);
-		envB = Shaper.kr(envBuf, (phaseA+1).wrap2(1));
+		envA = CentredApprox.halfSine(phaseA);
+		envB = CentredApprox.halfSine((phaseA+1).wrap2(1));
 		delLo = delay*(1-delvar);
 		delHi = delay*(1+delvar);
 		gainLo = gain*(1-gainvar);
