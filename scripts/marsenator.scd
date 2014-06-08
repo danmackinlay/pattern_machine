@@ -47,6 +47,8 @@ fork {
 		sig=Pan2.ar(sig, traj, level: outenv);
 		Out.ar(out, sig);
 	}).add;
+	//TODO: the only way to make this sane is 4 rolling comb filters, input enveloped
+	//TODO: recirculation delay
 	SynthDef.new(\mutatingreverb, {
 		|out,
 		dry=0,
@@ -90,7 +92,6 @@ fork {
 			mul: 1, add: 0);
 		ReplaceOut.ar(out, dry*sig + sigA + sigB);
 	}).add;
-
 	ingroup = Group.new(s, \addToHead);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
 	inbus = Bus.audio(s,1);
