@@ -117,8 +117,8 @@ fork {
 	});
 	// CmdPeriod.doOnce { state.fxSynths.do({|i| i.free;}) };
 	state.jackSynth=Synth.new(\jack__2, [
-		\out, state.outBus,
-		\in, Bus.newFrom(state.sideBus, 6, 2)
+		\outbus, state.outBus,
+		\inbus, Bus.newFrom(state.sideBus, 6, 2)
 		], state.fxMasterGroup, 'addToTail');
 	// CmdPeriod.doOnce { state.jackSynth.free};
 	//basic info

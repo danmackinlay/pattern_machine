@@ -13,12 +13,12 @@ SynthDef.new(\sumins, {|ins, outbus| Out.kr(outbus, A2K.kr(Mix.new(In.ar(ins))))
 ~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \outbus, ~mcrezout], ~mclistengroup);
 ~mcrezout.get(_.postln);
 (1..17).do({|numChannels|
-	SynthDef.new('jack$' ++ numChannels.asString, { |inbus, outbus|
-	Out.ar(outbus, In.ar(inbus, numChannels));
+	SynthDef.new('jack__' ++ numChannels.asString, { |in, out|
+	Out.ar(out, In.ar(in, numChannels));
 	}).add;
 });
 PSSynthDefPhenotype.map
-"nameBase" ++ "$$" ++ 4.asString
+"nameBase" ++ "__" ++ 4.asString
 )
 */
 
@@ -27,7 +27,7 @@ PSSynthDefPhenotype.map
 
 PSMCCore {
 	classvar <maxChannels = 16;
-	classvar <nameBase = "core";
+	classvar <nameBase = "jack";
 
 	*initClass{
 		StartUp.add({
@@ -41,15 +41,15 @@ PSMCCore {
 		});
 	}
 	*synthName {|numChannels=1|
-		^(nameBase ++ "$$" ++ numChannels.asString);
+		^(nameBase ++ "__" ++ numChannels.asString);
 	}
 	*n {|numChannels=1|
 		//convenience alias for synthName
 		^this.synthName(numChannels);
 	}
 	*makeSynthDef {|numChannels|
-		^SynthDef.new(this.synthName(numChannels), { |inbus, outbus|
-			Out.ar(outbus, In.ar(inbus, numChannels));
+		^SynthDef.new(this.synthName(numChannels), { |in, out|
+			Out.ar(out, In.ar(in, numChannels));
 		});
 	}
 }
@@ -60,8 +60,8 @@ PSMCMix : PSMCCore {
 	classvar <nameBase = "mix";
 
 	*makeSynthDef {|numChannels|
-		^SynthDef.new(this.synthName(numChannels), { |inbus, outbus|
-			Out.ar(outbus, Mix.new(In.ar(inbus, numChannels)));
+		^SynthDef.new(this.synthName(numChannels), { |in, out|
+			Out.ar(out, Mix.new(In.ar(in, numChannels)));
 		});
 	}
 }

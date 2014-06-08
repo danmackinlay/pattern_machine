@@ -55,12 +55,6 @@ PSUtilitySynthDefs {
 			);
 			Out.ar(out, sig*env);
 		}).add;
-		SynthDef(\jack__1, {|in, out|
-			Out.ar(out, In.ar(in, 1));
-		}).add;
-		SynthDef(\jack__2, {|in, out|
-			Out.ar(out, In.ar(in, 2));
-		}).add;
 		SynthDef(\rec__1, {|bufnum=0, in=0|
 			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;
