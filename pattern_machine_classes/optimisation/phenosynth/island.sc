@@ -72,7 +72,7 @@ PSIsland {
 	}
 	*new {|params|
 		var thisNew = super.newCopyArgs(
-			this.defaultParams.updatedFrom(params ? Event.new)
+			this.defaultParams.copy.putAll(params ? Event.new)
 		).init;
 		^thisNew;
 	}
