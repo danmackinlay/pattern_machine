@@ -57,6 +57,52 @@ PSReverbSynthDefs {
 				signal
 				//+SinOsc.ar(freq:220*(1+index), mul: 0.01)
 			);
-		}).add.dumpUGens;
+		}).add;
+		// DIY diffuser
+		//TODO: the only way to make this sane is 4 rolling comb filters, input enveloped
+		//TODO: recirculation delay
+		SynthDef.new(\mutatingreverb, {
+			|out,
+			dry=0,
+			lforate=0.21,
+			delay=0.01,
+			gain=0.15,
+			gainvar=0.5,
+			delvar=0.5|
+			var sig,sigA, sigB, phaseA, trigA, trigB, envA, envB, delLo, delHi, gainLo, gainHi;
+			phaseA = LFSaw.kr(lforate);
+			trigA = phaseA < 0;
+			trigB = phaseA >= 0;
+			envA = CentredApprox.halfSine(phaseA);
+			envB = CentredApprox.halfSine((phaseA+1).wrap2(1));
+			delLo = delay*(1-delvar);
+			delHi = delay*(1+delvar);
+			gainLo = gain*(1-gainvar);
+			gainHi = gain*(1+gainvar).min(1.5);
+			sig = In.ar(out);
+			sigA = DoubleNestedAllpassL.ar(sig,
+				maxdelay1: 0.5,
+				delay1: TRand.kr(delLo, delHi, trig:trigA),
+				gain1: TRand.kr(gainLo, gainHi, trig: trigA)*envA,
+				maxdelay2: 0.5,
+				delay2: TRand.kr(delLo, delHi, trig:trigA),
+				gain2: TRand.kr(gainLo, gainHi, trig: trigA)*envA,
+				maxdelay3: 0.5,
+				delay3: TRand.kr(delLo, delHi, trig:trigA),
+				gain3: TRand.kr(gainLo, gainHi, trig: trigA)*envA,
+				mul: 1, add: 0);
+			sigB = DoubleNestedAllpassL.ar(sig,
+				maxdelay1: 0.5,
+				delay1: TRand.kr(delLo, delHi, trig:trigB),
+				gain1: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
+				maxdelay2: 0.5,
+				delay2: TRand.kr(delLo, delHi, trig:trigB),
+				gain2: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
+				maxdelay3: 0.5,
+				delay3: TRand.kr(delLo, delHi, trig:trigB),
+				gain3: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
+				mul: 1, add: 0);
+			ReplaceOut.ar(out, dry*sig + sigA + sigB);
+		}).add;
 	}
 }
