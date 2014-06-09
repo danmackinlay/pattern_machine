@@ -9,37 +9,59 @@ s=~serverboot.(prox:\local, device:\internal);
 s=~serverboot.(prox:\local, device:\rme);
 ~state = 'foo';
 (
-var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1,nBpBandsTotal,allBpFreqs,bwr;
+var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr;
 nBpBandsTotal=nBpBandsPerOctave*nOctaves+1;
+
 bwr = nBpBandsTotal.reciprocal;
 freqMap = {|v| 2**v.linlin(0.0,1.0,0.0,nOctaves)*minFreq };
 allBpFreqs = (Array.series(nBpBandsTotal)/nBpBandsTotal).collect(freqMap);
 	//Should I do this as Linkwitz Riley crossovers? BPF for now
 SynthDef(\fakeDiffusion,{
-	|out, dry=0, decoherence=0, delay=0.2, inxfade=0.0, outxfade=0.0, lag=0.3|
-	var bands, dels, deltimes, fbins, sig;
-	delay=DC.ar(delay);
-	deltimes = Lag.ar(
-		in: ((delay) *
-			(1+ (decoherence *
-					(Array.series(
-					nBpBandsTotal, 0, nBpBandsTotal.reciprocal))
-			)
-		)) - ControlRate.ir.reciprocal.poll(1,\del),
-		lagTime: lag);
-	fbins = DelayC.ar(LocalIn.ar(nBpBandsTotal), 1, deltimes);
+	|out, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), microdelay=0.033, microdecay=0.2, inxfade=0.0, outxfade=0.0, lag=0.5|
+	var bands, dels, macrodeltimes, microdeltimes, fbins, sig, blockTime;
+	blockTime = ControlRate.ir.reciprocal;
+	macrodeltimes = nBpBandsTotal.collect({|i|
+		Lag.ar(
+			in: DC.ar(
+				((
+					((macrodecoherence * i/nBpBandsTotal) + 1) * macrodelay
+				) - blockTime)
+			),
+			lagTime: lag
+		);
+	});
+	microdeltimes = nBpBandsTotal.collect({|i|
+		Lag.ar(
+			in: DC.ar((
+					((microdecoherence * i/nBpBandsTotal) + 1) * microdelay
+			)),
+			lagTime: lag
+		).poll(1,\micro);
+	});
+	fbins = DelayC.ar(
+		in: LocalIn.ar(nBpBandsTotal),
+		maxdelaytime: 2.0,
+		delaytime: macrodeltimes
+	);
 	sig = In.ar(out);
 	LocalOut.ar(
 		XFade2.ar(
 			BPF.ar(sig,allBpFreqs,bwr),
 			fbins,
-			inxfade
+			VarLag.kr(inxfade)
 		)
 	);
+	//Amplitude.kr(fbins).ampdb.poll(1,\amp);
 	ReplaceOut.ar(out, XFade2.ar(
 		sig,
-		Mix(fbins),
-		outxfade
+		Mix(
+			AllpassC.ar(
+				in:fbins,
+				maxdelaytime: 1.0,
+				delaytime: microdeltimes,
+				decaytime: microdecay)
+		),
+		VarLag.kr(outxfade)
 	));
 }).add;
 
@@ -80,14 +102,15 @@ fork {
 	~fakeDiffusionL = Synth(
 		\fakeDiffusion, [
 			\out, Bus.newFrom(outbus,0,1),
-			\decoherence, 0.5,
+			\macrodecoherence, 0.5,
+			\inxfade, 0.7,
 		],
 		target: fxgroup,
 	);
 	~fakeDiffusionR = Synth(
 		\fakeDiffusion, [
 			\out, Bus.newFrom(outbus,1,1),
-			\decoherence, 0.5,
+			\macrodecoherence, 0.5,
 		],
 		target: fxgroup,
 	);
@@ -105,7 +128,7 @@ fork {
 		postgroup: postgroup,
 	));
 	~pat = Pbind(
-		\pitch, 5,
+		\note, Pseq([0,3,7,12],inf),
 		\group, ~state.voxgroup,
 		\out, ~state.outbus,
 		\dur, 1).play;
@@ -113,10 +136,24 @@ fork {
 };
 )
 (pitch: 5, group: ~state.voxgroup, out:~state.outbus).play;
-
-~fakeDiffusionL.set(\decoherence, 0.0);
-~fakeDiffusionL.set(\decoherence, 1.0);
+~fakeDiffusionL.set(\lag, 1);
+~fakeDiffusionL.set(\lag, 0.1);
+~fakeDiffusionL.set(\lag, 0);
+~fakeDiffusionL.set(\macrodelay, 0.5);
+~fakeDiffusionL.set(\macrodelay, 0.2);
+~fakeDiffusionL.set(\macrodecoherence, -1.0);
+~fakeDiffusionL.set(\macrodecoherence, 0.0);
+~fakeDiffusionL.set(\macrodecoherence, 1.0);
+~fakeDiffusionL.set(\microdelay, 0.1);
+~fakeDiffusionL.set(\microdelay, 0.01);
+~fakeDiffusionL.set(\microdecoherence, -1.0);
+~fakeDiffusionL.set(\microdecoherence, 0.0);
+~fakeDiffusionL.set(\microdecoherence, 1.0);
 ~fakeDiffusionL.set(\inxfade, 1.0);
+~fakeDiffusionL.set(\inxfade, 0.7);
+~fakeDiffusionL.set(\inxfade, 0.0);
+~fakeDiffusionL.set(\inxfade, -0.7);
 ~fakeDiffusionL.set(\inxfade, -1.0);
 ~fakeDiffusionL.set(\outxfade, 1.0);
+~fakeDiffusionL.set(\outxfade, 0.0);
 ~fakeDiffusionL.set(\outxfade, -1.0);
