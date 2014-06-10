@@ -22,7 +22,7 @@ ONSET_TOLERANCE = 0.06
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 BASIC_TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag_basic.h5')
 
-#Map between relative pitches, array columns and r-friendly relative pitch names
+#Map between relative pitches, array columns and R-friendly relative pitch names
 r_name_for_i = dict()
 i_for_r_name = dict()
 p_for_r_name = dict()

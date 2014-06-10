@@ -5,7 +5,7 @@ import random
 from random import randint, sample
 import warnings
 import math
-from analyse import lik_test, log_lik_ratio, square_feature, triangle_feature
+from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
 from scipy.sparse import coo_matrix, dok_matrix
 from scipy.stats import power_divergence
 from sklearn.linear_model import Lasso, LogisticRegression
@@ -137,9 +137,8 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 # contain all the relevent information
 
 min_size = n_obs/10000
-p_val_thresh = 0.05 #loose! multiple comparision prob
+p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK"
 max_features = 1000
-
 
 while True:
     i, j = 0, 0

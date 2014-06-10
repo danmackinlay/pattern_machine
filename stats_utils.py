@@ -1,10 +1,7 @@
 from config import *
 import numpy as np
 import scipy as sp
-from scipy.sparse import coo_matrix, dok_matrix
 from scipy.stats import power_divergence
-from random import randint, sample
-from sklearn.linear_model import Lasso, LogisticRegression
 
 def lik_test(N,Y,p0):
     "likelihood ratio/ G-test. This will suffer from the multiple comparison issue, "
