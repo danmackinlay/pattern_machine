@@ -192,19 +192,8 @@ while True:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
 # I could prune the least interesting half and repeat the process?
 
-#recommended feature format.
-#TODO: CV http://scikit-learn.org/stable/modules/cross_validation.html#cross-validation
-# http://scikit-learn.org/stable/modules/grid_search.html#grid-search
-# logistic unsupported for native CV boo
-# http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LassoCV.html
-# Documentation is scanty, but parallelism thorugh joblib:
-# http://packages.python.org/joblib/
-# A sample algorithmic trick: warm restarts for cross validation
-# TODO: demonstrate the warm restart tricks for cross validation of linear regression with Coordinate Descent.
-# NB this might be quicker with SGD
-# http://scikit-learn.org/stable/modules/sgd.html#sgd
 # mod = SGDClassifier(loss="log", penalty="l1", shuffle=True)
-# Incredibly slow:
+# Incredibly slow, didn't terminate afer 36 hours (!)
 # mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
 # mega_target = note_meta["result"].astype(np.float64)
 # mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
@@ -213,9 +202,6 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # So we go to R: (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack(features).tocsc()
 
-# Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual trials together while forgetting songs.
-
-#Todo also: predict inter-event times - would be a natural multiple classification tastk
 
 with tables.open_file(BASIC_TABLE_OUT_PATH, 'a') as table_handle:
     #ignore warnings for that bit; I know my column names are annoying.
