@@ -15,6 +15,7 @@ MIDI parsing:
 Probabilistic underpinnings:
 -----------------------------
 
+* Here is one serious problem: The model I fit does NOT reflect that fact that the note SPAN changes, and thereby the baseline likelihood does too - but 4 octaves of potential notes is more options that 2 octaves; and I only ever choose ONE note
 * this naive markov model still has lots of hairy bits. Questions:
   * can I get a better "base" point for my notes? e.g. choosing a "key"
   * can I somehow condition on more "control" variables?
@@ -25,7 +26,9 @@ Probabilistic underpinnings:
 
 Method Concerns
 ----------------------
-  
+
+NB - base rate is currentlty broken. I haven't worked out how to infer it across all different input files and in any case it is mysteriously 0 atm
+
 Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 Could also model, conditional on environment, which note goes on.
 should try and attribute amt of error to each song
@@ -86,6 +89,7 @@ TODO
 ------
 
 * weight features to de-favour annoying ones such as bar position
+* more generous feature search which allows features to appear which are *ONLY* inteaction terms, despite both parents not being significant
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
 * use feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
@@ -93,7 +97,7 @@ TODO
 
   NB very slow in liblineaR atm - no nice optimisations for logistic regression or binary factors
 * save metadata:
-* MAX_AGE
+  * MAX_AGE
   * matrix dimensions
   * source dataset
   * bludgeon R into actually reading the fucking metadata Grrrr R.
