@@ -79,6 +79,8 @@ TODO: demonstrate the warm restart tricks for cross validation of linear regress
 
 This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#sgd
 
+    mod = SGDClassifier(loss="log", penalty="l1", shuffle=True)
+
 
 TODO
 ------

@@ -105,7 +105,7 @@ f4 = csc_matrix(
 f4.eliminate_zeros()
 
 #Now, let's manufacture features.
-#first make everythign sparse for consistent multiplying. (expensive for the barcode!)
+#first make everything sparse for consistent multiplying. (expensive for the barcode!)
 results_sparse = dok_matrix(note_meta["result"].reshape((note_meta["result"].shape,)+(1,))).tocsc()[:,0]
 note_barcode_sparse = dok_matrix(note_meta["barcode"]).tocsc()
 
@@ -172,8 +172,7 @@ while True:
     prop_lik = log_lik_ratio(prop_size, prop_succ, base_success_rate)
     
     if prop_pval>p_val_thresh:
-        #NB this is a greedy heuristic
-        # and it ignores behaviour of negated variable; 2x2 Chi2 would be better
+        # a greedy heuristic, statistical significance is not guaranteed.
         continue
     #Otherwise, we have a contender. Add it to the pool.
     features.append(prop_feat)
@@ -191,7 +190,6 @@ while True:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
 # I could prune the least interesting half and repeat the process?
 
-# mod = SGDClassifier(loss="log", penalty="l1", shuffle=True)
 # Incredibly slow, didn't terminate afer 36 hours (!)
 # mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
 # mega_target = note_meta["result"].astype(np.float64)
@@ -200,7 +198,6 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 
 # So we go to R: (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack(features).tocsc()
-
 
 with tables.open_file(BASIC_TABLE_OUT_PATH, 'a') as table_handle:
     #ignore warnings for that bit; I know my column names are annoying.
