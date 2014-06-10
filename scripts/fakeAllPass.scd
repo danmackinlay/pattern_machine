@@ -22,7 +22,7 @@ synthfn = {|sig, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), m
 	var bands, dels, macrodeltimes, microdeltimes, fbins, blockTime;
 	macrodeltimes = nBpBandsTotal.collect({|i|
 		Lag.ar(
-			in: DC.ar(
+			in: K2A.ar(
 				((
 					((macrodecoherence * i/nBpBandsTotal) + 1) * macrodelay
 				))
@@ -32,14 +32,12 @@ synthfn = {|sig, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), m
 	});
 	microdeltimes = nBpBandsTotal.collect({|i|
 		Lag.ar(
-			in: DC.ar((
+			in: K2A.ar((
 					((microdecoherence * i/nBpBandsTotal) + 1) * microdelay
 			)),
 			lagTime: lag
 		)
 	});
-	macrodeltimes.poll(1,\macro);
-	microdeltimes.poll(1,\micro);
 	fbins = DelayC.ar(
 		in: BPF.ar(sig,allBpFreqs,bwr),
 		maxdelaytime: 2.0,
