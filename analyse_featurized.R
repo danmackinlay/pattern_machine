@@ -7,7 +7,7 @@ require(rhdf5)
 source("config.R")
 
 #load actual data
-notes.obsdata = h5read(h5.file.name.basic, "/note_meta")
+notes.obsdata = h5read(h5.file.name.basic, "/obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
 notes.obsidx = as.vector(h5read(h5.file.name.basic, '/v_indices'))
 notes.obsptr = as.vector(h5read(h5.file.name.basic, '/v_indptr'))

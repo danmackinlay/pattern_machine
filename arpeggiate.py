@@ -5,8 +5,10 @@ import random
 from random import randint, sample
 import warnings
 import math
+import numpy as np
+import scipy as sp
 from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
-from scipy.sparse import coo_matrix, dok_matrix
+from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
 from scipy.stats import power_divergence
 from sklearn.linear_model import Lasso, LogisticRegression
 
@@ -18,8 +20,8 @@ meta_table_description = {
     'file': tables.StringCol(50), # factor: which sourcefile
     'time': tables.FloatCol(), # event time
     'thisNote': tables.UIntCol(), # midi note number for central pitch
-    'obsID': tables.UIntCol(), #  for matching with the other data
-    'eventID': tables.UIntCol(), # working out which event cause this
+    'obsId': tables.UIntCol(), #  for matching with the other data
+    'eventId': tables.UIntCol(), # working out which event cause this
     'b5': tables.IntCol(),
     'b4': tables.IntCol(),
     'b3': tables.IntCol(),
@@ -28,27 +30,27 @@ meta_table_description = {
 }
 
 def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
-    n_obs = len(note_meta['obsId'])
-    obs_vec['obs_list'] = np.asarray(obs_list, dtype=np.int32)
-    obs_vec['p_list'] = np.asarray(p_list, dtype=np.int32)
-    obs_vec['recence_list'] = np.asarray(recence_list, dtype=np.float32)
-    obs_vec = coo_matrix(
+    n_obs = len(obs_meta['obsId'])
+    obs_vec = csc_matrix(
         (
-            obs_vec['recence_list'],
-            (obs_vec['obs_list'], obs_vec['p_list'] )
+            np.asarray(obs_vec['recence_list'], dtype=np.float32),
+            (
+                np.asarray(obs_vec['obs_list'], dtype=np.int32),
+                np.asarray(obs_vec['p_list'], dtype=np.int32)
+            )
         ),
-        shape=(n_obs, NEIGHBORHOOD_RADIUS*2+1)).tocsc()
+        shape=(n_obs, NEIGHBORHOOD_RADIUS*2+1))
     mean_pitch_rate = np.asarray(mean_pitch_rate, dtype=np.float32)
 
     barcode_arr = np.zeros((n_obs,4), dtype=np.int32)
     barcode_arr[:,0] = obs_meta['b1']
     del(obs_meta['b1'])
     barcode_arr[:,1] = obs_meta['b2']
-    obs_meta['b2']
+    del(obs_meta['b2'])
     barcode_arr[:,2] = obs_meta['b3']
-    obs_meta['b3']
+    del(obs_meta['b3'])
     barcode_arr[:,3] = obs_meta['b4']
-    obs_meta['b4']
+    del(obs_meta['b4'])
     obs_meta['barcode'] = barcode_arr
 
     obs_meta['file'] = np.asarray(obs_meta['file'])
@@ -61,19 +63,16 @@ def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
     return obs_meta, obs_vec, mean_pitch_rate
 
 ######################################### former analyse module
-obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(get_data_set())
-n_obs = note_meta['obsId'].size
-base_success_rate = note_meta["result"].mean()
+obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(*get_data_set())
+n_obs = obs_meta['obsId'].size
+base_success_rate = obs_meta["result"].mean()
 
 n_basic_vars = NEIGHBORHOOD_RADIUS * 2 + 1
-max_age = note_meta.attrs.maxAge
+col_names = [r_name_for_i[i] for i in xrange(n_basic_vars)]
 
-base_rate = table_handle.get_node('/', 'v_base_rate').read().astype(np.float32)
-rel_base_rate = table_handle.get_node('/', 'v_rel_base_rate').read().astype(np.float32)
-col_names = [r['rname'] for r in table_handle.get_node('/', 'col_names').iterrows()]
 f0 = csc_matrix(
     (
-        square_feature(obs_vec.data, max_age, 0.125),
+        square_feature(obs_vec.data, MAX_AGE, 0.125),
         obs_vec.indices,
         obs_vec.indptr
     ), shape=(n_obs, n_basic_vars)
@@ -81,7 +80,7 @@ f0 = csc_matrix(
 f0.eliminate_zeros()
 f1 = csc_matrix(
     (
-        square_feature(obs_vec.data, max_age-0.25, 0.125),
+        square_feature(obs_vec.data, MAX_AGE-0.25, 0.125),
         obs_vec.indices,
         obs_vec.indptr
     ), shape=(n_obs, n_basic_vars)
@@ -89,7 +88,7 @@ f1 = csc_matrix(
 f1.eliminate_zeros()
 f2 = csc_matrix(
     (
-        square_feature(obs_vec.data, max_age-0.5, 0.125),
+        square_feature(obs_vec.data, MAX_AGE-0.5, 0.125),
         obs_vec.indices,
         obs_vec.indptr
     ), shape=(n_obs, n_basic_vars)
@@ -97,17 +96,21 @@ f2 = csc_matrix(
 f2.eliminate_zeros()
 f4 = csc_matrix(
     (
-        square_feature(obs_vec.data, max_age-1.0, 0.125),
+        square_feature(obs_vec.data, MAX_AGE-1.0, 0.125),
         obs_vec.indices,
         obs_vec.indptr
     ), shape=(n_obs, n_basic_vars)
 )
 f4.eliminate_zeros()
 
-#Now, let's manufacture features.
-#first make everything sparse for consistent multiplying. (expensive for the barcode!)
-results_sparse = dok_matrix(note_meta["result"].reshape((note_meta["result"].shape,)+(1,))).tocsc()[:,0]
-note_barcode_sparse = dok_matrix(note_meta["barcode"]).tocsc()
+#Now, let's manufacture compound features.
+#first make everything sparse for consistent multiplying.
+#Weird looking for the results, which we have to upcast from vector to amtrix
+results_sparse = dok_matrix(
+        obs_meta["result"].reshape((obs_meta["result"].size,)+(1,))
+    ).tocsc()[:,0]
+# expensive for the barcode, which is dense.
+note_barcode_sparse = dok_matrix(obs_meta["barcode"]).tocsc()
 
 #now, hold features in arrays for uniform access
 feature_names = []
@@ -192,32 +195,32 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 
 # Incredibly slow, didn't terminate afer 36 hours (!)
 # mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
-# mega_target = note_meta["result"].astype(np.float64)
+# mega_target = obs_meta["result"].astype(np.float64)
 # mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 # mod.fit(mega_features, mega_target)
 
 # So we go to R: (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack(features).tocsc()
 
-with tables.open_file(BASIC_TABLE_OUT_PATH, 'a') as table_handle:
+with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
     #ignore warnings for that bit; I know my column names are annoying.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        obs_table = table_handle.create_table('/', 'note_meta',
+        obs_table = table_handle.create_table('/', 'obs_meta',
             meta_table_description,
             filters=tables.Filters(complevel=1))
     for r in xrange(n_obs):
         obs_table.row['file'] = obs_meta['file'][r]
         obs_table.row['time'] = obs_meta['time'][r]
-        obs_table.row['obsID'] = obs_meta['obsID'][r]
-        obs_table.row['eventID'] = obs_meta['eventID'][r]
+        obs_table.row['obsId'] = obs_meta['obsId'][r]
+        obs_table.row['eventId'] = obs_meta['eventId'][r]
         obs_table.row['thisNote'] = obs_meta['thisNote'][r]
         obs_table.row['result'] = obs_meta['result'][r]
-        obs_table.row['obsID'] = obs_meta['obsID'][r]
-        obs_table.row['b4'] = obs_meta['b4'][r]
-        obs_table.row['b3'] = obs_meta['b3'][r]
-        obs_table.row['b2'] = obs_meta['b2'][r]
-        obs_table.row['b1'] = obs_meta['b1'][r]
+        obs_table.row['obsId'] = obs_meta['obsId'][r]
+        obs_table.row['b4'] = obs_meta['barcode'][r][3]
+        obs_table.row['b3'] = obs_meta['barcode'][r][2]
+        obs_table.row['b2'] = obs_meta['barcode'][r][1]
+        obs_table.row['b1'] = obs_meta['barcode'][r][0]
         obs_table.row.append()
 
     col_table = table_handle.create_table('/', 'col_names',
@@ -235,7 +238,7 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'a') as table_handle:
     len_basic = obs_vec.size
     table_handle.create_carray('/','v_obs_indices',
         atom=tables.Int32Atom(), shape=(len_basic,),
-        title="obsID",
+        title="obsId",
         filters=filt)[:] = obs_vec.indices
     table_handle.create_carray('/','v_obs_indptr',
         atom=tables.Int32Atom(), shape=(len_basic,),

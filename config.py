@@ -20,7 +20,8 @@ ROUGH_NEWNESS_THRESHOLD = max(MAX_AGE - 1.0, 0.25)
 ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
-BASIC_TABLE_OUT_PATH = os.path.join(CSV_BASE_PATH, 'rag_basic.h5')
+OUTPUT_BASE_PATH = os.path.normpath("./")
+BASIC_TABLE_OUT_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_basic.h5')
 
 #Map between relative pitches, array columns and R-friendly relative pitch names
 r_name_for_i = dict()

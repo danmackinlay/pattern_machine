@@ -150,7 +150,7 @@ def get_data_set():
             obs_list = obs_list,
             p_list = p_list,
             recence_list = recence_list,
-        )
+        ),
         mean_pitch_rate
     )
 
