@@ -1,11 +1,9 @@
-h5.file.name.basic.basic = "rag_basic.h5"
 require(doMC)
 registerDoMC(cores=4)
 require(rhdf5)
 
 # which file has the data
 h5.file.name.basic = "rag_basic.h5"
-h5.file.name.featurized = "rag_featurized.h5"
 
 trim.col = function(mat,n=0){
   trimmed = mat[,(n+1):(ncol(mat)-n)]

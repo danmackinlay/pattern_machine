@@ -4,17 +4,16 @@ library("stringr")
 require(doMC)
 registerDoMC(cores=4)
 require(rhdf5)
-source("featureMatrix.R")
 source("config.R")
 
 #load actual data
 notes.obsdata = h5read(h5.file.name.basic, "/note_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
-notes.obsidx = as.vector(h5read(h5.file.name.featurized, '/v_indices'))
-notes.obsptr = as.vector(h5read(h5.file.name.featurized, '/v_indptr'))
-notes.vals = as.vector(h5read(h5.file.name.featurized, '/v_data'))
-notes.dims = as.vector(h5read(h5.file.name.featurized, '/v_datadims'))
-notes.colnames = h5read(h5.file.name.featurized, "/v_col_names")
+notes.obsidx = as.vector(h5read(h5.file.name.basic, '/v_indices'))
+notes.obsptr = as.vector(h5read(h5.file.name.basic, '/v_indptr'))
+notes.vals = as.vector(h5read(h5.file.name.basic, '/v_data'))
+notes.dims = as.vector(h5read(h5.file.name.basic, '/v_datadims'))
+notes.colnames = h5read(h5.file.name.basic, "/v_col_names")
 
 notes.f = sparseMatrix(
   i=notes.obsidx,
