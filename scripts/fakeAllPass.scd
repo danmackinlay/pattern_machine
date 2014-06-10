@@ -18,15 +18,14 @@ bwr = nBpBandsTotal.reciprocal;
 freqMap = {|v| 2**v.linlin(0.0,1.0,0.0,nOctaves)*minFreq };
 allBpFreqs = (Array.series(nBpBandsTotal)/nBpBandsTotal).collect(freqMap);
 	//Should I do this as Linkwitz Riley crossovers? BPF for now
-synthfn = {|sig, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), microdelay=0.033, microdecay=0.2, inxfade=0.0, outxfade=0.0, lag=0.5|
+synthfn = {|sig, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), microdelay=0.033, microdecay=0.2, outxfade=0.0, lag=0.5|
 	var bands, dels, macrodeltimes, microdeltimes, fbins, blockTime;
-	blockTime = ControlRate.ir.reciprocal;
 	macrodeltimes = nBpBandsTotal.collect({|i|
 		Lag.ar(
 			in: DC.ar(
 				((
 					((macrodecoherence * i/nBpBandsTotal) + 1) * macrodelay
-				) - blockTime)
+				))
 			),
 			lagTime: lag
 		);
@@ -42,18 +41,10 @@ synthfn = {|sig, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), m
 	macrodeltimes.poll(1,\macro);
 	microdeltimes.poll(1,\micro);
 	fbins = DelayC.ar(
-		in: LocalIn.ar(nBpBandsTotal),
+		in: BPF.ar(sig,allBpFreqs,bwr),
 		maxdelaytime: 2.0,
 		delaytime: macrodeltimes
 	);
-	LocalOut.ar(
-		XFade2.ar(
-			BPF.ar(sig,allBpFreqs,bwr),
-			fbins,
-			VarLag.kr(inxfade)
-		)
-	);
-	//Amplitude.kr(fbins).ampdb.poll(1,\amp);
 	XFade2.ar(
 		sig,
 		Mix(
@@ -69,7 +60,7 @@ synthfn = {|sig, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), m
 SynthDef(\fakeDiffusion__1, {|out|
 	ReplaceOut.ar(out, SynthDef.wrap(synthfn, nil, [In.ar(out, 1)]));
 }).add;
-SynthDef(\fakeDiffusion__2, {|out, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), microdelay=0.033, microdecay=0.2, inxfade=0.0, outxfade=0.0, lag=0.5, splay=0.9|
+SynthDef(\fakeDiffusion__2, {|out, macrodecoherence=0, macrodelay=0.2, microdecoherence=(-0.25), microdelay=0.033, microdecay=0.2, outxfade=0.0, lag=0.5, splay=0.9|
 	var sig = In.ar(out, 2);
 	ReplaceOut.ar(out, [
 		synthfn.value(
@@ -79,7 +70,6 @@ SynthDef(\fakeDiffusion__2, {|out, macrodecoherence=0, macrodelay=0.2, microdeco
 			microdecoherence: microdecoherence,
 			microdelay: microdelay,
 			microdecay: microdecay,
-			inxfade: inxfade,
 			outxfade: outxfade,
 			lag: lag),
 		synthfn.value(
@@ -89,7 +79,6 @@ SynthDef(\fakeDiffusion__2, {|out, macrodecoherence=0, macrodelay=0.2, microdeco
 			microdecoherence: microdecoherence*splay,
 			microdelay: microdelay,
 			microdecay: microdecay,
-			inxfade: inxfade,
 			outxfade: outxfade,
 			lag: lag),
 	]);
@@ -169,11 +158,14 @@ fork {
 ~fakeDiffusion.set(\microdecoherence, -1.0);
 ~fakeDiffusion.set(\microdecoherence, 0.0);
 ~fakeDiffusion.set(\microdecoherence, 1.0);
-~fakeDiffusion.set(\inxfade, 1.0);
-~fakeDiffusion.set(\inxfade, 0.7);
-~fakeDiffusion.set(\inxfade, 0.0);
-~fakeDiffusion.set(\inxfade, -0.7);
-~fakeDiffusion.set(\inxfade, -1.0);
+~fakeDiffusion.set(\microdecay, 0.1);
+~fakeDiffusion.set(\microdecay, 1.0);
+~fakeDiffusion.set(\microdecay, 10.0);
+~fakeDiffusion.set(\splay, 1.0);
+~fakeDiffusion.set(\splay, 0.0);
+~fakeDiffusion.set(\splay, -1.0);
 ~fakeDiffusion.set(\outxfade, 1.0);
+~fakeDiffusion.set(\outxfade, 0.7);
 ~fakeDiffusion.set(\outxfade, 0.0);
+~fakeDiffusion.set(\outxfade, -0.7);
 ~fakeDiffusion.set(\outxfade, -1.0);
