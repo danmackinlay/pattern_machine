@@ -1,5 +1,6 @@
 require("jsonlite")
 library("Matrix")
+require(rhdf5)
 
 trim.col = function(mat,n=0){
   trimmed = mat[,(n+1):(ncol(mat)-n)]
@@ -52,17 +53,4 @@ feat.sin = function(...) {
 #everywhere differentiable feature fn
 feat.sin2 = function(...) {
   return(sin(pi/2*feat.tri(...))^2)
-}
-
-basic.obs.matrix = function () {
-  #should i use the obsids as names here?
-  fmat = sparseMatrix(
-      i=notes.obsid,
-      j=notes.p,
-      x=notes.recence,
-      dims=notes.dims,
-      index1=F
-  )
-  colnames(fmat)=paste(notes.colnames$rname)
-  return(fmat)
 }
