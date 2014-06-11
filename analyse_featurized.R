@@ -31,7 +31,7 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     notes.f,
     notes.response,
     family="binomial",
-    type.logistic="modified.Newton",
+    type.logistic="modified.Newton", #speed-up, apparently.
     alpha=1,
     dfmax=1000,
     parallel=TRUE,
@@ -43,3 +43,6 @@ print(notes.fit.time)
 h <- file("coef-cont.json", "w")
 cat(coefs.as.json(coef(notes.fit, s="lambda.1se")), file=h)
 close(h)
+
+# h5write(h5.file.name.basic, "/v_lambdas",  notes.fit$lambda)
+# ...
