@@ -235,42 +235,41 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
 
     filt = tables.Filters(complevel=5)
 
-    len_basic = obs_vec.indices.size
     table_handle.create_carray('/','v_obs_indices',
-        atom=tables.Int32Atom(), shape=(len_basic,),
+        atom=tables.Int32Atom(), shape=obs_vec.indices.shape,
         title="obsId",
         filters=filt)[:] = obs_vec.indices
     table_handle.create_carray('/','v_obs_indptr',
-        atom=tables.Int32Atom(), shape=(len_basic,),
+        atom=tables.Int32Atom(), shape=obs_vec.indptr.shape,
         title="pitch index",
         filters=filt)[:] = obs_vec.indptr
     table_handle.create_carray('/','v_obs_data',
-        atom=tables.Float32Atom(), shape=(len_basic,),
+        atom=tables.Float32Atom(), shape=obs_vec.data.shape,
         title="recence",
         filters=filt)[:] = obs_vec.data
     table_handle.create_carray('/','v_base_rate',
         atom=tables.Float32Atom(), shape=(128,),
         title="base rate",
         filters=filt)[:] = mean_pitch_rate
-    # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
-    # BEWARE 1-BASED INDEXING IN R
-    base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
-        atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
-        title="rel base rate",
-        filters=filt)
-    _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
-    for i in xrange(128):
-        base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
+    # # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
+    # # BEWARE 1-BASED INDEXING IN R
+    # base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
+    #     atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
+    #     title="rel base rate",
+    #     filters=filt)
+    # _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
+    # for i in xrange(128):
+    #     base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
     table_handle.create_carray('/','v_feature_indices',
-        atom=tables.Int32Atom(), shape=(mega_features.indices.size,),
+        atom=tables.Int32Atom(), shape=mega_features.indices.shape,
         title="indices",
         filters=filt)[:] = mega_features.indices
     table_handle.create_carray('/','v_feature_indptr',
-        atom=tables.Int32Atom(), shape=(mega_features.indptr.size,),
+        atom=tables.Int32Atom(), shape=mega_features.indptr.shape,
         title="index ptr",
         filters=filt)[:] = mega_features.indptr
     table_handle.create_carray('/','v_feature_data',
-        atom=tables.Int32Atom(), shape=(mega_features.data.size,),
+        atom=tables.Int32Atom(), shape=mega_features.data.shape,
         title="data",
         filters=filt)[:] = mega_features.data
     table_handle.create_carray('/','v_feature_col_names',
