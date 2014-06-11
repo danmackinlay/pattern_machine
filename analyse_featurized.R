@@ -44,5 +44,16 @@ h <- file("coef-cont.json", "w")
 cat(coefs.as.json(coef(notes.fit, s="lambda.1se")), file=h)
 close(h)
 
-# h5write(h5.file.name.basic, "/v_lambdas",  notes.fit$lambda)
-# ...
+h5write(notes.fit$nzero, h5.file.name.basic, "/v_nzero")
+h5write(notes.fit$cvlo, h5.file.name.basic, "/v_cvlo")
+h5write(notes.fit$cvup, h5.file.name.basic, "/v_cvup")
+h5write(notes.fit$cvsd, h5.file.name.basic, "/v_cvsd")
+h5write(notes.fit$lambda, h5.file.name.basic, "/v_lambda")
+h5write(notes.fit$cvm, h5.file.name.basic, "/v_cvm")
+h5write(notes.fit$glmnet.fit$dev.ratio, h5.file.name.basic, "/v_nulldev")
+coef.mat = matrix(data=0,nrow=length(notes.fit$lambda), ncol=length(coef(notes.fit)))
+colnames(coef.mat)=rownames(coef(notes.fit))
+for (i in 1:length(notes.fit$lambda)) { l=notes.fit$lambda[i]; coef.mat[i,]=t(as.matrix(coef(notes.fit,s=l)))}
+#beware! includes new intercept term
+h5write(coef.mat, h5.file.name.basic, "/v_coef")
+#rm(coef.mat)
