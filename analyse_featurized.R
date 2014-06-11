@@ -1,8 +1,8 @@
 library("Matrix")
 library("glmnet")
 library("stringr")
-require(doMC)
-registerDoMC(cores=4)
+#require(doMC)
+#registerDoMC(cores=4)
 require(rhdf5)
 source("config.R")
 
@@ -34,7 +34,7 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     type.logistic="modified.Newton", #speed-up, apparently.
     alpha=1,
     dfmax=1000,
-    parallel=TRUE,
+    #parallel=TRUE,
     foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
 )
