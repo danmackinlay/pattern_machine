@@ -235,7 +235,7 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
 
     filt = tables.Filters(complevel=5)
 
-    len_basic = obs_vec.size
+    len_basic = obs_vec.indices.size
     table_handle.create_carray('/','v_obs_indices',
         atom=tables.Int32Atom(), shape=(len_basic,),
         title="obsId",
@@ -262,15 +262,15 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
     for i in xrange(128):
         base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
     table_handle.create_carray('/','v_feature_indices',
-        atom=tables.Int32Atom(), shape=(mega_features.indices.shape,),
+        atom=tables.Int32Atom(), shape=(mega_features.indices.size,),
         title="indices",
         filters=filt)[:] = mega_features.indices
     table_handle.create_carray('/','v_feature_indptr',
-        atom=tables.Int32Atom(), shape=(mega_features.indptr.shape,),
+        atom=tables.Int32Atom(), shape=(mega_features.indptr.size,),
         title="index ptr",
         filters=filt)[:] = mega_features.indptr
     table_handle.create_carray('/','v_feature_data',
-        atom=tables.Int32Atom(), shape=(mega_features.data.shape,),
+        atom=tables.Int32Atom(), shape=(mega_features.data.size,),
         title="data",
         filters=filt)[:] = mega_features.data
     table_handle.create_carray('/','v_feature_col_names',
