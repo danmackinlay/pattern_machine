@@ -1,4 +1,3 @@
-require("jsonlite")
 library("Matrix")
 require(rhdf5)
 
@@ -31,14 +30,6 @@ dissect.coefs = function(coefs){
       name=as.factor(coefnames[coeford])), 
     chunks = coefsumm)
   )
-}
-
-coefs.as.json <- function (coefs.matrix) {
-  coef.list = list()
-  for (n in row.names(coefs.matrix)) {
-    if (coefs.matrix[n,] !=0) coef.list[n] = coefs.matrix[n,]
-  }
-  return(toJSON(coef.list, simplifyVector=TRUE, pretty = TRUE, digits=8))
 }
 
 #triangular feature fn

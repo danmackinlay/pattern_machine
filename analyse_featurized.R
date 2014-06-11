@@ -40,10 +40,6 @@ notes.fit.time = system.time( #note this only works for <- assignment!
 )
 print(notes.fit.time)
 
-h <- file("coef-cont.json", "w")
-cat(coefs.as.json(coef(notes.fit, s="lambda.1se")), file=h)
-close(h)
-
 h5write(notes.fit$nzero, h5.file.name.basic, "/v_nzero")
 h5write(notes.fit$cvlo, h5.file.name.basic, "/v_cvlo")
 h5write(notes.fit$cvup, h5.file.name.basic, "/v_cvup")
