@@ -141,7 +141,7 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 
 min_size = n_obs/10000
 p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK"
-max_features = 1000
+max_features = 2000
 
 while True:
     i, j = 0, 0
