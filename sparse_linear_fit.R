@@ -34,8 +34,9 @@ print(c("files:",h5.file.name.from.python, h5.file.name.to.python))
 # handy coeff inspection
 tidycoef = function(spcoef) {
   cf=as.array(Matrix(spcoef, sparse=F))
-  cfl=as.list(cf[cf>0])
-  names(cfl)=rownames(cf)[cf>0]
+  nzero.mask = abs(cf)>0
+  cfl=as.list(cf[nzero.mask])
+  names(cfl)=rownames(cf)[nzero.mask]
   return(cfl)
 }
 
