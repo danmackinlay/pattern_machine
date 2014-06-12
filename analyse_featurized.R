@@ -22,6 +22,13 @@ registerDoSNOW(cl)
 require(rhdf5)
 source("config.R")
 
+tidycoef = function(spcoef) {
+  cf=as.array(Matrix(spcoef, sparse=F))
+  cfl=as.list(cf[cf>0])
+  names(cfl)=rownames(cf)[cf>0]
+  return(cfl)
+}
+
 #load actual data
 notes.obsdata = h5read(h5.file.name.from.python, "/obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
@@ -38,10 +45,17 @@ notes.f = sparseMatrix(
   dims=notes.dims,
   index1=F
 )
-colnames(notes.f)=paste(notes.colnames)
 rm(notes.obsidx, notes.obsptr, notes.vals)
+#augment with base rate date
+notes.f = cBind(as.matrix(-log(notes.obsdata["diameter"]-1)), notes.f)
+#penalties = str_count(colnames(notes.f), "b")+1
+penalties = rep(1.0,length(colnames(notes.f))) 
+#don't weight baseline term
+penalties[1] = 0
+colnames(notes.f)=c("baselogodds", paste(notes.colnames))
 notes.response=as.matrix(notes.obsdata$result)
 
+#NB could also use glmnet's "weights" param to upweight successes by the diameter
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
     notes.f,
@@ -49,14 +63,18 @@ notes.fit.time = system.time( #note this only works for <- assignment!
     family="binomial",
     type.logistic="modified.Newton", #speed-up, apparently.
     alpha=1,
+    penalty.factor=penalties,
     #dfmax=200,
     parallel=TRUE,
     foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
 )
 print(notes.fit.time)
+print(tidycoef(coef(notes.fit, s="lambda.1se")))
+
 
 #write out to a different file because we can't change the matrix sizes after updated
+if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)
 h5createFile(h5.file.name.to.python)
 h5write.default(notes.fit$nzero, h5.file.name.to.python, "/v_nzero")
 h5write(notes.fit$cvlo, h5.file.name.to.python, "/v_cvlo")

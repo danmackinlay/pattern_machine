@@ -22,6 +22,7 @@ meta_table_description = {
     'thisNote': tables.UIntCol(), # midi note number for central pitch
     'obsId': tables.UIntCol(), #  for matching with the other data
     'eventId': tables.UIntCol(), # working out which event cause this
+    'diameter': tables.UIntCol(), # number of notes consider in event changes observation base rate
     'b5': tables.IntCol(),
     'b4': tables.IntCol(),
     'b3': tables.IntCol(),
@@ -59,10 +60,10 @@ def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
     obs_meta['thisNote'] = np.asarray(obs_meta['thisNote'], dtype = np.int32)
     obs_meta['result'] = np.asarray(obs_meta['result'], dtype = np.int32)
     obs_meta['time'] = np.asarray(obs_meta['time'], dtype = np.float32)
+    obs_meta['diameter'] = np.asarray(obs_meta['diameter'], dtype = np.int32)
 
     return obs_meta, obs_vec, mean_pitch_rate
 
-######################################### former analyse module
 obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(*get_data_set())
 n_obs = obs_meta['obsId'].size
 base_success_rate = obs_meta["result"].mean()
@@ -109,6 +110,7 @@ f4.eliminate_zeros()
 results_sparse = dok_matrix(
         obs_meta["result"].reshape((obs_meta["result"].size,)+(1,))
     ).tocsc()[:,0]
+
 # expensive for the barcode, which is dense.
 note_barcode_sparse = dok_matrix(obs_meta["barcode"]).tocsc()
 
@@ -139,8 +141,12 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 # Here begins an unprincipled feature search. Lazily we will assume that success features
 # contain all the relevent information
 
+# We withhold diameter here sinc eit is not immediately clear how to include it
+# this is only even slightly tenable if it has no interaction effects. Hmm.
+# although we possibly could include it without changing the algorithm at all; the weighting is conveniently linear in probability; might want to re-scale it to mean 0 or sth; I don't even know.
+
 min_size = n_obs/10000
-p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK"
+p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK" and spurious effects will be regularised out.
 max_features = 2000
 
 while True:
@@ -199,8 +205,16 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 # mod.fit(mega_features, mega_target)
 
+# base_log_odds = -np.log(obs_meta["diameter"])-1.0)
+# 
+# # expensive for the base_log_odds, which is very dense.
+# # NB we don't currently use the diameter in the feature selection.
+# base_log_odds_sparse = dok_matrix(
+#         base_log_odds.reshape((base_log_odds.size,)+(1,))
+#     ).tocsc()[:,0]
+
 # So we go to R: (csr for liblineaR use, csc for R use)
-mega_features = sp.sparse.hstack(features).tocsc()
+mega_features = sp.sparse.hstack( features).tocsc()
 
 with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
     #ignore warnings for that bit; I know my column names are annoying.
@@ -215,6 +229,7 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         obs_table.row['obsId'] = obs_meta['obsId'][r]
         obs_table.row['eventId'] = obs_meta['eventId'][r]
         obs_table.row['thisNote'] = obs_meta['thisNote'][r]
+        obs_table.row['diameter'] = obs_meta['diameter'][r]
         obs_table.row['result'] = obs_meta['result'][r]
         obs_table.row['obsId'] = obs_meta['obsId'][r]
         obs_table.row['b4'] = obs_meta['barcode'][r][3]
@@ -247,10 +262,10 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         atom=tables.Float32Atom(), shape=obs_vec.data.shape,
         title="recence",
         filters=filt)[:] = obs_vec.data
-    table_handle.create_carray('/','v_base_rate',
-        atom=tables.Float32Atom(), shape=(128,),
-        title="base rate",
-        filters=filt)[:] = mean_pitch_rate
+    # table_handle.create_carray('/','v_base_rate',
+    #     atom=tables.Float32Atom(), shape=(128,),
+    #     title="base rate",
+    #     filters=filt)[:] = mean_pitch_rate
     # # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
     # # BEWARE 1-BASED INDEXING IN R
     # base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
