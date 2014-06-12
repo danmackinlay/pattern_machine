@@ -2,9 +2,9 @@ require("Matrix")
 require("glmnet")
 require(rhdf5)
 
-# crashes with index error; seems to work ATM though
-require(doMC)
-registerDoMC(cores=4)
+# # crashes with index error; seems to work ATM though
+# require(doMC)
+# registerDoMC(cores=4)
 
 # # crashes with index error
 # require(doParallel)
@@ -15,11 +15,11 @@ registerDoMC(cores=4)
 # cl <- makeCluster(2)
 # registerDoParallel(cl)
 
-# works; could be faster
-# require(doSNOW)
-# cl <- makeCluster(4)
-# registerDoSNOW(cl)
-# require(rhdf5)
+# # works; could be faster
+require(doSNOW)
+cl <- makeCluster(4)
+registerDoSNOW(cl)
+require(rhdf5)
 
 # which file has the data? Support defaults ofr interaction, and CLI use
 h5.file.name.from.python = "rag_from_python.h5"
