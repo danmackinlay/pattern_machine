@@ -11,9 +11,9 @@ if (length(args) >=2) {
 }
 print(c(h5.file.name.from.python, h5.file.name.to.python))
 
-# # crashes with index error
-# require(doMC)
-# registerDoMC(cores=4)
+# crashes with index error; seems to work ATM though
+require(doMC)
+registerDoMC(cores=4)
 
 # # crashes with index error
 # require(doParallel)
@@ -25,10 +25,10 @@ print(c(h5.file.name.from.python, h5.file.name.to.python))
 # registerDoParallel(cl)
 
 # works; could be faster
-require(doSNOW)
-cl <- makeCluster(4)
-registerDoSNOW(cl)
-require(rhdf5)
+# require(doSNOW)
+# cl <- makeCluster(4)
+# registerDoSNOW(cl)
+# require(rhdf5)
 
 tidycoef = function(spcoef) {
   cf=as.array(Matrix(spcoef, sparse=F))
