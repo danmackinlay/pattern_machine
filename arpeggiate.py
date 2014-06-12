@@ -298,6 +298,9 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         title="data dims",
         filters=filt)[:] = mega_features.shape
 
+#Hands-free R invocation would look like this:
+#> r -f analyse_featurized.R --args rag_from_python.h5 rag_to_python.h5
+
 # rgr_lasso = Lasso(alpha=0.001)
 # rgr_lasso.fit(proj_operator, proj.ravel())
 # rec_l1 = rgr_lasso.coef_.reshape(l, l)

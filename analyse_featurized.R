@@ -1,6 +1,16 @@
 library("Matrix")
 library("glmnet")
 
+# which file has the data
+h5.file.name.from.python = "rag_from_python.h5"
+h5.file.name.to.python = "rag_to_python.h5"
+args = commandArgs( trailingOnly = TRUE)
+if (length(args) >=2) {
+  h5.file.name.from.python = args[[1]]
+  h5.file.name.to.python = args[[2]]
+}
+print(c(h5.file.name.from.python, h5.file.name.to.python))
+
 # # crashes with index error
 # require(doMC)
 # registerDoMC(cores=4)
@@ -18,9 +28,7 @@ library("glmnet")
 require(doSNOW)
 cl <- makeCluster(4)
 registerDoSNOW(cl)
-
 require(rhdf5)
-source("config.R")
 
 tidycoef = function(spcoef) {
   cf=as.array(Matrix(spcoef, sparse=F))
