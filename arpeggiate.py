@@ -209,11 +209,11 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # So we go to R: (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack( features).tocsc()
 
-with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
+with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
     #ignore warnings for that bit; I know my column names are annoying.
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        obs_table = table_handle.create_table('/', 'obs_meta',
+        obs_table = table_out_handle.create_table('/', 'obs_meta',
             meta_table_description,
             filters=tables.Filters(complevel=1))
     for r in xrange(n_obs):
@@ -231,7 +231,7 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         obs_table.row['b1'] = obs_meta['barcode'][r][0]
         obs_table.row.append()
 
-    col_table = table_handle.create_table('/', 'col_names',
+    col_table = table_out_handle.create_table('/', 'col_names',
         {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
     for i in sorted(r_name_for_i.keys()):
         col_table.row['i'] = i
@@ -243,37 +243,37 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
 
     filt = tables.Filters(complevel=5)
 
-    table_handle.create_carray('/','v_obs_indices',
+    table_out_handle.create_carray('/','v_obs_indices',
         atom=tables.Int32Atom(), shape=obs_vec.indices.shape,
         title="obsId",
         filters=filt)[:] = obs_vec.indices
-    table_handle.create_carray('/','v_obs_indptr',
+    table_out_handle.create_carray('/','v_obs_indptr',
         atom=tables.Int32Atom(), shape=obs_vec.indptr.shape,
         title="pitch index",
         filters=filt)[:] = obs_vec.indptr
-    table_handle.create_carray('/','v_obs_data',
+    table_out_handle.create_carray('/','v_obs_data',
         atom=tables.Float32Atom(), shape=obs_vec.data.shape,
         title="recence",
         filters=filt)[:] = obs_vec.data
-    table_handle.create_carray('/','v_feature_indices',
+    table_out_handle.create_carray('/','v_feature_indices',
         atom=tables.Int32Atom(), shape=mega_features.indices.shape,
         title="indices",
         filters=filt)[:] = mega_features.indices
-    table_handle.create_carray('/','v_feature_indptr',
+    table_out_handle.create_carray('/','v_feature_indptr',
         atom=tables.Int32Atom(), shape=mega_features.indptr.shape,
         title="index ptr",
         filters=filt)[:] = mega_features.indptr
-    table_handle.create_carray('/','v_feature_data',
+    table_out_handle.create_carray('/','v_feature_data',
         atom=tables.Int32Atom(), shape=mega_features.data.shape,
         title="data",
         filters=filt)[:] = mega_features.data
-    table_handle.create_carray('/','v_feature_col_names',
+    table_out_handle.create_carray('/','v_feature_col_names',
         atom=tables.StringAtom(
             max([len(n) for n in feature_names])
         ), shape=(len(feature_names),),
         title="colnames",
         filters=filt)[:] = feature_names
-    table_handle.create_carray('/','v_feature_datadims',
+    table_out_handle.create_carray('/','v_feature_datadims',
         atom=tables.Int32Atom(), shape=(2,),
         title="data dims",
         filters=filt)[:] = mega_features.shape
@@ -281,25 +281,14 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
 #Hands-free R invocation would look like this:
 #> r -f sparse_linear_fit.R --args rag_from_python.h5 rag_to_python.h5
 
-# rgr_lasso = Lasso(alpha=0.001)
-# rgr_lasso.fit(proj_operator, proj.ravel())
-# rec_l1 = rgr_lasso.coef_.reshape(l, l)
-# 
-# print("Computing regularization path ...")
-# start = datetime.now()
-# clf = linear_model.LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
-# coefs_ = []
-# for c in cs:
-#     clf.set_params(C=c)
-#     clf.fit(X, y)
-#     coefs_.append(clf.coef_.ravel().copy())
-# print("This took ", datetime.now() - start)
-# 
-# coefs_ = np.array(coefs_)
-# pl.plot(np.log10(cs), coefs_)
-# ymin, ymax = pl.ylim()
-# pl.xlabel('log(C)')
-# pl.ylabel('Coefficients')
-# pl.title('Logistic Regression Path')
-# pl.axis('tight')
-# pl.show(
+table_in_handle = tables.open_file(FEATURE_TABLE_TO_PYTHON_PATH, 'r')
+cv_lo = table_in_handle.get_node('/', 'v_cvlo').read().astype(np.float32)
+cv_up = table_in_handle.get_node('/', 'v_cvup').read().astype(np.float32)
+cv_sd = table_in_handle.get_node('/', 'v_cvsd').read().astype(np.float32)
+nzero = table_in_handle.get_node('/', 'v_nzero').read().astype(np.float32)
+cv_m = table_in_handle.get_node('/', 'v_cvm').read().astype(np.float32)
+nulldev = table_in_handle.get_node('/', 'v_nulldev').read().astype(np.float32)
+coef_path = table_in_handle.get_node('/', 'v_coef').read().astype(np.float32)
+new_features_names = ["baseline"] + feature_names
+
+

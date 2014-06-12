@@ -21,7 +21,8 @@ ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 OUTPUT_BASE_PATH = os.path.normpath("./")
-BASIC_TABLE_OUT_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_from_python.h5')
+FEATURE_TABLE_FROM_PYTHON_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_from_python.h5')
+FEATURE_TABLE_TO_PYTHON_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_to_python.h5')
 
 #Map between relative pitches, array columns and R-friendly relative pitch names
 r_name_for_i = dict()
