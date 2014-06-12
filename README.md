@@ -89,7 +89,9 @@ TODO
 ------
 
 * weight features to de-favour annoying ones such as bar position
-* more generous feature search which allows features to appear which are *ONLY* inteaction terms, despite both parents not being significant
+* fix bar position features - currently totally broken
+* fix per-note-rate feature. ill-posed and broken ATM
+* more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
 * use feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
@@ -102,11 +104,10 @@ TODO
   * source dataset
   * bludgeon R into actually reading the fucking metadata Grrrr R.
 * factor mapping
-* feature weighting
 * call into R using rpy2 or even subprocess
   * although probably rpy is slower than hdf5, so I should just spawn a script that uses hdf5
 * predict inter-event times - would be a natural multiple classification task
-* Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual trials together while forgetting songs.
+* Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual obs together while forgetting songs. This requires us to folkd on eventId not obsId.
 
 Feature ideas
 -----------------
@@ -116,9 +117,9 @@ Feature ideas
   should probably throw over CV and do straight training/prediction split
 * fits could know own AND NEIGHBOURS' base rates
 * Add a logical feature specifying bar position; possibly fit separate models for each
-  * This doesn't seem to add much, only cropping up in very high order features; shoudl I ditch it?
+  * This doesn't seem to add much, only cropping up in very high order features; should I ditch it? If i keep it it should not be nonsensically implemented.
 
-I would like to capture spectrally-meaningful relations
+Would I like to capture spectrally-meaningful relations
 
 * such as projecting onto harmonic space
 * note that otherwise, I am missing out (really?) under-represented transitions in the data.
@@ -137,4 +138,4 @@ Bonus datasets I jsut noticed on http://deeplearning.net/datasets/
 * MuseData: electronic library of classical music scores (http://musedata.stanford.edu/)
 * JSB Chorales: set of four-part harmonized chorales (http://www.jsbchorales.net/index.shtml)
 
-the midi parsing is a little funky in that it separates out parts; this means that harmonic relationships are only considered between the current voice, not other voices/instruments
+How does midi parsing handle percussion ATM?

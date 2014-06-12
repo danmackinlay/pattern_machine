@@ -1,15 +1,6 @@
-library("Matrix")
-library("glmnet")
-
-# which file has the data
-h5.file.name.from.python = "rag_from_python.h5"
-h5.file.name.to.python = "rag_to_python.h5"
-args = commandArgs( trailingOnly = TRUE)
-if (length(args) >=2) {
-  h5.file.name.from.python = args[[1]]
-  h5.file.name.to.python = args[[2]]
-}
-print(c(h5.file.name.from.python, h5.file.name.to.python))
+require("Matrix")
+require("glmnet")
+require(rhdf5)
 
 # # crashes with index error
 # require(doMC)
@@ -28,8 +19,18 @@ print(c(h5.file.name.from.python, h5.file.name.to.python))
 require(doSNOW)
 cl <- makeCluster(4)
 registerDoSNOW(cl)
-require(rhdf5)
 
+# which file has the data? Support defaults ofr interaction, and CLI use
+h5.file.name.from.python = "rag_from_python.h5"
+h5.file.name.to.python = "rag_to_python.h5"
+args = commandArgs( trailingOnly = TRUE)
+if (length(args) >=2) {
+  h5.file.name.from.python = args[[1]]
+  h5.file.name.to.python = args[[2]]
+}
+print(c("files:",h5.file.name.from.python, h5.file.name.to.python))
+
+# handy coeff inspection
 tidycoef = function(spcoef) {
   cf=as.array(Matrix(spcoef, sparse=F))
   cfl=as.list(cf[cf>0])
