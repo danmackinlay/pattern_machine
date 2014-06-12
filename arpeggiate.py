@@ -127,8 +127,13 @@ features += [f2[:, i] for i in xrange(f2.shape[1])]
 feature_names += ["F4" + r_name_for_i[i] for i in xrange(f4.shape[1])]
 features += [f4[:, i] for i in xrange(f4.shape[1])]
 
-feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
-features += [note_barcode_sparse[:,i] for i in xrange(note_barcode_sparse.shape[1])]
+# # TODO: This bit totally doesn't make sense; barcodes are not independent features but require me to take an OUTER PRODUCT FIRST with the other features. temporarily removing
+# feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
+# features += [note_barcode_sparse[:,i] for i in xrange(note_barcode_sparse.shape[1])]
+
+# TODO: We withhold diameter here since it is not immediately clear how to include it
+# this is only even slightly tenable if it has no interaction effects. Hmm.
+# although we possibly could include it without changing the algorithm at all; the weighting is conveniently linear in probability; might want to re-scale it to mean 0 or sth; I don't even know.
 
 feature_bases = [(i,) for i in xrange(len(features))]
 used_bases = set(feature_bases)
@@ -138,12 +143,8 @@ feature_probs = [float(feature_successes[i])/feature_sizes[i] for i in xrange(le
 feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 
-# Here begins an unprincipled feature search. Lazily we will assume that success features
-# contain all the relevent information
-
-# We withhold diameter here sinc eit is not immediately clear how to include it
-# this is only even slightly tenable if it has no interaction effects. Hmm.
-# although we possibly could include it without changing the algorithm at all; the weighting is conveniently linear in probability; might want to re-scale it to mean 0 or sth; I don't even know.
+# Here begins an unprincipled interaction feature search.
+# There will be false positives and false negatives, but we hope to find "enough" "good" features to be useful
 
 min_size = n_obs/10000
 p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK" and spurious effects will be regularised out.
@@ -199,19 +200,11 @@ while True:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
 # I could prune the least interesting half and repeat the process?
 
-# Incredibly slow, didn't terminate afer 36 hours (!)
-# mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64)
+# # Fit within python is incredibly slow, didn't terminate afer 36 hours (!)
+# mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64) #TRULY csr?
 # mega_target = obs_meta["result"].astype(np.float64)
 # mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
 # mod.fit(mega_features, mega_target)
-
-# base_log_odds = -np.log(obs_meta["diameter"])-1.0)
-# 
-# # expensive for the base_log_odds, which is very dense.
-# # NB we don't currently use the diameter in the feature selection.
-# base_log_odds_sparse = dok_matrix(
-#         base_log_odds.reshape((base_log_odds.size,)+(1,))
-#     ).tocsc()[:,0]
 
 # So we go to R: (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack( features).tocsc()
@@ -262,19 +255,6 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         atom=tables.Float32Atom(), shape=obs_vec.data.shape,
         title="recence",
         filters=filt)[:] = obs_vec.data
-    # table_handle.create_carray('/','v_base_rate',
-    #     atom=tables.Float32Atom(), shape=(128,),
-    #     title="base rate",
-    #     filters=filt)[:] = mean_pitch_rate
-    # # Now, because this is easier in Python than in R, we precalc relative pitch neighbourhoods
-    # # BEWARE 1-BASED INDEXING IN R
-    # base_rate_store = table_handle.create_carray('/','v_rel_base_rate',
-    #     atom=tables.Float32Atom(), shape=(128,2*NEIGHBORHOOD_RADIUS+1),
-    #     title="rel base rate",
-    #     filters=filt)
-    # _mean_pitch_rate_plus = [0]*NEIGHBORHOOD_RADIUS + mean_pitch_rate + [0]*NEIGHBORHOOD_RADIUS
-    # for i in xrange(128):
-    #     base_rate_store[i,:] = _mean_pitch_rate_plus[i:i+(2*NEIGHBORHOOD_RADIUS+1)]
     table_handle.create_carray('/','v_feature_indices',
         atom=tables.Int32Atom(), shape=mega_features.indices.shape,
         title="indices",
@@ -299,7 +279,7 @@ with tables.open_file(BASIC_TABLE_OUT_PATH, 'w') as table_handle:
         filters=filt)[:] = mega_features.shape
 
 #Hands-free R invocation would look like this:
-#> r -f analyse_featurized.R --args rag_from_python.h5 rag_to_python.h5
+#> r -f sparse_linear_fit.R --args rag_from_python.h5 rag_to_python.h5
 
 # rgr_lasso = Lasso(alpha=0.001)
 # rgr_lasso.fit(proj_operator, proj.ravel())
