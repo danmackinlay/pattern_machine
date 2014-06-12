@@ -16,18 +16,18 @@ Probabilistic underpinnings:
 -----------------------------
 
 * Here is one serious problem: The model I fit does NOT reflect that fact that the note SPAN changes, and thereby the baseline likelihood does too - but 4 octaves of potential notes is more options that 2 octaves; and I only ever choose ONE note
+  * could fix this by adding a baseline var in which, like the intercept, has no lasso penalty.
 * this naive markov model still has lots of hairy bits. Questions:
   * can I get a better "base" point for my notes? e.g. choosing a "key"
   * can I somehow condition on more "control" variables?
   * can I use state transitions to estimate "consonance"?
   * can I generalise somehow? right now this thing will only pass through note states that it has already seen... but if I trained every note with its own transition matrix we could have more notes
-* I'd kinda like to do this with a probabilistic graphical model, although the necessity of circular causation makes that messy. This Might work if the previous timestep were the nodes and the *next* were the leaf nodes
 * Linguistics has "bag of words"-models that might be interesting to play with?
 
 Method Concerns
 ----------------------
 
-NB - base rate is currentlty broken. I haven't worked out how to infer it across all different input files and in any case it is mysteriously 0 atm
+NB - per-note base rate is currentlty broken. I haven't worked out how to infer it across all different input files and in any case it is mysteriously 0 atm
 
 Am I doing this wrong? I could model odds of each note sounding conditional on environment.
 Could also model, conditional on environment, which note goes on.

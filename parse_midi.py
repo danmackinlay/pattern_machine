@@ -49,6 +49,7 @@ def get_data_set():
         obsId=[],
         eventId=[],
         thisNote=[],
+        diameter=[],
         result=[],
         b4=[],
         b3=[],
@@ -66,7 +67,11 @@ def get_data_set():
         domain = set(note_times.keys() + [next_note])
 
         #now we record what transitions have just happened, conditional on the local env
-        for local_pitch in xrange(min(domain)-NEIGHBORHOOD_RADIUS, max(domain) + NEIGHBORHOOD_RADIUS+1):
+        top = max(domain) + NEIGHBORHOOD_RADIUS + 1 
+        bottom = (min(domain) - NEIGHBORHOOD_RADIUS)
+        diameter = top - bottom
+        
+        for local_pitch in xrange(bottom, top):
             # count how many predictors we actually have
             n_held_notes = 0
 
@@ -91,6 +96,7 @@ def get_data_set():
                 obs_meta['obsId'].append(obs_counter)
                 obs_meta['eventId'].append(event_counter)
                 obs_meta['thisNote'].append(local_pitch)
+                obs_meta['diameter'].append(diameter)
                 obs_meta['result'].append(result)
                 obs_meta['b4'].append((barcode & 8) /8)
                 obs_meta['b3'].append((barcode & 4) /4)
