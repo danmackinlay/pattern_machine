@@ -15,8 +15,6 @@ MIDI parsing:
 Probabilistic underpinnings:
 -----------------------------
 
-* Here is one serious problem: The model I fit does NOT reflect that fact that the note SPAN changes, and thereby the baseline likelihood does too - but 4 octaves of potential notes is more options that 2 octaves; and I only ever choose ONE note
-  * could fix this by adding a baseline var in which, like the intercept, has no lasso penalty.
 * this naive markov model still has lots of hairy bits. Questions:
   * can I get a better "base" point for my notes? e.g. choosing a "key"
   * can I somehow condition on more "control" variables?
@@ -24,27 +22,24 @@ Probabilistic underpinnings:
   * can I generalise somehow? right now this thing will only pass through note states that it has already seen... but if I trained every note with its own transition matrix we could have more notes
 * Linguistics has "bag of words"-models that might be interesting to play with?
 
-Method Concerns
+POssible techniques
 ----------------------
-
-NB - per-note base rate is currentlty broken. I haven't worked out how to infer it across all different input files and in any case it is mysteriously 0 atm
-
-Am I doing this wrong? I could model odds of each note sounding conditional on environment.
-Could also model, conditional on environment, which note goes on.
-should try and attribute amt of error to each song
-I could go to AIC or BIC instead of cross validation to save CPU cycles
 
 ### neural network
 
 see also the deep learning approach: http://deeplearning.net/tutorial/rnnrbm.html#rnnrbm andd
 http://www-etud.iro.umontreal.ca/~boulanni/ICML2012.pdf
 
-Deep learning feels like overkill, but i feel like i could do some *un*principled feature construction;
+Full blown deep learning feels like overkill, but i feel like i could do some *un*principled feature construction as input to the logistic model which might get me just as far.
 we suspect marginal changes in features have a linear effect, fine
 but we also suspect that interaction terms are critical;
-Naive approach: walk through term-interaction space, discrectized. Start with one predictor, and add additional predictors randomly (greedily) if the combination has improved deviance wrt the mean. it "feels" like features shoudl be positive or negative
+Naive approach: walk through term-interaction space, discrectized.
+Start with one predictor, and add additional predictors randomly (greedily) if the combination
+has improved deviance wrt the mean.
 
-I could always give up and infer hidden markov states. sigh.
+I do this at the moment, but my method is flawed, as it does not account for "diameter" - how many notes are candidates to sound.
+
+I could always give up and infer hidden markov states.
 
 ### PGM
 
@@ -72,13 +67,12 @@ and http://www.jstatsoft.org/v33/i01/paper
 TODO: CV http://scikit-learn.org/stable/modules/cross_validation.html#cross-validation
 http://scikit-learn.org/stable/modules/grid_search.html#grid-search
 
-logistic unsupported for native CV boo
-
+logistic unsupported for native CV boo.
 http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LassoCV.html
 
 Documentation is scanty, but parallelism thorugh joblib: http://packages.python.org/joblib/
 
-TODO: demonstrate the warm restart tricks for cross validation of linear regression with Coordinate Descent.
+TODO: use the warm restart tricks for cross validation of linear regression with Coordinate Descent.
 
 This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#sgd
 
@@ -88,24 +82,25 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 TODO
 ------
 
-* weight features to de-favour annoying ones such as bar position
-* fix bar position features - currently totally broken
-* fix per-note-rate feature. ill-posed and broken ATM
+* fix bar position features - currently totally broken.
+
+  * weight features to de-favour annoying ones such as bar position
+  
+* fix per-note-rate feature. ill-posed and broken ATM. Even if it didn't glitch out to 0, I didn't code it to translate across songs.
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
+* work out how to do a rapid interaction feature seach which accounts for diameter
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
-* use feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
+* use formal feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
 * Switch to pure python using liblinear http://www.csie.ntu.edu.tw/~cjlin/liblinear/
-
-  NB very slow in liblineaR atm - no nice optimisations for logistic regression or binary factors
+  
+  NB Maybe not. Very slow in liblineaR atm - no nice optimisations for logistic regression or binary factors as in glmnet/R
 * save metadata:
   * MAX_AGE
   * matrix dimensions
   * source dataset
-  * bludgeon R into actually reading the fucking metadata Grrrr R.
 * factor mapping
 * call into R using rpy2 or even subprocess
-  * although probably rpy is slower than hdf5, so I should just spawn a script that uses hdf5
 * predict inter-event times - would be a natural multiple classification task
 * Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual obs together while forgetting songs. This requires us to folkd on eventId not obsId.
 
@@ -119,19 +114,16 @@ Feature ideas
 * Add a logical feature specifying bar position; possibly fit separate models for each
   * This doesn't seem to add much, only cropping up in very high order features; should I ditch it? If i keep it it should not be nonsensically implemented.
 
-Would I like to capture spectrally-meaningful relations
+Would I like to capture spectrally-meaningful relations?
 
 * such as projecting onto harmonic space
-* note that otherwise, I am missing out (really?) under-represented transitions in the data.
-* I could use Dictionary learning http://scikit-learn.org/stable/modules/decomposition.html#dictionary-learning to reduce the number of features from the combinatorial combinations (feels weird; am I guaranteed this will capture *important* features?)
-* I could use PCA - http://scikit-learn.org/stable/modules/decomposition.html#approximate-pca
 * I could use NNMF - http://scikit-learn.org/stable/modules/decomposition.html#non-negative-matrix-factorization-nmf-or-nnmf
 * TruncatedSVD also looks sparse-friendly and is linguistics-based - i.e. polysemy friendly
 
 Data concerns
 --------------
 
-Bonus datasets I jsut noticed on http://deeplearning.net/datasets/
+Bonus datasets I just noticed on http://deeplearning.net/datasets/
 
 * Piano-midi.de: classical piano pieces (http://www.piano-midi.de/)
 * Nottingham : over 1000 folk tunes (http://abc.sourceforge.net/NMD/)

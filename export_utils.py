@@ -1,40 +1,10 @@
-""" Clean up JSON output from R
-because R is a fairly filthy language
-with no scalars and horrible string handling.
-
-Parses model matrix colnames into references and unpacks the single entry coefficient arrays.
-
-Outputs as JSON - but why not code generate for SC? life is short.
+"""Export the model matrix into a supercollider script that outputs notes according to the model.
 """
-
-from json import dump, load
-
-def tidy_json_model(file_path):
-    r_model = load(open(file_path))
-    predictor_pairs = [[[], r_model.pop(u'(Intercept)')[0]]]
-
-    for this_predictor_string, [this_coef] in r_model.iteritems():
-        this_predictor_chunks = this_predictor_string.split(":")
-        this_predictor_refs = []
-        for chunk in this_predictor_chunks:
-            if not chunk.startswith("X"):
-                continue
-            chunk = chunk[1:]
-            if chunk.startswith("."):
-                ref = -int(chunk[1:])
-            else:
-                ref = int(chunk)
-            this_predictor_refs.append(ref)
-        predictor_pairs.append([this_predictor_refs,this_coef])
-    return(sorted(predictor_pairs))
-
-def write_json_model(model, path):
-    with open(path, "w") as f:
-        dump(model, f)
 
 def sc_string(model, i_name="i", nstate_name="nState"):
     """code-generate an SC function
     This SC function returns logit probability from a note volume array, nState, for a given pitch i
+    Note that it hasn't yet been updated for the new matrix-based R export, so it doesn't work.
     """
     super_terms = []
     for refs, coef in model:
@@ -52,4 +22,3 @@ def sc_string(model, i_name="i", nstate_name="nState"):
         super_terms.append("("+"*".join(terms)+")")
     return " +\n\t".join(super_terms) + ";"
 
-model = tidy_json_model("coef-off-11-min.json")
