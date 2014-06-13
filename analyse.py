@@ -1,17 +1,15 @@
-from pprint import pprint
+"""
+Starts with some midi files, parses, pre-processes then invokes a large linear fit.
+For speed, work continues in export.py, wherein this data is spat out in usable form.
+"""
 import os
 import tables
-import random
-from random import randint, sample
+from random import sample
 import warnings
-import math
 import numpy as np
 import scipy as sp
 from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
-from scipy.stats import power_divergence
-from sklearn.linear_model import Lasso, LogisticRegression
-
 from parse_midi import get_data_set
 from config import *
 
@@ -279,16 +277,5 @@ with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
         filters=filt)[:] = mega_features.shape
 
 #Hands-free R invocation would look like this:
-#> r -f sparse_linear_fit.R --args rag_from_python.h5 rag_to_python.h5
-
-table_in_handle = tables.open_file(FEATURE_TABLE_TO_PYTHON_PATH, 'r')
-cv_lo = table_in_handle.get_node('/', 'v_cvlo').read().astype(np.float32)
-cv_up = table_in_handle.get_node('/', 'v_cvup').read().astype(np.float32)
-cv_sd = table_in_handle.get_node('/', 'v_cvsd').read().astype(np.float32)
-nzero = table_in_handle.get_node('/', 'v_nzero').read().astype(np.float32)
-cv_m = table_in_handle.get_node('/', 'v_cvm').read().astype(np.float32)
-nulldev = table_in_handle.get_node('/', 'v_nulldev').read().astype(np.float32)
-coef_path = table_in_handle.get_node('/', 'v_coef').read().astype(np.float32)
-new_features_names = ["baseline"] + feature_names
-
+#> R -f sparse_linear_fit.R --args rag_from_python.h5 rag_to_python.h5
 
