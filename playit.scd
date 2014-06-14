@@ -9,14 +9,17 @@ ServerOptions.inDevices;
 ~n.add(48);
 ~n.add(51);
 ~n.featureData;
+~n.updateFeatures;
 ~n.heldNotes;
 ~n.nextOnProbs.do({|v,i| [i,v].postln;});
 ~n.nextOnProbs.plot;
 ~n.pushOn;
+~n.lmOn(48);
 ~n.heldNotes;
+~n.featureFns[0].value(~n.heldNotesArray);
 ~n.step(0.8);
 (
-~n=Noteomata.new(window:2, defaultNote:48, maxJump:7);
+~n=Noteomata.new(window:2, defaultNote:48, maxJump:12);
 ~state = (\n: ~n);
 ~innotes = Pbind(
 	\delta, Prand([0,0,1/4,1/8,1/3],16)

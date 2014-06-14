@@ -44,7 +44,7 @@ def sc_string(model, i_name="i", note_feature_matrix="featureData"):
             terms.append("("+str(coef)+")")
         else:
             terms.append(str(coef))
-        super_terms.append("*".join(terms))
+        super_terms.append("(" + "*".join(terms)+")")
     return header + " +\n\t".join(super_terms) + footer
 
 
