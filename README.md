@@ -82,6 +82,7 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 TODO
 ------
 
+* rename "feature" functions as used in python and SC implementation to "basis" functions to reduce confusion with, e.g. bar position
 * fix bar position features - currently totally broken.
 
   * weight features to de-favour annoying ones such as bar position

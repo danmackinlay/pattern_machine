@@ -4,7 +4,8 @@ import numpy as np
 import scipy as sp
 from config import *
 
-"""Export the model matrix into a supercollider script that outputs notes according to the model.
+"""
+Export the model matrix into a supercollider script that outputs notes according to the model.
 """
 
 table_out_handle = tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'r')
@@ -28,9 +29,14 @@ def coefdict(coef_array):
     these_coefs = [coefs[i] for i in np.where(coefs!=0)[0]]
     return dict(zip(these_features,these_coefs))
 
-def sc_string(model, i_name="i", note_age_name="heldNotes"):
+l = []
+for k in dc.keys(): l.extend(k.split(':'))
+l = set(l)
+#coefdict(coef_path[:,23])
+ 
+def sc_string(model, i_name="i", note_age_name="features"):
     """code-generate an SC function
-    This SC function returns logit probability from a note volume array, nState, for a given pitch, i
+    This SC function returns logit probability from a note feature array, for a given pitch, i
     """
     super_terms = []
     for refs, coef in model:

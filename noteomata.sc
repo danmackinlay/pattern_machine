@@ -16,22 +16,46 @@ Noteomata {
 	var <>defB;
 	var <>maxJump;
 	var <>defaultNote;
-	var <nState;
 	var <heldNotes;
 	var <allNotes;
 	var <maxAge=2;
 	var <featureWidth=0.125;
+	var <featureData;
+	var <featureFns;
+	var <nFeatures;
 	
 	*new {|a=1,b=0,maxJump=12,defaultNote|
 		^super.newCopyArgs(a,b,maxJump,defaultNote?{60.rrand(72)}).init;
 	}
-	squareFeature
 	init {
 		heldNotes = IdentityDictionary.new(128);
 		allNotes = (0..127);
+		featureFns = [
+			this.square(_,0),
+			this.square(_,1),
+			this.square(_,2),
+			this.square(_,4)];
+		this.updateFeatures;
+	}
+	square {|x,center=0,width|
+		width=width?featureWidth;
+		^x.isCollection.if(
+			{((x-center).abs<width).collect(_.binaryValue).asFloatArray},
+			{((x-center).abs<width).binaryValue.asFloat}
+		)
+	}
+	updateFeatures {
+		featureData = featureFns.collect({|fn| fn.value(this.heldNotesArray)})
+	}
+	heldNotesArray {
+		var arr = FloatArray.fill(128,0);
+		heldNotes.keysValuesDo({|note, newness|
+			arr[note]=newness;
+		});
+		^arr;
 	}
 	add {|i|
-		heldNotes[i]=0.0;
+		heldNotes[i]=maxAge;
 	}
 	remove {|i|
 		heldNotes.removeAt(i);
@@ -41,52 +65,6 @@ Noteomata {
 	}
 	highest{
 		^heldNotes.keys.maxItem ? 64;
-	}
-	lmOn {|i|
-		^(-4.96464116) +
-		((nState[i-11]?0)*(-1.28343993)) +
-		((nState[i-10]?0)*(-0.85412226)) +
-		((nState[i-10]?0)*(nState[i-6]?0)*0.94919149) +
-		((nState[i-10]?0)*(nState[i-3]?0)*(-0.04303883)) +
-		((nState[i-9]?0)*(nState[i-8]?0)*(-0.08503607)) +
-		((nState[i-9]?0)*(nState[i-7]?0)*(-0.21370876)) +
-		((nState[i-9]?0)*(nState[i-6]?0)*(-0.55671085)) +
-		((nState[i-9]?0)*(nState[i-4]?0)*1.62902766) +
-		((nState[i-9]?0)*(nState[i-1]?0)*(-0.45750474)) +
-		((nState[i-9]?0)*(nState[i+8]?0)*0.89711231) +
-		((nState[i-8]?0)*(nState[i-5]?0)*1.07923913) +
-		((nState[i-8]?0)*(nState[i-4]?0)*(-0.82666652)) +
-		((nState[i-8]?0)*(nState[i+1]?0)*(-0.18430432)) +
-		((nState[i-7]?0)*(-0.15140098)) +
-		((nState[i-7]?0)*(nState[i-6]?0)*(-0.17156896)) +
-		((nState[i-7]?0)*(nState[i-5]?0)*(-0.3471564)) +
-		((nState[i-7]?0)*(nState[i-3]?0)*1.21097858) +
-		((nState[i-7]?0)*(nState[i-2]?0)*(-0.21654709)) +
-		((nState[i-6]?0)*(nState[i-5]?0)*(-0.13930213)) +
-		((nState[i-6]?0)*(nState[i-3]?0)*(-0.04302074)) +
-		((nState[i-6]?0)*(nState[i-1]?0)*(-0.08548712)) +
-		((nState[i-5]?0)*0.26678056) +
-		((nState[i-5]?0)*(nState[i-4]?0)*(-0.02200252)) +
-		((nState[i-5]?0)*(nState[i-3]?0)*(-0.64130489)) +
-		((nState[i-5]?0)*(nState[i-1]?0)*(-0.4669753)) +
-		((nState[i-5]?0)*(nState[i+1]?0)*(-0.18629919)) +
-		((nState[i-4]?0)*0.3923895) +
-		((nState[i-4]?0)*(nState[i-1]?0)*(-0.26275819)) +
-		((nState[i-4]?0)*(nState[i+1]?0)*(-0.21069791)) +
-		((nState[i-3]?0)*0.50752238) +
-		((nState[i-3]?0)*(nState[i+1]?0)*(-0.4397831)) +
-		((nState[i-3]?0)*(nState[i+3]?0)*(-0.56287068)) +
-		((nState[i-3]?0)*(nState[i+5]?0)*(-0.08215483)) +
-		((nState[i-2]?0)*(nState[i+3]?0)*(-0.06215389)) +
-		((nState[i+3]?0)*(-0.20170513)) +
-		((nState[i+4]?0)*(-0.47917718)) +
-		((nState[i+5]?0)*(-0.27236269)) +
-		((nState[i+6]?0)*(-1.21159816)) +
-		((nState[i+7]?0)*(-0.34736813)) +
-		((nState[i+8]?0)*(-0.80713203)) +
-		((nState[i+9]?0)*(-0.55466688)) +
-		((nState[i+10]?0)*(-0.65407107)) +
-		((nState[i+11]?0)*(-0.56899063));
 	}
 	invLogit{|x=0,a,b|
 		var e=((a?defA)*x+(b?defB)).exp;
@@ -115,14 +93,34 @@ Noteomata {
 		this.add(nextPitch);
 		^nextPitch;
 	}
-	newness{|step=0.5|
+	step{|step=0.5|
 		/*
-		Handles which notes are current and ditches those that are not
+		Advances time.
+		
+		Possible optimisation: do not do anything when step=0.0
+		NB then make sure to update *feature* state when new note is played, not just ages
 		*/
 		heldNotes.keysValuesDo({|note, newness|
 			newness = newness - step;
 			heldNotes[note] = newness;
 			(newness<0).if({this.remove(note)});
 		});
+		
 	}
+	lmOn {|i|
+		/*^(-4.96464116) +
+		((nState[i-11]?0)*(-1.28343993)) +
+		((nState[i-10]?0)*(-0.85412226)) +
+		((nState[i-10]?0)*(nState[i-6]?0)*0.94919149) +
+		((nState[i-10]?0)*(nState[i-3]?0)*(-0.04303883)) +
+		((nState[i-9]?0)*(nState[i-8]?0)*(-0.08503607)) +
+		((nState[i-9]?0)*(nState[i-7]?0)*(-0.21370876)) +
+		((nState[i-9]?0)*(nState[i-6]?0)*(-0.55671085)) +
+		((nState[i-9]?0)*(nState[i-4]?0)*1.62902766) +
+		((nState[i-9]?0)*(nState[i-1]?0)*(-0.45750474)) +
+		((nState[i-9]?0)*(nState[i+8]?0)*0.89711231) +
+		((nState[i-8]?0)*(nState[i-5]?0)*1.07923913) +
+		((nState[i-8]?0)*(nState[i-4]?0)*(-0.82666652)) +
+		((nState[i-8]?0)*(nState[i+1]?0)*(-0.18430432)) +
+	((nState[i-7]?0)*(-0.15140098)) + ...*/	}
 }
