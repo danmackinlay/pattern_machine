@@ -83,6 +83,7 @@ TODO
 ------
 
 * rename "feature" functions as used in python and SC implementation to "basis" functions to reduce confusion with, e.g. bar position
+* make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
 * fix bar position features - currently totally broken.
 
   * weight features to de-favour annoying ones such as bar position
