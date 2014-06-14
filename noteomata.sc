@@ -18,7 +18,7 @@ Noteomata {
 	var <>defaultNote;
 	var <heldNotes;
 	var <allNotes;
-	var <maxAge=2;
+	var <maxAge=2.0;
 	var <featureWidth=0.125;
 	var <featureData;
 	var <featureFns;
@@ -31,10 +31,10 @@ Noteomata {
 		heldNotes = IdentityDictionary.new(128);
 		allNotes = (0..127);
 		featureFns = [
-			this.square(_,0),
-			this.square(_,1),
-			this.square(_,2),
-			this.square(_,4)];
+			this.square(_,maxAge-0),
+			this.square(_,maxAge-0.25),
+			this.square(_,maxAge-0.5),
+			this.square(_,maxAge-1)];
 		this.updateFeatures;
 	}
 	square {|x,center=0,width|
@@ -56,6 +56,7 @@ Noteomata {
 	}
 	add {|i|
 		heldNotes[i]=maxAge;
+		this.updateFeatures;
 	}
 	remove {|i|
 		heldNotes.removeAt(i);
@@ -75,7 +76,7 @@ Noteomata {
 		var nextProb = Array.fill(128,0);
 		nextCandidates = IdentitySet.newFrom(
 			(((this.lowest-maxJump).max(0))..((this.highest+maxJump).min(127)))
-		)-heldNotes.keys;
+		);
 		nextCandidates.do({|i|
 			nextProb[i] = this.invLogit(this.lmOn(i), a, b);
 		});
@@ -96,16 +97,13 @@ Noteomata {
 	step{|step=0.5|
 		/*
 		Advances time.
-		
-		Possible optimisation: do not do anything when step=0.0
-		NB then make sure to update *feature* state when new note is played, not just ages
 		*/
 		heldNotes.keysValuesDo({|note, newness|
 			newness = newness - step;
 			heldNotes[note] = newness;
 			(newness<0).if({this.remove(note)});
 		});
-		
+		(step>0.0).if({this.updateFeatures});
 	}
 	lmOn {|i|
 		^(-0.298561) +

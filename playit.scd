@@ -2,39 +2,19 @@ s=~serverboot.(prox:\local, device:\internal);
 ServerOptions.inDevices;
 ~here = "/Users/dan/src/python/arpeggiate_by_numbers";
 
-~square={|x,c=0,d=0.125| ((x-c).abs<d).binaryValue};
-~b0=~square.value(_,0);
-~b1=~square.value(_,0.5);
-~b2=~square.value(_,1.0);
-~fns=[~b0, ~b1, ~b2];
-~fns.collect({|fn| fn.value(1)});
-~fns.collect({|fn| fn.value(FloatArray.series(10,0,0.0625))});
-
-~squareA={|x,c=0,d=0.125|
-	x.isCollection.if(
-		{((x-c).abs<d).collect(_.binaryValue)},
-		{((x-c).abs<d).binaryValue})
-};
-~b0A=~squareA.value(_,0);
-~b1A=~squareA.value(_,0.5);
-~b2A=~squareA.value(_,1);
-~fnsA=[~b0A, ~b1A, ~b2A];
-~fns.collect({|fn| fn.value(1)});
-~fnsA.collect({|fn| fn.value(FloatArray.series(10,0,0.0625))});
-
-~notelm.value(i:5, nState:[0,0,0,0,0,0,0,1,0,0,0,0,0]);
-20.collect(~notelm.value(_,[0,0,0,0,0,0,0,1,0,0,0,0,0]));
 ~n=Noteomata.new;
 ~n.nextOnProbs;
 ~n.add(46);
 ~n.add(47);
 ~n.add(48);
 ~n.add(51);
+~n.featureData;
+~n.heldNotes;
 ~n.nextOnProbs.do({|v,i| [i,v].postln;});
 ~n.nextOnProbs.plot;
 ~n.pushOn;
 ~n.heldNotes;
-~n.step(0.2);
+~n.step(0.8);
 (
 ~n=Noteomata.new(window:2, defaultNote:48, maxJump:7);
 ~state = (\n: ~n);
