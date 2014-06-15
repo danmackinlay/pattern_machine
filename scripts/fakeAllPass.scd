@@ -4,7 +4,6 @@ See also marsenator.scd
 I am trying to create a reversible reverb-echo like effect, where the
 diffusion can be undone.
 TODO: ditch feedback entirely?
-TODO: stereo - doesn't work right now because of multiple LocalIn definitions
 */
 
 s=~serverboot.(prox:\local, device:\internal);
@@ -152,12 +151,14 @@ fork {
 ~fakeDiffusion.set(\macrodecoherence, -1.0);
 ~fakeDiffusion.set(\macrodecoherence, 0.0);
 ~fakeDiffusion.set(\macrodecoherence, 1.0);
+~fakeDiffusion.set(\microdecay, 5.0);
 ~fakeDiffusion.set(\microdecay, 2.0);
 ~fakeDiffusion.set(\microdecay, 0.1);
 ~fakeDiffusion.set(\microdelay, 0.2);
 ~fakeDiffusion.set(\microdelay, 0.01);
 ~fakeDiffusion.set(\microdecoherence, -1.0);
 ~fakeDiffusion.set(\microdecoherence, 0.0);
+~fakeDiffusion.set(\microdecoherence, 0.9);
 ~fakeDiffusion.set(\microdecoherence, 1.0);
 ~fakeDiffusion.set(\microdecay, 0.1);
 ~fakeDiffusion.set(\microdecay, 1.0);
