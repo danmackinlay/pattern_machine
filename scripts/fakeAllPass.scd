@@ -10,6 +10,7 @@ TODO: stereo - doesn't work right now because of multiple LocalIn definitions
 s=~serverboot.(prox:\local, device:\internal);
 s=~serverboot.(prox:\local, device:\rme);
 ~state = 'foo';
+~state;
 (
 var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr, synthfn;
 nBpBandsTotal=nBpBandsPerOctave*nOctaves+1;
@@ -80,11 +81,13 @@ SynthDef(\fakeDiffusion__2, {|out, macrodecoherence=0, macrodelay=0.2, microdeco
 			outxfade: outxfade,
 			lag: lag),
 	]);
-}).dumpUGens.add;
+}).add;
+
 
 state = ();
 testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
 {s.makeGui;}.defer;
+
 fork {
 	ingroup = Group.new(s, \addToHead);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
@@ -134,8 +137,8 @@ fork {
 	));
 	~pat = Pbind(
 		\note, Pseq([0,3,7,12],inf),
-		\group, ~state.voxgroup,
-		\out, ~state.outbus,
+		\group, state.voxgroup,
+		\out, state.outbus,
 		\dur, 1).play;
 	~state = state;
 };
