@@ -5,8 +5,8 @@ SynthDef.new(\windowtest, {
 	phaseA = LFSaw.kr(lforate);
 	trigA = phaseA < 0;
 	trigB = phaseA >= 0;
-	envA = CentredApprox.halfSine(phaseA);
-	envB = CentredApprox.halfSine((phaseA+1).wrap2(1));
+	envA = CentredApprox.halfCos(phaseA);
+	envB = CentredApprox.halfCos((phaseA+1).wrap2(1));
 	sigA = PMOsc.ar(carfreq: freq, modfreq:freq*1.25, pmindex:0.2, mul:envA);
 	sigB = PMOsc.ar(carfreq: freqB, modfreq:freqB*1.5, pmindex:0.15, mul:envB);
 	Out.ar(out, sigA + sigB);

@@ -73,8 +73,8 @@ PSReverbSynthDefs {
 			phaseA = LFSaw.kr(lforate);
 			trigA = phaseA < 0;
 			trigB = phaseA >= 0;
-			envA = CentredApprox.halfSine(phaseA);
-			envB = CentredApprox.halfSine((phaseA+1).wrap2(1));
+			envA = CentredApprox.halfCos(phaseA);
+			envB = CentredApprox.halfCos((phaseA+1).wrap2(1));
 			delLo = delay*(1-delvar);
 			delHi = delay*(1+delvar);
 			gainLo = gain*(1-gainvar);
