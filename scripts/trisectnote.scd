@@ -1,5 +1,52 @@
 s=~serverboot.(prox:\local, device:\internal);
+(
+var analNode;
+SynthDef.new(\transect12__1, {|inbuf=0,basef=440,outbuf|
+	var sig, referenceoscs, refamps, inamp, attackTime;
+	attackTime = 2048*SampleDur.ir;
+	referenceoscs = Blip.ar(Array.geom(12,basef,2**(1/12)));
+	sig = PlayBuf.ar(
+		numChannels:1,
+		bufnum:inbuf,
+		rate: BufRateScale.kr(inbuf),
+		trigger: 1,
+		loop: 0,
+		doneAction: 2
+	);
+	inamp = Amplitude.ar(
+		sig,
+		attackTime:attackTime,
+		releaseTime:attackTime,
+	).max(0.0001);
+	refamps = Amplitude.ar(
+		Convolution.ar(sig, referenceoscs, framesize: 2048),
+		attackTime:attackTime,
+		releaseTime:attackTime,
+	).max(0.0001)/inamp;
+	DiskOut.ar(outbuf, [inamp]++refamps);
+}).add;
 
-~filep="/Users/dan/src/sc/f_lustre/note_sweep.aif";
+fork {
+	~infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
+	~outfilep=~pmscripts +/+ "test.wav";
+	~inBuf=Buffer.read(s,~infilep,action:{|...args| \inbuf.postln;args.postln;});
+	~outBuf = Buffer.alloc(s,2**18,13);
+	s.sync;
+	analNode=Synth.new(\transect12__1,[\inbuf,~inBuf, \outbuf, ~outBuf],s);
+	NodeWatcher.register(analNode);
+	~state=(
+		analNode:analNode
+	);
+};
+)
+/*
+//completionMessage hoohah looks like this:
 
-SynthDef.new(\transect1, {});
+y = Synth.basicNew(\help_Buffer); // not sent yet
+b = Buffer.readNoUpdate(s, Platform.resourceDir +/+ "sounds/a11wlk01.wav",
+    completionMessage: { arg buffer;
+        // synth add its s_new msg to follow
+        // after the buffer read completes
+        y.newMsg(s,[\bufnum, buffer],\addToTail)
+    });
+*/
