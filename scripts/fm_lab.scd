@@ -1,3 +1,9 @@
+/*
+making sick synths by clever optimisation of the horrible parameter space
+
+Check out sccode rand-n-step for array of synths examples
+*/
+
 //basic sine FM synth
 (
 fork {
