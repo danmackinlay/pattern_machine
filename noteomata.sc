@@ -67,7 +67,7 @@ Noteomata {
 	highest{
 		^heldNotes.keys.maxItem ? 64;
 	}
-	invLogit{|x=0,a,b|
+	logit{|x=0,a,b|
 		var e=((a?defA)*x+(b?defB)).exp;
 		^e/(1+e);
 	}
@@ -78,7 +78,7 @@ Noteomata {
 			(((this.lowest-maxJump).max(0))..((this.highest+maxJump).min(127)))
 		);
 		nextCandidates.do({|i|
-			nextProb[i] = this.invLogit(this.lmOn(i), a, b);
+			nextProb[i] = this.logit(this.lmOn(i), a, b);
 		});
 		^nextProb.normalizeSum;
 	}
