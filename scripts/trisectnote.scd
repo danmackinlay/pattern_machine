@@ -25,14 +25,16 @@ SynthDef.new(\transect12__1, {|inbuf=0,basef=220,outbuf,smoothness=8|
 		attackTime:attackTime,
 		releaseTime:attackTime,
 	).max(0.0001)/inamp;
-	DiskOut.ar(outbuf, [inamp]++refamps);
+	([inamp]++refamps).collect({|amp,i|
+		DiskOut.ar(bus.asnum+i, amp)
+	});
 }).add;
 
 fork {
 	~infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
 	~outfilep=~pmscripts +/+ "test.wav";
 	~inBuf=Buffer.read(s,~infilep,action:{|...args| \inbuf.postln;args.postln;});
-	~outBuf = Buffer.alloc(s,2**18,13);
+	~outBuf = Buffer.allocConsecutive(13, s,2**18,1);
 	s.sync;
 	analNode=Synth.new(\transect12__1,[\inbuf,~inBuf, \outbuf, ~outBuf],s);
 	NodeWatcher.register(analNode);
