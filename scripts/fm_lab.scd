@@ -114,3 +114,24 @@ fork {
 ~mousexguy.set(\maxval, 4);
 ~fmguy.map(\freq, ~freqBus);
 ~pitchguy.set(\delay, 0);
+//////////////////////////
+SynthDef.new(\fmraw, {|freq,
+	harmonicfreqs,
+	ringModAmp,
+	fModAmp,
+	attacks,
+	decays,
+	sustains,
+	releases,
+	pans,
+	trigger|
+	var oscs;
+}).add;
+
+
+SynthDef.new(\fmapped, {|freq,
+	paramMap,
+	mapBus,
+	trigger|
+}).add;
+

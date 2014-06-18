@@ -5,6 +5,15 @@ TODO: switch to simpler less accurate algorithm
 http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some alternatives,
 http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some more
 
+
+I simulate uniform marginal variables from the stipulated 2d copula distribution
+see http://www.math.uni-leipzig.de/~tschmidt/TSchmidt_Copulas.pdf
+or, for exmpirical copulae, http://www.mathworks.com.au/products/statistics/examples.html?file=/products/demos/shipping/stats/copulademo.html#17
+
+This turns out to be easiest for Gaussian, t-copulae and Marshall-Olkin, and
+only somewhat easy for some Archimedeans - specifically, Frank, Gumbel and Clayton.
+Archimedean copulae have a single coupling parameter for a large variable set, which is nice. However, for bivariate coupling (and everything can be done pairwise if we want) Gaussians are yet simpler.
+
 I'm not quote sure how to handle graceful conversions to UGens and also vector input values here. Compare:
 ~steps1 = Array.series(3001, 0, 1)/3000;
 ~steps33 = Array.series(3001, -1500, 1)/500;
@@ -16,7 +25,6 @@ PSPhi(~steps33).plot;
 PSCorr(0.9, ~steps33, {0.gauss(1)}.dup(~steps33.size)).plot;
 PSCorr(0.9, ~steps33).plot;
 PSCorr.v(0.9, ~steps33).plot;
-
 */
 
 /*

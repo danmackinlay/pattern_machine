@@ -1,3 +1,9 @@
+/*
+A wild an dangerous effect that is designed to feedback (more) safely through your microphone and PA.
+
+*/
+
+
 s=~serverboot.(prox:\local, device:\internal);
 //TODO: EQ
 //TODO: make safer, by ignoring shifting baseline potential

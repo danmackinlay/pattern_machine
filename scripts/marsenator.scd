@@ -1,5 +1,5 @@
 /*
-See also bassExplore.scd
+See also bassExplore
 
 I am trying to create flocks of granular effects, with a consistent aggregate sound.
 
