@@ -12,15 +12,15 @@ SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8|
 	delTimes=Array.geom(12,basef.reciprocal,2**(-1.0/12.0));
 	sig = In.ar(inbus,1);
 	inamp = Amplitude.kr(
-		sig,
+		sig.squared,
 		attackTime:attackTime,
 		releaseTime:attackTime,
-	).max(0.0001);
+	).sqrt.max(0.0001);
 	refamps = Amplitude.kr(
-		DelayC.ar(sig, delaytime:delTimes) * sig,
+		(DelayC.ar(sig, delaytime:delTimes) * sig).squared,
 		attackTime:attackTime,
 		releaseTime:attackTime,
-	).max(0.0001)/inamp;
+	).sqrt.max(0.0001)/inamp;
 	//TextVU.ar(5, refamps, "Analy");
 	Out.kr(outbus, refamps ++ [inamp]);
 }).add;
