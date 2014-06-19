@@ -55,7 +55,10 @@ PSUtilitySynthDefs {
 			);
 			Out.ar(out, sig*env);
 		}).add;
-		SynthDef(\rec__1, {|bufnum=0, in=0|
+		SynthDef(\soundin__1, {|out=0, in=0|
+			Out.ar(out, SoundIn.ar(in));
+		}).add;
+		SynthDef(\rec_soundin__1, {|bufnum=0, in=0|
 			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;
 	}
