@@ -12,6 +12,7 @@ entirely? Perhaps. That leads to a weird meta-optimisation problem though -
 what are *appropriate* mappings?
 Also, what gives me PRNGs with continuous dependence on seed?
 And what is an appropriate scaling for the matrix?
+To check: do we have extreme enough param values ATM?
 */
 
 //Produces an RNG that returns a vector of uncorrelated pseudo-randoms indexed by a scalar
