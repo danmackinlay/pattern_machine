@@ -110,6 +110,12 @@ results_sparse = dok_matrix(
         obs_meta["result"].reshape((obs_meta["result"].size,)+(1,))
     ).tocsc()[:,0]
 
+results_scaled = (obs_meta["diameter"]*obs_meta["result"]).astype('float32')
+results_scaled = results_scaled/results_scaled.sum()
+results_scaled_sparse = dok_matrix(
+        results_scaled.reshape(results_scaled.size,)+(1,))
+    ).tocsc()[:,0]
+
 # expensive for the barcode, which is dense.
 note_barcode_sparse = dok_matrix(obs_meta["barcode"]).tocsc()
 
@@ -138,7 +144,7 @@ features += [f4[:, i] for i in xrange(f4.shape[1])]
 feature_bases = [(i,) for i in xrange(len(features))]
 used_bases = set(feature_bases)
 feature_sizes = [f.sum() for f in features]
-feature_successes = [f.multiply(results_sparse).sum() for f in features]
+feature_successes = [f.multiply(results_scaled_sparse).sum() for f in features]
 feature_probs = [float(feature_successes[i])/feature_sizes[i] for i in xrange(len(feature_sizes))]
 feature_pvals = [lik_test(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
 feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_success_rate) for i in xrange(len(feature_sizes))]
@@ -167,7 +173,7 @@ while True:
     if prop_size<min_size:
         #pretty arbitrary here
         continue
-    prop_succ = prop_feat.multiply(results_sparse).sum()
+    prop_succ = prop_feat.multiply(results_scaled_sparse).sum()
     prop_prob = float(prop_succ)/prop_size
     prop_pval = max(
         lik_test(prop_size, prop_succ, prob_i),
