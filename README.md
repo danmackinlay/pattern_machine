@@ -22,7 +22,7 @@ Probabilistic underpinnings:
   * can I generalise somehow? right now this thing will only pass through note states that it has already seen... but if I trained every note with its own transition matrix we could have more notes
 * Linguistics has "bag of words"-models that might be interesting to play with?
 
-POssible techniques
+Possible techniques
 ----------------------
 
 ### neural network

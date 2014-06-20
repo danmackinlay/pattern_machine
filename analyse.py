@@ -69,6 +69,7 @@ base_success_rate = obs_meta["result"].mean()
 n_basic_vars = NEIGHBORHOOD_RADIUS * 2 + 1
 col_names = [r_name_for_i[i] for i in xrange(n_basic_vars)]
 
+# TODO: Now that I have a better feature finder, could do this with broader features, or more features or sth
 f0 = csc_matrix(
     (
         square_feature(obs_vec.data, MAX_AGE, 0.125),
@@ -132,6 +133,7 @@ features += [f4[:, i] for i in xrange(f4.shape[1])]
 # TODO: We withhold diameter here since it is not immediately clear how to include it
 # this is only even slightly tenable if it has no interaction effects. Hmm.
 # although we possibly could include it without changing the algorithm at all; the weighting is conveniently linear in probability; might want to re-scale it to mean 0 or sth; I don't even know.
+# In fact we could do it by scaling success counts by diameter *and* renormalising; the Chi2 test chould still hold in that case.
 
 feature_bases = [(i,) for i in xrange(len(features))]
 used_bases = set(feature_bases)

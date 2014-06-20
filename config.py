@@ -13,7 +13,6 @@ NEIGHBORHOOD_RADIUS = 11
 
 # All influence decays by...
 MAX_AGE = 2.0
-# for the one-step model we take even less:
 
 #when calculating event rate, aggregate notes this close together
 ONSET_TOLERANCE = 0.06
