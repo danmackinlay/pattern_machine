@@ -2,7 +2,6 @@
 Apocalypse
 
 Ideas:
-* Order<->chaos transitions
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * Bulk sample loading based on MIR
 * the param mapping thing
@@ -13,8 +12,21 @@ Ideas:
 * control ableton with SC
 * shared Dropbox folder
 * feedback effects?
+* stateful algorithm to navigate through with wiimote
 */
+////////
+s=~serverboot.(prox:\local, device:\internal);
+~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 
+(
+fork{
+	~control = Bus.control(s, 4);
+	s.sync;
+	~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
+
+)
+
+//////MIDI
 // create an instance
 n = NanoKontrol.new;
 

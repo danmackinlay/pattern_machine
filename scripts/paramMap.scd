@@ -30,8 +30,8 @@ To check: do we have extreme enough param values ATM?
 ~outDims = 5;
 ~r=~randomPRNGFactory.(~inDims*~outDims);
 // probably could rescale to adjust variance here.
-// Use Gaussian coeff distribution because rotation-invariant
-// Could take other dists.
+// Use Gaussian coef distribution because rotation-invariant
+// Could take other dists; there's nothing magic about rotation invariance
 ~transformMat = Matrix.withFlatArray(~inDims, ~outDims, PSInvPhi(~r.(1.1)).asFloatArray/(~inDims.sqrt));
 ~map = {|...params|
 	var paramMat=Matrix.withFlatArray(1,2,PSInvPhi(params)).postln;
