@@ -113,7 +113,7 @@ results_sparse = dok_matrix(
 results_scaled = (obs_meta["diameter"]*obs_meta["result"]).astype('float32')
 results_scaled = results_scaled/results_scaled.sum()
 results_scaled_sparse = dok_matrix(
-        results_scaled.reshape(results_scaled.size,)+(1,))
+        results_scaled.reshape((results_scaled.size,)+(1,))
     ).tocsc()[:,0]
 
 # expensive for the barcode, which is dense.
@@ -154,8 +154,9 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 
 min_size = n_obs/10000
 p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK" and spurious effects will be regularised out.
-max_features = 2000
-
+max_features = 10000
+max_feature_iters = 1000000
+iter_counter = 0
 while True:
     i, j = 0, 0
     while True:
@@ -163,6 +164,7 @@ while True:
         i, j = sorted(sample(xrange(len(features)), 2))
         prop_basis = tuple(sorted(set(feature_bases[i]+feature_bases[j])))
         if prop_basis not in used_bases: break
+    iter_counter += 1
     used_bases.add(prop_basis)
     prop_name = ":".join([feature_names[f] for f in prop_basis])
     print "trying", prop_name
@@ -201,6 +203,7 @@ while True:
     feature_liks.append(prop_lik)
     feature_pvals.append(prop_pval)
     if len(features) >= max_features: break
+    if iter_counter >= max_feature_iters: break
 
 # Here's an arbitrary way of guessing the comparative importance of these:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
