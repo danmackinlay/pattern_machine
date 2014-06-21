@@ -83,7 +83,6 @@ notes.fit.time = system.time( #note this only works for <- assignment!
 print(notes.fit.time)
 print(tidycoef(coef(notes.fit, s="lambda.1se")))
 
-
 #write out to a different file because we can't change the matrix sizes after updated
 # At least, I can't see how to do that from R which doesn't support deletion
 if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)

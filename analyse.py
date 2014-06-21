@@ -94,6 +94,14 @@ f2 = csc_matrix(
     ), shape=(n_obs, n_basic_vars)
 )
 f2.eliminate_zeros()
+f3 = csc_matrix(
+    (
+        square_feature(obs_vec.data, MAX_AGE-0.75, 0.125),
+        obs_vec.indices,
+        obs_vec.indptr
+    ), shape=(n_obs, n_basic_vars)
+)
+f3.eliminate_zeros()
 f4 = csc_matrix(
     (
         square_feature(obs_vec.data, MAX_AGE-1.0, 0.125),
@@ -129,6 +137,8 @@ feature_names += ["F1" + r_name_for_i[i] for i in xrange(f1.shape[1])]
 features += [f1[:, i] for i in xrange(f1.shape[1])]
 feature_names += ["F2" + r_name_for_i[i] for i in xrange(f2.shape[1])]
 features += [f2[:, i] for i in xrange(f2.shape[1])]
+feature_names += ["F3" + r_name_for_i[i] for i in xrange(f2.shape[1])]
+features += [f3[:, i] for i in xrange(f3.shape[1])]
 feature_names += ["F4" + r_name_for_i[i] for i in xrange(f4.shape[1])]
 features += [f4[:, i] for i in xrange(f4.shape[1])]
 
@@ -154,7 +164,7 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 
 min_size = n_obs/10000
 p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK" and spurious effects will be regularised out.
-max_features = 10000
+max_features = 20000
 max_feature_iters = 1000000
 iter_counter = 0
 while True:
