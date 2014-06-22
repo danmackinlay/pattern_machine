@@ -17,7 +17,8 @@ fmap = dict(
     F0=0,
     F1=1,
     F2=2,
-    F4=3
+    F3=3,
+    F4=4
 )
 def sc_string(model, i_name="i", note_feature_matrix="featureData"):
     """code-generate an SC method
@@ -46,7 +47,6 @@ def sc_string(model, i_name="i", note_feature_matrix="featureData"):
             terms.append(str(coef))
         super_terms.append("(" + "*".join(terms)+")")
     return header + " +\n\t".join(super_terms) + footer
-
 
 
 table_out_handle = tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'r')

@@ -118,6 +118,9 @@ results_sparse = dok_matrix(
         obs_meta["result"].reshape((obs_meta["result"].size,)+(1,))
     ).tocsc()[:,0]
 
+# In fact we include diameter by scaling success and renormalising; the Chi2 test should still hold in that case.
+# this is only tenable if it has no interaction effects, i.e. chord span has no effect on note choice.
+
 results_scaled = (obs_meta["diameter"]*obs_meta["result"]).astype('float32')
 results_scaled = results_scaled/results_scaled.sum()
 results_scaled_sparse = dok_matrix(
@@ -142,14 +145,9 @@ features += [f3[:, i] for i in xrange(f3.shape[1])]
 feature_names += ["F4" + r_name_for_i[i] for i in xrange(f4.shape[1])]
 features += [f4[:, i] for i in xrange(f4.shape[1])]
 
-# # TODO: This bit totally doesn't make sense; barcodes are not independent features but require me to take an OUTER PRODUCT FIRST with the other features. temporarily removing
+# # TODO: This bit totally doesn't make sense; barcodes are not independent features but require me to take an OUTER PRODUCT FIRST with the other features. temporarily removing.
 # feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
 # features += [note_barcode_sparse[:,i] for i in xrange(note_barcode_sparse.shape[1])]
-
-# TODO: We withhold diameter here since it is not immediately clear how to include it
-# this is only even slightly tenable if it has no interaction effects. Hmm.
-# although we possibly could include it without changing the algorithm at all; the weighting is conveniently linear in probability; might want to re-scale it to mean 0 or sth; I don't even know.
-# In fact we could do it by scaling success counts by diameter *and* renormalising; the Chi2 test chould still hold in that case.
 
 feature_bases = [(i,) for i in xrange(len(features))]
 used_bases = set(feature_bases)
@@ -163,9 +161,9 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 # There will be false positives and false negatives, but we hope to find "enough" "good" features to be useful
 
 min_size = n_obs/10000
-p_val_thresh = 0.05 #loose! multiple comparision prob. But we assume it's "OK" and spurious effects will be regularised out.
+p_val_thresh = 0.05 #loose! multiple comparison prob. But spurious effects will be regularised out. Whether we will find a *tidy* solution thereby is an open question; group penalty would be nice
 max_features = 20000
-max_feature_iters = 1000000
+max_feature_iters = 10000000
 iter_counter = 0
 while True:
     i, j = 0, 0

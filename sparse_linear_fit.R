@@ -16,9 +16,10 @@ require(rhdf5)
 # registerDoParallel(cl)
 
 # # works; could be faster
-require(doSNOW)
-cl <- makeCluster(4)
-registerDoSNOW(cl)
+# require(doSNOW)
+# cl <- makeCluster(4)
+# registerDoSNOW(cl)
+
 require(rhdf5)
 
 # which file has the data? Support defaults ofr interaction, and CLI use
@@ -57,7 +58,7 @@ notes.f = sparseMatrix(
   index1=F
 )
 rm(notes.obsidx, notes.obsptr, notes.vals)
-#augment with base rate date
+#augment with base rate data
 notes.f = cBind(as.matrix(-log(notes.obsdata["diameter"]-1)), notes.f)
 #penalties = str_count(colnames(notes.f), "b")+1
 penalties = rep(1.0,length(colnames(notes.f))) 
@@ -66,17 +67,16 @@ penalties[1] = 0
 colnames(notes.f)=c("baselogodds", paste(notes.colnames))
 notes.response=as.matrix(notes.obsdata$result)
 
-#NB could also use glmnet's "weights" param to upweight successes by the diameter
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
     notes.f,
     notes.response,
     family="binomial",
-    type.logistic="modified.Newton", #speed-up, apparently.
+    #type.logistic="modified.Newton", #speed-up, apparently.
     alpha=1,
     penalty.factor=penalties,
     #dfmax=200,
-    parallel=TRUE,
+    #parallel=TRUE,
     foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
 )

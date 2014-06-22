@@ -82,15 +82,16 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 TODO
 ------
 
+* truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions to reduce confusion with, e.g. bar position
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
 * fix bar position features - currently totally broken.
 
   * weight features to de-favour annoying ones such as bar position
+  * or use bar features to fit models conditionally; might be cleaner.
   
 * fix per-note-rate feature. ill-posed and broken ATM. Even if it didn't glitch out to 0, I didn't code it to translate across songs.
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
-* work out how to do a rapid interaction feature seach which accounts for diameter
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
 * use formal feature selection to save time? http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool
@@ -104,7 +105,7 @@ TODO
 * factor mapping
 * call into R using rpy2 or even subprocess
 * predict inter-event times - would be a natural multiple classification task
-* Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual obs together while forgetting songs. This requires us to folkd on eventId not obsId.
+* Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual obs together while forgetting songs. This requires us to fold on eventId not obsId.
 
 Feature ideas
 -----------------
