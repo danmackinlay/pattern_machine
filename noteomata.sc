@@ -34,6 +34,7 @@ Noteomata {
 			this.square(_,maxAge-0),
 			this.square(_,maxAge-0.25),
 			this.square(_,maxAge-0.5),
+			this.square(_,maxAge-0.75),
 			this.square(_,maxAge-1)];
 		this.updateFeatures;
 	}
