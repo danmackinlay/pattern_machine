@@ -10,6 +10,7 @@ Ideas:
 * ipad setup
 * sync with team members
 * control ableton with SC
+  * therefore, isolate MIDI output when necc
 * shared Dropbox folder
 * feedback effects?
 * stateful algorithm to navigate through with wiimote
