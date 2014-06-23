@@ -11,16 +11,20 @@ Ideas:
 * sync with team members
 * control ableton with SC
   * therefore, isolate MIDI output when necc
-* shared Dropbox folder
 * feedback effects?
 * stateful algorithm to navigate through with wiimote
 */
 ////////
 s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
-~miditeacher = this.executeFile (~pmscripts +/+ "miditeach.scd").value;
+MIDIClient.init;
+//MIDIClient.destinations;
+~midiout = MIDIOut.newByName("IAC-Driver", "Bus 1");
+~miditeacher = this.executeFile(~pmscripts +/+ "miditeach.scd").value(
+   ~midiout,
+	[[5,0], [5,1], 5,2], [5,3], [5,4]]
+);
 
-(
 fork{
 	~control = Bus.control(s, 4);
 	s.sync;
