@@ -1,12 +1,19 @@
-(
-var mapper;
+/*
 MIDIClient.init;
-//MIDIClient.destinations;
+MIDIClient.destinations;
+~miditeacher = this.executeFile (~pmscripts +/+ "miditeach.scd").value(
+    MIDIOut.newByName("IAC-Driver", "Bus 1"),
+   [[5,0], [5,1], 5,2], [5,3], [5,4]]
+);
+*/
+{|midiout, chanControls|
+var mapper;
+
 mapper = (
-	chanControls: [[0,0],[0,1],[0,5]],
+	chanControls: chanControls ? [[0,0],[0,1],[0,5]],
 	currIdx: 0,
 );
-mapper.midiout = MIDIOut.newByName("IAC-Driver", "Bus 1");
+mapper.midiout = midiout ?? {MIDIOut.newByName("IAC-Driver", "Bus 1")};
 mapper.midiout.connect;
 mapper.window = Window.new("MIDI teach", Rect(200,200,255,100));
 mapper.txt = StaticText.new(
@@ -26,8 +33,9 @@ mapper.setIdx = {|val|
 mapper.ping = {
 	var chan, cc;
 	# chan, cc = mapper.chanControls[mapper.currIdx];
-	mapper.midiout.control (chan, ctlNum: cc, val: 64);
-	mapper.midiout.control (chan, ctlNum: cc, val: 65);
+	//[\pinging, chan, cc].postln;
+	mapper.midiout.control (chan:chan, ctlNum: cc, val: 64);
+	mapper.midiout.control (chan:chan, ctlNum: cc, val: 65);
 };
 mapper.window.view.keyUpAction = {|view, char, modifiers, unicode, keycode, key|
 	//[view, char, modifiers, unicode, keycode, key].postln;
@@ -39,5 +47,5 @@ mapper.window.view.keyUpAction = {|view, char, modifiers, unicode, keycode, key|
 };
 mapper[\setIdx].value(0);
 mapper.window.front;
-~mapper = mapper;
-)
+mapper;
+};

@@ -18,6 +18,7 @@ Ideas:
 ////////
 s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
+~miditeacher = this.executeFile (~pmscripts +/+ "miditeach.scd").value;
 
 (
 fork{
@@ -46,3 +47,4 @@ n.knob1.onChanged  = {|val| "knob 1 changed".postln; val.postln };
 n.faders.do{|fader, i|
 	fader.onChanged= {|val| ("fader"+(i+1)).postln; val.postln }
 };
+)
