@@ -78,6 +78,15 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 
     mod = SGDClassifier(loss="log", penalty="l1", shuffle=True)
 
+### Other trendy alternatives
+
+CMU has a bunch of algorithms in this domain:
+
+* lasso.stars http://cran.r-project.org/web/packages/bigdata/
+* Spam http://cran.r-project.org/web/packages/SAM/ http://machinelearning.wustl.edu/mlpapers/paper_files/NIPS2007_415.pdf
+* http://sachaepskamp.com/qgraph
+* http://cran.r-project.org/web/packages/smart/
+* http://cran.r-project.org/web/packages/huge/
 
 TODO
 ------
