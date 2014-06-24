@@ -13,10 +13,17 @@ Ideas:
   * therefore, isolate MIDI output when necc
 * feedback effects?
 * stateful algorithm to navigate through with wiimote
+* mixing gains of several doohickeys
+  * BusMeter?
+  * Jack routing into Live?
+* audio-input-driven effects
+* automatic sample-library stuff selection
+* Snipple-style decaying voice sample grains
 */
 ////////
 s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
+
 MIDIClient.init;
 //MIDIClient.destinations;
 ~midiout = MIDIOut.newByName("IAC-Driver", "Bus 1");
@@ -24,12 +31,21 @@ MIDIClient.init;
    ~midiout,
 	[[5,0], [5,1], 5,2], [5,3], [5,4]]
 );
+~map = PSRandomMap(inDims:2, outDims:5, phi:1.2);
+~map.value(0.001,0.9);
+~map.value(0.021,0.9);
 
 fork{
 	~control = Bus.control(s, 4);
 	s.sync;
 	~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
+	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
+	~limiter = (
+		instrument: \limi__2,
+		group: postgroup,
+		out:outbus,
+	).play;
 )
 
 //////MIDI

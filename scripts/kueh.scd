@@ -7,7 +7,6 @@ s.makeGui;
 //TODO: pitch match?
 //TODO: morphing reverb?
 //TODO: base detune
-//TODO: midi interaction (CCAllocator?)
 //TODO: intersting interaction
 //TODO: PCA-style decomposition of param values (how to get full range? -inv gaussian map?)
 //TODO: Two flocks
@@ -28,7 +27,6 @@ Synth.new(\rec__1, [\in, 0, \bufnum, ~state.sampBufs[3]],s);
 ~state.sampBufs[0].play;
 ~state.sampBufs.do({|buf,ind|[\loadin, buf,ind, ~state.sampPaths[ind]].postln;	buf.readChannel(~state.sampPaths[ind], channels:[0])});
 
-~here = "/Users/dan/src/sc/pattern_machine/scripts";
 ~state=nil;
 (
 var linperturb,state;
@@ -67,14 +65,14 @@ state = ~state ?? (
 ~state = state;
 state[\clock] = TempoClock.new(120.0/60.0);
 CmdPeriod.doOnce { state.clock.stop };
-this.executeFile(~here +/+ "kuehsynths.scd").value(s);
+this.executeFile(~pmscripts +/+ "kuehsynths.scd").value(s);
 state.clock.schedAbs(0, {state.clock.beatsPerBar = state.beatsPerBar;});
 linperturb = {|center, dev, lo=0, hi=1|
 	(dev.asFloat.rand2 + center).max(lo).min(hi);
 };
 
 fork {
-	this.executeFile(~here +/+ "kuehmidi.scd").value(~state);
+	this.executeFile(~pmscripts +/+ "kuehmidi.scd").value(~state);
 	state.sampBufs = Buffer.allocConsecutive(
 		state.sampPaths.size,
 		s, s.sampleRate * state.sampLen, 1);
@@ -200,7 +198,7 @@ fork {
 			spawner.wait(state[\timeStep]);
 		});
 	}).play(state.clock, quant: #[4,0,0.0]);
-	this.executeFile(~here +/+ "kuehmidi.scd").value(state);
+	this.executeFile(~pmscripts +/+ "kuehmidi.scd").value(state);
 };
 )
 
