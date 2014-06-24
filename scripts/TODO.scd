@@ -1,7 +1,7 @@
 /*
-Checkout the Jitlib Pdef/PLazyEnvir tutorial. It seems to be awesome, and recursive, and not at all JITty
-
-* tests
+* remixer where grains scrub the buffer at different rates but each mutes itself according to its dissonance
+* tuvasynth - roaming resonant bandpasses
+* analyse metal percussion for distribution of frequencies
 * circular sequencer
 * granular flanger with nice tuning options
 * Generalise to Gerzon m-dimensional allpass 
