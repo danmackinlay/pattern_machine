@@ -8,22 +8,21 @@ Ideas:
 * wiimote!
 * feedme script too?
 * ipad setup
-* sync with team members
 * control ableton with SC
-	* therefore, isolate MIDI output when necc
 * feedback effects?
+* CMD-Period crash-robustness
 * stateful algorithm to navigate through with wiimote
 * mixing gains of several doohickeys
 	* BusMeter?
-	* ddwChannelStrip?
+	* ddw MixerChannel?
 		SynthDef.new("pinkfilt", {
 			arg	outbus,	// outbus is the standard name used by MixerChannel
 				freq, rq;
 			Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
-		}).send(s);
+		}).add);
 
 		m = MixerChannel.new("pinkfilt", s);	// defaults to mono-to-stereo
-
+		z = MixingBoard("test board", nil, m);
 		a = m.play("pinkfilt", [\freq, 2000, \rq, 0.02]);
 
 		m.free;	// all synths disappear
@@ -43,19 +42,20 @@ Ideas:
 		}).send(s);
 
 		m.playfx("fx/chorus1x1");	// so it goes to effectgroup
-	
+
 	* RedMixerChannel?
 		a= RedMixerChannel(#[0, 1]);
-		b= Pbind(\pan, Pseq([-1, 1], inf), \amp, 0.5).play
-		c= RedMixerChannelGUI(a, name: "testing")
-		a.cvs.eqHi.input= 1
-		a.cvs.eqHi.input= 0
-		a.free
-		b.stop
-		c.close
+		b= Pbind(\pan, Pseq([-1, 1], inf), \amp, 0.5).play;
+		c= RedMixerChannelGUI(a, name: "testing");
+		a.cvs.eqHi.input= 1;
+		a.cvs.eqHi.input= 0;
+		a.free;
+		b.stop;
+		c.close;
+//seems to do a little too much for my tastes. and crash.
 * Jack routing into Live?
 * audio-input-driven effects
-* automatic sample-library stuff selection
+* process all sample library into mono aiff
 * Snipple-style decaying voice sample grains
 */
 ////////
