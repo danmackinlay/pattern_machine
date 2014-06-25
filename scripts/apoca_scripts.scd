@@ -15,6 +15,7 @@ TODO:
 * audio-input-driven effects
 * Snipple-style decaying voice sample grains
 * garbage collection for when recompiling: CmdPeriod.doOnce { state.outBus.free }
+* timestretched escalating background accompaniment
 
 */
 
@@ -37,8 +38,9 @@ MIDIClient.init;
 var inbus, outbus;
 var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
 var testbuf, testsound, limiter;
-var state;
+var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
+var state;
 
 state = ();
 fork{
@@ -87,9 +89,11 @@ fork{
 	CmdPeriod.doOnce { limiter.free };
 	s.sync;
 
-	// ~control = Bus.control(s, 4);
-	// s.sync;
-	// ~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
+	control = Bus.control(s, 8);
+	CmdPeriod.doOnce { control.free };
+
+	s.sync;
+	subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
 
 	state.putAll((
 		outbus: outbus,
@@ -105,6 +109,9 @@ fork{
 		mixingboard: mixingboard,
 		postgroup: postgroup,
 		testsound: testsound,
+		control: control,
+		subcontrols: subcontrols,
+		params: Array.fill(32,0),
 	));
 
 	~state=state;
@@ -125,7 +132,9 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 	loop:1,
 	sendGate: false,//won't loop if not told
 ).play;
+)
 
+(
 ~cloud1 = (~cloud1 ? List.new ).add(
 	~state.echettechannel1.play(Pbind(
 		\instrument, \echette_live__1_2,
@@ -136,8 +145,37 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 		\amp, 2,
 	))
 );
-
 )
+
 ~cloud1.size.do({var thing=~cloud1.pop;thing.stop;thing.free;});
 
 ~state.mixingboard.free;
+)
+
+(
+~cloud2=(~cloud2 ? List.new ).add(
+	~state.echettechannel2.play(
+		Pspawner({|spawner|
+			inf.do({|i|
+				~state[\foo]=5;
+				spawner.par(
+					pattern: Pfin(
+						1,
+						Pbind(
+							\instrument, \echette_live__1_2,
+							\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
+							\ringTime, 5.0,
+							\delta, 1/4,
+							\deltime, 0.1,
+							\amp, 2,
+						)
+					),
+					delta: 1/3
+				);
+				spawner.wait(1);
+			});
+		})
+	)
+);
+)
+~cloud2.size.do({var thing=~cloud2.pop;thing.stop;thing.free;});
