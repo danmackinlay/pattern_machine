@@ -40,7 +40,7 @@
 				[\loadin, key, ind, path].postln;
 				buf=sampsetbufarray[ind];
 				buf.readChannel(path, channels:[0]);
-				sampsetbufdict[key]=buf;
+				sampsetbufdict[key]=(sampsetbufdict[key] ?? {Array.new}).add(buf);
 			});
 		});
 		s.sync;

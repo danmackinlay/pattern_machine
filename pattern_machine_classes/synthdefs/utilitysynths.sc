@@ -5,7 +5,7 @@ PSUtilitySynthDefs {
 		});
 	}
 	*loadSynthDefs {
-		SynthDef.new(\limi__1, {|outbus, cutoff=30, pregain=1|
+		SynthDef.new(\limi__1, {|outbus=0, cutoff=30, pregain=1|
 			ReplaceOut.ar(
 				outbus,
 				Limiter.ar(
@@ -19,7 +19,7 @@ PSUtilitySynthDefs {
 				)
 			)
 		}).add;
-		SynthDef.new(\limi__2, {|outbus, cutoff=30, pregain=1|
+		SynthDef.new(\limi__2, {|outbus=0, cutoff=30, pregain=1|
 			ReplaceOut.ar(
 				outbus,
 				Limiter.ar(
@@ -34,7 +34,7 @@ PSUtilitySynthDefs {
 			)
 		}).add;
 		SynthDef.new(\playbuf__1,
-			{|outbus,
+			{|outbus=0,
 				bufnum,
 				loop=1,
 				gate=1,

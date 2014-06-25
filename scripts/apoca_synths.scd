@@ -1,7 +1,9 @@
 SynthDef.new(\echette_live__1_2,
-	{|inbus=0, outbus=0, deltime=0.1, ringtime=1, pan=0|
+	{|inbus=0, outbus=0, deltime=0.1, ringtime=1, amp=1, pan=0|
 		var env, sig;
-		sig = In.ar(inbus, 1) * EnvGen.kr(Env.sine(dur:deltime));
+		sig = In.ar(inbus, 1) * EnvGen.kr(
+			Env.sine(dur:deltime), levelScale:amp
+		);
 		env = EnvGen.kr(
 			Env.linen(
 				attackTime:0,
@@ -18,6 +20,7 @@ SynthDef.new(\echette_live__1_2,
 		Out.ar(outbus, sig);
 	}
 ).add;
+
 //ChannelMixer test thingy
 //a = echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, echettechannel1.inbus.index]);
 SynthDef.new("pinkfilt", {
