@@ -18,3 +18,9 @@ SynthDef.new(\echette_live__1_2,
 		Out.ar(outbus, sig);
 	}
 ).add;
+
+SynthDef.new("pinkfilt", {
+	arg	outbus,	// outbus is the standard name used by MixerChannel
+		freq, rq;
+	Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
+}).add;

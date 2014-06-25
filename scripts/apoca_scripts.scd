@@ -12,47 +12,6 @@ Ideas:
 * feedback effects?
 * CMD-Period crash-robustness
 * stateful algorithm to navigate through with wiimote
-* mixing gains of several doohickeys
-	* BusMeter?
-	* ddw MixerChannel?
-		SynthDef.new("pinkfilt", {
-			arg	outbus,	// outbus is the standard name used by MixerChannel
-				freq, rq;
-			Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
-		}).add);
-
-		m = MixerChannel.new("pinkfilt", s);	// defaults to mono-to-stereo
-		z = MixingBoard("test board", nil, m);
-		a = m.play("pinkfilt", [\freq, 2000, \rq, 0.02]);
-
-		m.free;	// all synths disappear
-
-		//Note that if you use MixerChannel.play, you don't have to specify the bus number as long as your synthdef uses outbus as the output bus argument. Otherwise, do this:
-
-		a = m.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, m.inbus.index]);
-
-		// Any effect synthdefs you write should read the input signal from outbus and use ReplaceOut.ar(outbus...). If you want the input signal to be included in the effect's output, it's advisable to include an argument for wet/dry level rather than simply using Out to add the effect to the bus, because you have more control:
-
-		SynthDef.new("fx/chorus1x1", {
-			arg outbus, delay = 0.01, freq = 0.2, depth = 0.05, wet = 0.5;
-			var in, out;
-			in = In.ar(outbus, 1);
-			out = DelayN.ar(in, 1, SinOsc.ar(freq, 0, depth, delay));
-			ReplaceOut.ar(outbus, in*(1-wet).sqrt + out*wet.sqrt);	// equal power
-		}).send(s);
-
-		m.playfx("fx/chorus1x1");	// so it goes to effectgroup
-
-	* RedMixerChannel?
-		a= RedMixerChannel(#[0, 1]);
-		b= Pbind(\pan, Pseq([-1, 1], inf), \amp, 0.5).play;
-		c= RedMixerChannelGUI(a, name: "testing");
-		a.cvs.eqHi.input= 1;
-		a.cvs.eqHi.input= 0;
-		a.free;
-		b.stop;
-		c.close;
-//seems to do a little too much for my tastes. and crash.
 * Jack routing into Live?
 * audio-input-driven effects
 * process all sample library into mono aiff
@@ -73,60 +32,80 @@ MIDIClient.init;
 ~map.value(0.001,0.9);
 ~map.value(0.021,0.9);
 (
-var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr;
+var inbus, outbus;
+var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
+var testsample, testbuf, envBuf;
+var state;
+var echettechannel1, mixingboard;
 
 state = ();
 
 fork{
-	ingroup = Group.new(s, \addToHead);
-	//inbus = Bus.newFrom(s.inputBus,0,1);
 	inbus = Bus.audio(s,1);
 	outbus = Bus.new(\audio, 0, 2, s);
-	testbuf = Buffer.read(s, testsample);
+	//testbuf = Buffer.read(s, testsample);
+	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 	s.sync;
-	~testbuf = testbuf;
-	~testsound = (
-		instrument: \playbuf__1,
-		out: inbus,
-		bufnum: testbuf,
-		group: ingroup,
-		sendGate: false,//won't loop if not told
-	).play;
+	echettechannel1 = MixerChannel.new("echette1", s, 2,2);
+	s.sync;
+	mixingboard = MixingBoard("apocalypse", nil, echettechannel1);
+	// s.sync;
+//		a = echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02]);
+		//Note that if you use MixerChannel.play, you don't have to specify the bus number as long as your synthdef uses outbus as the output bus argument. Otherwise, do this:
 
+//		a = echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, echettechannel1.inbus.index]);
+
+		// Any effect synthdefs you write should read the input signal from outbus and use ReplaceOut.ar(outbus...). If you want the input signal to be included in the effect's output, it's advisable to include an argument for wet/dry level rather than simply using Out to add the effect to the bus, because you have more control:
+	//
+	// SynthDef.new("fx/chorus1x1", {
+	// 	arg outbus, delay = 0.01, freq = 0.2, depth = 0.05, wet = 0.5;
+	// 	var in, out;
+	// 	in = In.ar(outbus, 1);
+	// 	out = DelayN.ar(in, 1, SinOsc.ar(freq, 0, depth, delay));
+	// 	ReplaceOut.ar(outbus, in*(1-wet).sqrt + out*wet.sqrt);	// equal power
+	// }).add;
+	//
+	// echettechannel1.playfx("fx/chorus1x1");	// so it goes to effectgroup
+	// ingroup = Group.new(s, \addToHead);
+	// //inbus = Bus.newFrom(s.inputBus,0,1);
+	// ~testsound = (
+	// 	instrument: \playbuf__1,
+	// 	outbus: inbus,
+	// 	bufnum: testbuf,
+	// 	group: echettechannel1.fadergroup,
+	// 	addAction: \addBefore,
+	// 	sendGate: false,//won't loop if not told
+	// ).play;
+	// s.sync;
+	//
+	// postgroup = Group.new(echettechannel1.fadergroup, \addAfterl);
+	s.sync;
 	state.putAll((
 		outbus: outbus,
 		inbus: inbus,
 		ingroup: ingroup,
-		voxgroup: voxgroup,
+		echettechannel1: echettechannel1,
 		fxgroup: fxgroup,
+		mixingboard: mixingboard,
 		postgroup: postgroup,
 	));
-	voxgroup = Group.new(s, \addToTail);
-	s.sync;
-	fxgroup = Group.new(s, \addToTail);
-	s.sync;
-	postgroup = Group.new(s, \addToTail);
-	s.sync;
-
-	~control = Bus.control(s, 4);
-	s.sync;
-	~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
-	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-	~limiter = (
-		instrument: soundin__1,
-		group: postgroup,
-		out:outbus,
-	).play;
-	~limiter = (
-		instrument: \limi__2,
-		group: postgroup,
-		out:outbus,
-	).play;
+	//
+	// ~control = Bus.control(s, 4);
+	// s.sync;
+	// ~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
+	//
+	// ~limiter = (
+	// 	instrument: \limi__2,
+	// 	group: postgroup,
+	// 	outbus:outbus,
+	// ).play;
+	[2,state].postln;
+	~state=state;
+};
+[1,state].postln;
 )
 
-)
-
-
+a=~state.echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, ~state.echettechannel1.inbus.index]);
 
 //////MIDI
 // create an instance
