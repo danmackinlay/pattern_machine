@@ -2,7 +2,7 @@ var loadSynths = {|server=nil|
 server = server ?? {server.default;};
 server.waitForBoot ({
 	SynthDef(\snip,
-		{|out=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, sampleStartPos=0, buf=0, pos=0|
+		{|outbus=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, sampleStartPos=0, buf=0, pos=0|
 			var env,playr;
 			env = EnvGen.kr(
 				Env.perc(attackTime, releaseTime),
@@ -21,12 +21,12 @@ server.waitForBoot ({
 				pos: pos,
 				level: env
 			);
-			Out.ar(out, playr);
+			Out.ar(outbus, playr);
 		},
 		[],
 	).add;
 	SynthDef(\snip__8,
-		{|out=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, sampleStartPos=0, buf=0, pos=0, i_dist=0|
+		{|outbus=0, pitchRatio=1, amp=1.0, attackTime=0.05, releaseTime=1.0, sampleStartPos=0, buf=0, pos=0, i_dist=0|
 			var env, playr, panned;
 			env = EnvGen.kr(
 				Env.perc(attackTime, releaseTime),
@@ -50,7 +50,7 @@ server.waitForBoot ({
 			panned = 4.collect({|i|
 				((i-i_dist).abs.min(1)*pi/2).cos * playr
 			}).flat;
-			Out.ar(out, panned);
+			Out.ar(outbus, panned);
 		},
 		[],
 	).add;

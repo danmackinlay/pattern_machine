@@ -39,7 +39,7 @@ fork {
 	//~meter=~analBus.makeBusMeter;
 	~inBuf=Buffer.read(s,~infilep,action:{|...args| \inbuf.postln;args.postln;});
 	s.sync;
-	~soundsource = Synth.new(\playbuf__1, [\bufnum,~inBuf, \out, ~inBus], s, \addToHead);
+	~soundsource = Synth.new(\playbuf__1, [\bufnum,~inBuf, \outbus, ~inBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [\inbus, ~inBus, \outbus, ~analBus], s, \addToTail);
 	~state=(
 		analNode:analNode

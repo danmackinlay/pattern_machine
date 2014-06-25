@@ -42,10 +42,10 @@ fork {
 		traj = LFTri.kr(trajrate, iphase: phase);
 		inenv = EnvGen.kr(Env.asr(attackTime: attack, releaseTime:release, curve:\sine), gate:gate);
 		outenv = EnvGen.kr(Env.linen(attack, len, release,curve:\sine), gate:gate, doneAction:2);
-		sig=In.ar(in)*inenv;
+		sig=In.ar(inbus)*inenv;
 		sig=AllpassL.ar(sig, maxdelaytime: 3, delaytime:deltime, decaytime: deldecay);
 		sig=Pan2.ar(sig, traj, level: outenv);
-		Out.ar(out, sig);
+		Out.ar(outbus, sig);
 	}).add;
 	ingroup = Group.new(s, \addToHead);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
@@ -84,8 +84,8 @@ fork {
 	).play;
 	p = Pbind(
 		\instrument, \decijules,
-		\in, inbus,
-		\out, outbus,
+		\inbus, inbus,
+		\outbus, outbus,
 		\group, voxgroup,
 		\sustain, Pwhite(1.0,3.0,inf),//input gate
 		\len, Pwhite(2.0,10.0), //output gate

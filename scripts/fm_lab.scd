@@ -8,7 +8,7 @@ Check out sccode rand-n-step for array of synths examples
 (
 fork {
 	SynthDef.new(\basic_fm,
-		{|out=0,
+		{|outbus=0,
 			gate=0,
 			freq=440,
 			modFreqRatio=2,
@@ -21,14 +21,14 @@ fork {
 				phase: fModAmp*modulator,
 				mul: (1-aModAmp) + (aModAmp*modulator*0.5)
 			);
-			Out.ar(out,
+			Out.ar(outbus,
 				carrier
 			);
 		}, rates:[0.5, 0.05,0.05,0.05]
 	).add;
 	s.sync;
 	~fmguy = Synth(\basic_fm, [
-		\out, 0,
+		\outbus, 0,
 		\freq, 440,
 		\modFreqRatio, 2,
 		\fModAmp, 0,
@@ -47,7 +47,7 @@ fork {
 ~fmguy.set(\aModAmp, 0);
 ~fmguy.set(\aModAmp, 0.1);
 ~fmguy.set(\aModAmp, 2);
-~fmguy.get(\out, _.postln);
+~fmguy.get(\outbus, _.postln);
 )
 /* TODO:
 Envelope.

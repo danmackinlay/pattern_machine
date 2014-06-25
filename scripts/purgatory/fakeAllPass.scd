@@ -43,7 +43,7 @@ SynthDef(\fakeDiffusion,{
 		maxdelaytime: 2.0,
 		delaytime: macrodeltimes
 	);
-	sig = In.ar(out);
+	sig = In.ar(outbus);
 	LocalOut.ar(
 		XFade2.ar(
 			BPF.ar(sig,allBpFreqs,bwr),
@@ -52,7 +52,7 @@ SynthDef(\fakeDiffusion,{
 		)
 	);
 	//Amplitude.kr(fbins).ampdb.poll(1,\amp);
-	ReplaceOut.ar(out, XFade2.ar(
+	ReplaceOut.ar(outbus, XFade2.ar(
 		sig,
 		Mix(
 			AllpassC.ar(
@@ -101,7 +101,7 @@ fork {
 	).play;*/
 	~fakeDiffusionL = Synth(
 		\fakeDiffusion, [
-			\out, Bus.newFrom(outbus,0,1),
+			\outbus, Bus.newFrom(outbus,0,1),
 			\macrodecoherence, 0.5,
 			\inxfade, 0.7,
 		],
@@ -109,7 +109,7 @@ fork {
 	);
 	~fakeDiffusionR = Synth(
 		\fakeDiffusion, [
-			\out, Bus.newFrom(outbus,1,1),
+			\outbus, Bus.newFrom(outbus,1,1),
 			\macrodecoherence, 0.5,
 		],
 		target: fxgroup,
@@ -130,7 +130,7 @@ fork {
 	~pat = Pbind(
 		\note, Pseq([0,3,7,12],inf),
 		\group, ~state.voxgroup,
-		\out, ~state.outbus,
+		\outbus, ~state.outbus,
 		\dur, 1).play;
 	~state = state;
 };

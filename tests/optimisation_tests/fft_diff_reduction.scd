@@ -48,8 +48,8 @@ Log differences?
 
 	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
-		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, delay=0.0|
-			Out.ar(out,
+		{ |outbus=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, delay=0.0|
+			Out.ar(outbus,
 				DelayN.ar(
 					Resonz.ar(
 						Saw.ar(pitch, amp),
@@ -66,13 +66,13 @@ Log differences?
 
 	template = Synth.new(
 		\fft_dist_test_synth,
-		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0],
+		[\outbus, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0],
 		target: s,
 		addAction: \addToHead
 	);
 	candidate = Synth.new(
 		\fft_dist_test_synth,
-		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0.0321207],
+		[\outbus, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0.0321207],
 		target: s,
 		addAction: \addToHead
 	);

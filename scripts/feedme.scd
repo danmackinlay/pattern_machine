@@ -34,17 +34,17 @@ var fftHopSize = 512;
 
 fork {
 	SynthDef(\phaser,
-		{|out=0,
+		{|outbus=0,
 			base=0.01,
 			sens=0.0,
 			attackTime=0.5,
 			decayTime=0.1|
 			var in, inlevel;
 
-			in = In.ar(out);
+			in = In.ar(outbus);
 			inlevel = Amplitude.ar(in, attackTime: attackTime, releaseTime: attackTime, mul: sens);
 
-			ReplaceOut.ar(out,
+			ReplaceOut.ar(outbus,
 				AllpassC.ar(in,
 					maxdelaytime: 1.0,
 					delaytime: base+inlevel,
@@ -54,7 +54,7 @@ fork {
 		[],
 	).add;
 	SynthDef(\unFB,
-		{|out=0,
+		{|outbus=0,
 			delaytime=0.1,
 			gain=0.0,
 			headroom=3.0,
@@ -81,7 +81,7 @@ fork {
 			origChain = FFT(
 				fft1,
 				DelayN.ar(
-					In.ar(out),
+					In.ar(outbus),
 					maxdelaytime: 1,
 					delaytime: delaytime,
 					mul: gain.dbamp
@@ -106,15 +106,15 @@ fork {
 			//aggressively mask
 			maskChain = PV_MagSquared(maskChain);
 			origChain = PV_MagMul(origChain, maskChain);
-			ReplaceOut.ar(out,
+			ReplaceOut.ar(outbus,
 				Limiter.ar(IFFT(origChain), level:peak.dbamp)
 			);
 		},
 		[],
 	).add;
 	SynthDef(\soundin,
-		{|in=0, out=0|
-			Out.ar(out, SoundIn.ar(in));
+		{|inbus=0, outbus=0|
+			Out.ar(outbus, SoundIn.ar(in));
 		}
 	).add;
 	~fft1 = Buffer.alloc(s, 2048);
@@ -124,7 +124,7 @@ fork {
 	~fft5 = Buffer.alloc(s, 2048);
 	s.sync;
 	~fb = Synth.new(\unFB,[
-		\out, 0,
+		\outbus, 0,
 		\fft1, ~fft1,
 		\fft2, ~fft2,
 		\fft3, ~fft3,

@@ -9,7 +9,7 @@ SynthDef.new(\windowtest, {
 	envB = CentredApprox.halfCos((phaseA+1).wrap2(1));
 	sigA = PMOsc.ar(carfreq: freq, modfreq:freq*1.25, pmindex:0.2, mul:envA);
 	sigB = PMOsc.ar(carfreq: freqB, modfreq:freqB*1.5, pmindex:0.15, mul:envB);
-	Out.ar(out, sigA + sigB);
+	Out.ar(outbus, sigA + sigB);
 }).add;
 
 Synth(\windowtest).scope;

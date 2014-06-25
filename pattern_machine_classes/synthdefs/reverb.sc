@@ -62,7 +62,7 @@ PSReverbSynthDefs {
 		//TODO: the only way to make this sane is 4 rolling comb filters, input enveloped
 		//TODO: recirculation delay
 		SynthDef.new(\mutatingreverb, {
-			|out,
+			|outbus,
 			dry=0,
 			lforate=0.21,
 			delay=0.01,
@@ -79,7 +79,7 @@ PSReverbSynthDefs {
 			delHi = delay*(1+delvar);
 			gainLo = gain*(1-gainvar);
 			gainHi = gain*(1+gainvar).min(1.5);
-			sig = In.ar(out);
+			sig = In.ar(outbus);
 			sigA = DoubleNestedAllpassL.ar(sig,
 				maxdelay1: 0.5,
 				delay1: TRand.kr(delLo, delHi, trig:trigA),
@@ -102,7 +102,7 @@ PSReverbSynthDefs {
 				delay3: TRand.kr(delLo, delHi, trig:trigB),
 				gain3: TRand.kr(gainLo, gainHi, trig: trigB)*envB,
 				mul: 1, add: 0);
-			ReplaceOut.ar(out, dry*sig + sigA + sigB);
+			ReplaceOut.ar(outbus, dry*sig + sigA + sigB);
 		}).add;
 	}
 }
