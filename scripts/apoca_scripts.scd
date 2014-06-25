@@ -14,14 +14,16 @@ TODO:
 * Jack routing into Live?
 * audio-input-driven effects
 * Snipple-style decaying voice sample grains
-* garbage collection for when recompiling: CmdPeriod.doOnce { state.outBus.free }
 * timestretched escalating background accompaniment
 
 */
 
+//s=~serverboot.(prox:\local, device:\rme);
 s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
+this.executeFile(~pmscripts +/+ "apoca_synths.scd");
+
 ~sampsetpaths;
 ~sampsetbufdict;
 ~sampsetbufarray;
@@ -65,7 +67,7 @@ fork{
 	s.sync;
 	ingroup = Group.new(s, \addToHead);
 	CmdPeriod.doOnce { ingroup.free };
-	postgroup = Group.new(s, \addToTail);
+	postgroup = Group.new(s, \addAfter);
 	CmdPeriod.doOnce { postgroup.free };
 
 	//In case I don't want to sing
@@ -122,8 +124,9 @@ fork{
 ~map.value(0.021,0.9);
 
 (
+var testsound;
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-~state.testsound = (
+testsound = (
 	instrument: \playbuf__1,
 	outbus: ~state.inbus,
 	bufnum: ~sampsetbufdict[\tunefulpaths][0],
@@ -132,6 +135,8 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 	loop:1,
 	sendGate: false,//won't loop if not told
 ).play;
+~state.testsound = testsound;
+CmdPeriod.doOnce { testsound.free };
 )
 
 (
@@ -148,11 +153,10 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 )
 
 ~cloud1.size.do({var thing=~cloud1.pop;thing.stop;thing.free;});
-
-~state.mixingboard.free;
 )
 
 (
+~cloud2state = ();
 ~cloud2=(~cloud2 ? List.new ).add(
 	~state.echettechannel2.play(
 		Pspawner({|spawner|
@@ -179,3 +183,5 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 );
 )
 ~cloud2.size.do({var thing=~cloud2.pop;thing.stop;thing.free;});
+
+~state.mixingboard.free;
