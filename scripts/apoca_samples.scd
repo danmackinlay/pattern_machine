@@ -41,6 +41,7 @@
 				buf=sampsetbufarray[ind];
 				buf.readChannel(path, channels:[0]);
 				sampsetbufdict[key]=(sampsetbufdict[key] ?? {Array.new}).add(buf);
+				CmdPeriod.doOnce { buf.free };
 			});
 		});
 		s.sync;

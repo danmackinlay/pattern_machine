@@ -14,10 +14,10 @@ TODO:
 * Jack routing into Live?
 * audio-input-driven effects
 * Snipple-style decaying voice sample grains
-* garbage collection: CmdPeriod.doOnce { state.outBus.free };
+* garbage collection for when recompiling: CmdPeriod.doOnce { state.outBus.free }
 
 */
-////////
+
 s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
@@ -36,28 +36,38 @@ MIDIClient.init;
 (
 var inbus, outbus;
 var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
-var testbuf, testsound;
+var testbuf, testsound, limiter;
 var state;
-var echettechannel1, mixingboard;
+var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 
 state = ();
 fork{
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
+	CmdPeriod.doOnce { inbus.free };
 	outbus = Bus.new(\audio, 0, 2, s);
 	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 	s.sync;
 	testbuf = ~sampsetbufdict[\tunefulpaths][0];
 	echettechannel1 = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { echettechannel1.free };
+	echettechannel2 = MixerChannel.new("echette2", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { echettechannel2.free };
+	bonuschannel1 = MixerChannel.new("bonus1", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { bonuschannel1.free };
+	bonuschannel2 = MixerChannel.new("bonus2", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { bonuschannel2.free };
 	s.sync;
-	mixingboard = MixingBoard("apocalypse", nil, echettechannel1);
+	mixingboard = MixingBoard("apocalypse", nil, echettechannel1,echettechannel2, bonuschannel1, bonuschannel2);
+	CmdPeriod.doOnce { mixingboard.free };
 	s.sync;
 	ingroup = Group.new(s, \addToHead);
+	CmdPeriod.doOnce { ingroup.free };
 	postgroup = Group.new(s, \addToTail);
-
+	CmdPeriod.doOnce { postgroup.free };
 
 	//In case I don't want to sing
-	/*state.testsound = (
+	/*testsound = (
 		instrument: \playbuf__1,
 		outbus: inbus,
 		bufnum: testbuf,
@@ -66,49 +76,46 @@ fork{
 	loop:1,
 		sendGate: false,//won't loop if not told
 	).play;
+	CmdPeriod.doOnce { testsound.free };
 	s.sync;*/
-	state[\limiter] = (
+
+	limiter = (
 	 	instrument: \limi__2,
 	 	group: postgroup,
 	 	outbus: outbus,
 	).play;
+	CmdPeriod.doOnce { limiter.free };
 	s.sync;
-
-	state.putAll((
-		outbus: outbus,
-		inbus: inbus,
-		ingroup: ingroup,
-		testbuf: testbuf,
-		echettechannel1: echettechannel1,
-		fxgroup: fxgroup,
-		mixingboard: mixingboard,
-		postgroup: postgroup,
-	));
 
 	// ~control = Bus.control(s, 4);
 	// s.sync;
 	// ~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
+
+	state.putAll((
+		outbus: outbus,
+		inbus: inbus,
+		limiter: limiter,
+		ingroup: ingroup,
+		testbuf: testbuf,
+		echettechannel1: echettechannel1,
+		echettechannel2: echettechannel2,
+		bonuschannel1: bonuschannel1,
+		bonuschannel2: bonuschannel2,
+		fxgroup: fxgroup,
+		mixingboard: mixingboard,
+		postgroup: postgroup,
+		testsound: testsound,
+	));
+
 	~state=state;
 };
 )
 ~map = PSRandomMap(inDims:2, outDims:5, phi:1.2);
 ~map.value(0.001,0.9);
 ~map.value(0.021,0.9);
-(
-	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
-~cloud1 = ~state.echettechannel1.play(Pbind(
-	\instrument, \echette_live__1_2,
-	\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
-	\ringTime, 5.0,
-	\delta, 1/4,
-	\deltime, 0.1,
-	\amp, 2,
-));
-~state.mixingboard.free;
-~cloud1=~state.echettechannel1.play(\echette_live__1_2, [\ringtime, 4,\pan, -0.3, \deltime, 0.5]);
-)
-~state.echettechannel1.fadergroup;
+(
+this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 ~state.testsound = (
 	instrument: \playbuf__1,
 	outbus: ~state.inbus,
@@ -118,3 +125,19 @@ fork{
 	loop:1,
 	sendGate: false,//won't loop if not told
 ).play;
+
+~cloud1 = (~cloud1 ? List.new ).add(
+	~state.echettechannel1.play(Pbind(
+		\instrument, \echette_live__1_2,
+		\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
+		\ringTime, 5.0,
+		\delta, 1/4,
+		\deltime, 0.1,
+		\amp, 2,
+	))
+);
+
+)
+~cloud1.size.do({var thing=~cloud1.pop;thing.stop;thing.free;});
+
+~state.mixingboard.free;
