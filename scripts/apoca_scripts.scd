@@ -15,38 +15,89 @@ Ideas:
 * stateful algorithm to navigate through with wiimote
 * mixing gains of several doohickeys
   * BusMeter?
-  * Jack routing into Live?
+  * ddwChannelStrip?
+  * RedMixerChannel?
+    a= RedMixerChannel(#[0, 1]);
+    b= Pbind(\pan, Pseq([-1, 1], inf), \amp, 0.5).play
+    c= RedMixerChannelGUI(a, name: "testing")
+    a.cvs.eqHi.input= 1
+    a.cvs.eqHi.input= 0
+    a.free
+    b.stop
+    c.close
+* Jack routing into Live?
 * audio-input-driven effects
 * automatic sample-library stuff selection
 * Snipple-style decaying voice sample grains
 */
 ////////
 s=~serverboot.(prox:\local, device:\internal);
-~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
-
+~apoca_samp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 MIDIClient.init;
 //MIDIClient.destinations;
 ~midiout = MIDIOut.newByName("IAC-Driver", "Bus 1");
 ~miditeacher = this.executeFile(~pmscripts +/+ "miditeach.scd").value(
    ~midiout,
-	[[5,0], [5,1], 5,2], [5,3], [5,4]]
+	[[5,0], [5,1], [5,2], [5,3], [5,4]]
 );
 ~map = PSRandomMap(inDims:2, outDims:5, phi:1.2);
 ~map.value(0.001,0.9);
 ~map.value(0.021,0.9);
+(
+var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr;
+
+state = ();
 
 fork{
+	ingroup = Group.new(s, \addToHead);
+	//inbus = Bus.newFrom(s.inputBus,0,1);
+	inbus = Bus.audio(s,1);
+	outbus = Bus.new(\audio, 0, 2, s);
+	testbuf = Buffer.read(s, testsample);
+	s.sync;
+	~testbuf = testbuf;
+	~testsound = (
+		instrument: \playbuf__1,
+		out: inbus,
+		bufnum: testbuf,
+		group: ingroup,
+		sendGate: false,//won't loop if not told
+	).play;
+
+	state.putAll((
+		outbus: outbus,
+		inbus: inbus,
+		ingroup: ingroup,
+		voxgroup: voxgroup,
+		fxgroup: fxgroup,
+		postgroup: postgroup,
+	));
+	voxgroup = Group.new(s, \addToTail);
+	s.sync;
+	fxgroup = Group.new(s, \addToTail);
+	s.sync;
+	postgroup = Group.new(s, \addToTail);
+	s.sync;
+
 	~control = Bus.control(s, 4);
 	s.sync;
 	~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
 	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-
+	~limiter = (
+		instrument: soundin__1,
+		group: postgroup,
+		out:outbus,
+	).play;
 	~limiter = (
 		instrument: \limi__2,
 		group: postgroup,
 		out:outbus,
 	).play;
 )
+
+)
+
+
 
 //////MIDI
 // create an instance
@@ -67,4 +118,3 @@ n.knob1.onChanged  = {|val| "knob 1 changed".postln; val.postln };
 n.faders.do{|fader, i|
 	fader.onChanged= {|val| ("fader"+(i+1)).postln; val.postln }
 };
-)
