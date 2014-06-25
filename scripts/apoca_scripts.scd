@@ -16,11 +16,16 @@ Ideas:
 * audio-input-driven effects
 * process all sample library into mono aiff
 * Snipple-style decaying voice sample grains
+* garbage collection 	CmdPeriod.doOnce { state.outBus.free };
+
 */
 ////////
 s=~serverboot.(prox:\local, device:\internal);
-~apoca_samp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
-Quarks.gui
+~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
+~sampsetpaths;
+~sampsetbufdict;
+~sampsetbufarray;
+
 MIDIClient.init;
 //MIDIClient.destinations;
 ~midiout = MIDIOut.newByName("IAC-Driver", "Bus 1");
@@ -34,7 +39,7 @@ MIDIClient.init;
 (
 var inbus, outbus;
 var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
-var testsample, testbuf, envBuf;
+var testsample, testbuf, testsound;
 var state;
 var echettechannel1, mixingboard;
 
@@ -45,28 +50,14 @@ fork{
 	outbus = Bus.new(\audio, 0, 2, s);
 	//testbuf = Buffer.read(s, testsample);
 	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
+	this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
 	s.sync;
-	echettechannel1 = MixerChannel.new("echette1", s, 2,2);
+	echettechannel1 = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
 	s.sync;
 	mixingboard = MixingBoard("apocalypse", nil, echettechannel1);
-	// s.sync;
-//		a = echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02]);
-		//Note that if you use MixerChannel.play, you don't have to specify the bus number as long as your synthdef uses outbus as the output bus argument. Otherwise, do this:
-
-//		a = echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, echettechannel1.inbus.index]);
-
-		// Any effect synthdefs you write should read the input signal from outbus and use ReplaceOut.ar(outbus...). If you want the input signal to be included in the effect's output, it's advisable to include an argument for wet/dry level rather than simply using Out to add the effect to the bus, because you have more control:
-	//
-	// SynthDef.new("fx/chorus1x1", {
-	// 	arg outbus, delay = 0.01, freq = 0.2, depth = 0.05, wet = 0.5;
-	// 	var in, out;
-	// 	in = In.ar(outbus, 1);
-	// 	out = DelayN.ar(in, 1, SinOsc.ar(freq, 0, depth, delay));
-	// 	ReplaceOut.ar(outbus, in*(1-wet).sqrt + out*wet.sqrt);	// equal power
-	// }).add;
-	//
-	// echettechannel1.playfx("fx/chorus1x1");	// so it goes to effectgroup
-	// ingroup = Group.new(s, \addToHead);
+	s.sync;
+	ingroup = Group.new(s, \addToHead);
+	postgroup = Group.news, \addToTail);
 	// //inbus = Bus.newFrom(s.inputBus,0,1);
 	// ~testsound = (
 	// 	instrument: \playbuf__1,
@@ -78,7 +69,6 @@ fork{
 	// ).play;
 	// s.sync;
 	//
-	// postgroup = Group.new(echettechannel1.fadergroup, \addAfterl);
 	s.sync;
 	state.putAll((
 		outbus: outbus,
@@ -93,16 +83,14 @@ fork{
 	// ~control = Bus.control(s, 4);
 	// s.sync;
 	// ~subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
-	//
-	// ~limiter = (
-	// 	instrument: \limi__2,
-	// 	group: postgroup,
-	// 	outbus:outbus,
-	// ).play;
-	[2,state].postln;
+
+state[\limiter] = (
+	 	instrument: \limi__2,
+	 	group: postgroup,
+	 	outbus:outbus,
+	).play;
 	~state=state;
 };
-[1,state].postln;
 )
 
 a=~state.echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, ~state.echettechannel1.inbus.index]);

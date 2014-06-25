@@ -20,12 +20,14 @@ s.makeGui;
 // Explicit melody layers
 // forming a melody out of grainclouds by raw copula
 // Control mappings for all intersting params
-// reverb system is not in correct ring arrangment. needs z-crossing
 (
 Synth.new(\rec__1, [\inbus, 0, \bufnum, ~state.sampBufs[3]],s);
 ~state.sampBufs[0].plot;
 ~state.sampBufs[0].play;
-~state.sampBufs.do({|buf,ind|[\loadin, buf,ind, ~state.sampPaths[ind]].postln;	buf.readChannel(~state.sampPaths[ind], channels:[0])});
+~state.sampBufs.do({|buf,ind|
+	[\loadin, buf,ind, ~state.sampPaths[ind]].postln;
+	buf.readChannel(~state.sampPaths[ind], channels:[0])
+});
 
 ~state=nil;
 (
