@@ -46,8 +46,8 @@ MIDIClient.init;
 
 (
 var inbus, outbus;
-var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
-var testbuf, testsound, limiter;
+var ingroup, fxgroup, postgroup;
+var sourcebuf, sourcesound, limiter;
 var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo=80, clock;
@@ -66,11 +66,11 @@ fork{
 	outbus = Bus.new(\audio, 0, 2, s);
 	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 	s.sync;
-	testbuf = ~sampsetbufdict[\tuneful][0];
+	sourcebuf = ~sampsetbufdict[\tuneful][0];
 	echettechannel1 = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
 	CmdPeriod.doOnce { echettechannel1.free };
 	echettechannel2 = MixerChannel.new("echette2", s, 2,2, outbus:outbus);
-	CmdPeriod.doOnce { echettechannel2.free };
+	CmdPeriod.doOnce {echettechannel2.free };
 	bonuschannel1 = MixerChannel.new("bonus1", s, 2,2, outbus:outbus);
 	CmdPeriod.doOnce { bonuschannel1.free };
 	bonuschannel2 = MixerChannel.new("bonus2", s, 2,2, outbus:outbus);
@@ -85,17 +85,17 @@ fork{
 	CmdPeriod.doOnce { postgroup.free };
 
 	//In case I don't want to sing
-	/*testsound = (
+	sourcesound = (
 		instrument: \playbuf__1,
 		outbus: inbus,
-		bufnum: testbuf,
-		group: echettechannel1.fadergroup,
-		addAction: \addBefore,
-	loop:1,
+		bufnum: sourcebuf,
+		group: ingroup,
+		addAction: \addToHead,
+		loop:1,
 		sendGate: false,//won't loop if not told
 	).play;
-	CmdPeriod.doOnce { testsound.free };
-	s.sync;*/
+	CmdPeriod.doOnce { sourcesound.free };
+	s.sync;
 
 	limiter = (
 	 	instrument: \limi__2,
@@ -116,7 +116,6 @@ fork{
 		inbus: inbus, //or Bus.newFrom(s.inputBus,0,1) for external
 		limiter: limiter,
 		ingroup: ingroup,
-		testbuf: testbuf,
 		echettechannel1: echettechannel1,
 		echettechannel2: echettechannel2,
 		bonuschannel1: bonuschannel1,
@@ -124,7 +123,8 @@ fork{
 		fxgroup: fxgroup,
 		mixingboard: mixingboard,
 		postgroup: postgroup,
-		testsound: testsound,
+		sourcebuf: sourcebuf,
+		sourcesound: sourcesound,
 		control: control,
 		subcontrols: subcontrols,
 		params: Array.fill(32,0),
@@ -138,19 +138,19 @@ fork{
 ~map.value(0.021,0.9);
 
 (
-var testsound;
+var sourcesound;
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-testsound = (
+sourcesound = (
 	instrument: \playbuf__1,
 	outbus: ~state.inbus,
-	bufnum: ~sampsetbufdict[\tuneful][0],
+	bufnum: ~state.sourcebuf,
 	group: ~state.echettechannel1.fadergroup,
 	addAction: \addBefore,
 	loop:1,
 	sendGate: false,//won't loop if not told
 ).play;
-~state.testsound = testsound;
-CmdPeriod.doOnce { testsound.free };
+~state.sourcesound = sourcesound;
+CmdPeriod.doOnce { sourcesound.free };
 )
 ~state.testsound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
 ~state.testsound.set(\bufnum,~sampsetbufdict[\siren][0]);
