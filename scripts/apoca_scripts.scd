@@ -1,24 +1,30 @@
 /*
 Apocalypse
 
-TODO:
-* Some kind of sequencing things based on order parameters, pulling in and out of chaos
-* Bulk sample loading based on MIR
+TODO: (priority order)
 * the param mapping thing
-* wiimote!
-* ipad setup
-* control ableton with SC
-* feedback effects?
-* CMD-Period crash-robustness
-* ticking clock
-* upload the
-* stateful algorithm to navigate through with wiimote
-* Jack routing into Live?
+  * slider velocity?
+* Some kind of sequencing things based on order parameters, pulling in and out of chaos
+* sample-and hold delay sequence
 * audio-input-driven effects
-* Snipple-style decaying voice sample grains
+* fix sample path problems
+* variable delay in front of allpass to make it more interesting
 * timestretched escalating background accompaniment
-* velocity-sensitive gestures
 * .parentEvent
+* VU meter
+* soundfile-length-sensitive sound playing
+* wiimote!
+  * velocity-sensitive gestures
+* interpolated bus inputs for gesture control
+* enveloped gestures
+* ticking clock sample
+* Jack routing into Live?
+* control ableton with SC
+* Bulk sample loading based on MIR
+* ipad setup
+* upload the previous apocalypse soundtracks
+* stateful algorithm to navigate through with wiimote
+
 */
 
 //s=~serverboot.(prox:\local, device:\rme);
