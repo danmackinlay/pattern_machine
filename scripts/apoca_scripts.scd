@@ -51,7 +51,7 @@ var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
 var testbuf, testsound, limiter;
 var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
-var tempo=120, clock;
+var tempo=80, clock;
 var state;
 
 clock = TempoClock.new(tempo/60.0);
