@@ -45,9 +45,15 @@ var ingroup, mixergroup, voxgroup, fxgroup, postgroup;
 var testbuf, testsound, limiter;
 var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
+var tempo=120, clock;
 var state;
 
-state = ();
+clock = TempoClock.new(tempo/60.0);
+state = (
+	clock: clock,
+	tempo: tempo,
+);
+
 fork{
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
@@ -141,16 +147,18 @@ testsound = (
 ~state.testsound = testsound;
 CmdPeriod.doOnce { testsound.free };
 )
+~state.testsound.set(\bufnum,~sampsetbufdict[\tunefulpaths][3]);
+~state.testsound.set(\bufnum,~sampsetbufdict[\sirenpaths][0]);
 
 (
 ~cloud1 = (~cloud1 ? List.new ).add(
 	~state.echettechannel1.play(Pbind(
 		\instrument, \echette_live__1_2,
 		\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
-		\ringTime, 5.0,
+		\ringTime, 8.0,
 		\delta, 1/4,
-		\deltime, 0.1,
-		\amp, 2,
+		\deltime, 1.5,
+		\amp, 0.5,
 	))
 );
 )
@@ -159,32 +167,37 @@ CmdPeriod.doOnce { testsound.free };
 )
 
 (
-~cloud2state = ();
+~cloud2state = (
+	deltime: 0.4,
+	delta: 0.25,
+	subdelta: 0.25,
+	eta: 0.25,
+);
 ~cloud2=(~cloud2 ? List.new ).add(
 	~state.echettechannel2.play(
 		Pspawner({|spawner|
 			inf.do({|i|
-				~state[\foo]=5;
+				[\oh, i].postln;
 				spawner.par(
-					pattern: Pfin(
-						1,
-						Pbind(
-							\instrument, \echette_live__1_2,
-							\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
-							\ringTime, 5.0,
-							\delta, 1/4,
-							\deltime, 0.1,
-							\amp, 2,
-						)
+					pattern: Pbind(
+						\instrument, \echette_live__1_2,
+						\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
+						\ringTime, 5.0,
+						\delta, Pfin(~cloud2state.eta, Pn(~cloud2state.subdelta, inf)),
+						\deltime, ~cloud2state.deltime,
+						\amp, 2,
 					),
-					delta: 1/3
+					delta: 0,
 				);
-				spawner.wait(1);
+				spawner.wait(~cloud2state[\delta]);
 			});
 		})
 	)
 );
 )
-~cloud2.size.do({var thing=~cloud2.pop;thing.stop;thing.free;});
+
+~cloud2.size.do({var thing=~cloud2.pop; thing.stop; thing.free;});
+~cloud2state.deltime=1.8;
+~cloud2state.eta=3;
 
 ~state.mixingboard.free;
