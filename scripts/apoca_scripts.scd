@@ -57,6 +57,7 @@ clock = TempoClock.new(tempo/60.0);
 state = (
 	clock: clock,
 	tempo: tempo,
+	beatTime: 60.0/tempo,
 );
 
 fork{
@@ -129,7 +130,6 @@ fork{
 		subcontrols: subcontrols,
 		params: Array.fill(32,0),
 	));
-
 	~state=state;
 };
 )
@@ -156,12 +156,7 @@ CmdPeriod.doOnce { sourcesound.free };
 ~state.testsound.set(\bufnum,~sampsetbufdict[\siren][0]);
 
 (
-~cloud1state = Event.new(n:30,proto:~state).putAll((
-	deltime: 0.4,
-	delta: 0.25,
-	subdelta: 0.25,
-	eta: 0.25,
-));
+~cloud1state = Event.new(n:30,proto:~state).putAll(());
 ~cloud1 = (~cloud1 ? List.new ).add(
 	~state.echettechannel1.play(Pbind(
 		\instrument, \echette_live__1_2,
@@ -187,16 +182,16 @@ CmdPeriod.doOnce { sourcesound.free };
 	~state.echettechannel2.play(
 		Pspawner({|spawner|
 			inf.do({|i|
-				//[\oh, i].postln;
+				var beatTime = ~cloud2state.beatTime;
+				[\oh, i, beatTime].postln;
 				spawner.par(
 					pattern: Pbind(
 						\instrument, \echette_live__1_2,
-						\inbus, ~state.inbus,
-						\beatlen
+						\inbus, ~cloud2state.inbus,
 						\ringTime, 5.0,
 						\delta, Pfin(~cloud2state.eta, Pn(~cloud2state.subdelta, inf)),
-						\deltime, ~cloud2state.deltime,
-						\amp, 2,
+						\deltime, ~cloud2state.deltime*beatTime,
+						\amp, 1,
 					),
 					delta: 0,
 				);
