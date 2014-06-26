@@ -35,13 +35,14 @@
 			s, 44100*60, 1); //dangerously hard coded, soz.
 		s.sync;
 		sampsetpaths.keysValuesDo({|key,paths|
-			paths.do({|path, ind|
+			paths.do({|path|
 				var buf;
 				[\loadin, key, ind, path].postln;
 				buf=sampsetbufarray[ind];
 				buf.readChannel(path, channels:[0]);
 				sampsetbufdict[key]=(sampsetbufdict[key] ?? {Array.new}).add(buf);
 				CmdPeriod.doOnce { buf.free };
+				ind = ind + 1;
 			});
 		});
 		s.sync;
