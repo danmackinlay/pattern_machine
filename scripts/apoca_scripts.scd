@@ -10,12 +10,15 @@ TODO:
 * control ableton with SC
 * feedback effects?
 * CMD-Period crash-robustness
+* ticking clock
+* upload the
 * stateful algorithm to navigate through with wiimote
 * Jack routing into Live?
 * audio-input-driven effects
 * Snipple-style decaying voice sample grains
 * timestretched escalating background accompaniment
-
+* velocity-sensitive gestures
+* .parentEvent
 */
 
 //s=~serverboot.(prox:\local, device:\rme);
