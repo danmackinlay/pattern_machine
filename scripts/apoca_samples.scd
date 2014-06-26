@@ -3,25 +3,25 @@
 	sampsetbufdict = ();
 
 	sampsetpaths = (
-		sirenpaths: [
+		siren: [
 			"22370__druidus__Civil_Defence_Siren.wav",
 			"24347__fonogeno__Police_sirens-short.wav",
 			"30476__LG__Dutch_air_raid_warning_02.wav",
 			"43807__daveincamas__WW2AirplaneFlyover.wav",
 		].collect(basepath +/+ _),
-		peoplepaths: [
+		people: [
 			"actors-laughing.wav",
 			"tortureguy-3.wav",
 			"actors-siren.wav",
 			"actors-tuning.wav",
 		].collect(basepath +/+ _),
-		desolationpaths: [
+		desolation: [
 			"varese_on_a_lathe.wav",
 			"whistling-wind.wav",
 			"seagull-walk.wav",
 			"577_batchku_piano_dry_ice/10334_batchku_burning_iceberg.wav",
 		].collect(basepath +/+ _),
-		tunefulpaths: [
+		tuneful: [
 			"Unknown_Lead_Vocal.wav",
 			"NS-wind-chimes-002-denoise-edit.wav",
 			"CONCERTOFORCLARINETP2_ArtieShaw_VICTOR_36383-B-solo.wav",

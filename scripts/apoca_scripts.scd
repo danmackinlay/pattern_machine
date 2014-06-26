@@ -67,7 +67,7 @@ fork{
 	outbus = Bus.new(\audio, 0, 2, s);
 	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 	s.sync;
-	testbuf = ~sampsetbufdict[\tunefulpaths][0];
+	testbuf = ~sampsetbufdict[\tuneful][0];
 	echettechannel1 = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
 	CmdPeriod.doOnce { echettechannel1.free };
 	echettechannel2 = MixerChannel.new("echette2", s, 2,2, outbus:outbus);
@@ -144,7 +144,7 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 testsound = (
 	instrument: \playbuf__1,
 	outbus: ~state.inbus,
-	bufnum: ~sampsetbufdict[\tunefulpaths][0],
+	bufnum: ~sampsetbufdict[\tuneful][0],
 	group: ~state.echettechannel1.fadergroup,
 	addAction: \addBefore,
 	loop:1,
@@ -153,8 +153,8 @@ testsound = (
 ~state.testsound = testsound;
 CmdPeriod.doOnce { testsound.free };
 )
-~state.testsound.set(\bufnum,~sampsetbufdict[\tunefulpaths][3]);
-~state.testsound.set(\bufnum,~sampsetbufdict[\sirenpaths][0]);
+~state.testsound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
+~state.testsound.set(\bufnum,~sampsetbufdict[\siren][0]);
 
 (
 ~cloud1 = (~cloud1 ? List.new ).add(
