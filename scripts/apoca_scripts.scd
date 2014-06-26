@@ -10,7 +10,6 @@ TODO: (priority order)
 * fix sample path problems
 * variable delay in front of allpass to make it more interesting
 * timestretched escalating background accompaniment
-* .parentEvent
 * VU meter
 * soundfile-length-sensitive sound playing
 * wiimote!
@@ -114,7 +113,7 @@ fork{
 
 	state.putAll((
 		outbus: outbus,
-		inbus: inbus,
+		inbus: inbus, //or Bus.newFrom(s.inputBus,0,1) for external
 		limiter: limiter,
 		ingroup: ingroup,
 		testbuf: testbuf,
@@ -157,10 +156,16 @@ CmdPeriod.doOnce { testsound.free };
 ~state.testsound.set(\bufnum,~sampsetbufdict[\siren][0]);
 
 (
+~cloud1state = Event.new(n:30,proto:~state).putAll((
+	deltime: 0.4,
+	delta: 0.25,
+	subdelta: 0.25,
+	eta: 0.25,
+));
 ~cloud1 = (~cloud1 ? List.new ).add(
 	~state.echettechannel1.play(Pbind(
 		\instrument, \echette_live__1_2,
-		\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
+		\inbus, ~cloud1state.inbus,
 		\ringTime, 8.0,
 		\delta, 1/4,
 		\deltime, 1.5,
@@ -170,24 +175,24 @@ CmdPeriod.doOnce { testsound.free };
 )
 
 ~cloud1.size.do({var thing=~cloud1.pop;thing.stop;thing.free;});
-)
 
 (
-~cloud2state = (
+~cloud2state = Event.new(n:30,proto:~state).putAll((
 	deltime: 0.4,
 	delta: 0.25,
 	subdelta: 0.25,
 	eta: 0.25,
-);
-~cloud2=(~cloud2 ? List.new ).add(
+));
+~cloud2 = (~cloud2 ? List.new ).add(
 	~state.echettechannel2.play(
 		Pspawner({|spawner|
 			inf.do({|i|
-				[\oh, i].postln;
+				//[\oh, i].postln;
 				spawner.par(
 					pattern: Pbind(
 						\instrument, \echette_live__1_2,
-						\inbus, ~state.inbus, //or Bus.newFrom(s.inputBus,0,1) for external
+						\inbus, ~state.inbus,
+						\beatlen
 						\ringTime, 5.0,
 						\delta, Pfin(~cloud2state.eta, Pn(~cloud2state.subdelta, inf)),
 						\deltime, ~cloud2state.deltime,
