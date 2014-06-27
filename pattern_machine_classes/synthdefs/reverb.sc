@@ -6,7 +6,7 @@ PSReverbSynthDefs {
 	}
 	*loadSynthDefs {
 		//Reverb unit with bonus dry sidemix
-		SynthDef(\freeverbside__2_2, {
+		SynthDef(\ps_freeverbside__2_2, {
 			|outbus=0, mix=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
 			var signal;
 			signal = In.ar(outbus, 2);
@@ -34,7 +34,7 @@ PSReverbSynthDefs {
 			);
 		}).add;
 		//Reverb unit with bonus dry sidemix
-		SynthDef(\gverbside__2_2, {
+		SynthDef(\ps_gverbside__2_2, {
 			|outbus=0, mix=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
 			var signal;
 			signal = In.ar(outbus, 2);
@@ -61,7 +61,7 @@ PSReverbSynthDefs {
 		// DIY diffuser
 		//TODO: the only way to make this sane is 4 rolling comb filters, input enveloped
 		//TODO: recirculation delay
-		SynthDef.new(\mutatingreverb, {
+		SynthDef.new(\ps_mutatingreverb__1_1, {
 			|outbus,
 			dry=0,
 			lforate=0.21,
