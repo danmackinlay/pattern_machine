@@ -67,7 +67,7 @@ state = ~state ?? (
 ~state = state;
 state[\clock] = TempoClock.new(120.0/60.0);
 CmdPeriod.doOnce { state.clock.stop };
-this.executeFile(~pmscripts +/+ "kuehsynths.scd").value(s);
+this.executeFile(~pmscripts +/+ "kueh_synths.scd").value(s);
 state.clock.schedAbs(0, {state.clock.beatsPerBar = state.beatsPerBar;});
 linperturb = {|center, dev, lo=0, hi=1|
 	(dev.asFloat.rand2 + center).max(lo).min(hi);
@@ -200,7 +200,7 @@ fork {
 			spawner.wait(state[\timeStep]);
 		});
 	}).play(state.clock, quant: #[4,0,0.0]);
-	this.executeFile(~pmscripts +/+ "kuehmidi.scd").value(state);
+	this.executeFile(~pmscripts +/+ "kueh_midi.scd").value(state);
 };
 )
 
