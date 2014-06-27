@@ -84,34 +84,3 @@ SynthDef.new(\ps_buf_delay_play__1_2, {
 	);
 	Out.ar(outbus, Pan2.ar(sig, pan));
 }).add;
-
-//blessings upon crucialfelix, whose reverb does not suck
-SynthDef.new(\ps_cxreverb__2_2, {
-	arg outbus=0,
-		revTime=4.0,
-		revBalance=0.5,
-		tapsMin=0.01,
-		tapsMax=0.07,
-		combsMin=0.5,
-		combsMax=0.3,
-		allpassMin=0.01,
-		allpassMax=0.05,
-		allpassDecay=1.0;
-
-	var sig = Reverberator3.ar(
-		In.ar(outbus,2),
-		revBalance: revBalance,// 0..1
-		revTime: revTime,
-		taps: 10, //default val
-		combs: 6, //default val
-		allpasses: 4, //default val
-		tapsMin: tapsMin,
-		tapsMax: tapsMax,
-		combsMin: combsMin,
-		combsMax: combsMax,
-		allpassMin: allpassMin,
-		allpassMax: allpassMax,
-		allpassDecay: allpassDecay);
-	ReplaceOut.ar(outbus, sig);
-}).add;
-

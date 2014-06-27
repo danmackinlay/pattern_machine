@@ -30,9 +30,9 @@ Server.default=s=~serverboot.(prox:\local, device:\builtin);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
 ~uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);
-this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(~uidata, {~uidata.postln});
+this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(~uidata, { /*~uidata.postln*/});
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-~controller
+
 (
 var inbus, outbus;
 var ingroup, fxgroup, postgroup;
@@ -87,7 +87,7 @@ fork{
 	CmdPeriod.doOnce { postgroup.free };
 
 	//channel fx
-	reverb3 = bonuschannel1.playfx(\ps_cxreverb__2_2);
+	reverb3 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
 	s.sync;
 
 	//sample-loop action
@@ -282,9 +282,14 @@ CmdPeriod.doOnce { sourcesound.free };
 )
 ~killList.value(~slice1);
 
-~state.reverb3.set(\revTime,20);
-~state.reverb3.set(\revBalance,1);
+~state.reverb3.set(\wet, 0.8);
+~state.reverb3.set(\damping, 0.6);
+~state.reverb3.set(\roomsize, 180);
+~state.reverb3.set(\revtime, 2);
+~state.reverb3.set(\taillevel, 2);
+~state.reverb3.set(\earlyreflevel, 2);
+
 ~slice1state.loopsynth.set(\wet,1);
-~slice1state.loopsynth.set(\wet,1);
+~slice1state.loopsynth.set(\wet,0);
 
 ~state.mixingboard.free;
