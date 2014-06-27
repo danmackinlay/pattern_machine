@@ -41,9 +41,9 @@ var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo, beatTime, clock;
 var state;
 
-tempo=80;
+tempo = 80.0;
 beatTime = 60.0/tempo;
-clock = TempoClock.new(tempo/60.0);
+clock = TempoClock.default.tempo_(tempo/60.0);
 
 state = (
 	clock: clock,
@@ -215,7 +215,11 @@ CmdPeriod.doOnce { sourcesound.free };
 				);
 				spawner.wait(~cloud2state[\delta]);
 			});
-		})
+		}),
+		(
+			clock: ~state.clock,
+			//protoEvent: ~cloud2state,
+		)
 	)
 );
 )
