@@ -42,6 +42,7 @@ var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo, beatTime, clock;
 var state;
+var reverb1, reverb2, reverb3, reverb4;
 
 tempo = 80.0;
 beatTime = 60.0/tempo;
@@ -56,6 +57,7 @@ state = (
 ~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
 
 fork{
+	//basic overall mixing:
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
 	CmdPeriod.doOnce { inbus.free };
@@ -83,6 +85,10 @@ fork{
 	CmdPeriod.doOnce { ingroup.free };
 	postgroup = Group.new(s, \addAfter);
 	CmdPeriod.doOnce { postgroup.free };
+
+	//channel fx
+	reverb3 = bonuschannel1.playfx(\ps_cxreverb__2_2);
+	s.sync;
 
 	//sample-loop action
 	loopbuf = Buffer.alloc(s, s.sampleRate * 10.0, 1);
@@ -146,6 +152,10 @@ fork{
 		bonuschannel1: bonuschannel1,
 		bonuschannel2: bonuschannel2,
 		fxgroup: fxgroup,
+		reverb1: reverb1,
+		reverb2: reverb2,
+		reverb3: reverb3,
+		reverb4: reverb4,
 		mixingboard: mixingboard,
 		postgroup: postgroup,
 		sourcebuf: sourcebuf,
@@ -264,15 +274,17 @@ CmdPeriod.doOnce { sourcesound.free };
 			\bufnum, ~slice1state.loopbuf,
 			\phasebus, ~slice1state.loopphasebus,
 			\dur, 1,
-			\deltime, Prand([0,1/2,2], 4) *~slice1state.beatTime,
+			\deltime, Prand([0,1/2,2], 32) *~slice1state.beatTime,
 			\amp, 1,
 		).postcs.trace(prefix:\foo),
 	)
 );
 )
-~slice1state.loopbuf.plot;
 ~killList.value(~slice1);
 
+~state.reverb3.set(\revTime,20);
+~state.reverb3.set(\revBalance,1);
+~slice1state.loopsynth.set(\wet,1);
 ~slice1state.loopsynth.set(\wet,1);
 
 ~state.mixingboard.free;
