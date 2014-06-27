@@ -7,7 +7,7 @@ normalise based on how much power is in that octave?
   * * https://en.wikipedia.org/wiki/List_of_trigonometric_identities#Angle_sum_and_difference_identitieshttp://www.sosmath.com/trig/Trig5/trig5/trig5.html
 
 */
-s=~serverboot.(prox:\local, device:\internal);
+s=~serverboot.(prox:\local, device:\builtin);
 (
 var analNode;
 SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8|

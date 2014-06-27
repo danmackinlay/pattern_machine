@@ -26,7 +26,7 @@ TODO: (priority order)
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
-Server.default=s=~serverboot.(prox:\local, device:\internal);
+Server.default=s=~serverboot.(prox:\local, device:\builtin);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
 ~uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);

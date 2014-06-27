@@ -19,7 +19,7 @@ TODO: delayscape
 TODO: bassier samples
 */
 
-s=~serverboot.(prox:\local, device:\internal);
+s=~serverboot.(prox:\local, device:\builtin);
 s=~serverboot.(prox:\local, device:\rme);
 ~state = 'foo';
 (

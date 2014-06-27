@@ -4,7 +4,7 @@ A wild an dangerous effect that is designed to feedback (more) safely through yo
 */
 
 
-s=~serverboot.(prox:\local, device:\internal);
+s=~serverboot.(prox:\local, device:\builtin);
 //TODO: EQ
 //TODO: make safer, by ignoring shifting baseline potential
 (

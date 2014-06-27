@@ -5,7 +5,7 @@ I am trying to create a reversible reverb-echo like effect, where the
 diffusion can be undone.
 */
 
-s=~serverboot.(prox:\local, device:\internal);
+s=~serverboot.(prox:\local, device:\builtin);
 s=~serverboot.(prox:\local, device:\rme);
 ~state = 'foo';
 (

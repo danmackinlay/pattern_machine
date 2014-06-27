@@ -1,4 +1,4 @@
-s=~serverboot.(prox:\local, device:\internal);
+s=~serverboot.(prox:\local, device:\builtin);
 s=~serverboot.(prox:\local, device:\rme);
 s.makeGui;
 
