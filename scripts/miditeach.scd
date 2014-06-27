@@ -6,6 +6,7 @@ MIDIClient.destinations;
    [[5,0], [5,1], 5,2], [5,3], [5,4]]
 );
 */
+
 {|midiout, chanControls|
 var mapper;
 

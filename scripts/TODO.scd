@@ -8,5 +8,6 @@
   * https://en.wikipedia.org/wiki/Unitary_operator
   * https://ccrma.stanford.edu/~jos/pasp/Gerzon_Nested_MIMO_Allpass.html
 * create an allpass that handles crossfades of params gracefully
+* change multicahnnel naming convention to match ddw - something like __1x2
 *
 */

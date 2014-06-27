@@ -32,18 +32,6 @@ s=~serverboot.(prox:\local, device:\internal);
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
-~sampsetpaths;
-~sampsetbufdict;
-~sampsetbufarray;
-
-MIDIClient.init;
-//MIDIClient.destinations;
-~midiout = MIDIOut.newByName("IAC-Driver", "Bus 1");
-~miditeacher = this.executeFile(~pmscripts +/+ "miditeach.scd").value(
-	 ~midiout,
-	[[5,0], [5,1], [5,2], [5,3], [5,4]]
-);
-
 (
 var inbus, outbus;
 var ingroup, fxgroup, postgroup;
