@@ -74,11 +74,10 @@ fork {
 		inf.do({|ix|
 			state.paramDirty.if({
 				state.paramDirty = false;
-				[\BBBBBBBBB,state.metaparams].postln;
+				[\updating,state.metaparams].postln;
 				state.params = state.paramMap.value(state.metaparams);
 			});
-			[inval, ix, state.metaparams, state.params].postln;
-			inval = 1.0.yield;
+			inval = 0.02.yield;
 		});
 	}).play;
 	CmdPeriod.doOnce { paramWatcher.free };
