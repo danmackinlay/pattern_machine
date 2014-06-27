@@ -27,11 +27,17 @@
 			"CONCERTOFORCLARINETP2_ArtieShaw_VICTOR_36383-B-solo.wav",
 			"uc-ezchord.wav",
 		].collect(basepath +/+ _),
+		choral: [
+			"choir/namgyalmonastery-chanthighlight.wav",
+			"choir/magnificat-build.wav",
+			"choir/huunhuurtu-legend.wav",
+			"choir/bulgur-legend.wav",
+		].collect(basepath +/+ _),
 	);
 	fork {
 		var ind=0;
 		sampsetbufarray = Buffer.allocConsecutive(
-			16,
+			20,
 			s, 44100*60, 1); //dangerously hard coded, soz.
 		s.sync;
 		sampsetpaths.keysValuesDo({|key,paths|
