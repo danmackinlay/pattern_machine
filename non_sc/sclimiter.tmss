@@ -19,14 +19,14 @@
 			<val e="FaderGroup 4" v="0.00,"/>
 			<val e="Free FaderGroup" v="1.00,"/>
 			<val e="LinkMainAB" v="1.00,"/>
-			<val e="MainChannel" v="6.00,"/>
+			<val e="MainChannel" v="0.00,"/>
 			<val e="MainBChannel" v="-1.00,"/>
-			<val e="Phones1Chan" v="-1.00,"/>
+			<val e="Phones1Chan" v="6.00,"/>
 			<val e="Phones2Chan" v="-1.00,"/>
 			<val e="Phones3Chan" v="-1.00,"/>
 			<val e="Phones4Chan" v="-1.00,"/>
 			<val e="SpeakerBSelect" v="0.00,"/>
-			<val e="CueChannel" v="16.00,"/>
+			<val e="CueChannel" v="-1.00,"/>
 			<val e="CueToChannel" v="0.00,"/>
 			<val e="DIM Enable" v="0.00,"/>
 			<val e="DIM Level" v="-20.00,"/>
@@ -82,7 +82,7 @@
 			<val e="LayoutName 6" v="Layout 7"/>
 			<val e="SnapshotName 7" v="Mix 8"/>
 			<val e="LayoutName 7" v="Layout 8"/>
-			<val e="MidiEnabled" v="0"/>
+			<val e="MidiEnabled" v="1"/>
 			<val e="OSCEnabled" v="1"/>
 		</General>
 		<Inputs>
@@ -91,7 +91,7 @@
 			<val e="Chan Mute 00" v="0.00,"/>
 			<val e="Rev Return 00" v="-65.00,"/>
 			<val e="Chan Level 00" v="1.00,"/>
-			<val e="Chan Gain 00" v="55.00,"/>
+			<val e="Chan Gain 00" v="44.00,"/>
 			<val e="Auto Set 00" v="0.00,"/>
 			<val e="Phase Invert 00" v="0.00,"/>
 			<val e="M/S-Coding 00" v="0.00,"/>
@@ -1251,9 +1251,9 @@
 			<val e="Band1 Freq 00" v="80.00,"/>
 			<val e="Band1 Q 00" v="1.00,"/>
 			<val e="Band1 Gain 00" v="0.00,"/>
-			<val e="Band2 Freq 00" v="1000.00,"/>
-			<val e="Band2 Q 00" v="1.00,"/>
-			<val e="Band2 Gain 00" v="0.00,"/>
+			<val e="Band2 Freq 00" v="20.00,"/>
+			<val e="Band2 Q 00" v="4.00,"/>
+			<val e="Band2 Gain 00" v="8.50,"/>
 			<val e="Band3 Freq 00" v="5000.00,"/>
 			<val e="Band3 Q 00" v="1.00,"/>
 			<val e="Band3 Gain 00" v="0.00,"/>
@@ -1300,9 +1300,9 @@
 			<val e="Band1 Freq 01" v="80.00,"/>
 			<val e="Band1 Q 01" v="1.00,"/>
 			<val e="Band1 Gain 01" v="0.00,"/>
-			<val e="Band2 Freq 01" v="1000.00,"/>
-			<val e="Band2 Q 01" v="1.00,"/>
-			<val e="Band2 Gain 01" v="0.00,"/>
+			<val e="Band2 Freq 01" v="20.00,"/>
+			<val e="Band2 Q 01" v="4.00,"/>
+			<val e="Band2 Gain 01" v="8.50,"/>
 			<val e="Band3 Freq 01" v="5000.00,"/>
 			<val e="Band3 Q 01" v="1.00,"/>
 			<val e="Band3 Gain 01" v="0.00,"/>
@@ -1535,7 +1535,7 @@
 			<val e="High Z Inp 06" v="0.00,"/>
 			<val e="RecordEnable 06" v="0.00,"/>
 			<val e="PlayChannel 06" v="0.00,"/>
-			<val e="Talkback Sel. 06" v="-1.00,"/>
+			<val e="Talkback Sel. 06" v="1.00,"/>
 			<val e="No Trim 06" v="0.00,"/>
 			<val e="Input Pad 06" v="0.00,"/>
 			<val e="LC Enable 06" v="0.00,"/>
@@ -1584,7 +1584,7 @@
 			<val e="High Z Inp 07" v="0.00,"/>
 			<val e="RecordEnable 07" v="0.00,"/>
 			<val e="PlayChannel 07" v="0.00,"/>
-			<val e="Talkback Sel. 07" v="-1.00,"/>
+			<val e="Talkback Sel. 07" v="1.00,"/>
 			<val e="No Trim 07" v="0.00,"/>
 			<val e="Input Pad 07" v="0.00,"/>
 			<val e="LC Enable 07" v="0.00,"/>
@@ -2126,8 +2126,8 @@
 			<val e="Slider 00 15" v="-65.00,"/>
 			<val e="Slider 00 16" v="-65.00,"/>
 			<val e="Slider 00 17" v="-65.00,"/>
-			<val e="Slider 00 18" v="-8.74,"/>
-			<val e="Slider 00 19" v="-8.74,"/>
+			<val e="Slider 00 18" v="0.29,"/>
+			<val e="Slider 00 19" v="0.29,"/>
 			<val e="Slider 00 20" v="0.00,"/>
 			<val e="Slider 00 21" v="0.00,"/>
 			<val e="Slider 00 22" v="0.00,"/>
@@ -2146,10 +2146,10 @@
 			<val e="Slider 00 35" v="0.00,"/>
 			<val e="Slider 00 36" v="0.00,"/>
 			<val e="Slider 01 36" v="0.00,"/>
-			<val e="Slider 02 18" v="-8.74,"/>
-			<val e="Slider 02 19" v="-8.74,"/>
-			<val e="Slider 02 36" v="-9.20,"/>
-			<val e="Slider 03 36" v="-9.20,"/>
+			<val e="Slider 02 18" v="0.29,"/>
+			<val e="Slider 02 19" v="0.29,"/>
+			<val e="Slider 02 36" v="-10.01,"/>
+			<val e="Slider 03 36" v="-10.01,"/>
 			<val e="Slider 04 20" v="0.00,"/>
 			<val e="Slider 04 21" v="0.00,"/>
 			<val e="Slider 04 36" v="0.00,"/>
@@ -2195,7 +2195,7 @@
 		</Mixer>
 		<MidiRemote0>
 			<val e="MidiRemoteInUse" v="1"/>
-			<val e="MidiIn" v="None"/>
+			<val e="MidiIn" v="nanoKONTROL2 SLIDER/KNOB"/>
 			<val e="MidiOut" v="None"/>
 			<val e="MidiSelBus" v="0"/>
 			<val e="MidiSelChannel" v="0"/>
@@ -2304,8 +2304,8 @@
 		<AuxDevice0>
 			<val e="AuxDeviceType" v="0"/>
 			<val e="AuxDeviceID" v="0"/>
-			<val e="AuxMidiIn" v=""/>
-			<val e="AuxMidiOut" v=""/>
+			<val e="AuxMidiIn" v="IAC-Driver Bus 1"/>
+			<val e="AuxMidiOut" v="IAC-Driver Bus 1"/>
 		</AuxDevice0>
 		<AuxDevice1>
 			<val e="AuxDeviceType" v="0"/>
