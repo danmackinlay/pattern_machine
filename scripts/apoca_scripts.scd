@@ -51,6 +51,8 @@ state = (
 	beatTime: beatTime,
 );
 
+~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
+
 fork{
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
@@ -185,7 +187,7 @@ CmdPeriod.doOnce { sourcesound.free };
 );
 )
 
-~cloud1.size.do({var thing=~cloud1.pop;thing.stop;thing.free;});
+~killList.value(~cloud1);
 
 (
 ~cloud2state = Event.new(n:30,proto:~state).putAll((
@@ -218,7 +220,8 @@ CmdPeriod.doOnce { sourcesound.free };
 );
 )
 
-~cloud2.size.do({var thing=~cloud2.pop; thing.stop; thing.free;});
+~killList.value(~cloud2);
+
 ~cloud2state.deltime=1.8;
 ~cloud2state.eta=3;
 
@@ -258,7 +261,8 @@ CmdPeriod.doOnce { sourcesound.free };
 );
 )
 ~slice1state.loopbuf.plot;
-~slice1.size.do({var thing=~slice1.pop; thing.stop; thing.free;});
+~killList.value(~slice1);
+
 ~slice1state.loopsynth.set(\wet,1);
 
 ~state.mixingboard.free;
