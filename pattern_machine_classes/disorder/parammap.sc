@@ -34,14 +34,16 @@ PSRandomIndexedProjection {
 PSRandomMap {
 	var <inDims;
 	var <outDims;
+	var <>gain;
 	var <projGenerator;
 	var <phi;
 	var <transformMat;
 	var <seed;
-	*new{|inDims=2, outDims=5, phi=1.1, seed=3.7|
+	*new{|inDims=2, outDims=5, gain=3.0, phi=1.1, seed=3.7|
 		^super.newCopyArgs(
 			inDims,
 			outDims,
+			gain,
 		).seed_(seed).phi_(phi);
 	}
 	seed_{|newSeed|
@@ -55,13 +57,13 @@ PSRandomMap {
 		// Could take other dists; there's nothing magic about rotation invariance
 		transformMat = Matrix.withFlatArray(
 			inDims, outDims, 
-			PSInvPhi(projGenerator.value(phi).asFloatArray/(inDims.sqrt))
+			PSInvPhi(projGenerator.value(phi).asFloatArray/(inDims.sqrt));
 		);
 	}
 	value{|inParams|
 		//TODO: optimise out the Matrix library here, which is not all that great codewise
 		//full of halts and inconsistent w/rt permission and forgiveness
 		var paramMat = Matrix.withFlatArray(1, inDims, PSInvPhi(inParams.asFloatArray));
-		^PSPhi((paramMat*transformMat).asFlatArray);
+		^PSPhi((paramMat*transformMat).asFlatArray*gain);
 	}
 }

@@ -28,6 +28,11 @@ TODO: (priority order)
 * stateful algorithm to navigate through with wiimote
 */
 
+~state.metaparams[2] = 0.01;
+~state.metaparams[3] = 0.99;
+~state.paramDirty = true;
+~state.params;
+
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
@@ -45,8 +50,6 @@ var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
 var uidata, metaparams, params, paramUpdaters, paramWatcher;
-
-~state=\oops;
 
 tempo = 80.0;
 beatTime = 60.0/tempo;
@@ -76,6 +79,9 @@ fork {
 				state.paramDirty = false;
 				[\updating,state.metaparams].postln;
 				state.params = state.paramMap.value(state.metaparams);
+				state.params.do({|val, i|
+					state.paramUpdaters[i].value(val);
+				});
 			});
 			inval = 0.02.yield;
 		});
@@ -267,36 +273,28 @@ fork {
 
 (
 ~slice1state = Event.new(n:30,proto:~state).putAll((
-	delta: 4,
+	bardelta: 4,
 ));
 ~slice1 = (~slice1 ? List.new ).add(
 	~state.bonuschannel1.play(
-		// Pspawner({|spawner|
-		// 	inf.do({|i|
-		// 		var beatTime = ~slice1state.beatTime;
-		// 		[\oh, i, beatTime].postln;
-		// 		spawner.par(
-		// 			pattern: Pbind(
-		// 				\instrument, \ps_buf_delay_play__1_2,
-		// 				\bufnum, ~slice1state.loopbuf,
-		// 				\phasebus, ~slice1state.loopphasebus,
-		// 				\dur, 1,
-		// 				\deltime, Prand([0,1/2,2], 4) *~slice1state.beatTime,
-		// 				\amp, 1,
-		// 			).postcs,
-		// 			delta: 0,
-		// 		);
-		// 		spawner.wait(~slice1state[\delta]);
-		// 	});
-		// })
-		Pbind(
-			\instrument, \ps_buf_delay_play__1_2,
-			\bufnum, ~slice1state.loopbuf,
-			\phasebus, ~slice1state.loopphasebus,
-			\dur, 1,
-			\deltime, Prand([0,1/2,2], 32) *~slice1state.beatTime,
-			\amp, 1,
-		).postcs.trace(prefix:\foo),
+		Pspawner({|spawner|
+			inf.do({|i|
+				var beatTime = ~slice1state.beatTime;
+				[\oh, i, beatTime].postln;
+				spawner.par(
+					pattern: Pbind(
+						\instrument, \ps_buf_delay_play__1_2,
+						\bufnum, ~slice1state.loopbuf,
+						\phasebus, ~slice1state.loopphasebus,
+						\dur, 1,
+						\deltime, Prand([0,1/2,2], 32) *~slice1state.beatTime,
+						\amp, 1,
+					).postcs.trace(prefix: \foo),
+					delta: 0,
+				);
+				spawner.wait(~slice1state[\bardelta]);
+			});
+		})
 	)
 );
 )
