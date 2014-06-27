@@ -6,22 +6,24 @@ TODO: (priority order)
   * MIDI
     * slider velocity?
   * wiimote
+* MIDI triggering for:
+  * looping
+  * loop re-ordering
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * audio-input-driven effects
 * check switching-in-microphone input
-* reverb
 * granular choir
 * variable delay in front of allpass to make it more interesting
+* remap to various RME outputs for hardware mixing (dammit, website down)
 * VU meter
 * soundfile-length-sensitive sound playing
 * interpolated bus inputs for gesture control
 * enveloped gestures
 * timestretched escalating background accompaniment
 * ticking clock sample
-* Jack routing into Live?
 * control ableton with SC
+* Jack routing into Live?
 * Bulk sample loading based on MIR
-* remap to various RME outputs for hardware mixing
 * stateful algorithm to navigate through with wiimote
 */
 
@@ -29,8 +31,6 @@ TODO: (priority order)
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
-~uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);
-this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(~uidata, { /*~uidata.postln*/});
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
 (
@@ -43,6 +43,7 @@ var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
+var uidata, params, paramUpdaters;
 
 tempo = 80.0;
 beatTime = 60.0/tempo;
@@ -56,8 +57,17 @@ state = (
 
 ~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
 
-fork{
-	//basic overall mixing:
+fork {
+	//UI interasction stuff
+	params = Array.fill(32,0);
+	uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);
+	paramUpdaters = Array.fill(32, nil);
+	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(
+		uidata,
+		{ (..2).do({|i| params[i]=uidata[\pitchrollyawaccel][i]})}
+	);
+
+	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
 	CmdPeriod.doOnce { inbus.free };
@@ -162,7 +172,9 @@ fork{
 		sourcesound: sourcesound,
 		control: control,
 		subcontrols: subcontrols,
-		params: Array.fill(32,0),
+		uidata: uidata,
+		params: params,
+		paramUpdaters: paramUpdaters,
 	));
 	~state=state;
 };
