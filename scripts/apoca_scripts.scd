@@ -3,16 +3,17 @@ Apocalypse
 
 TODO: (priority order)
 * the param mapping thing
-  * slider velocity?
+  * MIDI
+    * slider velocity?
+  * wiimote
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * audio-input-driven effects
+* check switching-in-microphone input
 * reverb
 * granular choir
 * variable delay in front of allpass to make it more interesting
 * VU meter
 * soundfile-length-sensitive sound playing
-* wiimote!
-  * velocity-sensitive gestures
 * interpolated bus inputs for gesture control
 * enveloped gestures
 * timestretched escalating background accompaniment
@@ -22,15 +23,16 @@ TODO: (priority order)
 * Bulk sample loading based on MIR
 * remap to various RME outputs for hardware mixing
 * stateful algorithm to navigate through with wiimote
-
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
+~uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);
+this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(~uidata, {~uidata.postln});
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-
+~controller
 (
 var inbus, outbus;
 var ingroup, fxgroup, postgroup;
