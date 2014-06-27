@@ -10,6 +10,7 @@ TODO: (priority order)
   * looping
   * loop re-ordering
   * kill all synths (~killall.value;)
+  * triggering karin's gestures
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * audio-input-driven effects
 * check switching-in-microphone input
@@ -28,16 +29,8 @@ TODO: (priority order)
 * stateful algorithm to navigate through with wiimote
 */
 
-~state.metaparams[2] = 0.01;
-~state.metaparams[3] = 0.99;
-~state.paramDirty = true;
-~state.params;
-
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
-~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
-this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
-this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
 (
 var inbus, outbus;
@@ -50,6 +43,10 @@ var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
 var uidata, metaparams, params, paramUpdaters, paramWatcher;
+
+~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
+this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
+this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
 tempo = 80.0;
 beatTime = 60.0/tempo;
@@ -216,11 +213,12 @@ fork {
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
 
 (
-~cloud1state = Event.new(n:30,proto:~state).putAll(());
+var cloud1state;
+cloud1state = ~cloud1state = Event.new(n:30,proto:~state).putAll(());
 ~cloud1 = (~cloud1 ? List.new ).add(
 	~state.echettechannel1.play(Pbind(
 		\instrument, \ps_echette_live__1_2,
-		\inbus, ~cloud1state.inbus,
+		\inbus, cloud1state.inbus,
 		\ringTime, 8.0,
 		\delta, 1/4,
 		\deltime, 1.5,
@@ -232,7 +230,8 @@ fork {
 ~killList.value(~cloud1);
 
 (
-~cloud2state = Event.new(n:30,proto:~state).putAll((
+var cloud2state;
+~cloud2state = cloud2state = Event.new(n:30,proto:~state).putAll((
 	deltime: 0.4,
 	delta: 0.25,
 	subdelta: 0.25,
@@ -247,15 +246,15 @@ fork {
 				spawner.par(
 					pattern: Pbind(
 						\instrument, \ps_echette_live__1_2,
-						\inbus, ~cloud2state.inbus,
+						\inbus, cloud2state.inbus,
 						\ringTime, 5.0,
-						\delta, Pfin(~cloud2state.eta, Pn(~cloud2state.subdelta, inf)),
-						\deltime, ~cloud2state.deltime*~state.beatTime,
+						\delta, Pfin(cloud2state.eta, Pn(cloud2state.subdelta, inf)),
+						\deltime, cloud2state.deltime*~state.beatTime,
 						\amp, 1,
 					),
 					delta: 0,
 				);
-				spawner.wait(~cloud2state[\delta]);
+				spawner.wait(cloud2state[\delta]);
 			});
 		}),
 		(
@@ -272,35 +271,40 @@ fork {
 ~cloud2state.eta=3;
 
 (
-~slice1state = Event.new(n:30,proto:~state).putAll((
+var slice1state;
+~slice1state = slice1state = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
 ));
 ~slice1 = (~slice1 ? List.new ).add(
 	~state.bonuschannel1.play(
 		Pspawner({|spawner|
 			inf.do({|i|
-				var beatTime = ~slice1state.beatTime;
+				var beatTime = slice1state.beatTime;
 				[\oh, i, beatTime].postln;
 				spawner.par(
-					pattern: Pbind(
-						\instrument, \ps_buf_delay_play__1_2,
-						\bufnum, ~slice1state.loopbuf,
-						\phasebus, ~slice1state.loopphasebus,
-						\dur, 1,
-						\deltime, Prand([0,1/2,2], 32) *~slice1state.beatTime,
-						\amp, 1,
-					).postcs.trace(prefix: \foo),
+					pattern: Pfindur(
+						dur: slice1state[\bardelta],
+						pattern: Pbind(
+							\instrument, \ps_buf_delay_play__1_2,
+							\bufnum, slice1state.loopbuf,
+							\phasebus, slice1state.loopphasebus,
+							\dur, 1,
+							\deltime, Prand([0,1/2,2], 32) * slice1state.beatTime,
+							\amp, 1,
+						).postcs.trace(prefix: \outer)
+					).postcs.trace(prefix: \inner),
 					delta: 0,
 				);
-				spawner.wait(~slice1state[\bardelta]);
+				spawner.wait(slice1state[\bardelta]);
 			});
 		})
 	)
 );
 )
 ~killList.value(~slice1);
+~slice1state.bardelta;
 
-~state.reverb3.set(\wet, 0.8);
+~state.reverb3.set(\wet, 0.2);
 ~state.reverb3.set(\damping, 0.6);
 ~state.reverb3.set(\roomsize, 180);
 ~state.reverb3.set(\revtime, 2);
@@ -313,3 +317,10 @@ fork {
 ~killAll.value;
 
 ~state.mixingboard.free;
+
+
+~state.metaparams[2] = 0.01;
+~state.metaparams[3] = 0.99;
+~state.paramDirty = true;
+~state.params;
+~state.sourcebuf;
