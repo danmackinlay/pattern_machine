@@ -38,14 +38,17 @@ var ingroup, fxgroup, postgroup;
 var sourcebuf, sourcesound, limiter;
 var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
-var tempo=80, clock;
+var tempo, beatTime, clock;
 var state;
 
+tempo=80;
+beatTime = 60.0/tempo;
 clock = TempoClock.new(tempo/60.0);
+
 state = (
 	clock: clock,
 	tempo: tempo,
-	beatTime: 60.0/tempo,
+	beatTime: beatTime,
 );
 
 fork{
