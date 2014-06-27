@@ -5,7 +5,6 @@ TODO: (priority order)
 * the param mapping thing
   * slider velocity?
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
-* sample-and hold delay sequence
 * audio-input-driven effects
 * fix sample path problems
 * variable delay in front of allpass to make it more interesting
@@ -26,8 +25,8 @@ TODO: (priority order)
 
 */
 
-//s=~serverboot.(prox:\local, device:\rme);
-s=~serverboot.(prox:\local, device:\internal);
+//Server.default=s=~serverboot.(prox:\local, device:\rme);
+Server.default=s=~serverboot.(prox:\local, device:\internal);
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
@@ -35,6 +34,7 @@ this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 (
 var inbus, outbus;
 var ingroup, fxgroup, postgroup;
+var loopbuf, loopsynth, loopphasebus;
 var sourcebuf, sourcesound, limiter;
 var control, subcontrols;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
@@ -76,7 +76,14 @@ fork{
 	postgroup = Group.new(s, \addAfter);
 	CmdPeriod.doOnce { postgroup.free };
 
-	//In case I don't want to sing
+	//sample-loop action
+	loopbuf = Buffer.alloc(s, s.sampleRate * 10.0, 1);
+	CmdPeriod.doOnce { loopbuf.free };
+	loopphasebus = Bus.control(s, 1);
+	CmdPeriod.doOnce { loopphasebus.free };
+	s.sync;
+
+	//In case I don't want to sing:
 	sourcesound = (
 		instrument: \playbuf__1,
 		outbus: inbus,
@@ -84,9 +91,24 @@ fork{
 		group: ingroup,
 		addAction: \addToHead,
 		loop:1,
-		sendGate: false,//won't loop if not told
+		sendGate: false,//persist
 	).play;
 	CmdPeriod.doOnce { sourcesound.free };
+	s.sync;
+
+	//delay/loop input
+	loopsynth = (
+		instrument: \ps_buf_delay_loop__1_1,
+		outbus: inbus,
+		bufnum: loopbuf,
+		group: ingroup,
+		wet: 0,
+		deltime: beatTime*4,
+		phasebus: loopphasebus,
+		addAction: \addToTail,
+		sendGate: false,//persist
+	).play;
+	CmdPeriod.doOnce { loopsynth.free };
 	s.sync;
 
 	limiter = (
@@ -108,6 +130,9 @@ fork{
 		inbus: inbus, //or Bus.newFrom(s.inputBus,0,1) for external
 		limiter: limiter,
 		ingroup: ingroup,
+		loopsynth: loopsynth,
+		loopbuf: loopbuf,
+		loopphasebus: loopphasebus,
 		echettechannel1: echettechannel1,
 		echettechannel2: echettechannel2,
 		bonuschannel1: bonuschannel1,
@@ -150,7 +175,7 @@ CmdPeriod.doOnce { sourcesound.free };
 ~cloud1state = Event.new(n:30,proto:~state).putAll(());
 ~cloud1 = (~cloud1 ? List.new ).add(
 	~state.echettechannel1.play(Pbind(
-		\instrument, \echette_live__1_2,
+		\instrument, \ps_echette_live__1_2,
 		\inbus, ~cloud1state.inbus,
 		\ringTime, 8.0,
 		\delta, 1/4,
@@ -177,11 +202,11 @@ CmdPeriod.doOnce { sourcesound.free };
 				[\oh, i, beatTime].postln;
 				spawner.par(
 					pattern: Pbind(
-						\instrument, \echette_live__1_2,
+						\instrument, \ps_echette_live__1_2,
 						\inbus, ~cloud2state.inbus,
 						\ringTime, 5.0,
 						\delta, Pfin(~cloud2state.eta, Pn(~cloud2state.subdelta, inf)),
-						\deltime, ~cloud2state.deltime*beatTime,
+						\deltime, ~cloud2state.deltime*~state.beatTime,
 						\amp, 1,
 					),
 					delta: 0,
@@ -196,5 +221,44 @@ CmdPeriod.doOnce { sourcesound.free };
 ~cloud2.size.do({var thing=~cloud2.pop; thing.stop; thing.free;});
 ~cloud2state.deltime=1.8;
 ~cloud2state.eta=3;
+
+(
+~slice1state = Event.new(n:30,proto:~state).putAll((
+	delta: 4,
+));
+~slice1 = (~slice1 ? List.new ).add(
+	~state.bonuschannel1.play(
+		// Pspawner({|spawner|
+		// 	inf.do({|i|
+		// 		var beatTime = ~slice1state.beatTime;
+		// 		[\oh, i, beatTime].postln;
+		// 		spawner.par(
+		// 			pattern: Pbind(
+		// 				\instrument, \ps_buf_delay_play__1_2,
+		// 				\bufnum, ~slice1state.loopbuf,
+		// 				\phasebus, ~slice1state.loopphasebus,
+		// 				\dur, 1,
+		// 				\deltime, Prand([0,1/2,2], 4) *~slice1state.beatTime,
+		// 				\amp, 1,
+		// 			).postcs,
+		// 			delta: 0,
+		// 		);
+		// 		spawner.wait(~slice1state[\delta]);
+		// 	});
+		// })
+		Pbind(
+			\instrument, \ps_buf_delay_play__1_2,
+			\bufnum, ~slice1state.loopbuf,
+			\phasebus, ~slice1state.loopphasebus,
+			\dur, 1,
+			\deltime, Prand([0,1/2,2], 4) *~slice1state.beatTime,
+			\amp, 1,
+		).postcs.trace(prefix:\foo),
+	)
+);
+)
+~slice1state.loopbuf.plot;
+~slice1.size.do({var thing=~slice1.pop; thing.stop; thing.free;});
+~slice1state.loopsynth.set(\wet,1);
 
 ~state.mixingboard.free;

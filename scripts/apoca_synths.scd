@@ -1,4 +1,4 @@
-SynthDef.new(\echette_live__1_2,
+SynthDef.new(\ps_echette_live__1_2,
 	{|inbus=0, outbus=0, deltime=0.1, ringtime=1, amp=1, pan=0|
 		var env, sig;
 		sig = In.ar(inbus, 1) * EnvGen.kr(
@@ -22,20 +22,71 @@ SynthDef.new(\echette_live__1_2,
 ).add;
 
 //ChannelMixer test thingy
-//a = echettechannel1.play("pinkfilt", [\freq, 2000, \rq, 0.02, \out, echettechannel1.inbus.index]);
-SynthDef.new("pinkfilt", {
-	arg	outbus,	// outbus is the standard name used by MixerChannel
-		freq, rq;
+//a = echettechannel1.play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, echettechannel1.inbus.index]);
+SynthDef.new(\pinkfilt, {
+	arg	outbus=0,	// outbus is the standard name used by MixerChannel
+	freq, rq;
 	Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
 }).add;
 
-// ChannelMixer fx test thingy
-// f= echettechannel1.playfx("fx/chorus1x1");	// so it goes to effectgroup
-SynthDef.new("fx/chorus1x1", {
-	arg outbus, delay = 0.01, freq = 0.2, depth = 0.05, wet = 0.5;
-	var in, out;
-	in = In.ar(outbus, 1);
-	out = DelayN.ar(in, 1, SinOsc.ar(freq, 0, depth, delay));
-	ReplaceOut.ar(outbus, in*(1-wet).sqrt + out*wet.sqrt);	// equal power
+//Looping delay - sample and hold, e.g. a bar.
+SynthDef.new(\ps_buf_delay_loop__1_1, {
+	arg	outbus=0,
+	deltime=1.0,
+	bufnum, wet=0, fadetime=0.2,
+	phasebus=1000; //NB: DO set the phase out if you don't want bleed.
+	var in, partdelayed, delayed, inmix, outmix, phase;
+	wet = VarLag.kr(
+		in: wet.linlin(0.0,1.0,-1.0,1.0),
+		time: fadetime, warp: \linear);
+	A2K.kr(wet).poll(1, \wet, 73);
+	in = In.ar(outbus,1);
+	Amplitude.kr(in).poll(1, \in, 74);
+	delayed = LocalIn.ar(1);
+	Amplitude.kr(delayed).poll(1, \delayed, 75);
+	outmix = XFade2.ar(in, delayed, wet);
+	Amplitude.kr(outmix).poll(1, \outmix, 6);
+	inmix = XFade2.ar(in, delayed, wet.neg);
+	Amplitude.kr(inmix).poll(1, \inmix, 7);
+	phase = DelTapWr.ar(bufnum, outmix);
+	Out.kr(phasebus, phase);
+	partdelayed = DelTapRd.ar(
+		buffer:bufnum,
+		phase: phase,
+		delTime:(deltime - ControlRate.ir.reciprocal),//feedback correction
+		interp:1, //no decay
+	);
+	Amplitude.kr(partdelayed).poll(1, \partdelayed, 76);
+	LocalOut.ar(partdelayed);
+	ReplaceOut.ar(outbus, outmix);
 }).add;
 
+//Delay grain - plays snippets of the past
+SynthDef.new(\ps_buf_delay_play__1_2, {
+	arg	outbus=0,
+	bufnum,
+	deltime=1.0,
+	rate=1.0, //not yet used
+	pan=0, amp=1, gate=1,
+	attack=0.01, decay=0.1, sustain=1.0, release=1.0,
+	phasebus=1000; //set the phasebus or it no work
+
+	var sig, env;
+	env = EnvGen.kr(
+		Env.adsr(
+			attackTime: attack,
+			decayTime: decay,
+			sustainLevel: sustain,
+			releaseTime: release),
+		gate: gate,
+		levelScale:amp,
+		doneAction:2);
+	sig = DelTapRd.ar(
+		buffer:bufnum,
+		phase:In.kr(phasebus),
+		delTime:deltime,
+		interp: 4, //cubic
+		mul: env
+	);
+	Out.ar(outbus, Pan2.ar(sig, pan));
+}).add;
