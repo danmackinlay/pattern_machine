@@ -7,13 +7,13 @@ PSReverbSynthDefs {
 	*loadSynthDefs {
 		//Reverb unit with bonus dry sidemix
 		SynthDef(\ps_freeverbside__2_2, {
-			|outbus=0, mix=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
+			|outbus=0, wet=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
 			var signal;
 			signal = In.ar(outbus, 2);
 			signal = FreeVerb2.ar(
 				signal[0],
 				signal[1],
-				mix: mix,
+				mix: wet,
 				room: room*(index/100 +1),
 				damp: damp,
 				amp: amp
@@ -30,18 +30,36 @@ PSReverbSynthDefs {
 			signal = signal + (In.ar(sidebus, 2)*sidebusAmp);
 			ReplaceOut.ar(outbus,
 				signal
-				//+SinOsc.ar(freq:220*(1+index), mul: 0.01)
 			);
 		}).add;
 		//Reverb unit with bonus dry sidemix
 		SynthDef(\ps_gverbside__2_2, {
-			|outbus=0, mix=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
-			var signal;
-			signal = In.ar(outbus, 2);
-			signal = signal.collect({|chan|
+			|outbus=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
+			var drysig, wetsig;
+			drysig = In.ar(outbus, 2);
+			wetsig = drysig.collect({|chan|
 				GVerb.ar(
 					chan,
+					roomsize: roomsize*(index/100 +1),
+					damping: damping,
+					taillevel: taillevel,
+					revtime: revtime*(index/100 +1),
 					drylevel: 0,
+					maxroomsize:400,
+					earlyreflevel:earlyreflevel,
+				)[0]; //thow out a channel
+			})*amp;
+			ReplaceOut.ar(outbus,
+				XFade2.ar(drysig,wetsig,wet.linlin(0,1,-1,1)) + (In.ar(sidebus, 2)*sidebusAmp);
+			);
+		}).add;
+		SynthDef(\ps_gverb__2_2, {
+			|outbus=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, index=0|
+			var drysig, wetsig;
+			drysig = In.ar(outbus, 2);
+			wetsig = drysig.collect({|chan|
+				GVerb.ar(
+					chan,
 					roomsize: roomsize*(index/100 +1),
 					damping: damping,
 					taillevel: taillevel,
@@ -51,11 +69,9 @@ PSReverbSynthDefs {
 					earlyreflevel:earlyreflevel,
 					mul: amp,
 				)[0]; //thow out a channel
-			});
-			signal = signal + (In.ar(sidebus, 2)*sidebusAmp);
+			})*amp;
 			ReplaceOut.ar(outbus,
-				signal
-				//+SinOsc.ar(freq:220*(1+index), mul: 0.01)
+				XFade2.ar(drysig,wetsig,wet.linlin(0,1,-1,1))
 			);
 		}).add;
 		// DIY diffuser
