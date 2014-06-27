@@ -58,8 +58,10 @@ PSRandomMap {
 			PSInvPhi(projGenerator.value(phi).asFloatArray/(inDims.sqrt))
 		);
 	}
-	value{|...inParams|
-		var paramMat = Matrix.withFlatArray(1,2,PSInvPhi(inParams));
+	value{|inParams|
+		//TODO: optimise out the Matrix library here, which is not all that great codewise
+		//full of halts and inconsistent w/rt permission and forgiveness
+		var paramMat = Matrix.withFlatArray(1, inDims, PSInvPhi(inParams.asFloatArray));
 		^PSPhi((paramMat*transformMat).asFlatArray);
 	}
 }

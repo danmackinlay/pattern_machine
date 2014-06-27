@@ -44,7 +44,9 @@ var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
-var uidata, params, paramUpdaters;
+var uidata, metaparams, params, paramUpdaters, paramWatcher;
+
+~state=\oops;
 
 tempo = 80.0;
 beatTime = 60.0/tempo;
@@ -54,19 +56,42 @@ state = (
 	clock: clock,
 	tempo: tempo,
 	beatTime: beatTime,
+	paramDirty: false,
 );
-
 fork {
 	//UI interaction stuff
-	params = Array.fill(32,0);
-	uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);
+	metaparams = FloatArray.fill(12,0.5);
+	params = FloatArray.fill(32,0.5);
+	uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,].asFloatArray,);
 	paramUpdaters = Array.fill(32, nil);
+	state.params = params;
+	state.metaparams = metaparams;
+	state.uidata = uidata;
+	state.paramMap = PSRandomMap(inDims:12, outDims:32, phi:1.2);
+	state.paramUpdaters = paramUpdaters;
+
+	paramWatcher = Routine({|inval|
+		inf.do({|ix|
+			state.paramDirty.if({
+				state.paramDirty = false;
+				[\BBBBBBBBB,state.metaparams].postln;
+				state.params = state.paramMap.value(state.metaparams);
+			});
+			[inval, ix, state.metaparams, state.params].postln;
+			inval = 1.0.yield;
+		});
+	}).play;
+	CmdPeriod.doOnce { paramWatcher.free };
+	state.paramWatcher = paramWatcher;
+
 	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(
 		uidata,
-		{ (..2).do({|i| params[i]=uidata[\pitchrollyawaccel][i]})}
+		{
+			(..2).do({|i| metaparams[i] = uidata[\pitchrollyawaccel][i]});
+			state.paramDirty=true;
+		}
 	);
 	//this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state);
-
 
 	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
@@ -74,6 +99,7 @@ fork {
 	CmdPeriod.doOnce { inbus.free };
 	outbus = Bus.new(\audio, 0, 2, s);
 	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
+
 	s.sync;
 	sourcebuf = ~sampsetbufdict[\tuneful][0];
 	echettechannel1 = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
@@ -173,9 +199,6 @@ fork {
 		sourcesound: sourcesound,
 		control: control,
 		subcontrols: subcontrols,
-		uidata: uidata,
-		params: params,
-		paramUpdaters: paramUpdaters,
 	));
 	~state=state;
 };
@@ -183,10 +206,6 @@ fork {
 ~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
 ~killAll = {[~cloud1,~cloud2,~slice1,~slice2].do({|thing| thing.postln;~killList.value(thing)})};
 )
-
-~map = PSRandomMap(inDims:2, outDims:5, phi:1.2);
-~map.value(0.001,0.9);
-~map.value(0.021,0.9);
 
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
