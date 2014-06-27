@@ -39,15 +39,10 @@ SynthDef.new(\ps_buf_delay_loop__1_1, {
 	wet = VarLag.kr(
 		in: wet.linlin(0.0,1.0,-1.0,1.0),
 		time: fadetime, warp: \linear);
-	A2K.kr(wet).poll(1, \wet, 73);
 	in = In.ar(outbus,1);
-	Amplitude.kr(in).poll(1, \in, 74);
 	delayed = LocalIn.ar(1);
-	Amplitude.kr(delayed).poll(1, \delayed, 75);
 	outmix = XFade2.ar(in, delayed, wet);
-	Amplitude.kr(outmix).poll(1, \outmix, 6);
 	inmix = XFade2.ar(in, delayed, wet.neg);
-	Amplitude.kr(inmix).poll(1, \inmix, 7);
 	phase = DelTapWr.ar(bufnum, outmix);
 	Out.kr(phasebus, phase);
 	partdelayed = DelTapRd.ar(
@@ -56,7 +51,6 @@ SynthDef.new(\ps_buf_delay_loop__1_1, {
 		delTime:(deltime - ControlRate.ir.reciprocal),//feedback correction
 		interp:1, //no decay
 	);
-	Amplitude.kr(partdelayed).poll(1, \partdelayed, 76);
 	LocalOut.ar(partdelayed);
 	ReplaceOut.ar(outbus, outmix);
 }).add;
