@@ -6,21 +6,21 @@ TODO: (priority order)
   * slider velocity?
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * audio-input-driven effects
-* fix sample path problems
+* reverb
+* granular choir
 * variable delay in front of allpass to make it more interesting
-* timestretched escalating background accompaniment
 * VU meter
 * soundfile-length-sensitive sound playing
 * wiimote!
   * velocity-sensitive gestures
 * interpolated bus inputs for gesture control
 * enveloped gestures
+* timestretched escalating background accompaniment
 * ticking clock sample
 * Jack routing into Live?
 * control ableton with SC
 * Bulk sample loading based on MIR
-* ipad setup
-* upload the previous apocalypse soundtracks
+* remap to various RME outputs for hardware mixing
 * stateful algorithm to navigate through with wiimote
 
 */
@@ -70,7 +70,11 @@ fork{
 	bonuschannel2 = MixerChannel.new("bonus2", s, 2,2, outbus:outbus);
 	CmdPeriod.doOnce { bonuschannel2.free };
 	s.sync;
-	mixingboard = MixingBoard("apocalypse", nil, echettechannel1,echettechannel2, bonuschannel1, bonuschannel2);
+	mixingboard = MixingBoard("apocalypse", nil,
+		echettechannel1,
+		echettechannel2,
+		bonuschannel1,
+		bonuschannel2);
 	CmdPeriod.doOnce { mixingboard.free };
 	s.sync;
 	ingroup = Group.new(s, \addToHead);
