@@ -9,6 +9,7 @@ TODO: (priority order)
 * MIDI triggering for:
   * looping
   * loop re-ordering
+  * kill all synths (~killall.value;)
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * audio-input-driven effects
 * check switching-in-microphone input
@@ -55,10 +56,8 @@ state = (
 	beatTime: beatTime,
 );
 
-~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
-
 fork {
-	//UI interasction stuff
+	//UI interaction stuff
 	params = Array.fill(32,0);
 	uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,],);
 	paramUpdaters = Array.fill(32, nil);
@@ -66,6 +65,8 @@ fork {
 		uidata,
 		{ (..2).do({|i| params[i]=uidata[\pitchrollyawaccel][i]})}
 	);
+	//this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state);
+
 
 	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
@@ -178,28 +179,17 @@ fork {
 	));
 	~state=state;
 };
+
+~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
+~killAll = {[~cloud1,~cloud2,~slice1,~slice2].do({|thing| thing.postln;~killList.value(thing)})};
 )
+
 ~map = PSRandomMap(inDims:2, outDims:5, phi:1.2);
 ~map.value(0.001,0.9);
 ~map.value(0.021,0.9);
 
-(
-var sourcesound;
-this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-sourcesound = (
-	instrument: \playbuf__1,
-	outbus: ~state.inbus,
-	bufnum: ~state.sourcebuf,
-	group: ~state.echettechannel1.fadergroup,
-	addAction: \addBefore,
-	loop:1,
-	sendGate: false,//won't loop if not told
-).play;
-~state.sourcesound = sourcesound;
-CmdPeriod.doOnce { sourcesound.free };
-)
-~state.testsound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
-~state.testsound.set(\bufnum,~sampsetbufdict[\siren][0]);
+~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
+~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
 
 (
 ~cloud1state = Event.new(n:30,proto:~state).putAll(());
@@ -303,5 +293,7 @@ CmdPeriod.doOnce { sourcesound.free };
 
 ~slice1state.loopsynth.set(\wet,1);
 ~slice1state.loopsynth.set(\wet,0);
+
+~killAll.value;
 
 ~state.mixingboard.free;
