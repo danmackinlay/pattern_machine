@@ -60,7 +60,7 @@ SynthDef.new(\ps_buf_delay_play__1_2, {
 	arg	outbus=0,
 	bufnum,
 	deltime=1.0,
-	rate=1.0, //not yet used
+	rate=1.0,
 	pan=0, amp=1, gate=1,
 	attack=0.01, decay=0.1, sustain=1.0, release=1.0,
 	phasebus=1000; //set the phasebus or it no work
@@ -78,7 +78,7 @@ SynthDef.new(\ps_buf_delay_play__1_2, {
 	sig = DelTapRd.ar(
 		buffer:bufnum,
 		phase:In.kr(phasebus),
-		delTime:deltime,
+		delTime:deltime+((1-rate)*Sweep.ar(gate, 1)),
 		interp: 4, //cubic
 		mul: env
 	);

@@ -15,10 +15,12 @@ TODO: (priority order)
 * audio-input-driven effects
 * check switching-in-microphone input
 * granular choir
+* epic panning
+* restrict sample looping to first 30 seconds, OR
+* soundfile-length-sensitive sound playing
 * variable delay in front of allpass to make it more interesting
 * remap to various RME outputs for hardware mixing (dammit, website down)
 * VU meter
-* soundfile-length-sensitive sound playing
 * interpolated bus inputs for gesture control
 * enveloped gestures
 * timestretched escalating background accompaniment
@@ -126,7 +128,13 @@ fork {
 	CmdPeriod.doOnce { postgroup.free };
 
 	//channel fx
+	reverb1 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
+	s.sync;
+	reverb2 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
+	s.sync;
 	reverb3 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
+	s.sync;
+	reverb4 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
 	s.sync;
 
 	//sample-loop action
@@ -288,11 +296,14 @@ var slice1state;
 							\instrument, \ps_buf_delay_play__1_2,
 							\bufnum, slice1state.loopbuf,
 							\phasebus, slice1state.loopphasebus,
-							\dur, 1,
-							\deltime, Prand([0,1/2,2], 32) * slice1state.beatTime,
+							\dur, Prand([0,1/2,3/2], inf),
+							\delta, Prand([0,1/2], inf),
+							\deltime, Prand([0,1/2,2], inf) * slice1state.beatTime,
 							\amp, 1,
-						).postcs.trace(prefix: \outer)
-					).postcs.trace(prefix: \inner),
+							\pan, Pwhite(-1,1),
+							\rate, Prand([0.5,1,2], inf),
+						) //.postcs.trace(prefix: \outer)
+					) //.postcs.trace(prefix: \inner),
 					delta: 0,
 				);
 				spawner.wait(slice1state[\bardelta]);
@@ -318,9 +329,12 @@ var slice1state;
 
 ~state.mixingboard.free;
 
-
 ~state.metaparams[2] = 0.01;
 ~state.metaparams[3] = 0.99;
 ~state.paramDirty = true;
 ~state.params;
 ~state.sourcebuf;
+
+~sampsetpaths;
+~sampsetbufdict;
+~sampsetbufarray;
