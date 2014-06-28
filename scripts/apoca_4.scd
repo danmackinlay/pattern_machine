@@ -11,7 +11,7 @@ localstate = Event.new(n:60, proto:~state).putAll((
 ));
 ~state[\vox4state] = localstate;
 localvox = ~state.vox4 = (~state.vox4 ? List.new ).add(
-	~state.bonuschannel2.play(
+	~state.vox4channel.play(
 		Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat, beatTime;

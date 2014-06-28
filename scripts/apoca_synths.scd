@@ -22,7 +22,7 @@ SynthDef.new(\ps_echette_live__1_2,
 ).add;
 
 //ChannelMixer test thingy
-//a = echettechannel1.play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, echettechannel1.inbus.index]);
+//a = vox1channel.play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, vox1channel.inbus.index]);
 SynthDef.new(\pinkfilt, {
 	arg	outbus=0,	// outbus is the standard name used by MixerChannel
 	freq, rq;

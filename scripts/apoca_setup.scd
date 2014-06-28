@@ -3,7 +3,7 @@ var ingroup, fxgroup, postgroup;
 var loopbufs, loopsynths, loopphasebuses;
 var sourcebuf, sourcesound, limiter;
 var control;
-var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
+var vox1channel, vox2channel, vox3channel, vox4channel, mixingboard;
 var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
@@ -76,20 +76,20 @@ fork {
 
 	s.sync;
 	sourcebuf = ~sampsetbufdict[\tuneful][0];
-	echettechannel1 = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
-	CmdPeriod.doOnce { echettechannel1.free };
-	echettechannel2 = MixerChannel.new("echette2", s, 2,2, outbus:outbus);
-	CmdPeriod.doOnce {echettechannel2.free };
-	bonuschannel1 = MixerChannel.new("bonus1", s, 2,2, outbus:outbus);
-	CmdPeriod.doOnce { bonuschannel1.free };
-	bonuschannel2 = MixerChannel.new("bonus2", s, 2,2, outbus:outbus);
-	CmdPeriod.doOnce { bonuschannel2.free };
+	vox1channel = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { vox1channel.free };
+	vox2channel = MixerChannel.new("echette2", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce {vox2channel.free };
+	vox3channel = MixerChannel.new("bonus1", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { vox3channel.free };
+	vox4channel = MixerChannel.new("bonus2", s, 2,2, outbus:outbus);
+	CmdPeriod.doOnce { vox4channel.free };
 	s.sync;
 	mixingboard = MixingBoard.new("apocalypse", nil,
-		echettechannel1,
-		echettechannel2,
-		bonuschannel1,
-		bonuschannel2);
+		vox1channel,
+		vox2channel,
+		vox3channel,
+		vox4channel);
 	CmdPeriod.doOnce { mixingboard.free };
 	s.sync;
 	ingroup = Group.new(s, \addToHead);
@@ -98,28 +98,28 @@ fork {
 	CmdPeriod.doOnce { postgroup.free };
 
 	//channel fx
-	reverb1 = echettechannel1.playfx(\ps_gverb__2_2, [
+	reverb1 = vox1channel.playfx(\ps_gverb__2_2, [
 		\index, 1,
 		\wet, 0.2,
 		\damping, 0.4,
 		\revtime, 0.8,
 		\roomsize, 170,
 	]);
-	reverb2 = echettechannel2.playfx(\ps_gverb__2_2, [
+	reverb2 = vox2channel.playfx(\ps_gverb__2_2, [
 		\index, 2,
 		\wet, 0.7,
 		\damping, 0.3,
 		\revtime, 2.0,
 		\roomsize, 190,
 	]);
-	reverb3 = bonuschannel1.playfx(\ps_gverb__2_2, [
+	reverb3 = vox3channel.playfx(\ps_gverb__2_2, [
 		\index, 3,
 		\wet, 0.3,
 		\damping, 0.8,
 		\revtime, 1.0,
 		\roomsize, 210,
 	]);
-	reverb4 = bonuschannel2.playfx(\ps_gverb__2_2, [
+	reverb4 = vox4channel.playfx(\ps_gverb__2_2, [
 		\index, 4,
 		\wet, 0.8,
 		\damping, 0.3,
@@ -185,10 +185,10 @@ fork {
 		loopsynths: loopsynths,
 		loopbufs: loopbufs,
 		loopphasebuses: loopphasebuses,
-		echettechannel1: echettechannel1,
-		echettechannel2: echettechannel2,
-		bonuschannel1: bonuschannel1,
-		bonuschannel2: bonuschannel2,
+		vox1channel: vox1channel,
+		vox2channel: vox2channel,
+		vox3channel: vox3channel,
+		vox4channel: vox4channel,
 		fxgroup: fxgroup,
 		reverb1: reverb1,
 		reverb2: reverb2,

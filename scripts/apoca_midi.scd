@@ -34,25 +34,25 @@
 	alldefs.add(MIDIdef.cc(\vol1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.echettechannel1.level_(mapped);
+		state.vox1channel.level_(mapped);
 		[\vol1, mapped].postln;
 	}, ccNum: 0, chan: 1));
 	alldefs.add(MIDIdef.cc(\vol2, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.echettechannel2.level_(mapped);
+		state.vox2channel.level_(mapped);
 		[\vol2, mapped].postln;
 	}, ccNum: 1, chan: 1));
 	alldefs.add(MIDIdef.cc(\vol3, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.bonuschannel1.level_(mapped);
+		state.vox3channel.level_(mapped);
 		[\vol3, mapped].postln;
 	}, ccNum: 2, chan: 1));
 	alldefs.add(MIDIdef.cc(\vol4, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.bonuschannel2.level_(mapped);
+		state.vox4channel.level_(mapped);
 		[\vol4, mapped].postln;
 	}, ccNum: 3, chan: 1));
 
