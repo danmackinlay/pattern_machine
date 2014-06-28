@@ -41,146 +41,21 @@ Server.default=s=~serverboot.(prox:\local, device:\builtin);
 
 this.executeFile(~pmscripts +/+ "apoca_setup.scd");
 
+this.executeFile(~pmscripts +/+ "apoca_1.scd");
+this.executeFile(~pmscripts +/+ "apoca_2.scd");
+this.executeFile(~pmscripts +/+ "apoca_3.scd");
+this.executeFile(~pmscripts +/+ "apoca_4.scd");
+
+~killList.value(~state.vox3);
+
+~killAll.value;
+
 ~state.metaparams;
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
 ~state.sourcesound.set(\livefade, 0);
 ~state.sourcesound.set(\livefade, 1);
-
-(
-var cloud1state;
-cloud1state = ~cloud1state = Event.new(n:30,proto:~state).putAll(());
-~cloud1 = (~cloud1 ? List.new ).add(
-	~state.echettechannel1.play(Pbind(
-		\instrument, \ps_echette_live__1_2,
-		\inbus, cloud1state.inbus,
-		\ringTime, 8.0,
-		\delta, 1/4,
-		\deltime, 1.5,
-		\amp, 0.5,
-	))
-);
-)
-
-~killList.value(~cloud1);
-
-(
-var cloud2state;
-~cloud2state = cloud2state = Event.new(n:30,proto:~state).putAll((
-	deltime: 0.4,
-	delta: 0.25,
-	subdelta: 0.25,
-	eta: 0.25,
-));
-~cloud2 = (~cloud2 ? List.new ).add(
-	~state.echettechannel2.play(
-		Pspawner({|spawner|
-			inf.do({|i|
-				var beatTime = ~cloud2state.beatTime;
-				[\oh, i, beatTime].postln;
-				spawner.par(
-					pattern: Pbind(
-						\instrument, \ps_echette_live__1_2,
-						\inbus, cloud2state.inbus,
-						\ringTime, 5.0,
-						\delta, Pfin(cloud2state.eta, Pn(cloud2state.subdelta, inf)),
-						\deltime, cloud2state.deltime*~state.beatTime,
-						\amp, 1,
-					),
-					delta: 0,
-				);
-				spawner.wait(cloud2state[\delta]);
-			});
-		}),
-		(
-			clock: ~state.clock,
-			//protoEvent: ~cloud2state,
-		)
-	)
-);
-)
-
-~killList.value(~cloud2);
-
-~cloud2state.deltime=1.8;
-
-(
-var localstate, localvox;
-localstate = Event.new(n:60, proto:~state).putAll((
-	bardelta: 4,
-	seed: 1128,
-	reseed: true,
-	looping: 0,
-	parambus1: ~state[\control].subBus(0),
-	pan: 0,
-));
-~state[\vox3state] = localstate;
-localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
-	~state.bonuschannel1.play(
-		Pspawner({|spawner|
-			inf.do({|i|
-				var newSeed, pat, beatTime;
-				beatTime = localstate.beatTime;
-				//Pindex? or Pfsm?
-				pat = Pbind(
-					\instrument, \ps_buf_delay_play__1_2,
-					\bartime, Pseg(
-						[0,localstate[\bardelta]],
-						localstate[\bardelta], \lin, inf),
-					\bufnum, localstate[\loopbufs][2],
-					\phasebus, localstate[\loopphasebuses].subBus(2),
-					\dur, Prand([0,1/2,3/2], inf),
-					\delta, Prand([0,1/2], inf),
-					\deltime, (
-						(Prand([0,1/2,3/4,2/3], inf) +
-							Pkey(\bartime)
-						).wrap(0, localstate[\bardelta]) *
-						beatTime),
-					\amp, 1,
-					\pan, Pfunc({localstate[\pan]}),
-					\rate, Prand([0.5,1,2], inf),
-					\sustain, Prand([1,1/2], inf),
-					\modulate, localstate[\parambus1].asMap,
-				); //.postcs.trace(prefix: \outer)
-
-				localstate[\reseed].if({
-					pat = Pseed(localstate[\seed], pat);
-				});
-				spawner.par(
-					pattern: Pfindur(
-						dur: localstate[\bardelta],
-						pattern: pat), //.postcs.trace(prefix: \inner),
-					delta: 0,
-				);
-				spawner.wait(localstate[\bardelta]);
-			});
-		}),
-		(
-			clock: ~state.clock,
-			//protoEvent: localstate,
-		)
-	)
-);
-~state.paramUpdaters.add({|val|
-	localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
-});
-~state.paramUpdaters.add({|val|
-	localstate[\pan]=val.linlin(0.0,1.0,-1.0, 1.0);
-});
-)
-~killList.value(~state.vox3);
-~state.vox3state.bardelta;
-~state.vox3state[\control].setPairs(0,2);
-~state.vox3state[\control].setPairs(0,8);
-~state.vox3state[\reseed]=true;
-~state.vox3state[\reseed]=false;
-~state.vox3state.loopsynths[2].set(\wet,1);
-~state.vox3state.loopsynths[2].set(\wet,0);
-
-~killAll.value;
-
 ~state.mixingboard.free;
-
 
 ~sampsetpaths;
 ~sampsetbufdict;
