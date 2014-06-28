@@ -105,15 +105,17 @@ var cloud2state;
 ~cloud2state.deltime=1.8;
 
 (
-var localstate;
-~state.vox3state = localstate = Event.new(n:60, proto:~state).putAll((
+var localstate, localvox;
+localstate = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
 	seed: 1128,
 	reseed: true,
 	looping: 0,
 	parambus1: ~state[\control].subBus(0),
+	pan: 0,
 ));
-~state.vox3 = (~state.vox3 ? List.new ).add(
+~state[\vox3state] = localstate;
+localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
 	~state.bonuschannel1.play(
 		Pspawner({|spawner|
 			inf.do({|i|
@@ -135,7 +137,7 @@ var localstate;
 						).wrap(0, localstate[\bardelta]) *
 						beatTime),
 					\amp, 1,
-					\pan, Pwhite(-1,1),
+					\pan, Pfunc({localstate[\pan]}),
 					\rate, Prand([0.5,1,2], inf),
 					\sustain, Prand([1,1/2], inf),
 					\modulate, localstate[\parambus1].asMap,
@@ -155,11 +157,16 @@ var localstate;
 		}),
 		(
 			clock: ~state.clock,
-			//protoEvent: ~state.vox3state,
+			//protoEvent: localstate,
 		)
 	)
 );
-~state.paramUpdaters.add({|val| ~state.vox3state[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0);});
+~state.paramUpdaters.add({|val|
+	localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
+});
+~state.paramUpdaters.add({|val|
+	localstate[\pan]=val.linlin(0.0,1.0,-1.0, 1.0);
+});
 )
 ~killList.value(~state.vox3);
 ~state.vox3state.bardelta;
