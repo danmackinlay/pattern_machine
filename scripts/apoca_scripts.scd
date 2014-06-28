@@ -159,7 +159,7 @@ var localstate;
 		)
 	)
 );
-~state.paramUpdaters.add({|val| val.postln; ~state.vox3state[\parambus1].set(val);});
+~state.paramUpdaters.add({|val| ~state.vox3state[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0);});
 )
 ~killList.value(~state.vox3);
 ~state.vox3state.bardelta;
