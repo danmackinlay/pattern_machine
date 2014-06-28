@@ -212,4 +212,4 @@ fork {
 };
 
 ~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
-~killAll = {[~cloud1,~cloud2,~vox3,~slice2].do({|thing| thing.postln;~killList.value(thing)})};
+~killAll = {[~state.vox1,~state.vox2,~state.vox3,~state.vox4].do({|thing| thing.postln;~killList.value(thing)})};

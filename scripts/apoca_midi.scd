@@ -81,6 +81,28 @@
 		[\pan4, mapped].postln;
 	}, ccNum: 19, chan: 1));
 
+	//loops on the buttons
+	alldefs.add(MIDIdef.noteOn(\loop1, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox1state[\looping] ? 0;
+		state.vox1state[\looping] = 1-tog;
+		state.loopsynths[0].set(\wet, tog);
+		[\loop1, tog].postln;
+	}, noteNum: 64, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\reseed1, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox1state[\reseed] ? false;
+		state.vox1state[\reseed] = tog.not;
+		[\reseed1, tog].postln;
+	}, noteNum: 48, chan: 1));
+
+	//panic
+	alldefs.add(MIDIdef.noteOn(\stop, {|vel,pitch,chan,src|
+		var killAll, killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
+		killAll = {[state.vox1,state.vox2,state.vox3,state.vox4].do({|thing| thing.postln; killList.value(thing);[\killing, thing].postln;})};
+	}, noteNum: 42, chan: 1));
+
+
 	//metaparam on the faders
 	alldefs.add(MIDIdef.cc(\meta1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
