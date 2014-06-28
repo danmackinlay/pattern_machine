@@ -46,6 +46,7 @@ var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
 var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
+var mididefs;
 
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
@@ -67,11 +68,13 @@ fork {
 	params = FloatArray.fill(32,0.5);
 	pitchrollyawaccel = FloatArray.fill(4,0.5);
 	paramUpdaters = Array.fill(32, nil);
+	mididefs = List.new;
 	state.params = params;
 	state.metaparams = metaparams;
 	state.pitchrollyawaccel = pitchrollyawaccel;
 	state.paramMap = PSRandomMap(inDims:12, outDims:32, phi:1.2);
 	state.paramUpdaters = paramUpdaters;
+	state.mididefs = mididefs;
 
 	paramWatcher = Routine({|newinval|
 		var lastposttime=0.0, delta=0.0;
@@ -97,7 +100,11 @@ fork {
 	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
 	//to disable:
 	//OSCdef(\wii).free;
-	//this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state);
+	CmdPeriod.doOnce { OSCdef(\wii).free };
+
+	this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state).do(state.mididefs.add(_));
+	CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
+
 
 	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
