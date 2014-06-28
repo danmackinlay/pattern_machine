@@ -5,17 +5,18 @@ localstate = Event.new(n:60, proto:~state).putAll((
 	reseed: true,
 	looping: 0,
 	parambus1: ~state[\control].subBus(0),
-	pan: 0,
+	pan: 0.0,
 	chaos: 0,
 	trans: [1],
 ));
 ~state[\vox1state] = localstate;
 localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
-	~state.echettechannel1.play(
+	~state.vox1channel.play(
 		Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat, beatTime;
 				beatTime = localstate.beatTime;
+				[1,i].postln;
 				//Pindex? or Pfsm?
 				pat = Pbind(
 					\instrument, \ps_buf_delay_play__1_2,
@@ -32,8 +33,8 @@ localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
 						).wrap(0, localstate[\bardelta]) *
 						beatTime),
 					\amp, 1,
-					\pan, Pfunc({localstate[\pan]}),
-					\rate, Prand([3/4,1], inf),
+					\pan, Pfunc({localstate[\pan]}).trace(prefix: \pan),
+					\rate, Prand(localstate[\trans], inf),
 					\sustain, Prand([1,1/2], inf),
 					\modulate, localstate[\parambus1].asMap,
 				); //.postcs.trace(prefix: \outer)

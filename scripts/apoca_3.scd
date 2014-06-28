@@ -5,7 +5,7 @@ localstate = Event.new(n:60, proto:~state).putAll((
 	reseed: true,
 	looping: 0,
 	parambus1: ~state[\control].subBus(2),
-	pan: 0,
+	pan: 0.0,
 	chaos: 0,
 	trans: [1],
 ));
@@ -33,7 +33,7 @@ localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
 						beatTime),
 					\amp, 1,
 					\pan, Pfunc({localstate[\pan]}),
-					\rate, Prand([3/4,1], inf),
+					\rate, Prand(localstate[\trans], inf),
 					\sustain, Prand([1,1/2], inf),
 					\modulate, localstate[\parambus1].asMap,
 				); //.postcs.trace(prefix: \outer)

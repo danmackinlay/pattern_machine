@@ -10,6 +10,7 @@
 		//state.sliderInPort = MIDIIn.findPort("nanoKONTROL2", "CTRL");
 		state.sliderInPort;
 	};
+	//MIDIFunc.trace(true);
 	MIDIFunc.trace(true);
 	sliderMeta =[
 		[1,  0],//slider 1
@@ -95,6 +96,54 @@
 		state.vox1state[\reseed] = tog.not;
 		[\reseed1, tog].postln;
 	}, noteNum: 48, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\loop2, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox2state[\looping] ? 0;
+		state.vox2state[\looping] = 1-tog;
+		state.loopsynths[1].set(\wet, tog);
+		[\loop2, tog].postln;
+	}, noteNum: 65, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\reseed2, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox2state[\reseed] ? false;
+		state.vox2state[\reseed] = tog.not;
+		[\reseed2, tog].postln;
+	}, noteNum: 49, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\loop3, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox3state[\looping] ? 0;
+		state.vox3state[\looping] = 1-tog;
+		state.loopsynths[2].set(\wet, tog);
+		[\loop3, tog].postln;
+	}, noteNum: 66, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\reseed3, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox3state[\reseed] ? false;
+		state.vox3state[\reseed] = tog.not;
+		[\reseed3, tog].postln;
+	}, noteNum: 50, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\loop4, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox4state[\looping] ? 0;
+		state.vox4state[\looping] = 1-tog;
+		state.loopsynths[3].set(\wet, tog);
+		[\loop4, tog].postln;
+	}, noteNum: 67, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\reseed4, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.vox4state[\reseed] ? false;
+		state.vox4state[\reseed] = tog.not;
+		[\reseed4, tog].postln;
+	}, noteNum: 51, chan: 1));
+
+	//input on last knobs
+	alldefs.add(MIDIdef.cc(\buffsel, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0,20).asInt;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.bonuschannel2.pan_(mapped);
+		[\pan4, mapped].postln;
+	}, ccNum: 19, chan: 1));
+
 
 	//panic
 	alldefs.add(MIDIdef.noteOn(\stop, {|vel,pitch,chan,src|
