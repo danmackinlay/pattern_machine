@@ -1,10 +1,10 @@
 var localstate, localvox;
 localstate = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
-	seed: 1128,
+	seed: 127,
 	reseed: true,
 	looping: 0,
-	parambus1: ~state[\control].subBus(0),
+	parambus1: ~state[\control].subBus(2),
 	pan: 0,
 ));
 ~state[\vox3state] = localstate;

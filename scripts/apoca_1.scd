@@ -1,14 +1,14 @@
 var localstate, localvox;
 localstate = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
-	seed: 1128,
+	seed: 255,
 	reseed: true,
 	looping: 0,
 	parambus1: ~state[\control].subBus(0),
 	pan: 0,
 ));
-~state[\vox3state] = localstate;
-localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
+~state[\vox1state] = localstate;
+localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
 	~state.bonuschannel1.play(
 		Pspawner({|spawner|
 			inf.do({|i|
