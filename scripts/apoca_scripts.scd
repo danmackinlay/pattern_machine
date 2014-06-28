@@ -203,9 +203,8 @@ fork {
 
 	control = Bus.control(s, 8);
 	CmdPeriod.doOnce { control.free };
-
 	s.sync;
-	subcontrols = ~control.numChannels.collect(~control.subBus(_,1););
+	subcontrols = control.numChannels.collect(control.subBus(_,1););
 
 	state.putAll((
 		outbus: outbus,
@@ -297,7 +296,6 @@ var cloud2state;
 ~killList.value(~cloud2);
 
 ~cloud2state.deltime=1.8;
-~cloud2state.eta=3;
 
 (
 var slice1state;
@@ -309,22 +307,23 @@ var slice1state;
 		Pspawner({|spawner|
 			inf.do({|i|
 				var beatTime = slice1state.beatTime;
-				[\oh, i, beatTime].postln;
 				spawner.par(
 					pattern: Pfindur(
 						dur: slice1state[\bardelta],
 						pattern: Pbind(
 							\instrument, \ps_buf_delay_play__1_2,
-							\bufnum, slice1state.loopbuf,
-							\phasebus, slice1state.loopphasebus,
+							\bufnum, slice1state[\loopbuf],
+							\phasebus, slice1state[\loopphasebus],
 							\dur, Prand([0,1/2,3/2], inf),
 							\delta, Prand([0,1/2], inf),
-							\deltime, Prand([0,1/2,2], inf) * slice1state.beatTime,
+							\deltime, Prand([0,1/2,2], inf) * beatTime,
 							\amp, 1,
 							\pan, Pwhite(-1,1),
 							\rate, Prand([0.5,1,2], inf),
+							\sustain, Prand([1,1/2], inf),
+							\modulate, slice1state[\subcontrols][0].asMap,
 						) //.postcs.trace(prefix: \outer)
-					) //.postcs.trace(prefix: \inner),
+					), //.postcs.trace(prefix: \inner),
 					delta: 0,
 				);
 				spawner.wait(slice1state[\bardelta]);
@@ -335,6 +334,7 @@ var slice1state;
 )
 ~killList.value(~slice1);
 ~slice1state.bardelta;
+~slice1state[\subcontrols][0].set(4);
 
 ~state.reverb3.set(\wet, 0.2);
 ~state.reverb3.set(\damping, 0.6);

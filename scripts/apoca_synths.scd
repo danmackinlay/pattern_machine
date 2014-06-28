@@ -56,13 +56,12 @@ SynthDef.new(\ps_buf_delay_loop__1_1, {
 }).add;
 
 //Delay grain - plays snippets of the past
-SynthDef.new(\ps_buf_delay_play__1_2, {
+SynthDef.new(\ps_buf_delay_simple_play__1_2, {
 	arg	outbus=0,
 	bufnum,
 	deltime=1.0,
-	rate=1.0,
 	pan=0, amp=1, gate=1,
-	attack=0.01, decay=0.1, sustain=1.0, release=1.0,
+	attack=0.01, decay=0.1, sustain=1.0, release=0.5,
 	phasebus=1000; //set the phasebus or it no work
 
 	var sig, env;
@@ -74,11 +73,44 @@ SynthDef.new(\ps_buf_delay_play__1_2, {
 			releaseTime: release),
 		gate: gate,
 		levelScale:amp,
-		doneAction:2);
+		doneAction: 2);
 	sig = DelTapRd.ar(
 		buffer:bufnum,
 		phase:In.kr(phasebus),
-		delTime:deltime+((1-rate)*Sweep.ar(gate, 1)),
+		delTime:deltime,
+		interp: 1, //linear
+		mul: env
+	);
+	Out.ar(outbus, Pan2.ar(sig, pan));
+}).add;
+
+//Delay grain - plays snippets of the past, with bending
+SynthDef.new(\ps_buf_delay_play__1_2, {
+	arg	outbus=0,
+	bufnum,
+	deltime=1.0,
+	rate=1.0, modulate=0, modlag=0.1,
+	pan=0, amp=1, gate=1,
+	attack=0.01, decay=0.1, sustain=1.0, release=0.5,
+	phasebus=1000; //set the phasebus or it no work
+
+	var sig, env;
+	env = EnvGen.kr(
+		Env.adsr(
+			attackTime: attack,
+			decayTime: decay,
+			sustainLevel: sustain,
+			releaseTime: release),
+		gate: gate,
+		levelScale:amp,
+		doneAction: 2);
+	deltime = deltime + ((1-rate)*Sweep.ar(gate, 1));
+	deltime = deltime + Lag.ar(K2A.ar(modulate), lagTime: modlag);
+	deltime = Clip.ar(deltime, 0, BufDur.kr(bufnum));
+	sig = DelTapRd.ar(
+		buffer:bufnum,
+		phase:In.kr(phasebus),
+		delTime:deltime,
 		interp: 4, //cubic
 		mul: env
 	);
