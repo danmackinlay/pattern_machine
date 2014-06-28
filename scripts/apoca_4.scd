@@ -6,6 +6,8 @@ localstate = Event.new(n:60, proto:~state).putAll((
 	looping: 0,
 	parambus1: ~state[\control].subBus(3),
 	pan: 0,
+	chaos: 0,
+	trans: [1],
 ));
 ~state[\vox4state] = localstate;
 localvox = ~state.vox4 = (~state.vox4 ? List.new ).add(
@@ -23,7 +25,7 @@ localvox = ~state.vox4 = (~state.vox4 ? List.new ).add(
 					\bufnum, localstate[\loopbufs][2],
 					\phasebus, localstate[\loopphasebuses].subBus(2),
 					\dur, Prand([0,1/2,3/2], inf),
-					\delta, Prand([0,1/2], inf),
+					\delta, Prand([0,1/2], inf)*(1+Pfunc({localstate[\chaos].rand2;})),
 					\deltime, (
 						(Prand([0,1/2,3/4,2/3], inf) +
 							Pkey(\bartime)
@@ -31,7 +33,7 @@ localvox = ~state.vox4 = (~state.vox4 ? List.new ).add(
 						beatTime),
 					\amp, 1,
 					\pan, Pfunc({localstate[\pan]}),
-					\rate, Prand([0.5,1,2], inf),
+					\rate, Prand([3/4,1], inf),
 					\sustain, Prand([1,1/2], inf),
 					\modulate, localstate[\parambus1].asMap,
 				); //.postcs.trace(prefix: \outer)
