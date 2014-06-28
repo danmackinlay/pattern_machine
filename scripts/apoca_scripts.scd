@@ -4,14 +4,13 @@ Apocalypse
 TODO: (priority order)
 * the param mapping thing
   * MIDI
-    * slider velocity?
-  * wiimote
 * MIDI triggering for:
   * looping
   * loop re-ordering
   * kill all synths (~killall.value;)
   * triggering karin's gestures
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
+* wii off switch
 * audio-input-driven effects
 * check switching-in-microphone input
 * granular choir
@@ -31,6 +30,8 @@ TODO: (priority order)
 * stateful algorithm to navigate through with wiimote
 * markov models with reseedable seed (see MarkovSet)
 * bar-pos-aware pattern
+* instead of explicitly accessing "state" all the time, I should execute all the code inside the Environment, then pop off and pass it around.
+* MIDI slider velocity
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
