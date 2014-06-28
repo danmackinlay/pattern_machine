@@ -58,6 +58,36 @@ PSUtilitySynthDefs {
 		SynthDef(\soundin__1, {|outbus=0, in=0|
 			Out.ar(outbus, SoundIn.ar(in));
 		}).add;
+		//play a recording or teh mic; I dot his often enough for it to deserve a synthdef.
+		SynthDef.new(\playbuf_soundin__1,
+			{|outbus=0,
+				in=0,
+				bufnum,
+				loop=1,
+				gate=1,
+				rate=1,
+				livefade=0.0,
+				fadetime=0.2|
+			var env,sig;
+			sig = PlayBuf.ar(
+				numChannels:1,
+				bufnum:bufnum,
+				rate: rate*BufRateScale.kr(bufnum),
+				trigger: gate,
+				loop: loop,
+			);
+			livefade = VarLag.kr(
+				in: livefade.linlin(0.0,1.0,-1.0,1.0),
+				time: fadetime, warp: \linear);
+			sig = XFade2.ar(sig, SoundIn.ar(in), livefade);
+			env = EnvGen.kr(
+				Env.asr(attackTime:0.05, releaseTime:0.05, curve: \sine),
+				levelScale: 1,
+				gate: gate,
+				doneAction: 2
+			);
+			Out.ar(outbus, sig*env);
+		}).add;
 		SynthDef(\rec_soundin__1, {|bufnum=0, in=0|
 			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;

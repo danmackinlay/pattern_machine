@@ -89,7 +89,7 @@ SynthDef.new(\ps_buf_delay_play__1_2, {
 	arg	outbus=0,
 	bufnum,
 	deltime=1.0,
-	rate=1.0, modulate=0, modlag=0.1,
+	rate=1.0, modulate=0, modlag=0.2,
 	pan=0, amp=1, gate=1,
 	attack=0.01, decay=0.1, sustain=1.0, release=0.5,
 	phasebus=1000; //set the phasebus or it no work

@@ -10,7 +10,6 @@ TODO: (priority order)
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
 * markov models with reseedable seed (see MarkovSet)
 * audio-input-driven effects
-* check switching-in-microphone input
 * granular choir
 * change random seeds
 * epic panning
@@ -39,11 +38,14 @@ TODO: (priority order)
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
-~state.metaparams;
+
 this.executeFile(~pmscripts +/+ "apoca_setup.scd");
 
+~state.metaparams;
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
+~state.sourcesound.set(\livefade, 0);
+~state.sourcesound.set(\livefade, 1);
 
 (
 var cloud1state;
@@ -150,7 +152,11 @@ var localstate;
 				);
 				spawner.wait(localstate[\bardelta]);
 			});
-		})
+		}),
+		(
+			clock: ~state.clock,
+			//protoEvent: ~state.vox3state,
+		)
 	)
 );
 ~state.paramUpdaters.add({|val| val.postln; ~state.vox3state[\parambus1].set(val);});

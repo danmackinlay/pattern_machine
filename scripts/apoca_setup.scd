@@ -43,7 +43,7 @@ fork {
 		inf.do({|ix|
 			state.paramDirty.if({
 				state.paramDirty = false;
-				(delta>5.0).if({
+				(delta>10.0).if({
 					[\wii_updating,state.metaparams, newinval, delta].postln;
 					lastposttime = newinval;
 				});
@@ -137,10 +137,12 @@ fork {
 
 	//In case I don't want to sing:
 	sourcesound = (
-		instrument: \playbuf__1,
+		instrument: \playbuf_soundin__1,
+		in: 0,
 		outbus: inbus,
 		bufnum: sourcebuf,
 		group: ingroup,
+		livefade: 0.0,
 		addAction: \addToHead,
 		loop:1,
 		sendGate: false,//persist
