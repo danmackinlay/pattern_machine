@@ -55,6 +55,7 @@ PSRandomMap {
 		// probably could rescale to adjust variance here.
 		// Use Gaussian coef distribution because rotation-invariant
 		// Could take other dists; there's nothing magic about rotation invariance
+		// in fact, heavy tailed is probably more interesting; t-dist or Cauchy, perhaps.
 		transformMat = Matrix.withFlatArray(
 			inDims, outDims, 
 			PSInvPhi(projGenerator.value(phi).asFloatArray/(inDims.sqrt));
