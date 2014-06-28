@@ -56,31 +56,31 @@
 		[\vol4, mapped].postln;
 	}, ccNum: 3, chan: 1));
 
-	//pan on knobs
-	alldefs.add(MIDIdef.cc(\pan1, {|val,num,chan,src|
-		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.echettechannel1.pan_(mapped);
-		[\pan1, mapped].postln;
-	}, ccNum: 16, chan: 1));
-	alldefs.add(MIDIdef.cc(\pan2, {|val,num,chan,src|
-		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.echettechannel2.pan_(mapped);
-		[\pan2, mapped].postln;
-	}, ccNum: 17, chan: 1));
-	alldefs.add(MIDIdef.cc(\pan3, {|val,num,chan,src|
-		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.bonuschannel1.pan_(mapped);
-		[\pan3, mapped].postln;
-	}, ccNum: 18, chan: 1));
-	alldefs.add(MIDIdef.cc(\pan4, {|val,num,chan,src|
-		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.bonuschannel2.pan_(mapped);
-		[\pan4, mapped].postln;
-	}, ccNum: 19, chan: 1));
+	// //pan on knobs
+	// alldefs.add(MIDIdef.cc(\pan1, {|val,num,chan,src|
+	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+	// 	state.vox1channel.pan_(mapped);
+	// 	[\pan1, mapped].postln;
+	// }, ccNum: 16, chan: 1));
+	// alldefs.add(MIDIdef.cc(\pan2, {|val,num,chan,src|
+	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+	// 	state.vox2channel.pan_(mapped);
+	// 	[\pan2, mapped].postln;
+	// }, ccNum: 17, chan: 1));
+	// alldefs.add(MIDIdef.cc(\pan3, {|val,num,chan,src|
+	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+	// 	state.vox3channel.pan_(mapped);
+	// 	[\pan3, mapped].postln;
+	// }, ccNum: 18, chan: 1));
+	// alldefs.add(MIDIdef.cc(\pan4, {|val,num,chan,src|
+	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+	// 	state.vox4channel.pan_(mapped);
+	// 	[\pan4, mapped].postln;
+	// }, ccNum: 19, chan: 1));
 
 	//loops on the buttons
 	alldefs.add(MIDIdef.noteOn(\loop1, {|vel,pitch,chan,src|

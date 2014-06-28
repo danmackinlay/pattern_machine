@@ -33,7 +33,7 @@ localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
 						).wrap(0, localstate[\bardelta]) *
 						beatTime),
 					\amp, 1,
-					\pan, Pfunc({localstate[\pan]}).trace(prefix: \pan),
+					\pan, Pfunc({localstate[\pan];}),
 					\rate, Prand(localstate[\trans], inf),
 					\sustain, Prand([1,1/2], inf),
 					\modulate, localstate[\parambus1].asMap,
@@ -61,5 +61,6 @@ localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
 	localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
 });
 ~state.paramUpdaters.add({|val|
-	localstate[\pan]=val.linlin(0.0,1.0,-1.0, 1.0);
+	//[\val,val].postln;
+	localstate[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
 });

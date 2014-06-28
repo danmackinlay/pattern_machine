@@ -60,5 +60,6 @@ localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
 	localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
 });
 ~state.paramUpdaters.add({|val|
-	localstate[\pan]=val.linlin(0.0,1.0,-1.0, 1.0);
+	//[\val,val].postln;
+	localstate[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
 });
