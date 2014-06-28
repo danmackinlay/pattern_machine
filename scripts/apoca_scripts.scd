@@ -46,7 +46,7 @@ var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo, beatTime, clock;
 var state;
 var reverb1, reverb2, reverb3, reverb4;
-var uidata, metaparams, params, paramUpdaters, paramWatcher;
+var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
 
 ~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
 this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
@@ -66,37 +66,36 @@ fork {
 	//UI interaction stuff
 	metaparams = FloatArray.fill(12,0.5);
 	params = FloatArray.fill(32,0.5);
-	uidata = (\pitchrollyawaccel: [0.5, 0.5, 0.5, 0.5,].asFloatArray,);
+	pitchrollyawaccel = FloatArray.fill(4,0.5);
 	paramUpdaters = Array.fill(32, nil);
 	state.params = params;
 	state.metaparams = metaparams;
-	state.uidata = uidata;
+	state.pitchrollyawaccel = pitchrollyawaccel;
 	state.paramMap = PSRandomMap(inDims:12, outDims:32, phi:1.2);
 	state.paramUpdaters = paramUpdaters;
 
-	paramWatcher = Routine({|inval|
+	paramWatcher = Routine({|newinval|
+		var lastposttime=0.0, delta=0.0;
 		inf.do({|ix|
 			state.paramDirty.if({
 				state.paramDirty = false;
-				[\updating,state.metaparams].postln;
+				(delta>5.0).if({
+					[\wii_updating,state.metaparams, newinval, delta].postln;
+					lastposttime = newinval;
+				});
 				state.params = state.paramMap.value(state.metaparams);
 				state.params.do({|val, i|
 					state.paramUpdaters[i].value(val);
 				});
 			});
-			inval = 0.02.yield;
+			newinval = 0.02.yield;
+			delta = newinval-lastposttime;
 		});
 	}).play;
 	CmdPeriod.doOnce { paramWatcher.free };
 	state.paramWatcher = paramWatcher;
 
-	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(
-		uidata,
-		{
-			(..2).do({|i| metaparams[i] = uidata[\pitchrollyawaccel][i]});
-			state.paramDirty=true;
-		}
-	);
+	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
 	//this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state);
 
 	//basic overall mixer setup

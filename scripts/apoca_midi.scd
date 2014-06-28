@@ -8,7 +8,7 @@ var mapController = {|state|
 		//state.sliderInPort = MIDIIn.findPort("nanoKONTROL2", "CTRL");
 		state.sliderInPort;
 	};
-	MIDIFunc.trace(false);
+	MIDIFunc.trace(true);
 	sliderMeta =[
 		[1,  0],
 		[1, 16],
