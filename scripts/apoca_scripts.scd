@@ -10,7 +10,6 @@ TODO: (priority order)
   * kill all synths (~killall.value;)
   * triggering karin's gestures
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
-* wii off switch
 * audio-input-driven effects
 * check switching-in-microphone input
 * granular choir
@@ -18,9 +17,7 @@ TODO: (priority order)
 * restrict sample looping to first 30 seconds, OR
 * soundfile-length-sensitive sound playing
 * variable delay in front of allpass to make it more interesting
-* remap to various RME outputs for hardware mixing (dammit, website down)
 * VU meter
-* interpolated bus inputs for gesture control
 * enveloped gestures
 * timestretched escalating background accompaniment
 * ticking clock sample
@@ -32,6 +29,7 @@ TODO: (priority order)
 * bar-pos-aware pattern
 * instead of explicitly accessing "state" all the time, I should execute all the code inside the Environment, then pop off and pass it around.
 * MIDI slider velocity
+* remap to various RME outputs for hardware mixing (dammit, website down)
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
@@ -97,6 +95,8 @@ fork {
 	state.paramWatcher = paramWatcher;
 
 	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
+	//to disable:
+	//OSCdef(\wii).free;
 	//this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state);
 
 	//basic overall mixer setup
