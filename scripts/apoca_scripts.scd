@@ -29,6 +29,8 @@ TODO: (priority order)
 * Jack routing into Live?
 * Bulk sample loading based on MIR
 * stateful algorithm to navigate through with wiimote
+* markov models with reseedable seed
+* bar-pos-aware pattern
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
@@ -301,22 +303,36 @@ var cloud2state;
 var slice1state;
 ~slice1state = slice1state = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
+	seed: 11.3,
+	reseed: true,
 ));
 ~slice1 = (~slice1 ? List.new ).add(
 	~state.bonuschannel1.play(
 		Pspawner({|spawner|
+			var rng = LinCongRNG(seed: slice1state[\seed]);
 			inf.do({|i|
 				var beatTime = slice1state.beatTime;
+				slice1state[\reseed].if({
+					rng.seed_(slice1state[\seed]);
+				});
 				spawner.par(
+					//rng.next
 					pattern: Pfindur(
 						dur: slice1state[\bardelta],
 						pattern: Pbind(
 							\instrument, \ps_buf_delay_play__1_2,
+							\bartime, Pseg(
+								[0,slice1state[\bardelta]],
+								slice1state[\bardelta], \lin,inf),
 							\bufnum, slice1state[\loopbuf],
 							\phasebus, slice1state[\loopphasebus],
 							\dur, Prand([0,1/2,3/2], inf),
 							\delta, Prand([0,1/2], inf),
-							\deltime, Prand([0,1/2,2], inf) * beatTime,
+							\deltime, (
+								(Prand([0,1/2,3/4,2/3], inf) +
+									Pkey(\bartime)
+								).wrap(0, slice1state[\bardelta]) *
+								beatTime),
 							\amp, 1,
 							\pan, Pwhite(-1,1),
 							\rate, Prand([0.5,1,2], inf),
@@ -335,6 +351,7 @@ var slice1state;
 ~killList.value(~slice1);
 ~slice1state.bardelta;
 ~slice1state[\subcontrols][0].set(4);
+~slice1state[\reseed]=true;
 
 ~state.reverb3.set(\wet, 0.2);
 ~state.reverb3.set(\damping, 0.6);
