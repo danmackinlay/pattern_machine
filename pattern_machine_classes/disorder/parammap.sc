@@ -39,7 +39,7 @@ PSRandomMap {
 	var <phi;
 	var <transformMat;
 	var <seed;
-	*new{|inDims=2, outDims=5, gain=3.0, phi=1.1, seed=3.7|
+	*new{|inDims=2, outDims=5, gain=1.0, phi=1.1, seed=3.7|
 		^super.newCopyArgs(
 			inDims,
 			outDims,
