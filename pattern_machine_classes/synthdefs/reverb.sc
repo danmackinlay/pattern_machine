@@ -16,7 +16,7 @@ PSReverbSynthDefs {
 				mix: wet,
 				room: room*(index/100 +1),
 				damp: damp,
-				amp: amp
+				mul: amp
 			);
 			//Freeverb is a little low rent and rings a lot; phase that away
 			signal = OnePole.ar(AllpassC.ar(signal,
