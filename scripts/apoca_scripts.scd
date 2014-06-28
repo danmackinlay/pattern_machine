@@ -128,13 +128,34 @@ fork {
 	CmdPeriod.doOnce { postgroup.free };
 
 	//channel fx
-	reverb1 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
-	s.sync;
-	reverb2 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
-	s.sync;
-	reverb3 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
-	s.sync;
-	reverb4 = bonuschannel1.playfx(\ps_gverb__2_2, [\index, 1]);
+	reverb1 = echettechannel1.playfx(\ps_gverb__2_2, [
+		\index, 1,
+		\wet, 0.2,
+		\damping, 0.4,
+		\revtime, 0.8,
+		\roomsize, 170,
+	]);
+	reverb2 = echettechannel2.playfx(\ps_gverb__2_2, [
+		\index, 2,
+		\wet, 0.7,
+		\damping, 0.3,
+		\revtime, 2.0,
+		\roomsize, 190,
+	]);
+	reverb3 = bonuschannel1.playfx(\ps_gverb__2_2, [
+		\index, 3,
+		\wet, 0.3,
+		\damping, 0.8,
+		\revtime, 1.0,
+		\roomsize, 210,
+	]);
+	reverb4 = bonuschannel2.playfx(\ps_gverb__2_2, [
+		\index, 4,
+		\wet, 0.8,
+		\damping, 0.3,
+		\revtime, 4,
+		\roomsize, 180,
+	]);
 	s.sync;
 
 	//sample-loop action
