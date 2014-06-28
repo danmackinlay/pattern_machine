@@ -300,8 +300,8 @@ var cloud2state;
 ~cloud2state.deltime=1.8;
 
 (
-var slice1state;
-~slice1state = slice1state = Event.new(n:60, proto:~state).putAll((
+var localstate;
+~slice1state = localstate = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
 	seed: 1128,
 	reseed: true,
@@ -311,48 +311,49 @@ var slice1state;
 		Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat, beatTime;
-				beatTime = slice1state.beatTime;
+				beatTime = localstate.beatTime;
+				//Pindex? or Pfsm?
 				pat = Pbind(
 					\instrument, \ps_buf_delay_play__1_2,
 					\bartime, Pseg(
-						[0,slice1state[\bardelta]],
-						slice1state[\bardelta], \lin,inf),
-					\bufnum, slice1state[\loopbuf],
-					\phasebus, slice1state[\loopphasebus],
+						[0,localstate[\bardelta]],
+						localstate[\bardelta], \lin,inf),
+					\bufnum, localstate[\loopbuf],
+					\phasebus, localstate[\loopphasebus],
 					\dur, Prand([0,1/2,3/2], inf),
 					\delta, Prand([0,1/2], inf),
 					\deltime, (
 						(Prand([0,1/2,3/4,2/3], inf) +
 							Pkey(\bartime)
-						).wrap(0, slice1state[\bardelta]) *
+						).wrap(0, localstate[\bardelta]) *
 						beatTime),
 					\amp, 1,
 					\pan, Pwhite(-1,1),
 					\rate, Prand([0.5,1,2], inf),
 					\sustain, Prand([1,1/2], inf),
-					\modulate, slice1state[\subcontrols][0].asMap,
+					\modulate, localstate[\subcontrols][0].asMap,
 				); //.postcs.trace(prefix: \outer)
 
-				slice1state[\reseed].if({
-					rng.seed_(slice1state[\seed]);
-					pat = Pseed(slice1state[\seed], pat);
+				localstate[\reseed].if({
+					rng.seed_(localstate[\seed]);
+					pat = Pseed(localstate[\seed], pat);
 				});
 				spawner.par(
-					//rng.next
 					pattern: Pfindur(
-						dur: slice1state[\bardelta],
+						dur: localstate[\bardelta],
 						pattern: pat), //.postcs.trace(prefix: \inner),
 					delta: 0,
 				);
-				spawner.wait(slice1state[\bardelta]);
+				spawner.wait(localstate[\bardelta]);
 			});
-	})
+		})
 	)
 );
 )
 ~killList.value(~slice1);
 ~slice1state.bardelta;
-~slice1state[\subcontrols][0].set(4);
+~slice1state[\subcontrols][0].set(2);
+~slice1state[\subcontrols][0].set(8);
 ~slice1state[\reseed]=true;
 ~slice1state[\reseed]=false;
 ~slice1state.loopsynth.set(\wet,1);
