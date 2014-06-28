@@ -34,6 +34,7 @@ TODO: (priority order)
 * MIDI slider velocity
 * remap to various RME outputs for hardware mixing (dammit, website down)
 * go to 0-based indexing throughout
+* automatic param control bus numbering
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
@@ -108,6 +109,7 @@ var localstate;
 	seed: 1128,
 	reseed: true,
 	looping: 0,
+	parambus1: ~state[\control].subBus(0),
 ));
 ~state.vox3 = (~state.vox3 ? List.new ).add(
 	~state.bonuschannel1.play(
@@ -134,7 +136,7 @@ var localstate;
 					\pan, Pwhite(-1,1),
 					\rate, Prand([0.5,1,2], inf),
 					\sustain, Prand([1,1/2], inf),
-					\modulate, localstate[\control].subBus(0).asMap,
+					\modulate, localstate[\parambus1].asMap,
 				); //.postcs.trace(prefix: \outer)
 
 				localstate[\reseed].if({
@@ -151,6 +153,7 @@ var localstate;
 		})
 	)
 );
+~state.paramUpdaters.add({|val| val.postln; ~state.vox3state[\parambus1].set(val);});
 )
 ~killList.value(~state.vox3);
 ~state.vox3state.bardelta;

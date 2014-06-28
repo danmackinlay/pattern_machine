@@ -29,7 +29,7 @@ fork {
 	metaparams = FloatArray.fill(7,0.5);
 	params = FloatArray.fill(32,0.5);
 	pitchrollyawaccel = FloatArray.fill(4,0.5);
-	paramUpdaters = Array.fill(32, nil);
+	paramUpdaters = List.new;
 	mididefs = List.new;
 	state.params = params;
 	state.metaparams = metaparams;
@@ -48,8 +48,8 @@ fork {
 					lastposttime = newinval;
 				});
 				state.params = state.paramMap.value(state.metaparams);
-				state.params.do({|val, i|
-					state.paramUpdaters[i].value(val);
+				state.paramUpdaters.do({|fn, i|
+					fn.value(state.params[i]);
 				});
 			});
 			newinval = 0.02.yield;
