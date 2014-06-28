@@ -1,6 +1,6 @@
 var localstate, localvox;
 localstate = Event.new(n:60, proto:~state).putAll((
-	bardelta: 4,
+	bardelta: 8,
 	seed: 127,
 	reseed: true,
 	looping: 0,
