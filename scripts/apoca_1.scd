@@ -16,7 +16,6 @@ localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
 			inf.do({|i|
 				var newSeed, pat, beatTime;
 				beatTime = localstate.beatTime;
-				[1,i].postln;
 				//Pindex? or Pfsm?
 				pat = Pbind(
 					\instrument, \ps_buf_delay_play__1_2,
@@ -25,7 +24,7 @@ localvox = ~state.vox1 = (~state.vox1 ? List.new ).add(
 						localstate[\bardelta], \lin, inf),
 					\bufnum, localstate[\loopbufs][2],
 					\phasebus, localstate[\loopphasebuses].subBus(2),
-					\dur, Prand([0,1/2,3/2], inf),
+					\dur, Prand([0,1/2,3/2], inf)*Pfunc({localstate[\density]?1}),
 					\delta, Prand([0,1/2], inf)*(1+Pfunc({localstate[\chaos].rand2;})),
 					\deltime, (
 						(Prand([0,1/2,3/4,2/3], inf) +

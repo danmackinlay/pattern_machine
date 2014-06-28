@@ -105,7 +105,7 @@ SynthDef.new(\ps_buf_delay_play__1_2, {
 		levelScale:amp,
 		doneAction: 2);
 	deltime = deltime + ((1-rate)*Sweep.ar(gate, 1));
-	deltime = deltime + Lag.ar(K2A.ar(modulate), lagTime: modlag);
+	deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
 	deltime = Clip.ar(deltime, 0, BufDur.kr(bufnum));
 	sig = DelTapRd.ar(
 		buffer:bufnum,

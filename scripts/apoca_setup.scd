@@ -23,6 +23,8 @@ state = (
 	tempo: tempo,
 	beatTime: beatTime,
 	paramDirty: false,
+	density: 1,
+	chaos: 0,
 );
 fork {
 	//UI interaction stuff

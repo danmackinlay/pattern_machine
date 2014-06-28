@@ -24,7 +24,7 @@ localvox = ~state.vox2 = (~state.vox2 ? List.new ).add(
 						localstate[\bardelta], \lin, inf),
 					\bufnum, localstate[\loopbufs][2],
 					\phasebus, localstate[\loopphasebuses].subBus(2),
-					\dur, Prand([0,1/2,3/2], inf),
+					\dur, Prand([0,1/2,3/2], inf)*Pfunc({localstate[\density]?1}),
 					\delta, Prand([0,1/2], inf)*(1+Pfunc({localstate[\chaos].rand2;})),
 					\deltime, (
 						(Prand([0,1/2,3/4,2/3], inf) +

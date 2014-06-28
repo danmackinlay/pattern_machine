@@ -11,7 +11,7 @@
 		state.sliderInPort;
 	};
 	//MIDIFunc.trace(true);
-	MIDIFunc.trace(true);
+	MIDIFunc.trace(false);
 	sliderMeta =[
 		[1,  0],//slider 1
 		[1, 16],//knob 1
@@ -56,31 +56,31 @@
 		[\vol4, mapped].postln;
 	}, ccNum: 3, chan: 1));
 
-	// //pan on knobs
-	// alldefs.add(MIDIdef.cc(\pan1, {|val,num,chan,src|
-	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-	// 	state.vox1channel.pan_(mapped);
-	// 	[\pan1, mapped].postln;
-	// }, ccNum: 16, chan: 1));
-	// alldefs.add(MIDIdef.cc(\pan2, {|val,num,chan,src|
-	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-	// 	state.vox2channel.pan_(mapped);
-	// 	[\pan2, mapped].postln;
-	// }, ccNum: 17, chan: 1));
-	// alldefs.add(MIDIdef.cc(\pan3, {|val,num,chan,src|
-	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-	// 	state.vox3channel.pan_(mapped);
-	// 	[\pan3, mapped].postln;
-	// }, ccNum: 18, chan: 1));
-	// alldefs.add(MIDIdef.cc(\pan4, {|val,num,chan,src|
-	// 	var mapped = val.linlin(0.0,127.0,-1.0,1.0);
-	// 	//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-	// 	state.vox4channel.pan_(mapped);
-	// 	[\pan4, mapped].postln;
-	// }, ccNum: 19, chan: 1));
+	//seed on knobs (eww)
+	alldefs.add(MIDIdef.cc(\seed1, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,16).asInt;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.vox1state[\seed] = mapped;
+		[\seed1, mapped].postln;
+	}, ccNum: 16, chan: 1));
+	alldefs.add(MIDIdef.cc(\seed2, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,16).asInt;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.vox1state[\seed] = mapped;
+		[\seed2, mapped].postln;
+	}, ccNum: 17, chan: 1));
+	alldefs.add(MIDIdef.cc(\seed3, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,16).asInt;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.vox1state[\seed] = mapped;
+		[\seed3, mapped].postln;
+	}, ccNum: 18, chan: 1));
+	alldefs.add(MIDIdef.cc(\seed4, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,16).asInt;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.vox1state[\seed] = mapped;
+		[\seed4, mapped].postln;
+	}, ccNum: 19, chan: 1));
 
 	//loops on the buttons
 	alldefs.add(MIDIdef.noteOn(\loop1, {|vel,pitch,chan,src|
@@ -137,13 +137,26 @@
 	}, noteNum: 51, chan: 1));
 
 	//input on last knobs
+	alldefs.add(MIDIdef.cc(\chaos, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		state[\chaos]= mapped;
+		[\chaos, mapped].postln;
+	}, ccNum: 20, chan: 1));
+	alldefs.add(MIDIdef.cc(\density, {|val,num,chan,src|
+		var mapped = (0.5**(val.linlin(0.0,127.0,0.0,5.0).asInteger));
+		state[\density]= mapped;
+		[\density, mapped].postln;
+	}, ccNum: 21, chan: 1));
+	alldefs.add(MIDIdef.cc(\livefade, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		~state.sourcesound.set(\livefade, mapped);
+		[\livefade, mapped].postln;
+	}, ccNum: 22, chan: 1));
 	alldefs.add(MIDIdef.cc(\buffsel, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0,20).asInt;
-		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.bonuschannel2.pan_(mapped);
-		[\pan4, mapped].postln;
-	}, ccNum: 19, chan: 1));
-
+		state.sourcesound.set(\bufnum,~sampsetbufarray[mapped]);
+		[\buffsel, mapped, ~sampsetbufarray[mapped]].postln;
+	}, ccNum: 23, chan: 1));
 
 	//panic
 	alldefs.add(MIDIdef.noteOn(\stop, {|vel,pitch,chan,src|
