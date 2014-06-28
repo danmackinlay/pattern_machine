@@ -2,38 +2,38 @@
 Apocalypse
 
 TODO: (priority order)
-* the param mapping thing
-  * MIDI
-* MIDI triggering for:
+* MIDI/wii triggering for:
   * looping
   * loop re-ordering
   * kill all synths (~killall.value;)
   * triggering karin's gestures
 * Some kind of sequencing things based on order parameters, pulling in and out of chaos
+* markov models with reseedable seed (see MarkovSet)
 * audio-input-driven effects
 * check switching-in-microphone input
 * granular choir
+* change random seeds
 * epic panning
 * meditation bells
 * extra chaosifier
 * tap sync
+* enveloped gestures
+* timestretched escalating background accompaniment
 * restrict sample looping to first 30 seconds, OR
 * soundfile-length-sensitive sound playing OR
 * put fade-outs in
 * variable delay in front of allpass to make it more interesting
+* midi keyboard toggle lights
 * VU meter
-* enveloped gestures
-* timestretched escalating background accompaniment
 * ticking clock sample
 * control ableton with SC
 * Jack routing into Live?
 * Bulk sample loading based on MIR
 * stateful algorithm to navigate through with wiimote
-* markov models with reseedable seed (see MarkovSet)
-* bar-pos-aware pattern
 * instead of explicitly accessing "state" all the time, I should execute all the code inside the Environment, then pop off and pass it around.
 * MIDI slider velocity
 * remap to various RME outputs for hardware mixing (dammit, website down)
+* go to 0-based indexing throughout
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
@@ -108,7 +108,6 @@ fork {
 
 	this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state).do(state.mididefs.add(_));
 	CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
-
 
 	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
@@ -240,12 +239,20 @@ fork {
 		sourcebuf: sourcebuf,
 		sourcesound: sourcesound,
 		control: control,
+		vox1state: Event.new(n:30,proto:state),
+		vox1: List.new,
+		vox2state: Event.new(n:30,proto:state),
+		vox2: List.new,
+		vox3state: Event.new(n:30,proto:state),
+		vox3: List.new,
+		vox4state: Event.new(n:30,proto:state),
+		vox4: List.new,
 	));
 	~state=state;
 };
 
 ~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
-~killAll = {[~cloud1,~cloud2,~slice1,~slice2].do({|thing| thing.postln;~killList.value(thing)})};
+~killAll = {[~cloud1,~cloud2,~vox3,~slice2].do({|thing| thing.postln;~killList.value(thing)})};
 )
 
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
@@ -310,12 +317,13 @@ var cloud2state;
 
 (
 var localstate;
-~slice1state = localstate = Event.new(n:60, proto:~state).putAll((
+~state.vox3state = localstate = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
 	seed: 1128,
 	reseed: true,
+	looping: 0,
 ));
-~slice1 = (~slice1 ? List.new ).add(
+~state.vox3 = (~state.vox3 ? List.new ).add(
 	~state.bonuschannel1.play(
 		Pspawner({|spawner|
 			inf.do({|i|
@@ -358,24 +366,19 @@ var localstate;
 	)
 );
 )
-~killList.value(~slice1);
-~slice1state.bardelta;
-~slice1state[\control].setPairs(0,2);
-~slice1state[\control].setPairs(0,8);
-~slice1state[\reseed]=true;
-~slice1state[\reseed]=false;
-~slice1state.loopsynth.set(\wet,1);
-~slice1state.loopsynth.set(\wet,0);
+~killList.value(~state.vox3);
+~state.vox3state.bardelta;
+~state.vox3state[\control].setPairs(0,2);
+~state.vox3state[\control].setPairs(0,8);
+~state.vox3state[\reseed]=true;
+~state.vox3state[\reseed]=false;
+~state.vox3state.loopsynths[2].set(\wet,1);
+~state.vox3state.loopsynths[2].set(\wet,0);
 
 ~killAll.value;
 
 ~state.mixingboard.free;
 
-~state.metaparams[2] = 0.01;
-~state.metaparams[3] = 0.99;
-~state.paramDirty = true;
-~state.params;
-~state.sourcebuf;
 
 ~sampsetpaths;
 ~sampsetbufdict;
