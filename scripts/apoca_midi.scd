@@ -35,5 +35,48 @@
 		state.echettechannel1.level_(mapped);
 		[\vol1, mapped].postln;
 	}, ccNum: 0, chan: 1));
+	alldefs.add(MIDIdef.cc(\pan1, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.echettechannel1.pan_(mapped);
+		[\pan1, mapped].postln;
+	}, ccNum: 16, chan: 1));
+	alldefs.add(MIDIdef.cc(\vol2, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.echettechannel2.level_(mapped);
+		[\vol2, mapped].postln;
+	}, ccNum: 1, chan: 1));
+	alldefs.add(MIDIdef.cc(\pan2, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.echettechannel2.pan_(mapped);
+		[\pan2, mapped].postln;
+	}, ccNum: 17, chan: 1));
+	alldefs.add(MIDIdef.cc(\vol3, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.bonuschannel1.level_(mapped);
+		[\vol3, mapped].postln;
+	}, ccNum: 2, chan: 1));
+	alldefs.add(MIDIdef.cc(\pan3, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.bonuschannel1.pan_(mapped);
+		[\pan3, mapped].postln;
+	}, ccNum: 18, chan: 1));
+	alldefs.add(MIDIdef.cc(\vol4, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.bonuschannel2.level_(mapped);
+		[\vol4, mapped].postln;
+	}, ccNum: 3, chan: 1));
+	alldefs.add(MIDIdef.cc(\pan4, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.bonuschannel2.pan_(mapped);
+		[\pan4, mapped].postln;
+	}, ccNum: 19, chan: 1));
+
 	alldefs;
 };
