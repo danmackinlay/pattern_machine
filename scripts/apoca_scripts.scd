@@ -29,7 +29,7 @@ TODO: (priority order)
 * Jack routing into Live?
 * Bulk sample loading based on MIR
 * stateful algorithm to navigate through with wiimote
-* markov models with reseedable seed
+* markov models with reseedable seed (see MarkovSet)
 * bar-pos-aware pattern
 */
 
@@ -117,7 +117,7 @@ fork {
 	bonuschannel2 = MixerChannel.new("bonus2", s, 2,2, outbus:outbus);
 	CmdPeriod.doOnce { bonuschannel2.free };
 	s.sync;
-	mixingboard = MixingBoard("apocalypse", nil,
+	mixingboard = MixingBoard.new("apocalypse", nil,
 		echettechannel1,
 		echettechannel2,
 		bonuschannel1,
@@ -303,48 +303,50 @@ var cloud2state;
 var slice1state;
 ~slice1state = slice1state = Event.new(n:60, proto:~state).putAll((
 	bardelta: 4,
-	seed: 11.3,
+	seed: 1128,
 	reseed: true,
 ));
 ~slice1 = (~slice1 ? List.new ).add(
 	~state.bonuschannel1.play(
 		Pspawner({|spawner|
-			var rng = LinCongRNG(seed: slice1state[\seed]);
 			inf.do({|i|
-				var beatTime = slice1state.beatTime;
+				var newSeed, pat, beatTime;
+				beatTime = slice1state.beatTime;
+				pat = Pbind(
+					\instrument, \ps_buf_delay_play__1_2,
+					\bartime, Pseg(
+						[0,slice1state[\bardelta]],
+						slice1state[\bardelta], \lin,inf),
+					\bufnum, slice1state[\loopbuf],
+					\phasebus, slice1state[\loopphasebus],
+					\dur, Prand([0,1/2,3/2], inf),
+					\delta, Prand([0,1/2], inf),
+					\deltime, (
+						(Prand([0,1/2,3/4,2/3], inf) +
+							Pkey(\bartime)
+						).wrap(0, slice1state[\bardelta]) *
+						beatTime),
+					\amp, 1,
+					\pan, Pwhite(-1,1),
+					\rate, Prand([0.5,1,2], inf),
+					\sustain, Prand([1,1/2], inf),
+					\modulate, slice1state[\subcontrols][0].asMap,
+				); //.postcs.trace(prefix: \outer)
+
 				slice1state[\reseed].if({
 					rng.seed_(slice1state[\seed]);
+					pat = Pseed(slice1state[\seed], pat);
 				});
 				spawner.par(
 					//rng.next
 					pattern: Pfindur(
 						dur: slice1state[\bardelta],
-						pattern: Pbind(
-							\instrument, \ps_buf_delay_play__1_2,
-							\bartime, Pseg(
-								[0,slice1state[\bardelta]],
-								slice1state[\bardelta], \lin,inf),
-							\bufnum, slice1state[\loopbuf],
-							\phasebus, slice1state[\loopphasebus],
-							\dur, Prand([0,1/2,3/2], inf),
-							\delta, Prand([0,1/2], inf),
-							\deltime, (
-								(Prand([0,1/2,3/4,2/3], inf) +
-									Pkey(\bartime)
-								).wrap(0, slice1state[\bardelta]) *
-								beatTime),
-							\amp, 1,
-							\pan, Pwhite(-1,1),
-							\rate, Prand([0.5,1,2], inf),
-							\sustain, Prand([1,1/2], inf),
-							\modulate, slice1state[\subcontrols][0].asMap,
-						) //.postcs.trace(prefix: \outer)
-					), //.postcs.trace(prefix: \inner),
+						pattern: pat), //.postcs.trace(prefix: \inner),
 					delta: 0,
 				);
 				spawner.wait(slice1state[\bardelta]);
 			});
-		})
+	})
 	)
 );
 )
@@ -352,14 +354,7 @@ var slice1state;
 ~slice1state.bardelta;
 ~slice1state[\subcontrols][0].set(4);
 ~slice1state[\reseed]=true;
-
-~state.reverb3.set(\wet, 0.2);
-~state.reverb3.set(\damping, 0.6);
-~state.reverb3.set(\roomsize, 180);
-~state.reverb3.set(\revtime, 2);
-~state.reverb3.set(\taillevel, 2);
-~state.reverb3.set(\earlyreflevel, 2);
-
+~slice1state[\reseed]=false;
 ~slice1state.loopsynth.set(\wet,1);
 ~slice1state.loopsynth.set(\wet,0);
 
