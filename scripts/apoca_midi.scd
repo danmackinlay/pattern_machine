@@ -29,6 +29,7 @@
 		[1,  7],
 		[1, 23],
 	];
+	//level-pan on faders and knobs
 	alldefs.add(MIDIdef.cc(\vol1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
@@ -77,6 +78,36 @@
 		state.bonuschannel2.pan_(mapped);
 		[\pan4, mapped].postln;
 	}, ccNum: 19, chan: 1));
+
+	//metaparam on the faders
+	alldefs.add(MIDIdef.cc(\meta1, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.metaparams[3] = mapped;
+		state.paramDirty = true;
+		[\meta1, mapped].postln;
+	}, ccNum: 4, chan: 1));
+	alldefs.add(MIDIdef.cc(\meta2, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.metaparams[4] = mapped;
+		state.paramDirty = true;
+		[\meta2, mapped].postln;
+	}, ccNum: 5, chan: 1));
+	alldefs.add(MIDIdef.cc(\meta3, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.metaparams[5] = mapped;
+		state.paramDirty = true;
+		[\meta3, mapped].postln;
+	}, ccNum: 6, chan: 1));
+	alldefs.add(MIDIdef.cc(\meta4, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.metaparams[6] = mapped;
+		state.paramDirty = true;
+		[\meta4, mapped].postln;
+	}, ccNum: 7, chan: 1));
 
 	alldefs;
 };

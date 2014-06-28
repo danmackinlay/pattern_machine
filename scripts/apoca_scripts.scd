@@ -14,8 +14,12 @@ TODO: (priority order)
 * check switching-in-microphone input
 * granular choir
 * epic panning
+* meditation bells
+* extra chaosifier
+* tap sync
 * restrict sample looping to first 30 seconds, OR
-* soundfile-length-sensitive sound playing
+* soundfile-length-sensitive sound playing OR
+* put fade-outs in
 * variable delay in front of allpass to make it more interesting
 * VU meter
 * enveloped gestures
@@ -34,7 +38,7 @@ TODO: (priority order)
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
-
+~state.metaparams;
 (
 var inbus, outbus;
 var ingroup, fxgroup, postgroup;
@@ -64,7 +68,7 @@ state = (
 );
 fork {
 	//UI interaction stuff
-	metaparams = FloatArray.fill(12,0.5);
+	metaparams = FloatArray.fill(7,0.5);
 	params = FloatArray.fill(32,0.5);
 	pitchrollyawaccel = FloatArray.fill(4,0.5);
 	paramUpdaters = Array.fill(32, nil);
@@ -72,7 +76,7 @@ fork {
 	state.params = params;
 	state.metaparams = metaparams;
 	state.pitchrollyawaccel = pitchrollyawaccel;
-	state.paramMap = PSRandomMap(inDims:12, outDims:32, phi:1.2);
+	state.paramMap = PSRandomMap(inDims:7, outDims:32, phi:1.2);
 	state.paramUpdaters = paramUpdaters;
 	state.mididefs = mididefs;
 
