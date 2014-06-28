@@ -12,12 +12,11 @@ TODO: (priority order)
 * audio-input-driven effects
 * granular choir
 * change random seeds
-* epic panning
-* meditation bells
 * extra chaosifier
 * tap sync
 * enveloped gestures
 * timestretched escalating background accompaniment
+* meditation bells
 * restrict sample looping to first 30 seconds, OR
 * soundfile-length-sensitive sound playing OR
 * put fade-outs in
@@ -34,6 +33,7 @@ TODO: (priority order)
 * remap to various RME outputs for hardware mixing (dammit, website down)
 * go to 0-based indexing throughout
 * automatic param control bus numbering
+* hi pass
 */
 
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
@@ -46,13 +46,25 @@ this.executeFile(~pmscripts +/+ "apoca_2.scd");
 this.executeFile(~pmscripts +/+ "apoca_3.scd");
 this.executeFile(~pmscripts +/+ "apoca_4.scd");
 
+~killList.value(~state.vox1);
+~killList.value(~state.vox2);
 ~killList.value(~state.vox3);
+~killList.value(~state.vox4);
 
 ~killAll.value;
 
+~state.reverb1.set(\wet,1);
+~state.reverb2.set(\wet,1);
+~state.reverb3.set(\wet,1);
+~state.reverb4.set(\wet,1);
+
 ~state.metaparams;
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][3]);
+~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][0]);
 ~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
+~state.sourcesound.set(\bufnum,~sampsetbufdict[\desolation][0]);
+~state.sourcesound.set(\bufnum,~sampsetbufdict[\choral][0]);
+~state.sourcesound.set(\bufnum,~sampsetbufdict[\people][0]);
+
 ~state.sourcesound.set(\livefade, 0);
 ~state.sourcesound.set(\livefade, 1);
 ~state.mixingboard.free;
@@ -60,3 +72,5 @@ this.executeFile(~pmscripts +/+ "apoca_4.scd");
 ~sampsetpaths;
 ~sampsetbufdict;
 ~sampsetbufarray;
+
+this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(~state).do(~state.mididefs.add(_));
