@@ -39,9 +39,9 @@ Server.default=s=~serverboot.(prox:\local, device:\builtin);
 (
 var inbus, outbus;
 var ingroup, fxgroup, postgroup;
-var loopbuf, loopsynth, loopphasebus;
+var loopbufs, loopsynths, loopphasebuses;
 var sourcebuf, sourcesound, limiter;
-var control, subcontrols;
+var control;
 var echettechannel1, echettechannel2, bonuschannel1, bonuschannel2, mixingboard;
 var tempo, beatTime, clock;
 var state;
@@ -161,10 +161,10 @@ fork {
 	s.sync;
 
 	//sample-loop action
-	loopbuf = Buffer.alloc(s, s.sampleRate * 10.0, 1);
-	CmdPeriod.doOnce { loopbuf.free };
-	loopphasebus = Bus.control(s, 1);
-	CmdPeriod.doOnce { loopphasebus.free };
+	loopbufs = Buffer.allocConsecutive(4, s, s.sampleRate * 10.0, 1);
+	CmdPeriod.doOnce { loopbufs.do(_.free) };
+	loopphasebuses = Bus.control(s, 4);
+	CmdPeriod.doOnce { loopphasebuses.free };
 	s.sync;
 
 	//In case I don't want to sing:
@@ -181,18 +181,18 @@ fork {
 	s.sync;
 
 	//delay/loop input
-	loopsynth = (
+	loopsynths = 4.collect({|i|(
 		instrument: \ps_buf_delay_loop__1_1,
 		outbus: inbus,
-		bufnum: loopbuf,
+		bufnum: loopbufs[i],
 		group: ingroup,
 		wet: 0,
 		deltime: beatTime*4,
-		phasebus: loopphasebus,
+		phasebus: loopphasebuses.subBus(i),
 		addAction: \addToTail,
 		sendGate: false,//persist
-	).play;
-	CmdPeriod.doOnce { loopsynth.free };
+	).play;});
+	CmdPeriod.doOnce { loopsynths.do(_.free) };
 	s.sync;
 
 	limiter = (
@@ -206,16 +206,15 @@ fork {
 	control = Bus.control(s, 8);
 	CmdPeriod.doOnce { control.free };
 	s.sync;
-	subcontrols = control.numChannels.collect(control.subBus(_,1););
 
 	state.putAll((
 		outbus: outbus,
 		inbus: inbus, //or Bus.newFrom(s.inputBus,0,1) for external
 		limiter: limiter,
 		ingroup: ingroup,
-		loopsynth: loopsynth,
-		loopbuf: loopbuf,
-		loopphasebus: loopphasebus,
+		loopsynths: loopsynths,
+		loopbufs: loopbufs,
+		loopphasebuses: loopphasebuses,
 		echettechannel1: echettechannel1,
 		echettechannel2: echettechannel2,
 		bonuschannel1: bonuschannel1,
@@ -230,7 +229,6 @@ fork {
 		sourcebuf: sourcebuf,
 		sourcesound: sourcesound,
 		control: control,
-		subcontrols: subcontrols,
 	));
 	~state=state;
 };
@@ -317,9 +315,9 @@ var localstate;
 					\instrument, \ps_buf_delay_play__1_2,
 					\bartime, Pseg(
 						[0,localstate[\bardelta]],
-						localstate[\bardelta], \lin,inf),
-					\bufnum, localstate[\loopbuf],
-					\phasebus, localstate[\loopphasebus],
+						localstate[\bardelta], \lin, inf),
+					\bufnum, localstate[\loopbufs][2],
+					\phasebus, localstate[\loopphasebuses].subBus(2),
 					\dur, Prand([0,1/2,3/2], inf),
 					\delta, Prand([0,1/2], inf),
 					\deltime, (
@@ -331,11 +329,10 @@ var localstate;
 					\pan, Pwhite(-1,1),
 					\rate, Prand([0.5,1,2], inf),
 					\sustain, Prand([1,1/2], inf),
-					\modulate, localstate[\subcontrols][0].asMap,
+					\modulate, localstate[\control].subBus(0).asMap,
 				); //.postcs.trace(prefix: \outer)
 
 				localstate[\reseed].if({
-					rng.seed_(localstate[\seed]);
 					pat = Pseed(localstate[\seed], pat);
 				});
 				spawner.par(
@@ -352,8 +349,8 @@ var localstate;
 )
 ~killList.value(~slice1);
 ~slice1state.bardelta;
-~slice1state[\subcontrols][0].set(2);
-~slice1state[\subcontrols][0].set(8);
+~slice1state[\control].setPairs(0,2);
+~slice1state[\control].setPairs(0,8);
 ~slice1state[\reseed]=true;
 ~slice1state[\reseed]=false;
 ~slice1state.loopsynth.set(\wet,1);
