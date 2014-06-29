@@ -3,12 +3,24 @@ rapidly ananlyse a bunch of files for a particular autocorrelation profile
 
 see http://docs.scipy.org/doc/scipy/reference/tutorial/signal.html#b-splines for fast interpolation
 
+see also scipy.signal.periodogram and scipy.signal.welch, praps signal.lfilter and/or signa.correlate
+
+http://www.tau.ac.il/~kineret/amit/scipy_tutorial/
+http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
+plyphase filtering is the right keyword
+http://cnx.org/content/m11657/latest/
+http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 """
 
+import os.path
 import sys
 from numpy import *
 import scipy.io.wavfile
 import wave
+import tempfile
+import subprocess
+
+SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 
 def load_wav(filename):
     try:
@@ -21,5 +33,18 @@ def load_wav(filename):
     except:
         print "Error loading wav: "+filename
         return None
+
+def load_non_wav(filename):
+    #could really use some 
+    newfilename = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
+    subprocess.check_call([
+        "sox",
+        filename,
+        newfilename])
+    wav = load_wav(newfilename)
+    os.unlink(newfilename)
+    return wav
+
+sr, wav = load_non_wav(SF_PATH)
 
 
