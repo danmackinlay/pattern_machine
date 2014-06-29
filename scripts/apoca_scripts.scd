@@ -47,9 +47,9 @@ this.executeFile(~pmscripts +/+ "apoca_3.scd");
 this.executeFile(~pmscripts +/+ "apoca_4.scd");
 
 ~state.vox1state[\trans]=[1/4,1,4/3];
-~state.vox2state[\trans]=[1/2,1,2];
+~state.vox2state[\trans]=[1/4,1];
 ~state.vox3state[\trans]=[1,2];
-~state.vox4state[\trans]=[1,2];
+~state.vox4state[\trans]=[1,4/3,2];
 
 ~killList.value(~state.vox1);
 ~killList.value(~state.vox2);
