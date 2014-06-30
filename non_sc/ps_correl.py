@@ -64,13 +64,15 @@ for freq in freqs:
     offset = round(float(sr)/freq)
     cov = np.zeros_like(wav)
     cov[offset:] = wav[offset:]*wav[:-offset]
+    #purely for initialisation
+    cov[:offset] = cov[offset:2*offset]
     #ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
     rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
     b, a = iirfilter(N=3, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
     # inital conditions:
     zi = lfilter_zi(b, a) # if we wish to initialize the filter to non-zero val
-    smooth_cov, zf = lfilter(b, a, cov, zi=zi*0)
-    smooth_wav2, zf = lfilter(b, a, wav2, zi=zi*0)
+    smooth_cov, zf = lfilter(b, a, cov, zi=zi*cov[:offset].mean())
+    smooth_wav2, zf = lfilter(b, a, wav2, zi=zi*wav2[:offset].mean())
     corrs.append(decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir'))
 
 all_corr = np.vstack(corrs)
