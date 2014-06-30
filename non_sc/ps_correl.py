@@ -7,14 +7,14 @@ see also scipy.signal.periodogram and scipy.signal.welch, praps signal.lfilter a
 
 http://www.tau.ac.il/~kineret/amit/scipy_tutorial/
 http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
-plyphase filtering is the right keyword
+polyphase filtering is the right keyword
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 """
 
 import os.path
 import sys
-from numpy import *
+import numpy as np
 import scipy.io.wavfile
 import wave
 import tempfile
@@ -47,4 +47,7 @@ def load_non_wav(filename):
 
 sr, wav = load_non_wav(SF_PATH)
 
-
+freq = 440.0
+offset = round( float(sr)/freq)
+corr = wav[offset:]*wav[:-offset]
+ny_cutoff = freq/(float(sr)/2.0)
