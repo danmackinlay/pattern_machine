@@ -24,6 +24,8 @@ import math
 
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 BLOCKSIZE = 64 #downsample analysis by this many samples
+BASEFREQ = 440
+N_STEPS = 12
 
 def load_wav(filename):
     try:
@@ -50,16 +52,19 @@ def load_non_wav(filename):
 
 sr, wav = load_non_wav(SF_PATH)
 wav2 = wav * wav
+freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BASEFREQ
 
-freq = 440.0
-offset = round(float(sr)/freq)
-cov = np.zeros_like(wav)
-cov[offset:] = wav[offset:]*wav[:-offset]
-#ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
-rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
-a, b = iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
-# inital conditions:
-zi = lfilter_zi(a, b) # if we wish to initialize the filter to non-zero val
-smooth_cov, zf = lfilter(a, b, cov, zi=zi*0)
-smooth_wav2, zf = lfilter(a, b, wav2, zi=zi*0)
-small_corr =  decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir')
+corrs = []
+
+for freq in freqs:
+    offset = round(float(sr)/freq)
+    cov = np.zeros_like(wav)
+    cov[offset:] = wav[offset:]*wav[:-offset]
+    #ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
+    rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
+    b, a = iirfilter(N=3, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
+    # inital conditions:
+    zi = lfilter_zi(b, a) # if we wish to initialize the filter to non-zero val
+    smooth_cov, zf = lfilter(b, a, cov, zi=zi*0)
+    smooth_wav2, zf = lfilter(b, a, wav2, zi=zi*0)
+    corrs.append(decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir'))
