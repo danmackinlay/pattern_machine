@@ -23,8 +23,7 @@ import subprocess
 import math
 
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
-WAVELEN_DECAY = 10**-3 # 60dB decay in 1 wavelen, mathing SC
-
+BLOCKSIZE = 64 #downsample analysis by this many samples
 
 def load_wav(filename):
     try:
@@ -51,13 +50,15 @@ def load_non_wav(filename):
 
 sr, wav = load_non_wav(SF_PATH)
 wav2 = wav * wav
+smallwav = scipy.signal.decimate(wav2, BLOCKSIZE, ftype='iir', axis=1)
 
 freq = 440.0
 offset = round(float(sr)/freq)
-corr = wav[offset:]*wav[:-offset]
+corr = np.zeros_like(wav)
+corr[offset:] = wav[offset:]*wav[:-offset]
 #ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
 rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
 a, b = scipy.signal.iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
 # inital conditions:
-zi = scipy.signal.lfilter_zi(a, b)
-y, zf = lfilter(b, a, wav, zi=zi*x[0])
+zi = scipy.signal.lfilter_zi(a, b) # if we wish to initialize the filter to non-zero val
+y, zf = lfilter(b, a, wav, zi=zi*0)

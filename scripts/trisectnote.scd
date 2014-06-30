@@ -11,23 +11,20 @@ s=~serverboot.(prox:\local, device:\builtin);
 (
 var analNode;
 SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8|
-	var attackTime, delTimes, sig, inamp, refamps;
+	var attackTime, delTimes, sig, inamp, refamps, coefs;
 	//should individual bands have their own attack rates?
 	//should we exploit diff attack and decays?
 	attackTime=basef.reciprocal*smoothness;
 	delTimes=Array.geom(12,basef.reciprocal,2**(-1.0/12.0));
 	sig = In.ar(inbus,1);
-	inamp = Amplitude.kr(
-		sig.squared,
-		attackTime:attackTime,
-		releaseTime:attackTime,
-	).sqrt.max(0.0001);
+	coefs = (0.0001.log/(delTimes*SampleRate.ir)).exp;
+	inamp = A2K.kr(
+		Onepole.ar(sig.squared, coef:coef)
+	).max(0.0001);
 	//NB, this makes no sense, since the correlation can be negative.
-	refamps = Amplitude.kr(
-		(DelayC.ar(sig, delaytime:delTimes) * sig).squared,
-		attackTime:attackTime,
-		releaseTime:attackTime,
-	).sqrt.max(0.0001)/inamp;
+	refamps = A2K.kr(
+		Onepole.ar((DelayC.ar(sig, delaytime:delTimes) * sig), coef:coef)
+	)/inamp;
 	//TextVU.ar(5, refamps, "Analy");
 	Out.kr(outbus, refamps ++ [inamp]);
 }).add;
