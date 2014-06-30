@@ -22,6 +22,7 @@ SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8|
 		attackTime:attackTime,
 		releaseTime:attackTime,
 	).sqrt.max(0.0001);
+	//NB, this makes no sense, since the correlation can be negative.
 	refamps = Amplitude.kr(
 		(DelayC.ar(sig, delaytime:delTimes) * sig).squared,
 		attackTime:attackTime,

@@ -16,11 +16,15 @@ import os.path
 import sys
 import numpy as np
 import scipy.io.wavfile
+import scipy.signal
 import wave
 import tempfile
 import subprocess
+import math
 
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
+WAVELEN_DECAY = 10**-3 # 60dB decay in 1 wavelen, mathing SC
+
 
 def load_wav(filename):
     try:
@@ -46,8 +50,14 @@ def load_non_wav(filename):
     return wav
 
 sr, wav = load_non_wav(SF_PATH)
+wav2 = wav * wav
 
 freq = 440.0
-offset = round( float(sr)/freq)
+offset = round(float(sr)/freq)
 corr = wav[offset:]*wav[:-offset]
-ny_cutoff = freq/(float(sr)/2.0)
+#ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
+rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
+a, b = scipy.signal.iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
+# inital conditions:
+zi = scipy.signal.lfilter_zi(a, b)
+y, zf = lfilter(b, a, wav, zi=zi*x[0])
