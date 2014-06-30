@@ -21,6 +21,10 @@ import wave
 import tempfile
 import subprocess
 import math
+import tables
+
+OUTPUT_BASE_PATH = os.path.normpath("./")
+CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 BLOCKSIZE = 64 #downsample analysis by this many samples
@@ -68,3 +72,20 @@ for freq in freqs:
     smooth_cov, zf = lfilter(b, a, cov, zi=zi*0)
     smooth_wav2, zf = lfilter(b, a, wav2, zi=zi*0)
     corrs.append(decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir'))
+
+all_corr = np.vstack(corrs)
+
+
+filt = None
+#    filt = tables.Filters(complevel=5)
+
+with tables.open_file(CORR_PATH, 'w') as table_out_handle:
+    table_out_handle.create_carray('/','v_freqs',
+        atom=tables.Float32Atom(),
+        shape=freqs.shape,
+        title="freqs",
+        filters=filt)[:] = freqs
+    table_out_handle.create_carray('/','v_corrs',
+        atom=tables.Float32Atom(), shape=all_corr.shape,
+        title="corrs",
+        filters=filt)[:] = all_corr
