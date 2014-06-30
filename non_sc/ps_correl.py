@@ -16,7 +16,7 @@ import os.path
 import sys
 import numpy as np
 import scipy.io.wavfile
-import scipy.signal
+from scipy.signal import lfilter, decimate, lfilter_zi, iirfilter
 import wave
 import tempfile
 import subprocess
@@ -50,15 +50,16 @@ def load_non_wav(filename):
 
 sr, wav = load_non_wav(SF_PATH)
 wav2 = wav * wav
-smallwav = scipy.signal.decimate(wav2, BLOCKSIZE, ftype='iir', axis=1)
 
 freq = 440.0
 offset = round(float(sr)/freq)
-corr = np.zeros_like(wav)
-corr[offset:] = wav[offset:]*wav[:-offset]
+cov = np.zeros_like(wav)
+cov[offset:] = wav[offset:]*wav[:-offset]
 #ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
 rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
-a, b = scipy.signal.iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
+a, b = iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
 # inital conditions:
-zi = scipy.signal.lfilter_zi(a, b) # if we wish to initialize the filter to non-zero val
-y, zf = lfilter(b, a, wav, zi=zi*0)
+zi = lfilter_zi(a, b) # if we wish to initialize the filter to non-zero val
+smooth_cov, zf = lfilter(a, b, cov, zi=zi*0)
+smooth_wav2, zf = lfilter(a, b, wav2, zi=zi*0)
+small_corr =  decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir')
