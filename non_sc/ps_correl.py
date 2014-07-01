@@ -10,6 +10,19 @@ http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
 polyphase filtering is the right keyword
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
+
+NN searrch on this data set:
+http://scikit-learn.org/stable/modules/neighbors.html#ball-tree
+over osc... - baisic PyOSC should be OK? or gevented server?
+
+To consider: should we highpass as the base f of  the signal to reduce spurious bass "correlation". (or is that OK?, since it will select for similar spectral balances)
+
+Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone steps
+
+Also, what loss function? negative correlation is more significant than positive, for example...
+Should we even normalise to [-1,1]? That might be an alternative to bass filtering.
+
+How do we detect inharmonic noise?
 """
 
 import os.path
