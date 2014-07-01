@@ -48,21 +48,22 @@ CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 BLOCKSIZE = 64 #downsample analysis by this many samples
 BASEFREQ = 440
+BASEFREQ = 440.0
 N_STEPS = 12
-EPSILON = np.finfo(float).eps
 
-def RC(Wn, btype='low'):
+def RC(Wn, btype='low', dtype=np.float64):
      """ old-fashioned minimal filter design, if you don't want this modern bessel nonsense """
+     epsilon = np.finfo(dtype).eps
      f = Wn/2.0 # shouldn't this be *2.0?
      x = exp(-2*np.pi*f)
      if btype == 'low':
-         b,a = np.zeros(2), np.zeros(2)
-         b[0] = 1.0 - x
+         b, a = np.zeros(2), np.zeros(2)
+         b[0] = 1.0 - x - epsilon #filter instability
          b[1] = 0.0
          a[0] = 1.0
          a[1] = -x
      elif btype == 'high':
-         b,a = np.zeros(2), np.zeros(2)
+         b, a = np.zeros(2), np.zeros(2)
          b[0] = (1.0+x)/2.0
          b[1] = -(1.0+x)/2.0
          a[0] = 1.0
@@ -122,10 +123,9 @@ for freq in freqs:
     cov[:offset] = cov[offset:2*offset]
     rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
     b, a = RC(Wn=rel_f)
-    # inital conditions:
-    # zi = lfilter_zi(b, a)
     smooth_cov = cov
     smooth_wav2 = wav2
+    # repeatedly filter
     for i in xrange(4):
         smooth_cov = lfilter(b, a, smooth_cov)
         smooth_wav2 = lfilter(b, a, smooth_wav2)
