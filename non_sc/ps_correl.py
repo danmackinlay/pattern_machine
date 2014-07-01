@@ -17,7 +17,7 @@ over osc... - baisic PyOSC should be OK? or gevented server?
 
 To consider: should we highpass as the base f of  the signal to reduce spurious bass "correlation". (or is that OK?, since it will select for similar spectral balances)
 
-Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone steps
+Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone steps?  
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 Should we even normalise to [-1,1]? That might be an alternative to bass filtering.
@@ -56,6 +56,11 @@ def load_wav(filename):
         print "Error loading wav: "+filename
         return None
 
+def normalized(wavdata):
+    wavdata -= wavdata.mean()
+    wavdata *= 1.0/np.abs(wavdata).max()
+    return wavdata
+    
 def load_non_wav(filename):
     #could really use some 
     newfilename = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
@@ -68,6 +73,7 @@ def load_non_wav(filename):
     return wav
 
 sr, wav = load_non_wav(SF_PATH)
+wav = normalized(wav)
 wav2 = wav * wav
 freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BASEFREQ
 
