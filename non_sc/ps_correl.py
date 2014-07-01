@@ -23,6 +23,10 @@ Also, what loss function? negative correlation is more significant than positive
 Should we even normalise to [-1,1]? That might be an alternative to bass filtering.
 
 How do we detect inharmonic noise?
+
+Need to mask 0-amplitude secions out.
+
+Also, it "rings" around steps right now - all pole filter design required.
 """
 
 import os.path
@@ -86,8 +90,8 @@ for freq in freqs:
     #purely for initialisation
     cov[:offset] = cov[offset:2*offset]
     #ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
-    rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
-    b, a = iirfilter(N=3, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
+    rel_f = freq/(float(sr)/2.0)/8.0 # relative to nyquist freq, not samplerate
+    b, a = iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
     # inital conditions:
     zi = lfilter_zi(b, a) # if we wish to initialize the filter to non-zero val
     smooth_cov, zf = lfilter(b, a, cov, zi=zi*cov[:offset].mean())
