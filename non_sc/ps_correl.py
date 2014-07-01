@@ -34,6 +34,7 @@ import subprocess
 import math
 import tables
 from math import exp, log
+from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 
 OUTPUT_BASE_PATH = os.path.normpath("./")
 CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
@@ -117,7 +118,7 @@ mask = smooth_wav2>MIN_MS_LEVEL
 little_corrs = []
 for freq in freqs:
     # For now, offset is rounded to the nearest sample; we don't use e.g polyphase delays 
-    offset = round(float(sr)/freq)
+    offset = int(round(float(sr)/freq))
     cov = np.zeros_like(wav)
     cov[offset:] = wav[offset:]*wav[:-offset]
     #purely for initialisation
@@ -162,3 +163,6 @@ with tables.open_file(CORR_PATH, 'w') as table_out_handle:
         atom=tables.Float32Atom(), shape=all_corr.shape,
         title="mag",
         filters=filt)[:] = little_wav2
+
+tree = BallTree(all_corr.T, metric='euclidean')
+distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
