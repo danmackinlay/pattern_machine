@@ -14,6 +14,7 @@ http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 NN searrch on this data set:
 http://scikit-learn.org/stable/modules/neighbors.html#ball-tree
 over osc... - baisic PyOSC should be OK? or gevented server?
+https://bitbucket.org/arjan/txosc/wiki/Home
 
 To consider: should we highpass as the base f of  the signal to reduce spurious bass "correlation". (or is that OK?, since it will select for similar spectral balances)
 
@@ -60,13 +61,19 @@ def load_wav(filename):
         print "Error loading wav: "+filename
         return None
 
+def high_passed(sr, wavdata, f=20.0):
+    """remove the bottom few Hz (def 20Hz)"""
+    rel_f = float(sr)/f
+    b, a = RC(Wn=rel_f, btype='high')
+    zi = lfilter_zi(b, a) # if we wish to initialize the filter to non-zero val
+    return lfilter(b, a, wavdata)
+
 def normalized(wavdata):
     wavdata -= wavdata.mean()
     wavdata *= 1.0/np.abs(wavdata).max()
     return wavdata
     
 def load_non_wav(filename):
-    #could really use some 
     newfilename = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
     subprocess.check_call([
         "sox",
@@ -77,6 +84,7 @@ def load_non_wav(filename):
     return wav
 
 sr, wav = load_non_wav(SF_PATH)
+wav = high_passed(sr, wav)
 wav = normalized(wav)
 wav2 = wav * wav
 freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BASEFREQ
@@ -84,12 +92,12 @@ freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BA
 corrs = []
 
 for freq in freqs:
+    # For now, offset is rounded to the nearest sample; we don't use e.g polyphase delays 
     offset = round(float(sr)/freq)
     cov = np.zeros_like(wav)
     cov[offset:] = wav[offset:]*wav[:-offset]
     #purely for initialisation
     cov[:offset] = cov[offset:2*offset]
-    #ratio = math.exp(math.log(WAVELEN_DECAY)/offset)
     rel_f = freq/(float(sr)/2.0)/8.0 # relative to nyquist freq, not samplerate
     b, a = iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
     # inital conditions:
@@ -99,7 +107,6 @@ for freq in freqs:
     corrs.append(decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir'))
 
 all_corr = np.vstack(corrs)
-
 
 filt = None
 #    filt = tables.Filters(complevel=5)
