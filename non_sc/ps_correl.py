@@ -1,17 +1,14 @@
 """
 rapidly ananlyse a bunch of files for a particular autocorrelation profile
 
-see http://docs.scipy.org/doc/scipy/reference/tutorial/signal.html#b-splines for fast interpolation
-
-see also scipy.signal.periodogram and scipy.signal.welch, praps signal.lfilter and/or signa.correlate
+For fractional sample delay, we can do cubic interpolation, or polyphase filtering:
 
 http://www.tau.ac.il/~kineret/amit/scipy_tutorial/
 http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
-polyphase filtering is the right keyword
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 
-NN searrch on this data set:
+NN search on this data set:
 http://scikit-learn.org/stable/modules/neighbors.html#ball-tree
 over osc... - baisic PyOSC should be OK? or gevented server?
 https://bitbucket.org/arjan/txosc/wiki/Home
@@ -24,10 +21,6 @@ Also, what loss function? negative correlation is more significant than positive
 Should we even normalise to [-1,1]? That might be an alternative to bass filtering.
 
 How do we detect inharmonic noise?
-
-Need to mask 0-amplitude secions out.
-
-Also, it "rings" around steps right now - all pole filter design required.
 """
 
 import os.path
@@ -161,9 +154,9 @@ with tables.open_file(CORR_PATH, 'w') as table_out_handle:
         shape=freqs.shape,
         title="freqs",
         filters=filt)[:] = freqs
-    table_out_handle.create_carray('/','v_little_corrs',
+    table_out_handle.create_carray('/','v_corrs',
         atom=tables.Float32Atom(), shape=all_corr.shape,
-        title="little_corrs",
+        title="corrs",
         filters=filt)[:] = all_corr
     table_out_handle.create_carray('/','v_mag',
         atom=tables.Float32Atom(), shape=all_corr.shape,
