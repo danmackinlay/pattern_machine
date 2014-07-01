@@ -40,6 +40,7 @@ import tempfile
 import subprocess
 import math
 import tables
+from math import exp, log
 
 OUTPUT_BASE_PATH = os.path.normpath("./")
 CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
@@ -48,6 +49,27 @@ SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 BLOCKSIZE = 64 #downsample analysis by this many samples
 BASEFREQ = 440
 N_STEPS = 12
+EPSILON = np.finfo(float).eps
+
+def RC(Wn, btype='low'):
+     """ old-fashioned minimal filter design, if you don't want this modern bessel nonsense """
+     f = Wn/2.0 # shouldn't this be *2.0?
+     x = exp(-2*np.pi*f)
+     if btype == 'low':
+         b,a = np.zeros(2), np.zeros(2)
+         b[0] = 1.0 - x
+         b[1] = 0.0
+         a[0] = 1.0
+         a[1] = -x
+     elif btype == 'high':
+         b,a = np.zeros(2), np.zeros(2)
+         b[0] = (1.0+x)/2.0
+         b[1] = -(1.0+x)/2.0
+         a[0] = 1.0
+         a[1] = -x
+     else:
+         raise ValueError, "btype must be 'low' or 'high'"
+     return b,a
 
 def load_wav(filename):
     try:
@@ -98,12 +120,16 @@ for freq in freqs:
     cov[offset:] = wav[offset:]*wav[:-offset]
     #purely for initialisation
     cov[:offset] = cov[offset:2*offset]
-    rel_f = freq/(float(sr)/2.0)/8.0 # relative to nyquist freq, not samplerate
-    b, a = iirfilter(N=1, Wn=rel_f, btype='lowpass', ftype='butter') # or ftype='bessel'?
+    rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
+    b, a = RC(Wn=rel_f)
     # inital conditions:
-    zi = lfilter_zi(b, a) # if we wish to initialize the filter to non-zero val
-    smooth_cov, zf = lfilter(b, a, cov, zi=zi*cov[:offset].mean())
-    smooth_wav2, zf = lfilter(b, a, wav2, zi=zi*wav2[:offset].mean())
+    # zi = lfilter_zi(b, a)
+    smooth_cov = cov
+    smooth_wav2 = wav2
+    for i in xrange(4):
+        smooth_cov = lfilter(b, a, smooth_cov)
+        smooth_wav2 = lfilter(b, a, smooth_wav2)
+    
     corrs.append(decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir'))
 
 all_corr = np.vstack(corrs)

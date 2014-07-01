@@ -1,3 +1,6 @@
+import numpy as np
+from math import exp, log
+
 def RC(Wn, btype='low'):
      """ digital equivalent of an RC circuit """
      f = Wn/2.0	
@@ -8,7 +11,7 @@ def RC(Wn, btype='low'):
          b[1] = 0.0
          a[0] = 1.0
          a[1] = - x
-     elif btype = 'high':
+     elif btype == 'high':
          b,a = np.zeros(2),np.zeros(2)
          b[0] = (1.0+x)/2.0
          b[1] = -(1.0+x)/2.0
