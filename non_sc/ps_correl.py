@@ -45,11 +45,13 @@ from math import exp, log
 OUTPUT_BASE_PATH = os.path.normpath("./")
 CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 
-SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
+#SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
+SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/draingigm.aif')
 BLOCKSIZE = 64 #downsample analysis by this many samples
-BASEFREQ = 440
 BASEFREQ = 440.0
 N_STEPS = 12
+MIN_LEVEL = 0.001 #ignore stuff less than -60dB
+MIN_MS_LEVEL = MIN_LEVEL**2
 
 def RC(Wn, btype='low', dtype=np.float64):
      """ old-fashioned minimal filter design, if you don't want this modern bessel nonsense """
@@ -112,8 +114,14 @@ wav = normalized(wav)
 wav2 = wav * wav
 freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BASEFREQ
 
-corrs = []
+smooth_wav2 = wav2
+rel_f = BASEFREQ/(float(sr)/2.0)
+b, a = RC(Wn=rel_f)
+for i in xrange(4):
+    smooth_wav2 = lfilter(b, a, smooth_wav2)
+mask = smooth_wav2>MIN_MS_LEVEL
 
+little_corrs = []
 for freq in freqs:
     # For now, offset is rounded to the nearest sample; we don't use e.g polyphase delays 
     offset = round(float(sr)/freq)
@@ -124,18 +132,28 @@ for freq in freqs:
     rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
     b, a = RC(Wn=rel_f)
     smooth_cov = cov
-    smooth_wav2 = wav2
+    local_smooth_wav2 = wav2
     # repeatedly filter
     for i in xrange(4):
         smooth_cov = lfilter(b, a, smooth_cov)
-        smooth_wav2 = lfilter(b, a, smooth_wav2)
+        local_smooth_wav2 = lfilter(b, a, smooth_wav2)
     
-    corrs.append(decimate(smooth_cov/np.maximum(smooth_wav2, 0.000001), BLOCKSIZE, ftype='iir'))
+    little_corrs.append(
+        decimate(
+            mask * smooth_cov/np.maximum(local_smooth_wav2, MIN_MS_LEVEL),
+            BLOCKSIZE,
+            ftype='iir'
+        )
+    )
 
-all_corr = np.vstack(corrs)
+little_wav2 = decimate(
+    mask * smooth_wav2, BLOCKSIZE, ftype='iir'
+)
+
+all_corr = np.vstack(little_corrs)
 
 filt = None
-#    filt = tables.Filters(complevel=5)
+# filt = tables.Filters(complevel=5)
 
 with tables.open_file(CORR_PATH, 'w') as table_out_handle:
     table_out_handle.create_carray('/','v_freqs',
@@ -143,7 +161,11 @@ with tables.open_file(CORR_PATH, 'w') as table_out_handle:
         shape=freqs.shape,
         title="freqs",
         filters=filt)[:] = freqs
-    table_out_handle.create_carray('/','v_corrs',
+    table_out_handle.create_carray('/','v_little_corrs',
         atom=tables.Float32Atom(), shape=all_corr.shape,
-        title="corrs",
+        title="little_corrs",
         filters=filt)[:] = all_corr
+    table_out_handle.create_carray('/','v_mag',
+        atom=tables.Float32Atom(), shape=all_corr.shape,
+        title="mag",
+        filters=filt)[:] = little_wav2
