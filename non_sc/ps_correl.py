@@ -50,7 +50,7 @@ CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 
 #SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/draingigm.aif')
-TIME_QUANTUM = 0.025 #Anlayise at ca 40Hz
+TIME_QUANTUM = 0.025 #Analyse at ca 40Hz
 BASEFREQ = 440.0
 N_STEPS = 12
 MIN_LEVEL = 0.001 #ignore stuff less than -60dB
@@ -111,7 +111,7 @@ def load_non_wav(filename):
     return wav
 
 sr, wav = load_non_wav(SF_PATH)
-blocksize = sr * TIME_QUANTUM
+blocksize = int(round(sr * TIME_QUANTUM))
 wav = high_passed(sr, wav)
 wav = normalized(wav)
 wav2 = wav * wav
@@ -138,16 +138,18 @@ for freq in freqs:
     little_corrs.append(
         decimate(
             mask * smooth_cov/np.maximum(smooth_wav2, MIN_MS_LEVEL),
-            int(round(blocksize)),
+            blocksize,
             ftype='fir' #FIR is needed to be stable at haptic rates
         )
     )
 
 little_wav2 = decimate(
-    mask * smooth_wav2, int(round(blocksize)), ftype='fir'
+    mask * smooth_wav2, blocksize, ftype='fir'
 )
 
 all_corr = np.vstack(little_corrs)
+
+sample_times = (np.arange(0,little_wav2.size,1)*blocksize).astype(np.float)/sr
 
 # filt = None
 # # filt = tables.Filters(complevel=5)
@@ -163,9 +165,13 @@ all_corr = np.vstack(little_corrs)
 #         title="corrs",
 #         filters=filt)[:] = all_corr
 #     table_out_handle.create_carray('/','v_mag',
-#         atom=tables.Float32Atom(), shape=all_corr.shape,
+#         atom=tables.Float32Atom(), shape=v_mag.shape,
 #         title="mag",
 #         filters=filt)[:] = little_wav2
+#     table_out_handle.create_carray('/','v_times',
+#         atom=tables.Float32Atom(), shape=v_time.shape,
+#         title="v_times",
+#         filters=filt)[:] = sample_times
 
 # tree = BallTree(all_corr.T, metric='euclidean')
 # distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
