@@ -10,17 +10,26 @@ http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 
 NN search on this data set:
 http://scikit-learn.org/stable/modules/neighbors.html#ball-tree
-over osc... - baisic PyOSC should be OK? or gevented server?
+over osc... - basic PyOSC should be OK, given low IO load.
 https://bitbucket.org/arjan/txosc/wiki/Home
 
-To consider: should we highpass as the base f of  the signal to reduce spurious bass "correlation". (or is that OK?, since it will select for similar spectral balances)
+To consider: should we highpass as the base f of the signal to reduce spurious bass "correlation"? (or is that OK?, since it will select for similar spectral balances)
 
 Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone steps?  
 
 Also, what loss function? negative correlation is more significant than positive, for example...
-Should we even normalise to [-1,1]? That might be an alternative to bass filtering.
 
-How do we detect inharmonic noise?
+TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? This would have the bonus of reducing need for high pass
+TODO: index and decimate by time, not sample index (accordingly, remove quiet sections from index)
+TODO: adaptive masking noise floor
+TODO: live server bus setting (time index, estimated amplitude, file index)
+TODO: live server synth triggering
+TODO: live client feedback
+TODO: serialise analysis to disk ? (not worth it right now; analysis speed is 100+:1 before optimisation)
+TODO: handle updates per OSC
+TODO: confirm this RC function has correct frequency parameterization
+TODO: handle multiple files
+TODO: I am taking pains to simulate online learning atm with the filters; but i could instead do non-causal learning and reduce bookkeeping (e.g. filtfilt)
 """
 
 import os.path
