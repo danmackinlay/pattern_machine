@@ -30,6 +30,7 @@ TODO: serialise analysis to disk ? (not worth it right now; analysis speed is 10
 TODO: handle updates per OSC
 TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
+TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 """
 
 import os.path
@@ -50,7 +51,7 @@ CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 
 #SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/draingigm.aif')
-BLOCKSIZE = 64 #downsample analysis by this many samples
+TIME_QUANTUM = 0.025 #Anlayise at ca 40Hz
 BASEFREQ = 440.0
 N_STEPS = 12
 MIN_LEVEL = 0.001 #ignore stuff less than -60dB
@@ -111,13 +112,14 @@ def load_non_wav(filename):
     return wav
 
 sr, wav = load_non_wav(SF_PATH)
+blocksize = sr * TIME_QUANTUM
 wav = high_passed(sr, wav)
 wav = normalized(wav)
 wav2 = wav * wav
 freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BASEFREQ
 
 smooth_wav2 = wav2
-rel_f = BASEFREQ/(float(sr)/2.0)
+rel_f = 2.0/(float(sr)*TIME_QUANTUM)  # relative to nyquist freq, not samplerate
 b, a = RC(Wn=rel_f)
 for i in xrange(4):
     smooth_wav2 = filtfilt(b, a, smooth_wav2)
@@ -141,13 +143,13 @@ for freq in freqs:
     little_corrs.append(
         decimate(
             mask * smooth_cov/np.maximum(local_smooth_wav2, MIN_MS_LEVEL),
-            BLOCKSIZE,
-            ftype='iir'
+            int(round(blocksize)),
+            ftype='fir' #FIR is needed to be stable at haptic rates
         )
     )
 
 little_wav2 = decimate(
-    mask * smooth_wav2, BLOCKSIZE, ftype='iir'
+    mask * smooth_wav2, int(round(blocksize)), ftype='fir'
 )
 
 all_corr = np.vstack(little_corrs)
