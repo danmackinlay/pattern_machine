@@ -82,7 +82,12 @@ rel_f = 2.0/(float(sr)*TIME_QUANTUM)  # relative to nyquist freq, not samplerate
 b, a = RC(Wn=rel_f)
 for i in xrange(4):
     smooth_wav2 = filtfilt(b, a, smooth_wav2)
+
 mask = smooth_wav2>MIN_MS_LEVEL
+little_wav2 = decimate(
+    smooth_wav2, blocksize, ftype='fir'
+)
+little_mask = mask[np.arange(0,little_wav2.size,1)*blocksize]
 
 little_corrs = []
 for freq in freqs:
@@ -103,15 +108,14 @@ for freq in freqs:
         )
     )
 
-little_wav2 = decimate(
-    mask * smooth_wav2, blocksize, ftype='fir'
-)
-
-all_corr = np.vstack(little_corrs)
-
+all_corrs = np.vstack(little_corrs)
 sample_times = (np.arange(0,little_wav2.size,1)*blocksize).astype(np.float)/sr
 
+#trim "too quiet" stuff
+all_corrs = all_corrs[:,np.where(little_mask)[0]]
+sample_times = sample_times[np.where(little_mask)[0]]
+little_wav2 = little_wav2[np.where(little_mask)[0]]
 
+tree = BallTree(all_corrs.T, metric='euclidean')
 
-# tree = BallTree(all_corr.T, metric='euclidean')
 # distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
