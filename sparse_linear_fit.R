@@ -20,8 +20,6 @@ require(rhdf5)
 # cl <- makeCluster(4)
 # registerDoSNOW(cl)
 
-require(rhdf5)
-
 # which file has the data? Support defaults ofr interaction, and CLI use
 h5.file.name.from.python = "rag_from_python.h5"
 h5.file.name.to.python = "rag_to_python.h5"
