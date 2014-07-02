@@ -20,8 +20,6 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 Also, what loss function? negative correlation is more significant than positive, for example...
 
 TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? This would have the bonus of reducing need for high pass
-TODO: index and decimate by time, (e.g. 50ms) not sample index (accordingly, remove quiet sections from index)
-TODO: make amplitude smoothing dependent on this time quantum
 TODO: adaptive masking noise floor
 TODO: live server bus setting (time index, estimated amplitude, file index)
 TODO: live server synth triggering
@@ -131,18 +129,14 @@ for freq in freqs:
     offset = int(round(float(sr)/freq))
     cov = np.zeros_like(wav)
     cov[:-offset] = wav[offset:]*wav[:-offset]
-    rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
-    b, a = RC(Wn=rel_f)
-    smooth_cov = cov
-    local_smooth_wav2 = wav2
     # repeatedly filter; this is effectively and 8th-order lowpass now
+    smooth_cov = cov
     for i in xrange(4):
         smooth_cov = filtfilt(b, a, smooth_cov)
-        local_smooth_wav2 = filtfilt(b, a, smooth_wav2)
     
     little_corrs.append(
         decimate(
-            mask * smooth_cov/np.maximum(local_smooth_wav2, MIN_MS_LEVEL),
+            mask * smooth_cov/np.maximum(smooth_wav2, MIN_MS_LEVEL),
             int(round(blocksize)),
             ftype='fir' #FIR is needed to be stable at haptic rates
         )
