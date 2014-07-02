@@ -20,7 +20,8 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 Also, what loss function? negative correlation is more significant than positive, for example...
 
 TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? This would have the bonus of reducing need for high pass
-TODO: index and decimate by time, not sample index (accordingly, remove quiet sections from index)
+TODO: index and decimate by time, (e.g. 50ms) not sample index (accordingly, remove quiet sections from index)
+TODO: make amplitude smoothing dependent on this time quantum
 TODO: adaptive masking noise floor
 TODO: live server bus setting (time index, estimated amplitude, file index)
 TODO: live server synth triggering
@@ -29,14 +30,13 @@ TODO: serialise analysis to disk ? (not worth it right now; analysis speed is 10
 TODO: handle updates per OSC
 TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
-TODO: I am taking pains to simulate online learning atm with the filters; but i could instead do non-causal learning and reduce bookkeeping (e.g. filtfilt)
 """
 
 import os.path
 import sys
 import numpy as np
 import scipy.io.wavfile
-from scipy.signal import lfilter, decimate, lfilter_zi, iirfilter
+from scipy.signal import filtfilt, decimate, iirfilter
 import wave
 import tempfile
 import subprocess
@@ -93,8 +93,7 @@ def high_passed(sr, wavdata, f=20.0):
     """remove the bottom few Hz (def 20Hz)"""
     rel_f = float(sr)/f
     b, a = RC(Wn=rel_f, btype='high')
-    zi = lfilter_zi(b, a) # if we wish to initialize the filter to non-zero val
-    return lfilter(b, a, wavdata)
+    return filtfilt(b, a, wavdata)
 
 def normalized(wavdata):
     wavdata -= wavdata.mean()
@@ -121,7 +120,7 @@ smooth_wav2 = wav2
 rel_f = BASEFREQ/(float(sr)/2.0)
 b, a = RC(Wn=rel_f)
 for i in xrange(4):
-    smooth_wav2 = lfilter(b, a, smooth_wav2)
+    smooth_wav2 = filtfilt(b, a, smooth_wav2)
 mask = smooth_wav2>MIN_MS_LEVEL
 
 little_corrs = []
@@ -129,17 +128,15 @@ for freq in freqs:
     # For now, offset is rounded to the nearest sample; we don't use e.g polyphase delays 
     offset = int(round(float(sr)/freq))
     cov = np.zeros_like(wav)
-    cov[offset:] = wav[offset:]*wav[:-offset]
-    #purely for initialisation
-    cov[:offset] = cov[offset:2*offset]
+    cov[:-offset] = wav[offset:]*wav[:-offset]
     rel_f = freq/(float(sr)/2.0) # relative to nyquist freq, not samplerate
     b, a = RC(Wn=rel_f)
     smooth_cov = cov
     local_smooth_wav2 = wav2
-    # repeatedly filter
+    # repeatedly filter; this is effectively and 8th-order lowpass now
     for i in xrange(4):
-        smooth_cov = lfilter(b, a, smooth_cov)
-        local_smooth_wav2 = lfilter(b, a, smooth_wav2)
+        smooth_cov = filtfilt(b, a, smooth_cov)
+        local_smooth_wav2 = filtfilt(b, a, smooth_wav2)
     
     little_corrs.append(
         decimate(
