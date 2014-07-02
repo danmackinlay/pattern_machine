@@ -148,23 +148,23 @@ little_wav2 = decimate(
 
 all_corr = np.vstack(little_corrs)
 
-filt = None
-# filt = tables.Filters(complevel=5)
+# filt = None
+# # filt = tables.Filters(complevel=5)
+#
+# with tables.open_file(CORR_PATH, 'w') as table_out_handle:
+#     table_out_handle.create_carray('/','v_freqs',
+#         atom=tables.Float32Atom(),
+#         shape=freqs.shape,
+#         title="freqs",
+#         filters=filt)[:] = freqs
+#     table_out_handle.create_carray('/','v_corrs',
+#         atom=tables.Float32Atom(), shape=all_corr.shape,
+#         title="corrs",
+#         filters=filt)[:] = all_corr
+#     table_out_handle.create_carray('/','v_mag',
+#         atom=tables.Float32Atom(), shape=all_corr.shape,
+#         title="mag",
+#         filters=filt)[:] = little_wav2
 
-with tables.open_file(CORR_PATH, 'w') as table_out_handle:
-    table_out_handle.create_carray('/','v_freqs',
-        atom=tables.Float32Atom(),
-        shape=freqs.shape,
-        title="freqs",
-        filters=filt)[:] = freqs
-    table_out_handle.create_carray('/','v_corrs',
-        atom=tables.Float32Atom(), shape=all_corr.shape,
-        title="corrs",
-        filters=filt)[:] = all_corr
-    table_out_handle.create_carray('/','v_mag',
-        atom=tables.Float32Atom(), shape=all_corr.shape,
-        title="mag",
-        filters=filt)[:] = little_wav2
-
-tree = BallTree(all_corr.T, metric='euclidean')
-distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
+# tree = BallTree(all_corr.T, metric='euclidean')
+# distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
