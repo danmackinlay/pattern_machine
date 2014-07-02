@@ -12,9 +12,9 @@ def load_wav(filename):
         if len(smp.shape)>1: #convert to mono
             smp=(smp[:,0]+smp[:,1])*0.5
         return (samplerate,smp)
-    except:
-        print "Error loading wav: "+filename
-        return None
+    except Exception, e:
+        e.filename = filename
+        raise e
 
 def load_non_wav(filename):
     newfilename = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
