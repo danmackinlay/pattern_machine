@@ -24,12 +24,14 @@ TODO: adaptive masking noise floor
 TODO: live server bus setting (time index, estimated amplitude, file index)
 TODO: live server synth triggering
 TODO: live client feedback
-TODO: serialise analysis to disk ? (not worth it right now; analysis speed is 100+:1 before optimisation)
+TODO: serialise analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised)
 TODO: handle updates per OSC
 TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 TODO: dimension reduction
+TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
+TODO: search ALSO on variance, to avoid spurious transient onset matches
 """
 
 import os.path
@@ -50,7 +52,7 @@ CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 
 #SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/draingigm.aif')
-TIME_QUANTUM = 0.025 #Analyse at ca 40Hz
+TIME_QUANTUM = 1.0/80.0 #Analyse at ca 80Hz
 BASEFREQ = 440.0
 N_STEPS = 12
 MIN_LEVEL = 0.001 #ignore stuff less than -60dB

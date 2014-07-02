@@ -1,10 +1,7 @@
 /*
 * Messing around trying to find a low-dimensional feature vector that represents harmonicity
-Right now, problem is that because there isn't necessarily much energy aroudn 220hz, not clear how to normalise the signal to represent that fact
-normalise based on how much power is in that octave?
 
-* remedial trigonometry:
-  * * https://en.wikipedia.org/wiki/List_of_trigonometric_identities#Angle_sum_and_difference_identitieshttp://www.sosmath.com/trig/Trig5/trig5/trig5.html
+TODO: Filter at control rate to bring the smoothing into line with the offline python analysis
 
 */
 s=~serverboot.(prox:\local, device:\builtin);
