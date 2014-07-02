@@ -1,19 +1,19 @@
 """
-rapidly ananlyse a bunch of files for a particular autocorrelation profile
+rapidly analyse a bunch of files for a particular autocorrelation profile
 
-For fractional sample delay, we can do cubic interpolation, or polyphase filtering:
-
+For fractional sample delay, we could do cubic interpolation, or polyphase filtering:
 http://www.tau.ac.il/~kineret/amit/scipy_tutorial/
 http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 
-NN search on this data set:
+TODO: kNN search on this data set:
 http://scikit-learn.org/stable/modules/neighbors.html#ball-tree
-over osc... - basic PyOSC should be OK, given low IO load.
+TODO: OSC query server - basic PyOSC should be OK, given low IO load.
 https://bitbucket.org/arjan/txosc/wiki/Home
 
-To consider: should we highpass as the base f of the signal to reduce spurious bass "correlation"? (or is that OK?, since it will select for similar spectral balances)
+To consider: should we highpass as the base f of the signal to reduce spurious bass "correlation"? (or is that OK? since it will select for similar spectral balances)
+In which case, should normalising be relative to filtered, or total, amplitude?
 
 Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone steps?  
 
@@ -29,6 +29,7 @@ TODO: handle updates per OSC
 TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
+TODO: dimension reduction
 """
 
 import os.path
