@@ -39,16 +39,15 @@ import sys
 import numpy as np
 import scipy.io.wavfile
 from scipy.signal import filtfilt, decimate, iirfilter
-import wave
-import tempfile
-import subprocess
 import math
-import tables
 from math import exp, log
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 
+from ps_basicfilter import RC
+from ps_correl_load import load_wav, load_non_wav
+
 OUTPUT_BASE_PATH = os.path.normpath("./")
-CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
+#CORR_PATH = os.path.join(OUTPUT_BASE_PATH, 'corr.h5')
 
 #SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif')
 SF_PATH = os.path.expanduser('~/src/sc/f_lustre/sounds/draingigm.aif')
@@ -58,38 +57,6 @@ N_STEPS = 12
 MIN_LEVEL = 0.001 #ignore stuff less than -60dB
 MIN_MS_LEVEL = MIN_LEVEL**2
 
-def RC(Wn, btype='low', dtype=np.float64):
-     """ old-fashioned minimal filter design, if you don't want this modern bessel nonsense """
-     epsilon = np.finfo(dtype).eps
-     f = Wn/2.0 # shouldn't this be *2.0?
-     x = exp(-2*np.pi*f)
-     if btype == 'low':
-         b, a = np.zeros(2), np.zeros(2)
-         b[0] = 1.0 - x - epsilon #filter instability
-         b[1] = 0.0
-         a[0] = 1.0
-         a[1] = -x
-     elif btype == 'high':
-         b, a = np.zeros(2), np.zeros(2)
-         b[0] = (1.0+x)/2.0
-         b[1] = -(1.0+x)/2.0
-         a[0] = 1.0
-         a[1] = -x
-     else:
-         raise ValueError, "btype must be 'low' or 'high'"
-     return b,a
-
-def load_wav(filename):
-    try:
-        wavedata=scipy.io.wavfile.read(filename)
-        samplerate=int(wavedata[0])
-        smp=wavedata[1]*(1.0/32768.0)
-        if len(smp.shape)>1: #convert to mono
-            smp=(smp[:,0]+smp[:,1])*0.5
-        return (samplerate,smp)
-    except:
-        print "Error loading wav: "+filename
-        return None
 
 def high_passed(sr, wavdata, f=20.0):
     """remove the bottom few Hz (def 20Hz)"""
@@ -101,16 +68,7 @@ def normalized(wavdata):
     wavdata -= wavdata.mean()
     wavdata *= 1.0/np.abs(wavdata).max()
     return wavdata
-    
-def load_non_wav(filename):
-    newfilename = tempfile.NamedTemporaryFile(suffix=".wav", delete=False).name
-    subprocess.check_call([
-        "sox",
-        filename,
-        newfilename])
-    wav = load_wav(newfilename)
-    os.unlink(newfilename)
-    return wav
+
 
 sr, wav = load_non_wav(SF_PATH)
 blocksize = int(round(sr * TIME_QUANTUM))
@@ -153,27 +111,7 @@ all_corr = np.vstack(little_corrs)
 
 sample_times = (np.arange(0,little_wav2.size,1)*blocksize).astype(np.float)/sr
 
-# filt = None
-# # filt = tables.Filters(complevel=5)
-#
-# with tables.open_file(CORR_PATH, 'w') as table_out_handle:
-#     table_out_handle.create_carray('/','v_freqs',
-#         atom=tables.Float32Atom(),
-#         shape=freqs.shape,
-#         title="freqs",
-#         filters=filt)[:] = freqs
-#     table_out_handle.create_carray('/','v_corrs',
-#         atom=tables.Float32Atom(), shape=all_corr.shape,
-#         title="corrs",
-#         filters=filt)[:] = all_corr
-#     table_out_handle.create_carray('/','v_mag',
-#         atom=tables.Float32Atom(), shape=v_mag.shape,
-#         title="mag",
-#         filters=filt)[:] = little_wav2
-#     table_out_handle.create_carray('/','v_times',
-#         atom=tables.Float32Atom(), shape=v_time.shape,
-#         title="v_times",
-#         filters=filt)[:] = sample_times
+
 
 # tree = BallTree(all_corr.T, metric='euclidean')
 # distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
