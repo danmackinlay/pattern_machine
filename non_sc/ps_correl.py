@@ -37,11 +37,9 @@ TODO: search ALSO on variance, to avoid spurious transient onset matches
 import os.path
 import sys
 import numpy as np
-import scipy.io.wavfile
 from scipy.signal import filtfilt, decimate, iirfilter
-import math
-from math import exp, log
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
+from OSC import OSCClient, OSCMessage, OSCServer
 
 from ps_basicfilter import RC
 from ps_correl_load import load_wav, load_non_wav
@@ -118,4 +116,15 @@ little_wav2 = little_wav2[np.where(little_mask)[0]]
 
 tree = BallTree(all_corrs.T, metric='euclidean')
 
+def user_callback(path, tags, args, source):
+    pass
+
 # distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
+client = OSCClient()
+client.connect( ("localhost", 57110) )
+server = OSCServer(("localhost", 36000), client=client, return_port=57110)
+server.addMsgHandler("/transect", user_callback )
+client.send( OSCMessage("/notify", 1 ) ) #subscribe to server stuff
+
+#client.send( OSCMessage("/quit") )
+

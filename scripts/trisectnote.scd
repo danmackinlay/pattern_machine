@@ -7,7 +7,7 @@ TODO: Filter at control rate to bring the smoothing into line with the offline p
 s=~serverboot.(prox:\local, device:\builtin);
 (
 var analNode;
-SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8|
+SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8, idx=1, pollrate=80.0|
 	var attackTime, delTimes, sig, inamp, refamps, coefs;
 	//should individual bands have their own attack rates?
 	//should we exploit diff attack and decays?
@@ -17,13 +17,18 @@ SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8|
 	coefs = (0.0001.log/(delTimes*SampleRate.ir)).exp;
 	inamp = A2K.kr(
 		Onepole.ar(sig.squared, coef:coef)
-	).max(0.0001);
-	//NB, this makes no sense, since the correlation can be negative.
+	);
 	refamps = A2K.kr(
 		Onepole.ar((DelayC.ar(sig, delaytime:delTimes) * sig), coef:coef)
-	)/inamp;
+	)/(inamp.max(0.0001));
+	refamps = refamps ++ [inamp];
 	//TextVU.ar(5, refamps, "Analy");
-	Out.kr(outbus, refamps ++ [inamp]);
+	Out.kr(outbus, refamps);
+	SendReply.kr(
+		Impulse.kr(pollrate)*(inamp>0.0001),
+		'/transect',
+		refamps,
+		idx);
 }).add;
 
 fork {
