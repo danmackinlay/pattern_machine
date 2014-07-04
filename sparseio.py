@@ -30,4 +30,24 @@ def write_sparse_hdf(handle, group, data, colnames=None, filt=None):
             ), shape=(len(feature_names),),
             title="col names",
             filters=filt)[:] = colnames
-    
+
+def read_cv_glmnet(handle, group):
+    cv_lo = handle.get_node(group, 'v_cvlo').read()
+    cv_up = handle.get_node(group, 'v_cvup').read()
+    cv_sd = handle.get_node(group, 'v_cvsd').read()
+    cv_m = handle.get_node(group, 'v_cvm').read()
+    nzero = handle.get_node(group, 'v_nzero').read()
+    nulldev = handle.get_node(group, 'v_nulldev').read()
+    lambd = handle.get_node(group, 'v_lambda').read()
+    coef_path = handle.get_node(group, 'v_coef').read()
+
+    return d(
+        cv_lo = cv_lo,
+        cv_up = cv_up,
+        cv_sd = cv_sd,
+        cv_m = cv_m,
+        nzero = nzero,
+        nulldev = nulldev,
+        lambd = lambd,
+        coef_path = coef_path,
+    )
