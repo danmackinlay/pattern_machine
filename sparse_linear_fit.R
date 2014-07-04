@@ -1,7 +1,7 @@
 require("Matrix")
 require("glmnet")
-require(rhdf5)
-
+require("rhdf5")
+source("sparseio.R")
 # # crashes with index error; seems to work ATM though
 # require(doMC)
 # registerDoMC(cores=4)
@@ -85,20 +85,4 @@ print(tidycoef(coef(notes.fit, s="lambda.1se")))
 # At least, I can't see how to do that from R which doesn't support deletion
 if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)
 h5createFile(h5.file.name.to.python)
-h5write.default(notes.fit$nzero, h5.file.name.to.python, "/v_nzero")
-h5write(notes.fit$cvlo, h5.file.name.to.python, "/v_cvlo")
-h5write(notes.fit$cvup, h5.file.name.to.python, "/v_cvup")
-h5write(notes.fit$cvsd, h5.file.name.to.python, "/v_cvsd")
-h5write(notes.fit$lambda, h5.file.name.to.python, "/v_lambda")
-h5write(notes.fit$cvm, h5.file.name.to.python, "/v_cvm")
-h5write(notes.fit$glmnet.fit$dev.ratio, h5.file.name.to.python, "/v_nulldev")
-coef.mat = matrix(data=0,nrow=length(notes.fit$lambda), ncol=length(coef(notes.fit)))
-colnames(coef.mat)=rownames(coef(notes.fit))
-for (i in 1:length(notes.fit$lambda)) { l=notes.fit$lambda[i]; coef.mat[i,]=t(as.matrix(coef(notes.fit,s=l)))}
-#beware! includes new intercept term, and there is no colnames attribute to make this clear
-# > h5write(coef.mat, h5.file.name.to.python, "/v_coef",  write.attributes = T)
-## Warning message:
-##In h5writeAttribute.default(Attr[[i]], h5obj, name = names(Attr)[i]) :
-##  No function found to write attribute of class 'list'. Attribute 'dimnames' is not written to hdf5-file.
-h5write(coef.mat, h5.file.name.to.python, "/v_coef")
-#rm(coef.mat)
+save.glmnet.hdf(h5.file.name.to.python, "/fit", notes.fit)
