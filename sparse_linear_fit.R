@@ -1,7 +1,7 @@
 require("Matrix")
 require("glmnet")
 require("rhdf5")
-source("sparseio.R")
+source("serialization.R")
 # # crashes with index error; seems to work ATM though
 # require(doMC)
 # registerDoMC(cores=4)
