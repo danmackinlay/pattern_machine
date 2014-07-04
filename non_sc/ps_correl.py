@@ -116,6 +116,13 @@ little_wav2 = little_wav2[np.where(little_mask)[0]]
 
 tree = BallTree(all_corrs.T, metric='euclidean')
 
+#see
+# http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Bidirectional-OSC-Control-Lemur-td7595404.html
+# https://github.com/aberant/osc-ruby/pull/7
+# https://github.com/supercollider/supercollider/issues/358
+# http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Sending-OSC-from-server-to-another-app-td7579249.html
+# https://www.npmjs.org/package/supercolliderjs
+
 def user_callback(path, tags, args, source):
     pass
 
