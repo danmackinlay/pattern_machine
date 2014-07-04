@@ -3,15 +3,6 @@ arpeggiate by numbers
 
 Learning cellular harmony automata
 
-MIDI parsing:
-----------------
-
-* http://python.6.x6.nabble.com/midi-file-parser-td1066563.html
-* https://groups.google.com/forum/#!msg/alt.sources/eRG2bL3Re-k/FvRLrRl0RiIJ
-* http://web.mit.edu/music21/doc/index.html
-* http://stackoverflow.com/a/14611850
-* realtime output might even be possible thanks to http://portmedia.sourceforge.net/portmidi/doxygen/
-
 Probabilistic underpinnings:
 -----------------------------
 
@@ -25,21 +16,14 @@ Probabilistic underpinnings:
 Possible techniques
 ----------------------
 
+I could always give up and infer hidden markov states.
+
 ### neural network
 
 see also the deep learning approach: http://deeplearning.net/tutorial/rnnrbm.html#rnnrbm andd
 http://www-etud.iro.umontreal.ca/~boulanni/ICML2012.pdf
 
-Full blown deep learning feels like overkill, but i feel like i could do some *un*principled feature construction as input to the logistic model which might get me just as far.
-we suspect marginal changes in features have a linear effect, fine
-but we also suspect that interaction terms are critical;
-Naive approach: walk through term-interaction space, discrectized.
-Start with one predictor, and add additional predictors randomly (greedily) if the combination
-has improved deviance wrt the mean.
-
-I do this at the moment, but my method is flawed, as it does not account for "diameter" - how many notes are candidates to sound.
-
-I could always give up and infer hidden markov states.
+Full blown deep learning feels like overkill, but ido some *un*principled feature construction as input to the logistic model which might get me just as far.
 
 ### PGM
 
@@ -91,6 +75,8 @@ CMU has a bunch of algorithms in this domain:
 TODO
 ------
 
+* make bar position slightly precede note
+* export sparse matrices generically so i can do a whole bunch of them.
 * truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions to reduce confusion with, e.g. bar position
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
@@ -99,7 +85,8 @@ TODO
   * weight features to de-favour annoying ones such as bar position
   * or use bar features to fit models conditionally; might be cleaner.
   
-* fix per-note-rate feature. ill-posed and broken ATM. Even if it didn't glitch out to 0, I didn't code it to translate across songs.
+    * large number of possible splits in this case
+  
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
@@ -107,10 +94,12 @@ TODO
 * Switch to pure python using liblinear http://www.csie.ntu.edu.tw/~cjlin/liblinear/
   
   NB Maybe not. Very slow in liblineaR atm - no nice optimisations for logistic regression or binary factors as in glmnet/R
+* fix per-note-rate feature. ill-posed and broken ATM. Even if it didn't glitch out to 0, I didn't code it to translate across songs.
 * save metadata:
   * MAX_AGE
   * matrix dimensions
   * source dataset
+  * basis parameters
 * factor mapping
 * call into R using rpy2 or even subprocess
 * predict inter-event times - would be a natural multiple classification task
