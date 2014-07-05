@@ -2,7 +2,9 @@ import numpy as np
 from math import exp, log
 
 def RC(Wn, btype='low', dtype=np.float64):
-     """ old-fashioned minimal filter design, if you don't want this modern bessel nonsense """
+     """old-fashioned minimal filter design, if you don't want this modern bessel nonsense
+     C'n'C SC out(i) = ((1 - abs(coef)) * in(i)) + (coef * out(i-1)).
+     """
      epsilon = np.finfo(dtype).eps
      f = Wn/2.0 # shouldn't this be *2.0?
      x = exp(-2*np.pi*f)
