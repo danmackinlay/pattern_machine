@@ -5,11 +5,12 @@ TODO: Filter at control rate to bring the smoothing into line with the offline p
 
 */
 s=~serverboot.(prox:\local, device:\builtin);
+
 (
 var analNode, plotter, state=();
 ~state = state;
 SynthDef.new(\transect12__1, {|inbus=0,
-	basef=220,
+	basef=440.0,
 	smoothness=4,
 	idx=1,
 	pollrate=10.0,

@@ -2,7 +2,7 @@ import tempfile
 import subprocess
 import os
 import os.path
-import scipy
+import scipy.io.wavfile
 
 def load_wav(filename):
     try:

@@ -55,7 +55,7 @@ BASEFREQ = 440.0
 N_STEPS = 12
 MIN_LEVEL = 0.001 #ignore stuff less than -60dB
 MIN_MS_LEVEL = MIN_LEVEL**2
-
+SC_SERVER_PORT = 57110
 
 def high_passed(sr, wavdata, f=20.0):
     """remove the bottom few Hz (def 20Hz)"""
@@ -124,12 +124,22 @@ tree = BallTree(all_corrs.T, metric='euclidean')
 # http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Sending-OSC-from-server-to-another-app-td7579249.html
 # https://www.npmjs.org/package/supercolliderjs
 
+
+client = OSCClient()
+client.connect( ("localhost", SC_SERVER_PORT) )
+
 def user_callback(path, tags, args, source):
-    pass
+    print path, tags, args, source
+    # looks like 
+    #/transect iifffffffffffff [1001, 1, -0.6750487089157104, -0.5806915163993835, -0.49237504601478577, -0.4095775783061981, -0.3318118751049042, -0.2586633563041687, -0.18976180255413055, -0.12478849291801453, -0.06346030533313751, -0.005534188821911812, 0.049216993153095245, 0.10099353641271591, 0.12387804687023163] ('127.0.0.1', 57110)
+    node = args[0]
+    idx = args[1]
+    lookup = args[3:] #ignores the amplitude?
+    result = tree.query(lookup, k=10)
+    # could send server bus messages and client info messages
+    client.send(OSCMessage(/))
 
 # distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
-client = OSCClient()
-client.connect( ("localhost", 57110) )
 server = OSCServer(("localhost", 36000), client=client, return_port=57110)
 server.addMsgHandler("/transect", user_callback )
 client.send( OSCMessage("/notify", 1 ) ) #subscribe to server stuff
