@@ -3,20 +3,29 @@
 //One pole LPF and HPF filters with freq input (instead of coef)
 //Thanks to Volker Bšhm for the (freq -> coef) conversion formula.
 //And Batuhan Bozkurt for initial pseudo ugen
+//these all take an "iter" param telling you how many times to apply the damn filter
 OpLPF {
-	*kr {|in, freq|
-		^OnePole.ar(in, exp(-2pi * (freq * ControlDur.ir)));
+	*kr {|in, freq=100, iter=1, mul=1, add=0|
+		var coef = exp(-2pi * (freq * ControlDur.ir));
+		iter.do({in=OnePole.kr(in, coef);});
+		^in;
 	}
 	*ar {|in, freq|
-		^OnePole.ar(in, exp(-2pi * (freq * SampleDur.ir)));
+		var coef = exp(-2pi * (freq * SampleDur.ir));
+		iter.do({in=OnePole.ar(in, coef);});
+		^in;
 	}
 }
 
 OpHPF {
-	*kr {|in, freq|
-		^(in - OnePole.ar(in, exp(-2pi * (freq * ControlDur.ir))));
+	*kr {|in, freq=100, mul=1, add=0|
+		var coef = exp(-2pi * (freq * ControlDur.ir)));
+		iter.do({in=in - OnePole.kr(in, coef);});
+		^in;
 	}
 	*ar {|in, freq|
-		^(in - OnePole.ar(in, exp(-2pi * (freq * SampleDur.ir))));
+		var coef = exp(-2pi * (freq * SampleDur.ir)));
+		iter.do({in=in - OnePole.kr(in, coef);});
+		^in;
 	}
 }

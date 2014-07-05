@@ -7,38 +7,55 @@ TODO: Filter at control rate to bring the smoothing into line with the offline p
 s=~serverboot.(prox:\local, device:\builtin);
 (
 var analNode;
-SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8, idx=1, pollrate=80.0|
-	var attackTime, delTimes, sig, inamp, refamps, coefs;
+SynthDef.new(\transect12__1, {|inbus=0,
+	basef=220,
+	outbus,
+	smoothness=4,
+	idx=1,
+	pollrate=10.0,
+	minamp=0.0001|
+	var delTimes, delFreqs, sig, inamp, refamps, lowpassF;
 	//should individual bands have their own attack rates?
 	//should we exploit diff attack and decays?
-	attackTime=basef.reciprocal*smoothness;
-	delTimes=Array.geom(12,basef.reciprocal,2**(-1.0/12.0));
-	sig = In.ar(inbus,1);
-	coefs = (0.0001.log/(delTimes*SampleRate.ir)).exp;
+	delFreqs = Array.geom(12,basef,2**(1.0/12.0));
+	delTimes = delFreqs.reciprocal;
+	lowpassF = basef/smoothness;
+	sig = LeakDC.ar(In.ar(inbus,1));
 	inamp = A2K.kr(
-		OnePole.ar(sig.squared, coef:coef)
+		OpLPF.ar(
+			sig.squared,
+			lowpassF,
+			iter: 4
+		)
 	);
 	refamps = A2K.kr(
-		OnePole.ar((DelayC.ar(sig, delaytime:delTimes) * sig), coef:coef)
-	)/(inamp.max(0.0001));
+		OpLPF.ar(
+			(DelayC.ar(sig, delaytime:delTimes) * sig),
+			lowpassF,
+			iter: 4
+		)
+	)/(inamp.max(minamp));
 	refamps = refamps ++ [inamp];
-	//TextVU.ar(5, refamps, "Analy");
+	// TextVU.ar(5, refamps, "Analy");
 	Out.kr(outbus, refamps);
 	SendReply.kr(
-		Impulse.kr(pollrate)*(inamp>0.0001),
+		Impulse.kr(pollrate)*(inamp>minamp),
 		'/transect',
 		refamps,
 		idx);
 }).add;
 
 fork {
+	s.notify(true);
 	~infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
-	~infilep="/Users/dan/src/sc/f_lustre/sounds/draingigm.aif";
+	//~infilep="/Users/dan/src/sc/f_lustre/sounds/draingigm.aif";
 	~inBus = Bus.audio(s,1);
 	~analBus = Bus.control(s,13);
 	//~meter=~analBus.makeBusMeter;
 	~inBuf=Buffer.read(s,~infilep,action:{|...args| \inbuf.postln;args.postln;});
 	s.sync;
+	OSCdef(\transect, { |msg| msg.postln }, '/transect');
+
 	~soundsource = Synth.new(\playbuf__1, [\bufnum,~inBuf, \outbus, ~inBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [\inbus, ~inBus, \outbus, ~analBus], s, \addToTail);
 	~state=(
