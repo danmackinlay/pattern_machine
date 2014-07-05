@@ -5,26 +5,26 @@
 //And Batuhan Bozkurt for initial pseudo ugen
 //these all take an "iter" param telling you how many times to apply the damn filter
 OpLPF {
-	*kr {|in, freq=100, iter=1, mul=1, add=0|
-		var coef = exp(-2pi * (freq * ControlDur.ir));
+	*kr {|in, freq=100, iter=1|
+		var coef = exp(-2*pi * (freq * ControlDur.ir));
 		iter.do({in=OnePole.kr(in, coef);});
 		^in;
 	}
-	*ar {|in, freq|
-		var coef = exp(-2pi * (freq * SampleDur.ir));
+	*ar {|in, freq, iter=1|
+		var coef = exp(-2*pi * (freq * SampleDur.ir));
 		iter.do({in=OnePole.ar(in, coef);});
 		^in;
 	}
 }
 
 OpHPF {
-	*kr {|in, freq=100, mul=1, add=0|
-		var coef = exp(-2pi * (freq * ControlDur.ir)));
+	*kr {|in, freq=100, iter=1|
+		var coef = exp(-2*pi * (freq * ControlDur.ir));
 		iter.do({in=in - OnePole.kr(in, coef);});
 		^in;
 	}
-	*ar {|in, freq|
-		var coef = exp(-2pi * (freq * SampleDur.ir)));
+	*ar {|in, freq, iter=1|
+		var coef = exp(-2*pi * (freq * SampleDur.ir));
 		iter.do({in=in - OnePole.kr(in, coef);});
 		^in;
 	}
