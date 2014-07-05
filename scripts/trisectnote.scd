@@ -16,10 +16,10 @@ SynthDef.new(\transect12__1, {|inbus=0,basef=220,outbus,smoothness=8, idx=1, pol
 	sig = In.ar(inbus,1);
 	coefs = (0.0001.log/(delTimes*SampleRate.ir)).exp;
 	inamp = A2K.kr(
-		Onepole.ar(sig.squared, coef:coef)
+		OnePole.ar(sig.squared, coef:coef)
 	);
 	refamps = A2K.kr(
-		Onepole.ar((DelayC.ar(sig, delaytime:delTimes) * sig), coef:coef)
+		OnePole.ar((DelayC.ar(sig, delaytime:delTimes) * sig), coef:coef)
 	)/(inamp.max(0.0001));
 	refamps = refamps ++ [inamp];
 	//TextVU.ar(5, refamps, "Analy");
