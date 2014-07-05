@@ -6,10 +6,10 @@ TODO: Filter at control rate to bring the smoothing into line with the offline p
 */
 s=~serverboot.(prox:\local, device:\builtin);
 (
-var analNode;
+var analNode, plotter, state=();
+~state = state;
 SynthDef.new(\transect12__1, {|inbus=0,
 	basef=220,
-	outbus,
 	smoothness=4,
 	idx=1,
 	pollrate=10.0,
@@ -37,33 +37,30 @@ SynthDef.new(\transect12__1, {|inbus=0,
 	)/(inamp.max(minamp));
 	refamps = refamps ++ [inamp];
 	// TextVU.ar(5, refamps, "Analy");
-	Out.kr(outbus, refamps);
 	SendReply.kr(
 		Impulse.kr(pollrate)*(inamp>minamp),
 		'/transect',
 		refamps,
 		idx);
 }).add;
-
+state.putAll((
+	anal: Array.fill(13,0),
+));
+state[\plotter] = AppClock.play(Routine({10.do({state[\anal].plot; 1.yield;})}));
 fork {
 	s.notify(true);
 	~infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
 	//~infilep="/Users/dan/src/sc/f_lustre/sounds/draingigm.aif";
 	~inBus = Bus.audio(s,1);
-	~analBus = Bus.control(s,13);
 	//~meter=~analBus.makeBusMeter;
 	~inBuf=Buffer.read(s,~infilep,action:{|...args| \inbuf.postln;args.postln;});
 	s.sync;
-	OSCdef(\transect, { |msg| msg.postln }, '/transect');
+	OSCdef(\transect, { |msg| var vals=msg[3..]; vals.postln; state[\anal]=vals;}, '/transect');
 
 	~soundsource = Synth.new(\playbuf__1, [\bufnum,~inBuf, \outbus, ~inBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [\inbus, ~inBus, \outbus, ~analBus], s, \addToTail);
-	~state=(
-		analNode:analNode
-	);
+	state.putAll((
+		analNode: analNode,
+	));
 };
 )
-~analBus.get;
-~analBus.get({|l|{l.plot}.defer;});
-~inBuf.plot;
-~inBus.

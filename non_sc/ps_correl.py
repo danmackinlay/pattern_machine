@@ -31,7 +31,8 @@ TODO: handle multiple files
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 TODO: dimension reduction
 TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
-TODO: search ALSO on variance, to avoid spurious transient onset matches
+TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
+TODO: switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg https://github.com/cournape/samplerate
 """
 
 import os.path
