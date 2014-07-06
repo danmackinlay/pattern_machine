@@ -17,6 +17,12 @@ Also, what loss function? negative correlation is more significant than positive
 TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
 TODO: adaptive masking noise floor
+TODO: indicate how good matches are
+TODO: report amplitude of matched file section
+TODO: check alternate metrics
+TODO: seach based on amplitude (what is an appropriate normalisation for it?)
+TODO: plot spectrograms in R and sanity check against analysis data
+TODO: handle errors; at least print them somewhere; report ready and success
 TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
 TODO: live client feedback
@@ -36,29 +42,55 @@ wavdata = sf_anal(SF_PATH)
 all_corrs = wavdata['all_corrs']
 sample_times = wavdata['sample_times']
 tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
+server_bus_start=None
+server_bus_n=3
 
-client = OSCClient()
-client.connect( ("localhost", SC_SERVER_PORT) )
-
-def user_callback(path, tags, args, source):
-    print path, tags, args, source
-    # looks like 
-    #/transect iifffffffffffff [1001, 1, -0.6750487089157104, -0.5806915163993835, -0.49237504601478577, -0.4095775783061981, -0.3318118751049042, -0.2586633563041687, -0.18976180255413055, -0.12478849291801453, -0.06346030533313751, -0.005534188821911812, 0.049216993153095245, 0.10099353641271591, 0.12387804687023163] ('127.0.0.1', 57110)
+def query_callback(path, tags, args, source):
     node = args[0]
     idx = args[1]
-    lookup = args[3:] #ignores the amplitude?
-    indices = tree.query(lookup, k=10, return_distance=False)
-    print "i1", indices
+    lookup = args[3:] #ignores the amplitude
+    indices = tree.query(lookup, k=server_bus_n, return_distance=False)
     times = list(*sample_times[indices])
-    print "i2", times
     # send server bus messages
-    msg = OSCMessage("/c_setn")
-    msg.extend([12, 1, times[0]])
-    client.send(msg)
-    print "yay"
+    if server_bus_start is not None:
+        msg = OSCMessage("/c_setn")
+        msg.extend([server_bus_start, server_bus_n])
+        msg.extend(times)
+        client.send(msg)
 
+def set_bus(path, tags, args, source):
+    print path, tags, args, source
+    server_bus_start = args[0]
+
+def set_n(path, tags, args, source):
+    print path, tags, args, source
+    server_bus_n = args[0]
+
+def set_file(path, tags, args, source):
+    print path, tags, args, source
+    #not yet implemented
+
+def quit(path, tags, args, source):
+    print path, tags, args, source
+    server.running = False
+
+#testing hack: kill existing server.
+try:
+    server.close()
+except Exception:
+    pass
+
+client = OSCClient()
+client.connect( ("localhost", SC_SERVER_PORT))
 server = OSCServer(("localhost", 36000), client=client, return_port=57110)
-server.addMsgHandler("/transect", user_callback )
-client.send( OSCMessage("/notify", 1 ) ) #subscribe to server stuff
+server.addMsgHandler("/transect", query_callback )
+server.addMsgHandler("/set_bus", set_bus )
+server.addMsgHandler("/set_n", set_n )
+server.addMsgHandler("/set_file", set_file )
+server.addMsgHandler("/quit", quit )
 
+client.send( OSCMessage("/notify", 1 ) ) #subscribe to server stuff
+server.print_tracebacks = True
+
+server.serve_forever()
 
