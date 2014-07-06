@@ -2,8 +2,7 @@
 * Messing around trying to find a low-dimensional feature vector that represents harmonicity
 
 TODO: Filter at control rate to bring the smoothing into line with the offline python analysis
-TODO: get plotter live updating; that would be nice.
-
+TODO: plotter cleanup
 */
 s=~serverboot.(prox:\local, device:\builtin);
 
@@ -48,7 +47,20 @@ SynthDef.new(\transect12__1, {|inbus=0,
 state.putAll((
 	anal: Array.fill(13,0),
 ));
-state[\plotter] = AppClock.play(Routine({10.do({state[\anal].plot; 1.yield;})}));
+plotter = Plotter(\anal);
+plotter.minval_(-1);
+plotter.maxval_(1);
+state[\plotter] = plotter;
+state[\plotterrout] = AppClock.play(
+	Routine({
+		{state[\plotter].notNil}.while({
+			plotter.value = state[\anal];
+			plotter.minval_(-1);
+			plotter.maxval_(1);
+			0.1.yield;
+		})
+	})
+);
 fork {
 	s.notify(true);
 	~infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
