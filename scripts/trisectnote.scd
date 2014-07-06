@@ -3,11 +3,12 @@
 
 TODO: Filter at control rate to bring the smoothing into line with the offline python analysis
 TODO: plotter cleanup
+TODO: launch or wrap python server
 */
 s=~serverboot.(prox:\local, device:\builtin);
 
 (
-var analNode, plotter, state=();
+var analNode, plotter, analBus, analServer, state=();
 ~state = state;
 SynthDef.new(\transect12__1, {|inbus=0,
 	basef=440.0,
@@ -44,6 +45,7 @@ SynthDef.new(\transect12__1, {|inbus=0,
 		refamps,
 		idx);
 }).add;
+
 state.putAll((
 	anal: Array.fill(13,0),
 ));
@@ -67,8 +69,12 @@ fork {
 	//~infilep="/Users/dan/src/sc/f_lustre/sounds/draingigm.aif";
 	~inBus = Bus.audio(s,1);
 	//~meter=~analBus.makeBusMeter;
-	~inBuf=Buffer.read(s,~infilep,action:{|...args| \inbuf.postln;args.postln;});
+	~inBuf=Buffer.read(s,~infilep);
+	analBus = Bus.control(s, numChannels: 6);
+	analServer = NetAddr("127.0.0.1", 36000);
 	s.sync;
+	analServer.sendMsg("/set_bus", analBus.index);
+	analServer.sendMsg("/set_n", analBus.numChannels);
 	OSCdef(\transect,
 		{ |msg|
 			var vals=msg[3..];
@@ -81,6 +87,8 @@ fork {
 	analNode=Synth.new(\transect12__1, [\inbus, ~inBus, \outbus, ~analBus], s, \addToTail);
 	state.putAll((
 		analNode: analNode,
+		analBus: analBus,
+		analServer: analServer,
 	));
 };
 )

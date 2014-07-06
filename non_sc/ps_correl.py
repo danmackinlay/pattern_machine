@@ -16,18 +16,20 @@ Also, what loss function? negative correlation is more significant than positive
 
 TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
+TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
+TODO: settable ports/addresses
 TODO: indicate how good matches are
 TODO: report amplitude of matched file section
 TODO: check alternate metrics
-TODO: seach based on amplitude (what is an appropriate normalisation for it?)
+TODO: search based on amplitude (what is an appropriate normalisation for it?)
 TODO: plot spectrograms in R and sanity check against analysis data
 TODO: handle errors; at least print them somewhere; report ready and success
 TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
-TODO: live client feedback
+TODO: work out how to suppress "no handler" warnings
 TODO: serialise analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised)
-TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? This would have the bonus of reducing need for high pass
+TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? 
 TODO: dimension reduction
 TODO: live server synth triggering
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
@@ -90,7 +92,7 @@ server.addMsgHandler("/set_file", set_file )
 server.addMsgHandler("/quit", quit )
 
 client.send( OSCMessage("/notify", 1 ) ) #subscribe to server stuff
-server.print_tracebacks = True
+#server.print_tracebacks = True
 
 server.serve_forever()
 
