@@ -117,13 +117,6 @@ little_wav2 = little_wav2[np.where(little_mask)[0]]
 
 tree = BallTree(all_corrs.T, metric='euclidean')
 
-#see
-# http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Bidirectional-OSC-Control-Lemur-td7595404.html
-# https://github.com/aberant/osc-ruby/pull/7
-# https://github.com/supercollider/supercollider/issues/358
-# http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Sending-OSC-from-server-to-another-app-td7579249.html
-# https://www.npmjs.org/package/supercolliderjs
-
 
 client = OSCClient()
 client.connect( ("localhost", SC_SERVER_PORT) )
@@ -135,9 +128,11 @@ def user_callback(path, tags, args, source):
     node = args[0]
     idx = args[1]
     lookup = args[3:] #ignores the amplitude?
-    result = tree.query(lookup, k=10)
+    indices = tree.query(lookup, k=10, return_distance=False)
+    print indices
+    indices = list(*sample_times[indices])
     # could send server bus messages and client info messages
-    client.send(OSCMessage(/))
+    client.send(OSCMessage("/c_setn", 1, indices[0]))
 
 # distances, indices = tree.query([1,1,1,1,1,1,1,1,1,1,1,1], k=10)
 server = OSCServer(("localhost", 36000), client=client, return_port=57110)

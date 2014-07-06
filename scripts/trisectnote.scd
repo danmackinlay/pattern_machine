@@ -2,6 +2,7 @@
 * Messing around trying to find a low-dimensional feature vector that represents harmonicity
 
 TODO: Filter at control rate to bring the smoothing into line with the offline python analysis
+TODO: get plotter live updating; that would be nice.
 
 */
 s=~serverboot.(prox:\local, device:\builtin);
