@@ -76,17 +76,11 @@ TODO
 ------
 
 * truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
-* rename "feature" functions as used in python and SC implementation to "basis" functions to reduce confusion with, e.g. bar position
+* rename "feature" functions as used in python and SC implementation to "basis" functions
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
-* fix bar position features - currently totally broken.
-
-  * weight features to de-favour annoying ones such as bar position
-  * or use bar features to fit models conditionally; might be cleaner.
-  
-    * factorially large number of possible splits in this case
-  
-  * also interacts weirdly with my ad hoc feature manufacture
-  
+* fix bar position features ; interacts weirdly with my ad hoc feature manufacture
+* it's weird that bar pos and the filter vectors use related by slightly different time quanta, no? Should I change that?
+* weight features to de-favour annoying ones
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
@@ -112,8 +106,6 @@ Feature ideas
 
   should probably throw over CV and do straight training/prediction split
 * fits could know own AND NEIGHBOURS' base rates
-* Add a logical feature specifying bar position; possibly fit separate models for each
-  * This doesn't seem to add much, only cropping up in very high order features; should I ditch it? If i keep it it should not be nonsensically implemented.
 
 Would I like to capture spectrally-meaningful relations?
 

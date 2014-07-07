@@ -21,7 +21,6 @@ meta_table_description = {
     'obsId': tables.UIntCol(), #  for matching with the other data
     'eventId': tables.UIntCol(), # working out which event cause this
     'diameter': tables.UIntCol(), # number of notes consider in event changes observation base rate
-    'b5': tables.IntCol(),
     'b4': tables.IntCol(),
     'b3': tables.IntCol(),
     'b2': tables.IntCol(),
@@ -145,10 +144,6 @@ features += [f3[:, i] for i in xrange(f3.shape[1])]
 feature_names += ["F4" + r_name_for_i[i] for i in xrange(f4.shape[1])]
 features += [f4[:, i] for i in xrange(f4.shape[1])]
 
-# # TODO: This bit totally doesn't make sense; barcodes are not independent features but require me to take an OUTER PRODUCT FIRST with the other features. temporarily removing.
-# feature_names += ["b" + str(i+1) for i in xrange(note_barcode_sparse.shape[1])]
-# features += [note_barcode_sparse[:,i] for i in xrange(note_barcode_sparse.shape[1])]
-
 feature_bases = [(i,) for i in xrange(len(features))]
 used_bases = set(feature_bases)
 feature_sizes = [f.sum() for f in features]
@@ -222,7 +217,24 @@ ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_nam
 # mod.fit(mega_features, mega_target)
 
 # So we go to R: (csr for liblineaR use, csc for R use)
-mega_features = sp.sparse.hstack( features).tocsc()
+mega_features = sp.sparse.hstack(features).tocsc()
+
+# barcodes are not independent features
+# we can either use them by 
+# 1 combining with other bases in an outer product; or 
+# 2 this post hoc hack
+# Yay post hoc hack!
+
+barcoded_features = [mega_features]
+barcoded_feature_names = list(feature_names)
+
+for i in xrange(note_barcode_sparse.shape[1]):
+    prefix = "b" + str(i+1)
+    barcoded_feature_names += [prefix + fname for fname in feature_names]
+    barcoded_features.append(mega_features.multiply(note_barcode_sparse[:,i]))
+
+feature_names = barcoded_feature_names
+mega_features = sp.sparse.hstack( barcoded_features).tocsc()
 
 with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
     #ignore warnings for that bit; I know my column names are annoying.

@@ -24,7 +24,7 @@ FEATURE_TABLE_TO_PYTHON_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_to_python.h5'
 
 MIN_FEATURE_FRAC = 10000
 P_VAL_THRESH = 0.05 #loose! multiple comparison prob. But spurious effects will be regularised out. Whether we will find a *tidy* solution thereby is an open question; group penalty would be nice
-MAX_N_FEATURES = 20000
+MAX_N_FEATURES = 8000
 MAX_FEATURE_ITER = 10000000
 
 #Map between relative pitches, array columns and R-friendly relative pitch names

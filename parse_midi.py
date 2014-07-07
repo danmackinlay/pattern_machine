@@ -90,8 +90,8 @@ def get_data_set():
                     obs_list.append(obs_counter)
 
             if n_held_notes>0:
-                #map bar pos to (1,16] ; this is more convenient to interpret
-                barcode = int(math.floor(((next_time_stamp + 1.0/8) % 4.0 ) * 4.0)+1)
+                #map bar pos to (0,15] ; this is more convenient to interpret
+                barcode = int(math.floor(((next_time_stamp + 1.0/8) % 4.0 ) * 4.0))
                 obs_meta['file'].append(file_key)
                 obs_meta['time'].append(next_time_stamp)
                 obs_meta['obsId'].append(obs_counter)
@@ -99,10 +99,12 @@ def get_data_set():
                 obs_meta['thisNote'].append(local_pitch)
                 obs_meta['diameter'].append(diameter)
                 obs_meta['result'].append(result)
-                obs_meta['b4'].append((barcode & 8) /8)
-                obs_meta['b3'].append((barcode & 4) /4)
-                obs_meta['b2'].append((barcode & 2) /2)
-                obs_meta['b1'].append((barcode & 1))
+                # map the barcode to reflct our suspicion that downbeats are more constrained
+                # 1111 0111 1011 0011 ...
+                obs_meta['b1'].append(1 - (barcode & 1))
+                obs_meta['b2'].append(1 - (barcode & 2) /2)
+                obs_meta['b3'].append(1 - (barcode & 4) /4)
+                obs_meta['b4'].append(1 - (barcode & 8) /8)
                 obs_counter += 1
 
     def parse_midi_file(base_dir, midi_file):
