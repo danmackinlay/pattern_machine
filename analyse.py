@@ -11,6 +11,7 @@ import scipy as sp
 from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
 from parse_midi import get_data_set
+from serialization import write_sparse_hdf
 from config import *
 
 meta_table_description = {
@@ -269,41 +270,16 @@ with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
     obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
     filt = tables.Filters(complevel=5)
+    obs_group = table_out_handle.create_group("/", "obs")
+    write_sparse_hdf(table_out_handle,
+        obs_group, obs_vec,
+        filt=filt)
 
-    table_out_handle.create_carray('/','v_obs_indices',
-        atom=tables.Int32Atom(), shape=obs_vec.indices.shape,
-        title="obsId",
-        filters=filt)[:] = obs_vec.indices
-    table_out_handle.create_carray('/','v_obs_indptr',
-        atom=tables.Int32Atom(), shape=obs_vec.indptr.shape,
-        title="pitch index",
-        filters=filt)[:] = obs_vec.indptr
-    table_out_handle.create_carray('/','v_obs_data',
-        atom=tables.Float32Atom(), shape=obs_vec.data.shape,
-        title="recence",
-        filters=filt)[:] = obs_vec.data
-    table_out_handle.create_carray('/','v_feature_indices',
-        atom=tables.Int32Atom(), shape=mega_features.indices.shape,
-        title="indices",
-        filters=filt)[:] = mega_features.indices
-    table_out_handle.create_carray('/','v_feature_indptr',
-        atom=tables.Int32Atom(), shape=mega_features.indptr.shape,
-        title="index ptr",
-        filters=filt)[:] = mega_features.indptr
-    table_out_handle.create_carray('/','v_feature_data',
-        atom=tables.Int32Atom(), shape=mega_features.data.shape,
-        title="data",
-        filters=filt)[:] = mega_features.data
-    table_out_handle.create_carray('/','v_feature_col_names',
-        atom=tables.StringAtom(
-            max([len(n) for n in feature_names])
-        ), shape=(len(feature_names),),
-        title="colnames",
-        filters=filt)[:] = feature_names
-    table_out_handle.create_carray('/','v_feature_datadims',
-        atom=tables.Int32Atom(), shape=(2,),
-        title="data dims",
-        filters=filt)[:] = mega_features.shape
+    feature_group = table_out_handle.create_group("/", "features")
+    write_sparse_hdf(table_out_handle,
+        feature_group, mega_features,
+        colnames=feature_names,
+        filt=filt)
 
 #Hands-free R invocation would look like this:
 #> R -f sparse_linear_fit.R --args rag_from_python.h5 rag_to_python.h5

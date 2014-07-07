@@ -1,12 +1,19 @@
 """
-input and output sparse CSC (compressed sparse colums) matrices via hdf5
-32 bit for now, ok?
+input and output some tricky matrix data in a cross-language format
 """
 
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
 import tables
+import numpy as np
 
 def write_sparse_hdf(handle, group, data, colnames=None, filt=None):
+    """
+    sparse CSC (compressed sparse colums) matrices via hdf5
+    32 bit for now, ok?
+    """
+    data_atom_type = tables.Float32Atom()
+    if np.issubdtype(data.dtype, int):
+        data_atom_type = tables.Int32Atom()
     handle.create_carray(group,'v_indices',
         atom=tables.Int32Atom(), shape=data.indices.shape,
         title="indices",
@@ -16,7 +23,7 @@ def write_sparse_hdf(handle, group, data, colnames=None, filt=None):
         title="index ptr",
         filters=filt)[:] = data.indptr
     handle.create_carray(group,'v_data',
-        atom=tables.Int32Atom(), shape=data.data.shape,
+        atom=data_atom_type, shape=data.data.shape,
         title="data",
         filters=filt)[:] = data.data
     handle.create_carray(group,'v_datadims',
@@ -27,7 +34,7 @@ def write_sparse_hdf(handle, group, data, colnames=None, filt=None):
         handle.create_carray(group,'v_col_names',
             atom=tables.StringAtom(
                 max([len(n) for n in colnames])
-            ), shape=(len(feature_names),),
+            ), shape=(len(colnames),),
             title="col names",
             filters=filt)[:] = colnames
 
