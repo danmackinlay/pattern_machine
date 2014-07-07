@@ -42,23 +42,10 @@ tidycoef = function(spcoef) {
 #load actual data
 notes.obsdata = h5read(h5.file.name.from.python, "/obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
-notes.obsidx = as.vector(h5read(h5.file.name.from.python, '/v_feature_indices'))
-notes.obsptr = as.vector(h5read(h5.file.name.from.python, '/v_feature_indptr'))
-notes.vals = as.vector(h5read(h5.file.name.from.python, '/v_feature_data'))
-notes.dims = as.vector(h5read(h5.file.name.from.python, '/v_feature_datadims'))
-notes.colnames = h5read(h5.file.name.from.python, "/v_feature_col_names")
+notes.f = load.sparse.hdf(h5.file.name.from.python, "/features")
 
-notes.f = sparseMatrix(
-  i=notes.obsidx,
-  p=notes.obsptr,
-  x=notes.vals,
-  dims=notes.dims,
-  index1=F
-)
-rm(notes.obsidx, notes.obsptr, notes.vals)
 #augment with base rate data
 notes.f = cBind(as.matrix(-log(notes.obsdata["diameter"]-1)), notes.f)
-#penalties = str_count(colnames(notes.f), "b")+1
 penalties = rep(1.0,length(colnames(notes.f))) 
 #don't weight baseline term
 penalties[1] = 0
@@ -81,7 +68,7 @@ notes.fit.time = system.time( #note this only works for <- assignment!
 print(notes.fit.time)
 print(tidycoef(coef(notes.fit, s="lambda.1se")))
 
-#write out to a different file because we can't change the matrix sizes after updated
+#write out to a different file because we can't change the matrix sizes
 # At least, I can't see how to do that from R which doesn't support deletion
 if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)
 h5createFile(h5.file.name.to.python)
