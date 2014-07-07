@@ -5,7 +5,7 @@ load.sparse.hdf = function (filename, path) {
   idxptr = as.vector(h5read(filename, paste(path, "v_indptr", sep="/")))
   vals = as.vector(h5read(filename, paste(path, "v_data", sep="/")))
   dims = as.vector(h5read(filename, paste(path, "v_datadims", sep="/")))
-  colnames = h5read(filename, paste(path, "v_col_names", sep="/"))
+  col.names = h5read(filename, paste(path, "v_col_names", sep="/"))
   
   data = sparseMatrix(
     i=idx,
@@ -14,7 +14,7 @@ load.sparse.hdf = function (filename, path) {
     dims=dims,
     index1=F
   )
-  colnames(data)=colnames
+  colnames(data)=col.names
   return(data)
 }
 

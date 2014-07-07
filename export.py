@@ -55,13 +55,6 @@ new_feature_names = ["(intercept)", "(baseline)"] + feature_names
 table_out_handle.close()
 
 table_in_handle = tables.open_file(FEATURE_TABLE_TO_PYTHON_PATH, 'r')
-cv_lo = table_in_handle.get_node('/fit', 'v_cvlo').read()
-cv_up = table_in_handle.get_node('/fit', 'v_cvup').read()
-cv_sd = table_in_handle.get_node('/fit', 'v_cvsd').read()
-cv_m = table_in_handle.get_node('/fit', 'v_cvm').read()
-nzero = table_in_handle.get_node('/fit', 'v_nzero').read()
-nulldev = table_in_handle.get_node('/fit', 'v_nulldev').read()
-lambd = table_in_handle.get_node('/fit', 'v_lambda').read()
-coef_path = table_in_handle.get_node('/fit', 'v_coef').read()
+fit = read_cv_glmnet(table_in_handle, '/fit')
 table_in_handle.close()
 
