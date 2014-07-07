@@ -90,7 +90,8 @@ def get_data_set():
                     obs_list.append(obs_counter)
 
             if n_held_notes>0:
-                barcode = int(math.floor((next_time_stamp % 4.0 + 0.99/8) * 4.0))
+                #map bar pos to (1,16] ; this is more convenient to interpret
+                barcode = int(math.floor(((next_time_stamp + 1.0/8) % 4.0 ) * 4.0)+1)
                 obs_meta['file'].append(file_key)
                 obs_meta['time'].append(next_time_stamp)
                 obs_meta['obsId'].append(obs_counter)

@@ -75,8 +75,6 @@ CMU has a bunch of algorithms in this domain:
 TODO
 ------
 
-* make bar position slightly precede note
-* export sparse matrices generically so i can do a whole bunch of them.
 * truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions to reduce confusion with, e.g. bar position
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
