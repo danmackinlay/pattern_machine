@@ -14,7 +14,7 @@ NEIGHBORHOOD_RADIUS = 11
 # All influence decays by...
 MAX_AGE = 2.0
 
-#when calculating event rate, aggregate notes this close together
+#when calculating onset statistics, aggregate notes this close together
 ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')

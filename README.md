@@ -85,7 +85,9 @@ TODO
   * weight features to de-favour annoying ones such as bar position
   * or use bar features to fit models conditionally; might be cleaner.
   
-    * large number of possible splits in this case
+    * factorially large number of possible splits in this case
+  
+  * also interacts weirdly with my ad hoc feature manufacture
   
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
