@@ -160,10 +160,8 @@ feature_liks = [log_lik_ratio(feature_sizes[i], feature_successes[i], base_succe
 # Here begins an unprincipled interaction feature search.
 # There will be false positives and false negatives, but we hope to find "enough" "good" features to be useful
 
-min_size = n_obs/10000
-p_val_thresh = 0.05 #loose! multiple comparison prob. But spurious effects will be regularised out. Whether we will find a *tidy* solution thereby is an open question; group penalty would be nice
-max_features = 20000
-max_feature_iters = 10000000
+min_size = n_obs/MIN_FEATURE_FRAC
+
 iter_counter = 0
 while True:
     i, j = 0, 0
@@ -197,7 +195,7 @@ while True:
     # are different than the parents:
     prop_lik = log_lik_ratio(prop_size, prop_succ, base_success_rate)
     
-    if prop_pval>p_val_thresh:
+    if prop_pval>P_VAL_THRESH:
         # a greedy heuristic, statistical significance is not guaranteed.
         continue
     #Otherwise, we have a contender. Add it to the pool.
@@ -210,8 +208,8 @@ while True:
     feature_probs.append(prop_prob)
     feature_liks.append(prop_lik)
     feature_pvals.append(prop_pval)
-    if len(features) >= max_features: break
-    if iter_counter >= max_feature_iters: break
+    if len(features) >= MAX_N_FEATURES: break
+    if iter_counter >= MAX_FEATURE_ITER: break
 
 # Here's an arbitrary way of guessing the comparative importance of these:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
