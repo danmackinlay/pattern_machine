@@ -28,7 +28,7 @@ TODO: handle errors; at least print them somewhere; report ready and success
 TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
 TODO: work out how to suppress "no handler" warnings
-TODO: serialise analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised)
+TODO: serialise analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised. might be worth it to avoid hiccups in single-threaded mode)
 TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? 
 TODO: dimension reduction
 TODO: live server synth triggering
