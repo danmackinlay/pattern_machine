@@ -30,12 +30,15 @@ if (length(args) >=2) {
 }
 print(c("files:",h5.file.name.from.python, h5.file.name.to.python))
 
-# handy coeff inspection
+# handy coef inspection
 tidycoef = function(spcoef, cutoff=0) {
   cf=as.array(Matrix(spcoef, sparse=F))
   nzero.mask = abs(cf)>cutoff
-  cfl=as.list(cf[nzero.mask])
-  names(cfl)=rownames(cf)[nzero.mask]
+  cfvals=cf[nzero.mask]
+  cfnames = rownames(cf)[nzero.mask]
+  cforder = order(abs(cfvals), decreasing=TRUE)
+  cfl=as.list(cfvals[cforder])
+  names(cfl)=cfnames[cforder]
   return(cfl)
 }
 
