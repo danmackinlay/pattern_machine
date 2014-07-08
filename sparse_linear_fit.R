@@ -46,10 +46,10 @@ notes.f = load.sparse.hdf(h5.file.name.from.python, "/features")
 
 #augment with base rate data
 notes.f = cBind(as.matrix(-log(notes.obsdata["diameter"]-1)), notes.f)
-penalties = rep(1.0,length(colnames(notes.f))) 
+penalties = rep(1.0,dim(notes.f)[2]) 
 #don't weight baseline term
 penalties[1] = 0
-#colnames(notes.f)=c("baselogodds", colnames(notes.f)))
+colnames(notes.f)[1]="baselogodds"
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
