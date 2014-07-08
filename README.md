@@ -66,16 +66,16 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 
 CMU has a bunch of algorithms in this domain:
 
-* lasso.stars http://cran.r-project.org/web/packages/bigdata/
+* lasso.stars http://cran.r-project.org/web/packages/bigdata/ (no logistic!)
 * Spam http://cran.r-project.org/web/packages/SAM/ http://machinelearning.wustl.edu/mlpapers/paper_files/NIPS2007_415.pdf
 * http://sachaepskamp.com/qgraph
-* http://cran.r-project.org/web/packages/smart/
-* http://cran.r-project.org/web/packages/huge/
+* http://cran.r-project.org/web/packages/huge/ 
 
 TODO
 ------
 
-* fit purely to downbeat
+* fit logistic purely to downbeat (or other beat)
+* or implement graphical model outputs in SC
 * truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
