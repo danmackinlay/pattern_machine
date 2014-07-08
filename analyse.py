@@ -232,10 +232,13 @@ barcoded_feature_names = list(feature_names)
 for i in xrange(note_barcode_sparse.shape[1]):
     prefix = "b" + str(i+1)
     barcoded_feature_names += [prefix + fname for fname in feature_names]
-    barcoded_features.append(mega_features.multiply(note_barcode_sparse[:,i]))
+    barcoded_feature = mega_features.multiply(note_barcode_sparse[:,i])
+    barcoded_feature.eliminate_zeros()
+    barcoded_features.append(barcoded_feature)
+    del(barcoded_feature)
 
 feature_names = barcoded_feature_names
-mega_features = sp.sparse.hstack( barcoded_features).tocsc()
+mega_features = sp.sparse.hstack(barcoded_features).tocsc()
 
 with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
     #ignore warnings for that bit; I know my column names are annoying.

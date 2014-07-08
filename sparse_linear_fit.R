@@ -49,7 +49,7 @@ notes.f = cBind(as.matrix(-log(notes.obsdata["diameter"]-1)), notes.f)
 penalties = rep(1.0,length(colnames(notes.f))) 
 #don't weight baseline term
 penalties[1] = 0
-colnames(notes.f)=c("baselogodds", paste(notes.colnames))
+#colnames(notes.f)=c("baselogodds", colnames(notes.f)))
 notes.response=as.matrix(notes.obsdata$result)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
