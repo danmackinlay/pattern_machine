@@ -6,12 +6,12 @@ Learning cellular harmony automata
 Probabilistic underpinnings:
 -----------------------------
 
-* this naive markov model still has lots of hairy bits. Questions:
-  * can I get a better "base" point for my notes? e.g. choosing a "key"
-  * can I somehow condition on more "control" variables?
-  * can I use state transitions to estimate "consonance"?
-  * can I generalise somehow? right now this thing will only pass through note states that it has already seen... but if I trained every note with its own transition matrix we could have more notes
-* Linguistics has "bag of words"-models that might be interesting to play with?
+this naive markov model still has lots of hairy bits. Questions:
+* can I get a better "base" point for my notes? e.g. choosing a "key"
+* can I somehow condition on more "control" variables?
+* can I use state transitions to estimate "consonance"?
+* The barcode features are telling, with coefficients decreasing from b1 to b4, nearly strictly;
+  Possibly I shoudl only fit to the downbeat, and induce arbitrary variance based on beat.
 
 Possible techniques
 ----------------------
@@ -75,6 +75,7 @@ CMU has a bunch of algorithms in this domain:
 TODO
 ------
 
+* fit purely to downbeat
 * truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
