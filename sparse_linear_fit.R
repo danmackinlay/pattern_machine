@@ -75,4 +75,23 @@ print(tidycoef(coef(notes.fit, s="lambda.1se")))
 # At least, I can't see how to do that from R which doesn't support deletion
 if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)
 h5createFile(h5.file.name.to.python)
-save.glmnet.hdf(h5.file.name.to.python, "/fit", notes.fit)
+h5createGroup(filename, "/fit")
+save.glmnet.hdf(h5.file.name.to.python, "/fit/all", notes.fit)
+
+fits=list()
+notes.f = notes.f[,grep("^b.*", colnames(notes.f), value=FALSE, invert=TRUE)]
+for (code in c("b1", "b2", "b3", "b4")) {
+  this_code = obs_meta[code]==1
+  notes.f[this_code,]
+  fits[code] <- cv.glmnet(
+    notes.f[this_code,],
+    notes.response[this_code],
+    family="binomial",
+    #type.logistic="modified.Newton", #speed-up, apparently.
+    alpha=1,
+    penalty.factor=penalties,
+    #dfmax=200,
+    #parallel=TRUE,
+    #foldid=ceiling(unclass(notes.obsdata$file)/3.4)
+  )
+}
