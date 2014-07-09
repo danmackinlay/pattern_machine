@@ -95,6 +95,6 @@ for (code in c("b1", "b2", "b3", "b4")) {
     #parallel=TRUE,
     #foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
-  print(tidycoef(coef(fits[code], s="lambda.1se")))
+  print(tidycoef(coef(fits[[code]], s="lambda.1se")))
   #save.glmnet.hdf(h5.file.name.to.python, paste("/fit", code, sep="/"), fits[code])
 }
