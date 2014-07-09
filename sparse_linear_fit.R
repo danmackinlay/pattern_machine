@@ -75,7 +75,7 @@ print(tidycoef(coef(notes.fit, s="lambda.1se")))
 # At least, I can't see how to do that from R which doesn't support deletion
 if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)
 h5createFile(h5.file.name.to.python)
-h5createGroup(filename, "/fit")
+h5createGroup(h5.file.name.to.python, "/fit")
 save.glmnet.hdf(h5.file.name.to.python, "/fit/all", notes.fit)
 
 notes.f = notes.f[,grep("^b.*", colnames(notes.f), value=FALSE, invert=TRUE)]
@@ -93,8 +93,8 @@ for (code in c("b1", "b2", "b3", "b4")) {
     penalty.factor=penalties,
     #dfmax=200,
     #parallel=TRUE,
-    #foldid=ceiling(unclass(notes.obsdata$file)/3.4)
+    foldid=ceiling(unclass(notes.obsdata[lookup.numeric,"file"])/3.4)
   )
   print(tidycoef(coef(fits[[code]], s="lambda.1se")))
-  #save.glmnet.hdf(h5.file.name.to.python, paste("/fit", code, sep="/"), fits[code])
+  save.glmnet.hdf(h5.file.name.to.python, paste("/fit", code, sep="/"), fits[[code]])
 }
