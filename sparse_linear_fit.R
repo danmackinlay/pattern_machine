@@ -81,10 +81,11 @@ save.glmnet.hdf(h5.file.name.to.python, "/fit/all", notes.fit)
 fits=list()
 notes.f = notes.f[,grep("^b.*", colnames(notes.f), value=FALSE, invert=TRUE)]
 for (code in c("b1", "b2", "b3", "b4")) {
-  this_code = obs_meta[code]==1
-  notes.f[this_code,]
+  this.code = notes.obsdata[code]==1
+  #convert from logical to numeric
+  this.code = (1:(dim(notes.obsdata)[1]))[this.code]
   fits[code] <- cv.glmnet(
-    notes.f[this_code,],
+    notes.f[this.code,],
     notes.response[this_code],
     family="binomial",
     #type.logistic="modified.Newton", #speed-up, apparently.
@@ -94,4 +95,6 @@ for (code in c("b1", "b2", "b3", "b4")) {
     #parallel=TRUE,
     #foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
+  print (code)
+  print(tidycoef(coef(fits[code], s="lambda.1se")))
 }
