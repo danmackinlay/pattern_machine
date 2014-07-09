@@ -78,15 +78,15 @@ h5createFile(h5.file.name.to.python)
 h5createGroup(filename, "/fit")
 save.glmnet.hdf(h5.file.name.to.python, "/fit/all", notes.fit)
 
-fits=list()
 notes.f = notes.f[,grep("^b.*", colnames(notes.f), value=FALSE, invert=TRUE)]
+fits=list()
 for (code in c("b1", "b2", "b3", "b4")) {
-  this.code = notes.obsdata[code]==1
-  #convert from logical to numeric
-  this.code = (1:(dim(notes.obsdata)[1]))[this.code]
+  print(code)
+  #need numeric, not logical, lookup vector for mixed indexing
+  lookup.numeric = (1:(dim(notes.obsdata)[1]))[notes.obsdata[code]==1]
   fits[code] <- cv.glmnet(
-    notes.f[this.code,],
-    notes.response[this_code],
+    notes.f[lookup.numeric,],
+    notes.response[lookup.numeric],
     family="binomial",
     #type.logistic="modified.Newton", #speed-up, apparently.
     alpha=1,
@@ -95,6 +95,6 @@ for (code in c("b1", "b2", "b3", "b4")) {
     #parallel=TRUE,
     #foldid=ceiling(unclass(notes.obsdata$file)/3.4)
   )
-  print (code)
   print(tidycoef(coef(fits[code], s="lambda.1se")))
+  #save.glmnet.hdf(h5.file.name.to.python, paste("/fit", code, sep="/"), fits[code])
 }
