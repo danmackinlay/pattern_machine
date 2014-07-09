@@ -14,12 +14,11 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
-TODO: confirm this RC function has correct frequency parameterization
 TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
 TODO: settable ports/addresses
-TODO: indicate how good matches are
+TODO: indicate how good matches are (distance)
 TODO: report amplitude of matched file section
 TODO: check alternate metrics
 TODO: search based on amplitude (what is an appropriate normalisation for it?)

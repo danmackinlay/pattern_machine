@@ -7,7 +7,7 @@
   * https://en.wikipedia.org/wiki/Unitary_operator
   * https://ccrma.stanford.edu/~jos/pasp/Gerzon_Nested_MIMO_Allpass.html
 * create an allpass that handles crossfades of params gracefully
-  *  transcription for FAUST’s eﬀect.lib: J.O.Smith, for description and analysis, see
+  * transcription for FAUST’s eﬀect.lib: J.O.Smith, for description and analysis, see
   * https://ccrma.stanford.edu/~jos/Reverb/Reverb_4up.pdf¸
   * https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberators_Faust.html¸
   * http://rev-plugins.sourcearchive.com/lines/0.3.1/¸see
@@ -22,4 +22,3 @@
   * student correlation
   * map params to physical model
   * Cauchy correlation
-

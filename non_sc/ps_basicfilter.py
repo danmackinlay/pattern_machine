@@ -2,11 +2,13 @@ import numpy as np
 from math import exp, log
 
 def RC(Wn, btype='low', dtype=np.float64):
-     """old-fashioned minimal filter design, if you don't want this modern bessel nonsense
-     C'n'C SC out(i) = ((1 - abs(coef)) * in(i)) + (coef * out(i-1)).
+     """old-fashioned minimal filter design, if you don't want this modern Bessel nonsense
+     C'n'C SC:
+     coef = exp(-2*pi * (freq * SampleDur.ir));
+     out(i) = ((1 - abs(coef)) * in(i)) + (coef * out(i-1)).
      """
      epsilon = np.finfo(dtype).eps
-     f = Wn/2.0 # shouldn't this be *2.0?
+     f = Wn * 2.0 #scipy convention is to count frequency up to nyquist; we double it to get 2pi
      x = exp(-2*np.pi*f)
      if btype == 'low':
          b, a = np.zeros(2), np.zeros(2)
@@ -28,7 +30,7 @@ def notch(Wn, bandwidth):
     """
     Notch filter to kill line-noise.
     """
-    f = Wn/2.0
+    f = Wn * 2.0
     R = 1.0 - 3.0*(bandwidth/2.0)
     K = ((1.0 - 2.0*R*np.cos(2*np.pi*f) + R**2)/(2.0 - 
     2.0*np.cos(2*np.pi*f)))
@@ -45,7 +47,7 @@ def narrowband(Wn, bandwidth):
     """
     Narrow-band filter to isolate a single frequency.
     """
-    f = Wn/2.0
+    f = Wn * 2.0
     R = 1.0 - 3.0*(bandwidth/2.0)
     K = ((1.0 - 2.0*R*np.cos(2*np.pi*f) + R**2)/(2.0 - 
     2.0*np.cos(2*np.pi*f)))

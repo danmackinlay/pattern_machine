@@ -7,7 +7,7 @@ from ps_correl_config import *
 
 def high_passed(sr, wavdata, f=20.0):
     """remove the bottom few Hz (def 20Hz)"""
-    rel_f = float(sr)/f
+    rel_f = 0.5 * f/float(sr)
     b, a = RC(Wn=rel_f, btype='high')
     return filtfilt(b, a, wavdata)
 
@@ -62,7 +62,7 @@ def sf_anal(sf_path):
     all_corrs = all_corrs[:,np.where(little_mask)[0]]
     sample_times = sample_times[np.where(little_mask)[0]]
     little_wav2 = little_wav2[np.where(little_mask)[0]]
-    
+
     return dict(
         all_corrs=all_corrs,
         sample_times=sample_times,
