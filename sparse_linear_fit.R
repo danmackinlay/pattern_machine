@@ -84,7 +84,7 @@ for (code in c("b1", "b2", "b3", "b4")) {
   print(code)
   #need numeric, not logical, lookup vector for mixed indexing
   lookup.numeric = (1:(dim(notes.obsdata)[1]))[notes.obsdata[code]==1]
-  fits[code] <- cv.glmnet(
+  fits[[code]] <- cv.glmnet(
     notes.f[lookup.numeric,],
     notes.response[lookup.numeric],
     family="binomial",
