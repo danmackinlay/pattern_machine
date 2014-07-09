@@ -42,6 +42,8 @@ from ps_correl_analyze import sf_anal
 wavdata = sf_anal(SF_PATH)
 all_corrs = wavdata['all_corrs']
 sample_times = wavdata['sample_times']
+amps = wavdata['amp']
+
 tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
 server_bus_start=None
 server_bus_n=3

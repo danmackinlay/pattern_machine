@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.signal import filtfilt, decimate, iirfilter
-from scipy.signal import filtfilt, decimate, iirfilter
 from ps_correl_load import load_wav, load_non_wav
 from ps_basicfilter import RC
 from ps_correl_config import *
@@ -24,17 +23,17 @@ def sf_anal(sf_path):
     wav2 = wav * wav
     freqs = 2**(np.linspace(0.0, N_STEPS, num=N_STEPS, endpoint=False)/N_STEPS) * BASEFREQ
 
-    smooth_wav2 = wav2
+    amp2 = wav2
     rel_f = 2.0/(float(sr)*TIME_QUANTUM)  # relative to nyquist freq, not samplerate
     b, a = RC(Wn=rel_f)
     for i in xrange(4):
-        smooth_wav2 = filtfilt(b, a, smooth_wav2)
+        amp2 = filtfilt(b, a, amp2)
 
-    mask = smooth_wav2>MIN_MS_LEVEL
-    little_wav2 = decimate(
-        smooth_wav2, blocksize, ftype='fir'
+    mask = amp2>MIN_MS_LEVEL
+    little_amp2 = decimate(
+        amp2, blocksize, ftype='fir'
     )
-    little_mask = mask[np.arange(0,little_wav2.size,1)*blocksize]
+    little_mask = mask[np.arange(0,little_amp2.size,1)*blocksize]
 
     little_corrs = []
     for freq in freqs:
@@ -46,25 +45,27 @@ def sf_anal(sf_path):
         smooth_cov = cov
         for i in xrange(4):
             smooth_cov = filtfilt(b, a, smooth_cov)
-    
+        
+        # technically the correlation should be taken wrt the harmonic mean of the variances at
+        # the two times, but we assume autocorrelation lag << smooth lag
         little_corrs.append(
             decimate(
-                mask * smooth_cov/np.maximum(smooth_wav2, MIN_MS_LEVEL),
+                mask * smooth_cov/np.maximum(amp2, MIN_MS_LEVEL),
                 blocksize,
                 ftype='fir' #FIR is needed to be stable at haptic rates
-            )
+            ) #we could use libsamplerate to do this instead
         )
 
     all_corrs = np.vstack(little_corrs)
-    sample_times = (np.arange(0,little_wav2.size,1)*blocksize).astype(np.float)/sr
+    sample_times = (np.arange(0,little_amp2.size,1)*blocksize).astype(np.float)/sr
 
     #trim "too quiet" stuff
     all_corrs = all_corrs[:,np.where(little_mask)[0]]
     sample_times = sample_times[np.where(little_mask)[0]]
-    little_wav2 = little_wav2[np.where(little_mask)[0]]
-
+    little_amp2 = little_amp2[np.where(little_mask)[0]]
+    
     return dict(
         all_corrs=all_corrs,
         sample_times=sample_times,
-        amp2=little_wav2,
+        amp=np.sqrt(little_amp2), #RMS amp is more usual
     )
