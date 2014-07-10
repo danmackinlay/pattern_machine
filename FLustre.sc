@@ -4,6 +4,7 @@
  * pause unused (analysis) synths
  * record samples live
  * switch to TCP instead of UDP to avoid dropped packets
+ * commincate from processing diret to supercollider.
  * spectral improvements
    * colourise spectral display to indicate chromaticity
    * detect (and visualise) noisiness vs percussiveness?
@@ -396,12 +397,12 @@ FLustre {
 		});
 		touchesToStart.do({|k|
 			var ptr, freq, xpan, coords = touchCoords[k]; //should not be empty by the end of the frame
-			
+
 			ptr = bufPosMap.value(coords[0]);
 			freq = freqMap.value(coords[1]);
 			xpan = xPanMap.value(coords[0]);
 			this.debugPostln(["starting",k]++touchCoords[k]++[ptr, freq, xpan],0);
-			
+
 			touchSynths[k] = Synth.new(\harmonic_grain, [
 				\out, outputBuses,
 				\pointer, ptr,
