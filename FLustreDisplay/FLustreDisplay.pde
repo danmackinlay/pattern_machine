@@ -1,6 +1,7 @@
 /*TODO:
  * switch to TCP
  * use SendReply to poll bands directly from SC server 
+ * sort ou these wacky port naming conventions
  */
 
 import oscP5.*;
@@ -47,7 +48,8 @@ SyphonServer syphonserver;
 
 OscP5 oscP5;
 NetAddress respondAddress;
-int listenPort;
+int sclangPort;
+int scsynthPort;
 int respondPort;
 String pidString;
 
@@ -84,7 +86,7 @@ void setup() {
   props = loadCommandLine();
   pxwidth = int(props.getProperty("width", "1440"));
   pxheight = int(props.getProperty("height", "900"));
-  listenPort = int(props.getProperty("listenport", "3334"));
+  sclangPort = int(props.getProperty("langport", "3334"));
   respondPort = int(props.getProperty("respondport", "3333"));
   //This size init has to come before the OSC stuff, or the latter
   //gets initialized twice without the earlier one getting disposed.
@@ -103,7 +105,7 @@ void setup() {
   //The aforementioned OSC stuff
   syphonserver = new SyphonServer(this, "FLustre");
   /* start oscP5, listening for incoming messages */
-  oscP5 = new OscP5(this, listenPort);
+  oscP5 = new OscP5(this, sclangPort);
   respondAddress = new NetAddress("127.0.0.1", respondPort);
 
   spectroImg = loadImage("spectrogram.png");

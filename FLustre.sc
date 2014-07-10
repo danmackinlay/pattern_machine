@@ -102,6 +102,7 @@ FLustre {
 		trackerMasterAddress,
 		syphonClientAddress,
 		touchListenPort=3333,
+		synthListenPort=57110,
 		sampleDisplayDuration=10.0,
 		pollRate=100.0,
 		minFreq=55, nOctaves=7, nBpBandsPerOctave=12,
@@ -119,6 +120,7 @@ FLustre {
 			trackerMasterAddress ?? {NetAddr.new("224.0.0.1", 64000)},
 			syphonClientAddress ?? {NetAddr.new("127.0.0.1", 8400)},
 			touchListenPort,
+			synthListenPort,
 			sampleDisplayDuration,
 			pollRate,
 			minFreq, nOctaves, nBpBandsPerOctave,
@@ -141,18 +143,19 @@ FLustre {
 		nAnalSteps = (sampleDisplayDuration*pollRate+2).ceil.asInteger;
 		allBpFreqs = (Array.series(nBpBandsTotal)/nBpBandsTotal).collect(freqMap);
 		sampleDuration = (sampleDisplayDuration*1.1);
-		visualizerCommand="open % --args width=% height=% respondport=%;pgrep -f -n FLustreDisplay".format(
+		visualizerCommand="open % --args width=% height=% langport=% synthport=%;pgrep -f -n FLustreDisplay".format(
 			workingDir +/+ "FLustreDisplay/application.macosx/FLustreDisplay.app",
 			pixWidth,
 			pixHeight,
-			touchListenPort
+			touchListenPort,
+			synthListenPort,
 		);
 		touchCoords = IdentityDictionary.new;
 		touchSynths = IdentityDictionary.new;
 		touchesToStart = IdentitySet.new;
 		touchesToStop = IdentitySet.new;
 	}
-
+	Server
 	initICST {
 		syphonClientAddress.sendMsg("/SwitchSyphonClient", "FLustre", 1.0 );
 		trackerMasterAddress.sendMsg("/trackerMaster/requestTuiostream", touchListenPort);
@@ -229,15 +232,22 @@ FLustre {
 
 			SendTrig.kr (in: poller, id: 0, value: time);
 
-			allBpFreqs.do({|freq,i|
+			amps = (
+				Amplitude.kr(
+					Resonz.ar(in,freq,bwr)
+				) * (nBpBandsTotal.sqrt)
+			).ampdb;
+			SendReply.kr(
+				trig: poller,
+				cmdName: '/bands',
+				values: amps,
+				replyID: -1,
+			);
+			amps.do({|amp,i|
 				SendTrig.kr(
 					in: poller,
 					id: i+1,
-					value: (
-						Amplitude.kr(
-							Resonz.ar(in,freq,bwr)
-						) * (nBpBandsTotal.sqrt)
-					).ampdb
+					value: amp
 				);
 			});
 		}).add;
