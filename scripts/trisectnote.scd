@@ -6,7 +6,16 @@ TODO: plotter cleanup
 TODO: launch or wrap python server
 */
 s=~serverboot.(prox:\local, device:\builtin);
-
+~dataServerPid = -1000;
+~dataServerPid.pidRunning.not.if({
+	~dataServerPid= "python %".format(
+		(~pmextern +/+ "ps_correl.py").shellQuote
+	).unixCmd(
+		action: {|result, pid| [result, pid].postln},
+		postOutput: true
+	);
+});
+s.dumpOSC(1);
 (
 var analNode, plotter, analBus, analServer, state=();
 ~state = state;
@@ -44,6 +53,14 @@ SynthDef.new(\transect12__1, {|inbus=0,
 		'/transect',
 		refamps,
 		idx);
+}).add;
+SynthDef.new(\concat__1_1, {|outbus=0,
+	bufnum,
+	time, rate|
+	var sig, phase;
+	sig = SinOsc.ar(440);
+
+	Out.ar(outbus, sig);
 }).add;
 
 state.putAll((
