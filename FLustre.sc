@@ -40,6 +40,7 @@ FLustre {
 	var <trackerMasterAddress;
 	var <syphonClientAddress;
 	var <touchListenPort;
+	var <synthListenPort;
 	var <sampleDisplayDuration;
 	var <pollRate;
 	var <minFreq;
@@ -155,7 +156,6 @@ FLustre {
 		touchesToStart = IdentitySet.new;
 		touchesToStop = IdentitySet.new;
 	}
-	Server
 	initICST {
 		syphonClientAddress.sendMsg("/SwitchSyphonClient", "FLustre", 1.0 );
 		trackerMasterAddress.sendMsg("/trackerMaster/requestTuiostream", touchListenPort);
@@ -234,7 +234,7 @@ FLustre {
 
 			amps = (
 				Amplitude.kr(
-					Resonz.ar(in,freq,bwr)
+					Resonz.ar(in,allBpFreqs,bwr)
 				) * (nBpBandsTotal.sqrt)
 			).ampdb;
 			SendReply.kr(
