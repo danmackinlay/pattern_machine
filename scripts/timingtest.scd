@@ -23,3 +23,12 @@ var cum=0;
 });
 )
 ~cumdels
+
+(
+~testp4 = Pbind(
+	\delta, Pseq([0.1, 0.05],8));
+~testp5 = Pquantize(Pbind(
+	\delta, Pseq([0.1, 0.05],8),
+), quant: Pn(1/4, inf));
+)
+~testp5.trace.play;
