@@ -15,21 +15,21 @@ Pstumble : FilterPattern {
 		var patternstream = pattern.asStream;
 		var disorderstream = disorder.asStream;
 		var slip = 0.0;
-		
 		while {
 			event = patternstream.next(event);
 			event.notNil;
 		}{
 			var intendedNextTime, actualNextTime, indisorder, modEvent;
 			indisorder = disorderstream.next;
-			
-			intendedNextTime = event[\delta] + slip;
+			indisorder ?? {^event;};
+			intendedNextTime = event.atFail(\delta, 1) + slip;
 			actualNextTime = (1.0-(indisorder.asFloat.rand)) * intendedNextTime;
 			slip = intendedNextTime - actualNextTime;
 			modEvent = event.copy.put(\delta, actualNextTime);
-			
-			event = modEvent.yield;
+			modEvent.yield;
 		}
 		^event;
 	}
 }
+
+
