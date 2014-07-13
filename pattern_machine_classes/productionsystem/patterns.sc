@@ -55,6 +55,8 @@ Pdropdur : FilterPattern {
 		}
 	}
 }
+//like Pfindur, but can also skip the start
+//Does this handle end padding correctly like Psync?
 Pcutdur : FilterPattern {
 	var <>start,<>dur,<>tolerance;
 	*new { arg start, dur, pattern, tolerance = 0.001;
