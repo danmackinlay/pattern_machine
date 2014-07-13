@@ -1,8 +1,32 @@
 * remixer where grains scrub the buffer at different rates but each mutes itself according to its dissonance
-* tuvasynth - roaming resonant filters on vocal-like samples (format filters?)
+* tuvasynth - roaming resonant filters on vocal-like samples (formant filters?)
 * analyse metal percussion for distribution of frequencies
 * circular sequencer
+* zahedi-style information sensorimotor loop
+* auto sub maximising bassline thing, octavising osciallators until they are all in the right bandwidth
+* "futurising delay" - does JUST LESS than 1 bar
+* angklung attack-opriented granular synth
+* marsenator that marsenates samples
+* pure server-side CFDG
+* notestream app, streaming chords in different patterns to different midi channels
+* polyrhythm as highlighting different cycles within a rhythmn cascade
+* imply a pure server-side pso or particle filter flocking algorithm
 * granular flanger with nice tuning options
+* automatic synth-tracking eye-candy for grammarthing
+* particle filter tracking models
+* (phrase) phrase sampler
+* microproducer effect synths
+* mine metal percussion for peak distribution
+  * https://github.com/glyg/peak_detection
+  * http://www.nature.com/nmeth/journal/v5/n8/full/nmeth.1233.html
+  * http://eprints.nuim.ie/2337/1/JG_SIMPL.pdf
+  * (more noise oriented?) https://gist.github.com/sixtenbe/1178136
+  * http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
+  * http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks_cwt.html
+  * or maybe even filter the spectral peaks using http://wiki.scipy.org/Cookbook/SavitzkyGolay
+* 2d effects crossfade buss, maybe with a well-like dropp it in doppler thing. sountoirs of lfos are revealed over time
+* 3D effect scape through which we drop sound grains that rewrite and recolour themslves.
+* learn the inverse mapping from sound to synth parameters by hearing and comparing resynthesised version with delayed or recorded version, enveloped appropriately.
 * Generalise to Gerzon m-dimensional allpass 
   * https://en.wikipedia.org/wiki/Unitary_operator
   * https://ccrma.stanford.edu/~jos/pasp/Gerzon_Nested_MIMO_Allpass.html
@@ -13,12 +37,18 @@
   * http://rev-plugins.sourcearchive.com/lines/0.3.1/¸see
   * http://www.uni-weimar.de/medien/wiki/images/Schlemmer_reverb.pdf
   * http://chiselapp.com/user/jcage/repository/rdk/doc/www/www/revdev.html
-* change multicahnnel naming convention to match ddw - something like __1x2
+* change multichannel naming convention to match ddw - something like __1x2
 * control RME mixer from supercollider
 * execute scsynth NRT from python (and vice versa?)
-* Faust pluging to define Faust modules for numpy (already exists in octave version)
+* Faust plugin to define Faust modules for numpy (already exists in octave version)
 * random param mapping thing
   * Gaussian correlation
-  * student correlation
+  * Student-t correlation
   * map params to physical model
   * Cauchy correlation
+* sync oscillator system
+  * continuous Kuramoto, possibly on a graph
+  * or Strogatz/Perkel/Haken-style pulse-synch, possibly on a graph
+  * exotic other
+  * call it "phase sync"
+* find some way of interpreting a call-and-response composition like Stockhausen's Stimmung for laptop thing
