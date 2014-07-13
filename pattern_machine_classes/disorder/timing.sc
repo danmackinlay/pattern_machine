@@ -45,8 +45,9 @@ nextTimeOnGrid { arg quant = 1, phase = 0;
 	^roundUp(this.beats - baseBarBeat - (phase % quant), quant) + baseBarBeat + phase
 	}
 */
-//nb, this uses a purely local notion of time because rainding the Tempoclock is lame; but could make finding the bar boundaries impossible.
+//nb, this uses a purely local notion of time because raiding the Tempoclock is lame; but could make finding the bar boundaries impossible.
 //TODO: provide a "time reset" input to allow start-of-bar markings or something
+//TODO: actual exponential random
 Pquantize : FilterPattern {
 	var <>quant,<>barlen,<>tol;
 	*new { arg pattern, quant=1/4, barlen=4, tol=0.0001;
@@ -58,7 +59,7 @@ Pquantize : FilterPattern {
 	embedInStream { arg event;
 		var patternstream = pattern.asStream;
 		var quantstream = quant.asStream;
-		var time = 0.0;
+		var intendedTime = 0.0, actualTime=0.0;
 		while {
 			event = patternstream.next(event);
 			event.notNil;
@@ -66,16 +67,19 @@ Pquantize : FilterPattern {
 			var intendedNextTime, actualNextTime, nextDelta, inquant, modEvent;
 			inquant = quantstream.next;
 			inquant ?? {^event;}; //return on end of sub pattern
-			intendedNextTime = event.atFail(\delta, 1)+time;
-			actualNextTime = intendedNextTime.round(inquant).max(time);
-			nextDelta = actualNextTime - time;
-			time = intendedNextTime;
-			((time.round(barlen)-time).abs<tol).if ({time=0});
-			time = time % barlen;
-			modEvent = event.copy.put(\delta, actualNextTime);
+			intendedNextTime = event.atFail(\delta, 1)+intendedTime;
+			actualNextTime = intendedNextTime.round(inquant).max(actualTime);
+			nextDelta = actualNextTime - actualTime;
+			//[time, intendedNextTime, actualNextTime, nextDelta].postln;
+			actualTime = actualNextTime;
+			intendedTime = intendedNextTime;
+			// ignroe tolerance for the minute
+			//((time.round(barlen)-time).abs<tol).if ({time=0});
+			actualTime = actualTime % barlen;
+			intendedTime = intendedTime % barlen;
+			modEvent = event.copy.put(\delta, nextDelta);
 			modEvent.yield;
 		}
 		^event;
 	}
 }
-
