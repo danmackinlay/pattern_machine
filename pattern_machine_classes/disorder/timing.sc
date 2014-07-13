@@ -18,25 +18,15 @@ Pstumble : FilterPattern {
 		
 		while {
 			event = patternstream.next(event);
-			\inev.postln;
-			event.postcs;
-			\patt.postln;
-			patternstream.postcs;
 			event.notNil;
 		}{
 			var intendedNextTime, actualNextTime, indisorder, modEvent;
 			indisorder = disorderstream.next;
-			\indisorder.postln;
-			indisorder.postcs;
 			
 			intendedNextTime = event[\delta] + slip;
 			actualNextTime = (1.0-(indisorder.asFloat.rand)) * intendedNextTime;
 			slip = intendedNextTime - actualNextTime;
 			modEvent = event.copy.put(\delta, actualNextTime);
-			\slip.postln;
-			slip.postcs;
-			\modEvent.postln;
-			modEvent.postcs;
 			
 			event = modEvent.yield;
 		}
