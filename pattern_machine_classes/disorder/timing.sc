@@ -69,7 +69,7 @@ Pquantize : FilterPattern {
 			intendedNextTime = event.atFail(\delta, 1)+time;
 			actualNextTime = intendedNextTime.round(inquant).max(time);
 			nextDelta = actualNextTime - time;
-			time = time + nextDelta;
+			time = intendedNextTime;
 			((time.round(barlen)-time).abs<tol).if ({time=0});
 			time = time % barlen;
 			modEvent = event.copy.put(\delta, actualNextTime);
