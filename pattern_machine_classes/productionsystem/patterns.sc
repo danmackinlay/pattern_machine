@@ -102,7 +102,9 @@ Pcutdur : FilterPattern {
 			elapsed = nextElapsed;
 			event = inevent.yield;
 
-			inevent = stream.next(event).asEvent ?? { ^event };
+			inevent = stream.next(event);
+			inevent ?? { ^event  }; //exit on nil
+			inevent = inevent.asEvent;
 			cleanup.update(inevent);
 			delta = inevent.delta;
 			nextElapsed = elapsed + delta;
