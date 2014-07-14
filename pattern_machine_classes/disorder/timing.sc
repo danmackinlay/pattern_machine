@@ -60,6 +60,7 @@ Pquantize : FilterPattern {
 		var patternstream = pattern.asStream;
 		var quantstream = quant.asStream;
 		var intendedTime = 0.0, actualTime=0.0;
+		var localbarlen = barlen.value(event);
 		while {
 			event = patternstream.next(event);
 			event.notNil;
@@ -73,10 +74,10 @@ Pquantize : FilterPattern {
 			//[time, intendedNextTime, actualNextTime, nextDelta].postln;
 			actualTime = actualNextTime;
 			intendedTime = intendedNextTime;
-			// ignroe tolerance for the minute
-			//((time.round(barlen)-time).abs<tol).if ({time=0});
-			actualTime = actualTime % barlen;
-			intendedTime = intendedTime % barlen;
+			// ignore tolerance for the minute
+			//((time.round(localbarlen)-time).abs<tol).if ({time=0});
+			actualTime = actualTime % localbarlen;
+			intendedTime = intendedTime % localbarlen;
 			modEvent = event.copy.put(\delta, nextDelta);
 			modEvent.yield;
 		}

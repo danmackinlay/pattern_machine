@@ -32,3 +32,6 @@ var cum=0;
 ), quant: Pn(1/4, inf));
 )
 ~testp5.trace.play;
+
+
+PexpR(0.5, 500).asStream.nextN(60)
