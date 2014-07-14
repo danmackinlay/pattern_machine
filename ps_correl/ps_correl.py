@@ -14,6 +14,9 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
+TODO: Filter at control rate to bring the smoothing into line with the offline python analysis
+TODO: plotter cleanup
+TODO: launch or wrap python server from SC
 TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
@@ -33,6 +36,7 @@ TODO: dimension reduction
 TODO: live server synth triggering
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 TODO: switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg https://github.com/cournape/samplerate
+TODO: treat smoothing or other free parameters (or neighbourhood size) as a model-selection problem? AIC or cross-validation?
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer

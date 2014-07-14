@@ -18,16 +18,26 @@
   * http://chiselapp.com/user/jcage/repository/rdk/doc/www/www/revdev.html
 * change multichannel naming convention to match ddw - something like __1x2
 * control RME mixer from supercollider
+* you can constrain a synth genom for evolution by only effecting downstream oscs. apart from that f and a shoudl be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
   * Gaussian correlation
   * Student-t correlation
   * map params to physical model
   * Cauchy correlation
+* rhythms
+  * randomiser pattern
+  * quantizer pattern
+  * or a clock?
+  * hawkes process
 * sync oscillator system
   * continuous Kuramoto, possibly on a graph
   * or Strogatz/Perkel/Haken-style pulse-synch, possibly on a graph
   * exotic other
   * call it "phase sync"
+  * http://www.scholarpedia.org/article/Synchronization
+  * http://www.scholarpedia.org/article/Pulse_coupled_oscillators
+  * left-field idea: work using decaying harmonics through feedback - macroscopic karplus-strong.
+  * nice brownian calc treatment: http://www.math.uiuc.edu/~rdeville/research/nk.pdf suggests N!=4 and neirest neighbour networks
 * find some way of interpreting a call-and-response composition like Stockhausen's Stimmung for laptop thing
 * tuvasynth - roaming resonant filters on vocal-like samples (formant filters?)
 * grab bag

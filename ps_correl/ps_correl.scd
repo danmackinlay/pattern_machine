@@ -1,9 +1,5 @@
 /*
 * Messing around trying to find a low-dimensional feature vector that represents harmonicity
-
-TODO: Filter at control rate to bring the smoothing into line with the offline python analysis
-TODO: plotter cleanup
-TODO: launch or wrap python server
 */
 s=~serverboot.(prox:\local, device:\builtin);
 ~dataServerPid = -1000;
