@@ -48,6 +48,7 @@ nextTimeOnGrid { arg quant = 1, phase = 0;
 //nb, this uses a purely local notion of time because raiding the Tempoclock is lame; but could make finding the bar boundaries impossible.
 //TODO: provide a "time reset" input to allow start-of-bar markings or something
 //TODO: actual exponential random
+//TODO: provide interpolation of quantization.
 Pquantize : FilterPattern {
 	var <>quant,<>barlen,<>tol;
 	*new { arg pattern, quant=1/4, barlen=4, tol=0.0001;
@@ -84,3 +85,4 @@ Pquantize : FilterPattern {
 		^event;
 	}
 }
+
