@@ -50,35 +50,41 @@ nextTimeOnGrid { arg quant = 1, phase = 0;
 //TODO: actual exponential random
 //TODO: provide interpolation of quantization.
 Pquantize : FilterPattern {
-	var <>quant,<>barlen,<>tol;
-	*new { arg pattern, quant=1/4, barlen=4, tol=0.0001;
-		^super.new(pattern).quant_(quant).barlen_(barlen).tol_(tol);
+	var <>quant,<>strength,<>barlen,<>tol, <>debug;
+	*new { arg pattern, quant=1/4, strength=1.0, barlen=4, tol=0.0001, debug=false;
+		^super.new(pattern).quant_(quant).strength_(strength).barlen_(barlen).tol_(tol).debug_(debug);
 	}
 	
-	storeArgs { ^[pattern, quant, barlen, tol] }
+	storeArgs { ^[pattern, quant, strength, barlen, tol, debug] }
 
 	embedInStream { arg event;
 		var patternstream = pattern.asStream;
 		var quantstream = quant.asStream;
+		var strengthstream = strength.asStream;
 		var intendedTime = 0.0, actualTime=0.0;
 		var localbarlen = barlen.value(event);
 		while {
 			event = patternstream.next(event);
 			event.notNil;
 		}{
-			var intendedNextTime, actualNextTime, nextDelta, inquant, modEvent;
-			inquant = quantstream.next;
+			var intendedNextTime, quantizedNextTime, actualNextTime;
+			var nextDelta, inquant, instrength, modEvent;
+			inquant = quantstream.next(event);
 			inquant ?? {^event;}; //return on end of sub pattern
-			intendedNextTime = event.atFail(\delta, 1)+intendedTime;
-			actualNextTime = intendedNextTime.round(inquant).max(actualTime);
+			instrength = strengthstream.next(event);
+			instrength ?? {^event;}; //return on end of sub pattern
+			intendedNextTime = event.delta + intendedTime;
+			quantizedNextTime = intendedNextTime.round(inquant).max(actualTime);
+			actualNextTime = ((1-instrength) * intendedNextTime) + (instrength*quantizedNextTime);
 			nextDelta = actualNextTime - actualTime;
-			//[time, intendedNextTime, actualNextTime, nextDelta].postln;
+			debug.if{[actualTime, intendedNextTime, quantizedNextTime, inquant, instrength, actualNextTime, nextDelta].postln};
 			actualTime = actualNextTime;
 			intendedTime = intendedNextTime;
 			// ignore tolerance for the minute
 			//((time.round(localbarlen)-time).abs<tol).if ({time=0});
-			actualTime = actualTime % localbarlen;
-			intendedTime = intendedTime % localbarlen;
+			// The below logic won't quite work; we need to decrement both counters by the same amount
+			//actualTime = actualTime % localbarlen;
+			//intendedTime = intendedTime % localbarlen;
 			modEvent = event.copy.put(\delta, nextDelta);
 			modEvent.yield;
 		}

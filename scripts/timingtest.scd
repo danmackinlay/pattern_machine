@@ -15,23 +15,14 @@
 ~testp3.asStream.nextN(60, Event.default.copy).select(_.notNil).collect(_.delta).inject([0,0],{|a,b|a ++ [a.last+b]});
 
 (
-var cum=0;
-~cumdels = List.new;
-~dels.do({|del|
-	cum = cum + del;
-	~cumdels.add(cum);
-});
-)
-~cumdels
-
-(
 ~testp4 = Pbind(
-	\delta, Pseq([0.1, 0.05],8));
-~testp5 = Pquantize(Pbind(
-	\delta, Pseq([0.1, 0.05],8),
-), quant: Pn(1/4, inf));
+	\dur, Pseq([0.4, 0.2, 0.2, 0.2], 8),
+	\degree, Pseq([0,2,4,8], 8)
+);
 )
-~testp5.trace.play;
-
+~testp4.trace.play;
+Pquantize(~testp4, quant: 1/2).trace.play;
+Pquantize(~testp4, quant: 1/2, strength:Pn(0.5,5)).trace.play;
+Pquantize(~testp4, quant: 1/2,  strength:Pseries(step:0.04, length: inf)).trace.play;
 
 PexpR(0.5, 500).asStream.nextN(60)
