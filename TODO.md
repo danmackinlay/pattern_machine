@@ -1,11 +1,17 @@
 * mine metal percussion for peak distribution
-  * https://github.com/glyg/peak_detection
-  * http://www.nature.com/nmeth/journal/v5/n8/full/nmeth.1233.html
-  * http://eprints.nuim.ie/2337/1/JG_SIMPL.pdf
-  * (more noise oriented?) https://gist.github.com/sixtenbe/1178136
-  * http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
-  * http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks_cwt.html
+  * overview: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
+  * "MTT" method
+    * https://github.com/glyg/peak_detection
+    * http://www.nature.com/nmeth/journal/v5/n8/full/nmeth.1233.html
+  * "sinusoidal modelling"
+    * http://eprints.nuim.ie/2337/1/JG_SIMPL.pdf
+    * http://simplsound.sourceforge.net/
+  * wavlets on the spectrum:
+    * http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks_cwt.html
+    * http://bioinformatics.oxfordjournals.org/content/22/17/2059.long
+    * http://basic.northwestern.edu/publications/peakdetection/
   * or maybe even filter the spectral peaks using http://wiki.scipy.org/Cookbook/SavitzkyGolay
+  * (more noise oriented?) https://gist.github.com/sixtenbe/1178136
 * Generalise reverb to Gerzon m-dimensional allpass 
   * https://en.wikipedia.org/wiki/Unitary_operator
   * https://ccrma.stanford.edu/~jos/pasp/Gerzon_Nested_MIMO_Allpass.html
@@ -18,7 +24,7 @@
   * http://chiselapp.com/user/jcage/repository/rdk/doc/www/www/revdev.html
 * change multichannel naming convention to match ddw - something like __1x2
 * control RME mixer from supercollider
-* you can constrain a synth genom for evolution by only effecting downstream oscs. apart from that f and a shoudl be effected. The method to use here is "inject".  http://sccode.org/1-4SM
+* you can constrain a synth genom for evolution by only effecting downstream oscs. apart from that f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
   * Gaussian correlation
   * Student-t correlation
@@ -36,9 +42,11 @@
   * call it "phase sync"
   * http://www.scholarpedia.org/article/Synchronization
   * http://www.scholarpedia.org/article/Pulse_coupled_oscillators
-  * left-field idea: work using decaying harmonics through feedback - macroscopic karplus-strong.
   * nice brownian calc treatment: http://www.math.uiuc.edu/~rdeville/research/nk.pdf suggests N!=4 and neirest neighbour networks
-* find some way of interpreting a call-and-response composition like Stockhausen's Stimmung for laptop thing
+  * left-field idea: work using decaying harmonics through feedback - macroscopic karplus-strong.
+  * left-field idea: bayesian synchronisers, with a loss function that favours harmonic ratios of the correct answer near their own fundamental; this should be really easy
+  * any of these would be iteresting with driving noise and arbitrary topologies
+* find some way of interpreting a call-and-response composition like Stockhausen's Stimmung, but for laptops
 * tuvasynth - roaming resonant filters on vocal-like samples (formant filters?)
 * grab bag
   * execute scsynth NRT from python (and vice versa?)
