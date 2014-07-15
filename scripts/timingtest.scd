@@ -25,4 +25,3 @@ Pquantize(~testp4, quant: 1/2).trace.play;
 Pquantize(~testp4, quant: 1/2, strength:Pn(0.5,5)).trace.play;
 Pquantize(~testp4, quant: 1/2,  strength:Pseries(step:0.04, length: inf)).trace.play;
 
-PexpR(0.5, 500).asStream.nextN(60)
