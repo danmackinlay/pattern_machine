@@ -23,6 +23,11 @@
   * http://www.uni-weimar.de/medien/wiki/images/Schlemmer_reverb.pdf
   * http://chiselapp.com/user/jcage/repository/rdk/doc/www/www/revdev.html
 * change multichannel naming convention to match ddw - something like __1x2
+* film soundtrack thing
+  * sudden hits
+  * chord selection
+  * pads
+  * vocal tracking
 * control RME mixer from supercollider
 * you can constrain a synth genom for evolution by only effecting downstream oscs. apart from that f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
