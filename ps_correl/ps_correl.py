@@ -47,55 +47,61 @@ sample_times = wavdata['sample_times']
 amps = wavdata['amp']
 
 tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
-server_bus_start=None
-server_bus_n=3
+scsynth_bus_start=None
+scsynth_bus_n=3
 
-def query_callback(path, tags, args, source):
+def transect(path=None, tags=None, args=None, source=None):
+    # print "notify", path, tags, args, source
     node = args[0]
     idx = args[1]
     lookup = args[3:] #ignores the amplitude
-    indices = tree.query(lookup, k=server_bus_n, return_distance=False)
+    indices = tree.query(lookup, k=scsynth_bus_n, return_distance=False)
     times = list(*sample_times[indices])
-    # send server bus messages
-    if server_bus_start is not None:
+    # send scsynth bus messages
+    if scsynth_bus_start is not None:
         msg = OSCMessage("/c_setn")
-        msg.extend([server_bus_start, server_bus_n])
+        msg.extend([scsynth_bus_start, scsynth_bus_n])
         msg.extend(times)
         client.send(msg)
 
-def set_bus(path, tags, args, source):
-    print path, tags, args, source
-    server_bus_start = args[0]
+def notify(path=None, tags=None, args=None, source=None):
+    print "notify", path, tags, args, source
+    client.send( OSCMessage("/notify", 1 ) )
 
-def set_n(path, tags, args, source):
-    print path, tags, args, source
-    server_bus_n = args[0]
+def set_bus(path=None, tags=None, args=None, source=None):
+    print "set_bus", path, tags, args, source
+    scsynth_bus_start = args[0]
 
-def set_file(path, tags, args, source):
-    print path, tags, args, source
+def set_n(path=None, tags=None, args=None, source=None):
+    print "set_n", path, tags, args, source
+    scsynth_bus_n = args[0]
+
+def set_file(path=None, tags=None, args=None, source=None):
+    print "set_file", path, tags, args, source
     #not yet implemented
 
-def quit(path, tags, args, source):
-    print path, tags, args, source
-    server.running = False
+def quit(path=None, tags=None, args=None, source=None):
+    print "quit", path, tags, args, source
+    correl_server.running = False
 
-#testing hack: kill existing server.
+#testing hack: kill existing correl_server.
 try:
-    server.close()
+    correl_server.close()
 except Exception:
     pass
 
 client = OSCClient()
 client.connect( ("localhost", SC_SERVER_PORT))
-server = OSCServer(("localhost", 36000), client=client, return_port=57110)
-server.addMsgHandler("/transect", query_callback )
-server.addMsgHandler("/set_bus", set_bus )
-server.addMsgHandler("/set_n", set_n )
-server.addMsgHandler("/set_file", set_file )
-server.addMsgHandler("/quit", quit )
+correl_server = OSCServer(("localhost", 36000), client=client, return_port=57110)
+correl_server.addMsgHandler("/transect", transect )
+correl_server.addMsgHandler("/notify", notify )
+correl_server.addMsgHandler("/set_bus", set_bus )
+correl_server.addMsgHandler("/set_n", set_n )
+correl_server.addMsgHandler("/set_file", set_file )
+correl_server.addMsgHandler("/quit", quit )
 
-client.send( OSCMessage("/notify", 1 ) ) #subscribe to server stuff
-#server.print_tracebacks = True
+notify() #subscribe to server stuff
 
-server.serve_forever()
+#correl_server.print_tracebacks = True
+correl_server.serve_forever()
 

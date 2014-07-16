@@ -2,15 +2,20 @@
 * Messing around trying to find a low-dimensional feature vector that represents harmonicity
 */
 s=~serverboot.(prox:\local, device:\builtin);
-~dataServerPid = -1000;
-~dataServerPid.pidRunning.not.if({
-	~dataServerPid= "python %".format(
-		(~pmextern +/+ "ps_correl.py").shellQuote
-	).unixCmd(
-		action: {|result, pid| [result, pid].postln},
-		postOutput: true
-	);
-});
+~pscorrelpath = ~pm +/+ "ps_correl";
+// ~dataServerPid = -1000;
+// ~dataServerPid.pidRunning.not.if({
+// 	~dataServerPid= "python %".format(
+// 		(~pscorrelpath +/+ "ps_correl.py").shellQuote
+// 	).unixCmd(
+// 		action: {|result, pid| [result, pid].postln},
+// 		postOutput: true
+// 	);
+// });
+"python %".format(
+	(~pscorrelpath +/+ "ps_correl.py").shellQuote
+).runInTerminal;
+
 s.dumpOSC(1);
 (
 var analNode, plotter, analBus, analServer, state=();
@@ -95,8 +100,7 @@ fork {
 			state[\anal]=vals;
 		}, '/transect'
 	);
-
-	~soundsource = Synth.new(\playbuf__1, [\bufnum,~inBuf, \outbus, ~inBus], s, \addToHead);
+	~soundsource = Synth.new(\playbuf__1, [\bufnum, ~inBuf, \outbus, ~inBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [\inbus, ~inBus, \outbus, ~analBus], s, \addToTail);
 	state.putAll((
 		analNode: analNode,
@@ -105,3 +109,4 @@ fork {
 	));
 };
 )
+~state;
