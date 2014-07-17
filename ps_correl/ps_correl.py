@@ -8,6 +8,7 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
+TODO: start server ASAP to catch init messages
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
 TODO: report amplitude of matched file section
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things

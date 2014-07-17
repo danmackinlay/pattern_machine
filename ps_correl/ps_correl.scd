@@ -1,6 +1,5 @@
 /*
  * Messing around trying to find a low-dimensional feature vector that represents harmonicity
- * TODO: work out why last col is always 0.
  */
 s=~serverboot.(prox:\local, device:\builtin);
 ~pscorrelpath = ~pm +/+ "ps_correl";
@@ -17,6 +16,11 @@ s=~serverboot.(prox:\local, device:\builtin);
 	(~pscorrelpath +/+ "ps_correl.py").shellQuote
 ).runInTerminal;
 s.dumpOSC(1);
+OSCdef.trace(true);
+
+s.dumpOSC(0);
+OSCdef.trace(false);
+
 (
 var analNode, concatNode, soundSource, infilep, confilep, inBuf, conBuf;
 var soundAnalBus, transectBus;
@@ -50,7 +54,8 @@ SynthDef.new(\transect12__1, {|inbus=0,
 			iter: 4
 		)
 	)/(inamp.max(minamp));
-	corrs = corrs ++ [inamp];
+	//include amplitude info in query (currently ignored)
+	corrs = [inamp] ++ corrs;
 	// TextVU.ar(5, corrs, "Analy");
 	SendReply.kr(
 		Impulse.kr(pollrate)*(inamp>minamp),
@@ -110,7 +115,7 @@ fork {
 		}, '/transect'
 	);
 	soundSource = Synth.new(\playbuf__1, [\bufnum, inBuf, \outbus, soundAnalBus], s, \addToHead);
-	analNode=Synth.new(\transect12__1, [\inbus, soundAnalBus, \outbus, transectBus], s, \addToTail);
+	analNode=Synth.new(\transect12__1, [\inbus, soundAnalBus, \outbus, transectBus, \pollrate, 1.0], s, \addToTail);
 	concatNode=Synth.new(\concat__1_1, [\outbus, 0,
 		\bufnum, conBuf,
 		\time, transectBus.subBus(0,1).asMap,
@@ -131,3 +136,16 @@ fork {
 };
 )
 ~state;
+~state.transectBus.get;
+~state.analServer.sendMsg("/set_bus", ~state.transectBus.index);
+~state.analServer.sendMsg("/set_n", ~state.transectBus.numChannels);
+
+(
+fork {
+	65536.do({|i|
+		//i.postln;
+		NetAddr("localhost", i).sendMsg("/gaaaaah", 5);
+		0.001.yield;
+	});
+};
+)

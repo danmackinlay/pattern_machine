@@ -28,6 +28,9 @@
   * chord selection
   * pads
   * vocal tracking
+  * phys-modelling-lite - give initial values for params trajectories and attractors; move the attractors using controls
+    * stable attactors, with friction
+    * hamiltonians, orbits?
 * control RME mixer from supercollider
 * you can constrain a synth genom for evolution by only effecting downstream oscs. apart from that f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
