@@ -38,6 +38,10 @@
   * Student-t correlation
   * map params to physical model
   * Cauchy correlation
+  * sparse correlation
+  * physical models as input
+  * random sparse physical models as input
+  * When does random physics produce partial order?
 * rhythms
   * randomiser pattern
   * quantizer pattern
