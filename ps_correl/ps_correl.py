@@ -92,11 +92,6 @@ def quit_handler(path=None, tags=None, args=None, source=None):
 def null_handler(path=None, tags=None, args=None, source=None):
     pass
 
-#testing hack: kill existing sc_synth_facing_server.
-try:
-    sc_synth_facing_server.close()
-except Exception:
-    pass
 
 # sc_synth_client = OSCClient()
 # sc_synth_client.connect( ("127.0.0.1", PS_CORREL_PORT))
