@@ -7,7 +7,7 @@ Probabilistic underpinnings:
 -----------------------------
 
 this naive markov model still has lots of hairy bits. Questions:
-* can I get a better "base" point for my notes? e.g. choosing a "key"
+* can I get a better "base" point for my notes? e.g. choosing a "key", or just a most common note?
 * can I somehow condition on more "control" variables?
 * can I use state transitions to estimate "consonance"?
 * The barcode features are telling, with coefficients decreasing from b1 to b4, nearly strictly;
@@ -16,7 +16,9 @@ this naive markov model still has lots of hairy bits. Questions:
 Possible techniques
 ----------------------
 
-I could always give up and infer hidden markov states.
+### HIDDEN markov models
+
+It's been done though, and is boring.
 
 ### neural network
 
@@ -27,24 +29,22 @@ Full blown deep learning feels like overkill, but ido some *un*principled featur
 
 ### PGM
 
-if this DOESN'T work, could go to a discrete PGM model, such as
+Could go to a discrete PGM model, such as
 http://cran.r-project.org/web/packages/catnet/vignettes/catnet.pdf
 https://r-forge.r-project.org/R/?group_id=1487
 gRaphHD http://www.jstatsoft.org/v37/i01/
 http://www.bnlearn.com/
-but let's stay simple and start with a linear model;
+but let's stay simple and start with a linear model.
 
 ### specifically that Linear Model
 
 #### In R
 
-See R packages glmnet, liblineaR, rms
+See R packages glmnet, liblineaR.
 NB liblineaR has python binding
-if we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
+
+If we wished to use non penalized regression, could go traditional AIC style: http://data.princeton.edu/R/glms.html
 OR even do hierarchical penalised regression using http://cran.r-project.org/web/packages/glinternet/index.html
-For now
-see http://www.stanford.edu/~hastie/glmnet/glmnet_alpha.html for an excellent guide
-and http://www.jstatsoft.org/v33/i01/paper
 
 #### in Python
 
@@ -64,22 +64,20 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 
 ### Other trendy alternatives
 
-CMU has a bunch of algorithms in this domain:
+Stability regularisation instead of CV:
 
 * lasso.stars http://cran.r-project.org/web/packages/bigdata/ (no logistic!)
-* Spam http://cran.r-project.org/web/packages/SAM/ http://machinelearning.wustl.edu/mlpapers/paper_files/NIPS2007_415.pdf
-* http://sachaepskamp.com/qgraph
-* http://cran.r-project.org/web/packages/huge/ 
+* http://papers.nips.cc/paper/3966-stability-approach-to-regularization-selection-stars-for-high-dimensional-graphical-models.pdf
 
 TODO
 ------
 
-* fit logistic purely to downbeat (or other beat)
+* fit logistic purely to downbeat (or any other beat)
 * or implement graphical model outputs in SC
-* truncate fit models to a minimum coeff magnitude (1E-17 is being silly for an event occurring .1% of the time)
+* truncate fit models to a minimum coeff magnitude (1E-17 is a silly weight for an event occurring .001% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
-* fix bar position features ; interacts weirdly with my ad hoc feature manufacture
+* fix bar position features; interacts weirdly with my ad hoc feature manufacture
 * it's weird that bar pos and the filter vectors use related by slightly different time quanta, no? Should I change that?
 * weight features to de-favour annoying ones
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
@@ -96,7 +94,7 @@ TODO
   * source dataset
   * basis parameters
 * factor mapping
-* call into R using rpy2 or even subprocess
+* call into R using subprocess
 * predict inter-event times - would be a natural multiple classification task
 * Alternate Fold Idea: simply segment betweeen EVENTS, so as to preserve individual obs together while forgetting songs. This requires us to fold on eventId not obsId.
 
