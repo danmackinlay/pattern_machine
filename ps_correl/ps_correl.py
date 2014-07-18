@@ -41,6 +41,7 @@ from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
 from ps_correl_config import PS_CORREL_PORT, SC_LANG_PORT, SC_SYNTH_PORT, SF_PATH
 from ps_correl_analyze import sf_anal
+import types
 
 print "Analysing", SF_PATH
 wavdata = sf_anal(SF_PATH)
@@ -58,7 +59,7 @@ def transect_handler(path=None, tags=None, args=None, source=None):
     idx = args[1]
     lookup = args[3:] #ignores the amplitude
     dists, indices = tree.query(lookup, k=scsynth_bus_n, return_distance=True)
-    # print "hunting", lookup, dists, indices
+    print "hunting", lookup, dists, indices
     times = list(*sample_times[indices])
     # send scsynth bus messages
     if scsynth_bus_start is not None:
@@ -97,11 +98,15 @@ try:
 except Exception:
     pass
 
-client = OSCClient()
-client.connect( ("127.0.0.1", PS_CORREL_PORT))
-correl_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
+# client = OSCClient()
+# client.connect( ("127.0.0.1", PS_CORREL_PORT))
+# correl_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
+correl_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
+client = correl_server.client
+
 # # fix dicey-looking error messages
 # correl_server.addMsgHandler("default", correl_server.msgPrinter_handler)
+correl_server.addDefaultHandlers()
 correl_server.addMsgHandler("/transect", transect_handler )
 correl_server.addMsgHandler("/notify", notify_handler )
 correl_server.addMsgHandler("/set_bus", set_bus_handler )
@@ -111,7 +116,21 @@ correl_server.addMsgHandler("/quit", quit_handler )
 
 notify_handler() #subscribe to sc_synth stuff
 
-print correl_server.server_address
+print correl_server.server_address, client.address()
 #correl_server.print_tracebacks = True
-correl_server.serve_forever()
+
+#hack to eliminate the possibility that rogue exceptions are poisoning this fucking thing
+def handle_error(self,request,client_address):
+    print "ERROR",self,request,client_address
+    pass
+
+correl_server.handle_error = types.MethodType(handle_error, correl_server)
+correl_server.running = True
+
+while True:
+	correl_server.handle_request()
+
+print "NOOOOOO"
+correl_server.close()
+
 
