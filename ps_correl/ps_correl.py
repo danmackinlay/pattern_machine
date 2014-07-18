@@ -39,14 +39,16 @@ http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
-from ps_correl_config import *
+from ps_correl_config import PS_CORREL_PORT, SC_LANG_PORT, SC_SYNTH_PORT, SF_PATH
 from ps_correl_analyze import sf_anal
 
+print "Analysing", SF_PATH
 wavdata = sf_anal(SF_PATH)
 all_corrs = wavdata['all_corrs']
 sample_times = wavdata['sample_times']
 amps = wavdata['amp']
 
+print "Indexing..."
 tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
 scsynth_bus_start=None
 scsynth_bus_n=3
@@ -64,11 +66,11 @@ def transect_handler(path=None, tags=None, args=None, source=None):
         msg = OSCMessage("/c_setn")
         msg.extend([scsynth_bus_start, scsynth_bus_n])
         msg.extend(times)
-        client.send(msg)
+        client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
 
 def notify_handler(path=None, tags=None, args=None, source=None):
     print "notify", path, tags, args, source
-    client.send( OSCMessage("/notify", 1 ) )
+    client.sendto( OSCMessage("/notify", 1 ), ("127.0.0.1", SC_SYNTH_PORT))
 
 def set_bus_handler(path=None, tags=None, args=None, source=None):
     print "set_bus", path, tags, args, source
@@ -96,8 +98,8 @@ except Exception:
     pass
 
 client = OSCClient()
-client.connect( ("localhost", SC_SERVER_PORT))
-correl_server = OSCServer(("localhost", PS_CORREL_PORT), client=client, return_port=PS_CORREL_PORT) #SC_SERVER_PORT
+client.connect( ("127.0.0.1", PS_CORREL_PORT))
+correl_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
 # # fix dicey-looking error messages
 # correl_server.addMsgHandler("default", correl_server.msgPrinter_handler)
 correl_server.addMsgHandler("/transect", transect_handler )
