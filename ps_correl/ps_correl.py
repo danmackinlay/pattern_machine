@@ -67,11 +67,11 @@ def transect_handler(path=None, tags=None, args=None, source=None):
         msg = OSCMessage("/c_setn")
         msg.extend([scsynth_bus_start, scsynth_bus_n])
         msg.extend(times)
-        client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
+        sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
 
 def notify_handler(path=None, tags=None, args=None, source=None):
     print "notify", path, tags, args, source
-    client.sendto( OSCMessage("/notify", 1 ), ("127.0.0.1", SC_SYNTH_PORT))
+    sc_synth_client.sendto( OSCMessage("/notify", 1 ), ("127.0.0.1", SC_SYNTH_PORT))
 
 def set_bus_handler(path=None, tags=None, args=None, source=None):
     print "set_bus", path, tags, args, source
@@ -87,50 +87,50 @@ def set_file_handler(path=None, tags=None, args=None, source=None):
 
 def quit_handler(path=None, tags=None, args=None, source=None):
     print "quit", path, tags, args, source
-    correl_server.running = False
+    sc_synth_facing_server.running = False
 
 def null_handler(path=None, tags=None, args=None, source=None):
     pass
 
-#testing hack: kill existing correl_server.
+#testing hack: kill existing sc_synth_facing_server.
 try:
-    correl_server.close()
+    sc_synth_facing_server.close()
 except Exception:
     pass
 
-# client = OSCClient()
-# client.connect( ("127.0.0.1", PS_CORREL_PORT))
-# correl_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
-correl_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
-client = correl_server.client
+# sc_synth_client = OSCClient()
+# sc_synth_client.connect( ("127.0.0.1", PS_CORREL_PORT))
+# sc_synth_facing_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), sc_synth_client=sc_synth_client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
+sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
+sc_synth_client = sc_synth_facing_server.client
 
 # # fix dicey-looking error messages
-# correl_server.addMsgHandler("default", correl_server.msgPrinter_handler)
-correl_server.addDefaultHandlers()
-correl_server.addMsgHandler("/transect", transect_handler )
-correl_server.addMsgHandler("/notify", notify_handler )
-correl_server.addMsgHandler("/set_bus", set_bus_handler )
-correl_server.addMsgHandler("/set_n", set_n_handler )
-correl_server.addMsgHandler("/set_file", set_file_handler )
-correl_server.addMsgHandler("/quit", quit_handler )
+# sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.msgPrinter_handler)
+sc_synth_facing_server.addDefaultHandlers()
+sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
+sc_synth_facing_server.addMsgHandler("/notify", notify_handler )
+sc_synth_facing_server.addMsgHandler("/set_bus", set_bus_handler )
+sc_synth_facing_server.addMsgHandler("/set_n", set_n_handler )
+sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
+sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
 
 notify_handler() #subscribe to sc_synth stuff
 
-print correl_server.server_address, client.address()
-#correl_server.print_tracebacks = True
+print sc_synth_facing_server.server_address, sc_synth_client.address()
+#sc_synth_facing_server.print_tracebacks = True
 
 #hack to eliminate the possibility that rogue exceptions are poisoning this fucking thing
 def handle_error(self,request,client_address):
     print "ERROR",self,request,client_address
     pass
 
-correl_server.handle_error = types.MethodType(handle_error, correl_server)
-correl_server.running = True
+sc_synth_facing_server.handle_error = types.MethodType(handle_error, sc_synth_facing_server)
+sc_synth_facing_server.running = True
 
 while True:
-	correl_server.handle_request()
+	sc_synth_facing_server.handle_request()
 
 print "NOOOOOO"
-correl_server.close()
+sc_synth_facing_server.close()
 
 
