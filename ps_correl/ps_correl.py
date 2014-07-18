@@ -39,9 +39,10 @@ http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
-from ps_correl_config import PS_CORREL_PORT, SC_LANG_PORT, SC_SYNTH_PORT, SF_PATH
+from ps_correl_config import PS_CORREL_PORT, SC_LANG_PORT, SC_SYNTH_PORT, SF_PATH, THAT_OTHER_PS_CORREL_PORT
 from ps_correl_analyze import sf_anal
 import types
+import time
 
 print "Analysing", SF_PATH
 wavdata = sf_anal(SF_PATH)
@@ -69,10 +70,6 @@ def transect_handler(path=None, tags=None, args=None, source=None):
         msg.extend(times)
         sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
 
-def notify_handler(path=None, tags=None, args=None, source=None):
-    print "notify", path, tags, args, source
-    sc_synth_client.sendto( OSCMessage("/notify", 1 ), ("127.0.0.1", SC_SYNTH_PORT))
-
 def set_bus_handler(path=None, tags=None, args=None, source=None):
     print "set_bus", path, tags, args, source
     scsynth_bus_start = args[0]
@@ -92,10 +89,10 @@ def quit_handler(path=None, tags=None, args=None, source=None):
 def null_handler(path=None, tags=None, args=None, source=None):
     pass
 
-
+OSCServer.timeout = 0.01
 # sc_synth_client = OSCClient()
 # sc_synth_client.connect( ("127.0.0.1", PS_CORREL_PORT))
-# sc_synth_facing_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), sc_synth_client=sc_synth_client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
+# sc_synth_facing_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=sc_synth_client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
 sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
 sc_synth_client = sc_synth_facing_server.client
 
@@ -103,16 +100,30 @@ sc_synth_client = sc_synth_facing_server.client
 # sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.msgPrinter_handler)
 sc_synth_facing_server.addDefaultHandlers()
 sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
-sc_synth_facing_server.addMsgHandler("/notify", notify_handler )
 sc_synth_facing_server.addMsgHandler("/set_bus", set_bus_handler )
 sc_synth_facing_server.addMsgHandler("/set_n", set_n_handler )
 sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
 sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
-
-notify_handler() #subscribe to sc_synth stuff
-
-print sc_synth_facing_server.server_address, sc_synth_client.address()
 #sc_synth_facing_server.print_tracebacks = True
+
+sc_synth_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_SYNTH_PORT))
+
+
+sc_lang_facing_server = OSCServer(("127.0.0.1", THAT_OTHER_PS_CORREL_PORT ))
+sc_lang_client = sc_lang_facing_server.client
+# # fix dicey-looking error messages
+# sc_lang_facing_server.addMsgHandler("default", sc_lang_facing_server.msgPrinter_handler)
+sc_lang_facing_server.addDefaultHandlers()
+sc_lang_facing_server.addMsgHandler("/transect", transect_handler )
+sc_lang_facing_server.addMsgHandler("/set_bus", set_bus_handler )
+sc_lang_facing_server.addMsgHandler("/set_n", set_n_handler )
+sc_lang_facing_server.addMsgHandler("/set_file", set_file_handler )
+sc_lang_facing_server.addMsgHandler("/quit", quit_handler )
+
+#sc_lang_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_LANG_PORT))
+
+
+print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_lang_facing_server.server_address, sc_lang_client.address()
 
 #hack to eliminate the possibility that rogue exceptions are poisoning this fucking thing
 def handle_error(self,request,client_address):
@@ -121,11 +132,23 @@ def handle_error(self,request,client_address):
 
 sc_synth_facing_server.handle_error = types.MethodType(handle_error, sc_synth_facing_server)
 sc_synth_facing_server.running = True
+sc_lang_facing_server.handle_error = types.MethodType(handle_error, sc_lang_facing_server)
+sc_lang_facing_server.running = True
 
+i = 0
+ptime = time.time()
 while True:
-	sc_synth_facing_server.handle_request()
+    i=i+1
+    ntime = time.time()
+    deltime = ntime - ptime
+    if deltime>=1.0:
+        print i, deltime
+        ptime = ntime
+    sc_synth_facing_server.handle_request()
+    sc_lang_facing_server.handle_request()
 
 print "NOOOOOO"
 sc_synth_facing_server.close()
+sc_lang_facing_server.close()
 
 
