@@ -23,6 +23,7 @@ def null_handler(self, path=None, tags=None, args=None, source=None):
 def handle_error(self,request,client_address):
     print "ERROR",self,request,client_address
 
+#OSCServer.timeout = 1.0
 OSCServer.timeout = 0.01
 
 sc_synth_client = OSCClient()
@@ -35,13 +36,14 @@ sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.handle_bl
 sc_synth_facing_server.addMsgHandler("/hello", sc_synth_facing_server.handle_blurt)
 
 sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", SC_SYNTH_PORT))
+# other_sc_synth_client = OSCClient()
+# other_sc_synth_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_SYNTH_PORT))
 
 print "sc_synth_facing_server", sc_synth_facing_server.server_address, sc_synth_client.address(), sc_synth_facing_server.getOSCAddressSpace()
 
 sc_lang_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT_2))
 sc_lang_client = sc_lang_facing_server.client
 sc_lang_facing_server.addDefaultHandlers()
-# sc_lang_facing_server.handle_error = types.MethodType(handle_error, sc_lang_facing_server)
 sc_lang_facing_server.handle_blurt = types.MethodType(handle_blurt, sc_lang_facing_server)
 sc_lang_facing_server.running = True
 sc_lang_facing_server.addMsgHandler("default", sc_lang_facing_server.handle_blurt)
@@ -54,7 +56,6 @@ print "sc_lang_facing_server", sc_lang_facing_server.server_address, sc_lang_cli
 general_server = OSCServer(("127.0.0.1", PS_CORREL_PORT_3))
 general_client = general_server.client
 general_server.addDefaultHandlers()
-# general_server.handle_error = types.MethodType(handle_error, general_server)
 general_server.handle_blurt = types.MethodType(handle_blurt, general_server)
 general_server.running = True
 general_server.addMsgHandler("default", general_server.handle_blurt)
@@ -65,7 +66,6 @@ print "general_server", general_server.server_address, general_client.address(),
 multi_client = OSCMultiClient()
 multi_server = OSCServer(("127.0.0.1", PS_CORREL_PORT_4 ), client=multi_client)
 multi_server.addDefaultHandlers()
-# multi_server.handle_error = types.MethodType(handle_error, multi_server)
 multi_server.handle_blurt = types.MethodType(handle_blurt, multi_server)
 multi_server.running = True
 multi_server.addMsgHandler("default", multi_server.handle_blurt)
