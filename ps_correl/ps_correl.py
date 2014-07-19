@@ -10,12 +10,12 @@ Also, what loss function? negative correlation is more significant than positive
 
 TODO: pass ports and filenames using CLI
 TODO: implement shutdown command
-TODO: rapdily becoming the most time=-consuming thing is tryign to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
-TODO: start server ASAP to catch init messages
+TODO: caching of analyses
+TODO: rapdily becoming the most time-consuming thing is trying to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
 TODO: report amplitude of matched file section
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
-TODO: launch or wrap python server from SC
+TODO: search ALSO on gradient
 TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
@@ -42,7 +42,7 @@ http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
-from ps_correl_config import PS_CORREL_PORT, SC_LANG_PORT, SC_SYNTH_PORT, SF_PATH, THAT_OTHER_PS_CORREL_PORT
+from ps_correl_config import PS_CORREL_PORT, SC_SYNTH_PORT, SF_PATH, SCSYNTH_BUS_NUM, SCSYNTH_BUS_CHANNELS
 from ps_correl_analyze import sf_anal
 import types
 import time
@@ -56,31 +56,20 @@ amps = wavdata['amp']
 
 print "Indexing..."
 tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
-scsynth_bus_start=None
-scsynth_bus_n=3
 
 def transect_handler(path=None, tags=None, args=None, source=None):
     node = args[0]
     idx = args[1]
     lookup = args[3:] #ignores the amplitude
-    dists, indices = tree.query(lookup, k=scsynth_bus_n, return_distance=True)
+    dists, indices = tree.query(lookup, k=SCSYNTH_BUS_CHANNELS, return_distance=True)
     print "hunting", lookup, dists, indices
     times = list(*sample_times[indices])
     # send scsynth bus messages
-    if scsynth_bus_start is not None:
-        print "dispatching", scsynth_bus_start, scsynth_bus_n, times
-        msg = OSCMessage("/c_setn")
-        msg.extend([scsynth_bus_start, scsynth_bus_n])
-        msg.extend(times)
-        sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
-
-def set_bus_handler(path=None, tags=None, args=None, source=None):
-    print "set_bus", path, tags, args, source
-    scsynth_bus_start = args[0]
-
-def set_n_handler(path=None, tags=None, args=None, source=None):
-    print "set_n", path, tags, args, source
-    scsynth_bus_n = args[0]
+    print "dispatching", SCSYNTH_BUS_NUM, SCSYNTH_BUS_CHANNELS, times
+    msg = OSCMessage("/c_setn")
+    msg.extend([SCSYNTH_BUS_NUM, SCSYNTH_BUS_CHANNELS])
+    msg.extend(times)
+    sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
 
 def set_file_handler(path=None, tags=None, args=None, source=None):
     print "set_file", path, tags, args, source
@@ -99,36 +88,15 @@ OSCServer.timeout = 0.01
 # sc_synth_facing_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=sc_synth_client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
 sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
 sc_synth_client = sc_synth_facing_server.client
-
-# # fix dicey-looking error messages
-# sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.msgPrinter_handler)
 sc_synth_facing_server.addDefaultHandlers()
 sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
-# sc_synth_facing_server.addMsgHandler("/set_bus", set_bus_handler )
-# sc_synth_facing_server.addMsgHandler("/set_n", set_n_handler )
 # sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
 # sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
 #sc_synth_facing_server.print_tracebacks = True
 
 sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", SC_SYNTH_PORT))
 
-
-sc_lang_facing_server = OSCServer(("127.0.0.1", THAT_OTHER_PS_CORREL_PORT ))
-sc_lang_client = sc_lang_facing_server.client
-# # fix dicey-looking error messages
-# sc_lang_facing_server.addMsgHandler("default", sc_lang_facing_server.msgPrinter_handler)
-sc_lang_facing_server.addDefaultHandlers()
-# sc_lang_facing_server.addMsgHandler("/transect", transect_handler )
-# sc_lang_facing_server.addMsgHandler("/set_bus", set_bus_handler )
-# sc_lang_facing_server.addMsgHandler("/set_n", set_n_handler )
-# sc_lang_facing_server.addMsgHandler("/set_file", set_file_handler )
-# sc_lang_facing_server.addMsgHandler("/quit", quit_handler )
-
-sc_lang_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_LANG_PORT))
-
-
 print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_synth_facing_server.getOSCAddressSpace()
-print sc_lang_facing_server.server_address, sc_lang_client.address(), sc_lang_facing_server.getOSCAddressSpace()
 
 #hack to eliminate the possibility that rogue exceptions are poisoning this fucking thing
 def handle_error(self,request,client_address):
@@ -137,8 +105,6 @@ def handle_error(self,request,client_address):
 
 sc_synth_facing_server.handle_error = types.MethodType(handle_error, sc_synth_facing_server)
 sc_synth_facing_server.running = True
-sc_lang_facing_server.handle_error = types.MethodType(handle_error, sc_lang_facing_server)
-sc_lang_facing_server.running = True
 
 # i = 0
 # ptime = time.time()
@@ -156,13 +122,7 @@ sc_lang_facing_server.running = True
 # sc_synth_facing_server.close()
 # sc_lang_facing_server.close()
 
-
 synth_server_thread = threading.Thread( target = sc_synth_facing_server.serve_forever )
 synth_server_thread.start()
 
 print "serving1"
-
-lang_server_thread = threading.Thread( target = sc_lang_facing_server.serve_forever )
-lang_server_thread.start()
-
-print "serving2"

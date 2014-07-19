@@ -96,15 +96,13 @@ fork {
 	s.notify(true);
 	infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
 	confilep="/Users/dan/src/sc/f_lustre/sounds/draingigm.aif";
-	soundAnalBus = Bus.audio(s,1);
+	//soundAnalBus = Bus.audio(s,1);
 	//~meter=transectBus.makeBusMeter;
 	inBuf=Buffer.read(s,infilep);
 	conBuf=Buffer.read(s,confilep);
-	transectBus = Bus.control(s, numChannels: 6);
-	analServer = NetAddr("127.0.0.1", 36000);
+	//transectBus = Bus.control(s, numChannels: 6);
+	transectBus = Bus.new(\audio, index: 83, numChannels: 6, server: s);
 	s.sync;
-	analServer.sendMsg("/set_bus", transectBus.index);
-	analServer.sendMsg("/set_n", transectBus.numChannels);
 	OSCdef(\transect,
 		{ |msg|
 			var vals=msg[3..];
@@ -121,7 +119,6 @@ fork {
 	state.putAll((
 		analNode: analNode,
 		transectBus: transectBus,
-		analServer: analServer,
 		concatNode: concatNode,
 		soundSource: soundSource,
 		infilep: infilep,
@@ -129,21 +126,8 @@ fork {
 		inBuf: inBuf,
 		conBuf: conBuf,
 		soundAnalBus: soundAnalBus,
-		transectBus: transectBus,
 	));
 };
 )
 ~state;
 ~state.transectBus.get;
-~state.analServer.sendMsg("/set_bus", ~state.transectBus.index);
-~state.analServer.sendMsg("/set_n", ~state.transectBus.numChannels);
-
-(
-fork {
-	65536.do({|i|
-		//i.postln;
-		NetAddr("localhost", i).sendMsg("/fatsch", 5);
-		0.001.yield;
-	});
-};
-)
