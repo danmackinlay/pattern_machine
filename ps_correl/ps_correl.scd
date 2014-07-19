@@ -3,18 +3,16 @@
  */
 s=~serverboot.(prox:\local, device:\builtin);
 ~pscorrelpath = ~pm +/+ "ps_correl";
+~cli = "python %".format((~pscorrelpath +/+ "ps_correl.py").shellQuote);
 // ~dataServerPid = -1000;
 // ~dataServerPid.pidRunning.not.if({
-// ~dataServerPid= "python %".format(
-//    (~pscorrelpath +/+ "ps_correl.py").shellQuote
-// ).unixCmd(
+// ~dataServerPid= (~cli).unixCmd(
 // 		action: {|result, pid| [result, pid].postln},
 // 		postOutput: true
 // 	);
 // });
-"python %".format(
-	(~pscorrelpath +/+ "ps_correl.py").shellQuote
-).runInTerminal;
+(~cli).runInTerminal;
+
 s.dumpOSC(1);
 OSCdef.trace(true);
 
