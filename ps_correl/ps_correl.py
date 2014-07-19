@@ -8,6 +8,7 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
+TODO: rapdily becoming the most time=-consuming thing is tryign to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
 TODO: start server ASAP to catch init messages
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
 TODO: report amplitude of matched file section
@@ -43,6 +44,7 @@ from ps_correl_config import PS_CORREL_PORT, SC_LANG_PORT, SC_SYNTH_PORT, SF_PAT
 from ps_correl_analyze import sf_anal
 import types
 import time
+import threading
 
 print "Analysing", SF_PATH
 wavdata = sf_anal(SF_PATH)
@@ -136,20 +138,29 @@ sc_synth_facing_server.running = True
 sc_lang_facing_server.handle_error = types.MethodType(handle_error, sc_lang_facing_server)
 sc_lang_facing_server.running = True
 
-i = 0
-ptime = time.time()
-while True:
-    i=i+1
-    ntime = time.time()
-    deltime = ntime - ptime
-    if deltime>=1.0:
-        print i, deltime
-        ptime = ntime
-    sc_synth_facing_server.handle_request()
-    sc_lang_facing_server.handle_request()
+# i = 0
+# ptime = time.time()
+# while True:
+#     i=i+1
+#     ntime = time.time()
+#     deltime = ntime - ptime
+#     if deltime>=1.0:
+#         print i, deltime
+#         ptime = ntime
+#     sc_synth_facing_server.handle_request()
+#     sc_lang_facing_server.handle_request()
+#
+# print "NOOOOOO"
+# sc_synth_facing_server.close()
+# sc_lang_facing_server.close()
 
-print "NOOOOOO"
-sc_synth_facing_server.close()
-sc_lang_facing_server.close()
 
+synth_server_thread = threading.Thread( target = sc_synth_facing_server.serve_forever )
+synth_server_thread.start()
 
+print "serving1"
+
+lang_server_thread = threading.Thread( target = sc_lang_facing_server.serve_forever )
+lang_server_thread.start()
+
+print "serving2"
