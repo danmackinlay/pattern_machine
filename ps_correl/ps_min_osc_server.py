@@ -23,19 +23,20 @@ def null_handler(self, path=None, tags=None, args=None, source=None):
 def handle_error(self,request,client_address):
     print "ERROR",self,request,client_address
 
-#OSCServer.timeout = 1.0
-OSCServer.timeout = 0.01
+OSCServer.timeout = 1.0
+#OSCServer.timeout = 0.01
 
 sc_synth_client = OSCClient()
-sc_synth_client.connect( ("127.0.0.1", SC_SYNTH_PORT)) #or SC_SYNTH_PORT?
+sc_synth_client.connect( ("127.0.0.1", SC_SYNTH_PORT))
 sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT_1), client=sc_synth_client)
 sc_synth_facing_server.addDefaultHandlers()
 sc_synth_facing_server.handle_blurt = types.MethodType(handle_blurt, sc_synth_facing_server)
 sc_synth_facing_server.running = True
 sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.handle_blurt)
 sc_synth_facing_server.addMsgHandler("/hello", sc_synth_facing_server.handle_blurt)
+sc_synth_facing_server.addMsgHandler("/status.reply", sc_synth_facing_server.handle_blurt)
 
-sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", SC_SYNTH_PORT))
+sc_synth_client.send(OSCMessage("/notify", 1))
 # other_sc_synth_client = OSCClient()
 # other_sc_synth_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_SYNTH_PORT))
 

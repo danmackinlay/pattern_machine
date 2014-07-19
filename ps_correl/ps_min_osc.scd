@@ -20,7 +20,7 @@ OSCdef.trace(false);
 
 NetAddr("127.0.0.1", 36000).sendMsg("/woom", 5);
 NetAddr("127.0.0.1", 36001).sendMsg("/blarg", 5);
-NetAddr("127.0.0.1", 36002).sendMsg("/info", 5);
+NetAddr("127.0.0.1", 36002).sendMsg("/info");
 NetAddr("127.0.0.1", 36003).sendMsg("/error", 5);
 NetAddr("127.0.0.1", 7667).sendMsg("/blorgh", 5);
 NetAddr("127.0.0.1", 7887).sendMsg("/skeeeeennnn", 5);

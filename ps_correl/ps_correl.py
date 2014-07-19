@@ -8,6 +8,8 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
+TODO: pass ports and filenames using CLI
+TODO: implement shutdown command
 TODO: rapdily becoming the most time=-consuming thing is tryign to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
 TODO: start server ASAP to catch init messages
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
@@ -101,14 +103,14 @@ sc_synth_client = sc_synth_facing_server.client
 # # fix dicey-looking error messages
 # sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.msgPrinter_handler)
 sc_synth_facing_server.addDefaultHandlers()
-# sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
+sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
 # sc_synth_facing_server.addMsgHandler("/set_bus", set_bus_handler )
 # sc_synth_facing_server.addMsgHandler("/set_n", set_n_handler )
 # sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
 # sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
 #sc_synth_facing_server.print_tracebacks = True
 
-sc_synth_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_SYNTH_PORT))
+sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", SC_SYNTH_PORT))
 
 
 sc_lang_facing_server = OSCServer(("127.0.0.1", THAT_OTHER_PS_CORREL_PORT ))
