@@ -61,17 +61,27 @@ SynthDef.new(\transect12__1, {|inbus=0,
 		corrs,
 		idx);
 }).add;
-SynthDef.new(\concat__1_1, {|outbus=0,
+SynthDef.new(\concat__1_1, {|outbus,
 	bufnum,
 	time, rate=1|
-	var sig, phase;
+	var sig;
+	// Should probably be TGrains:
+/*	sig = TGrains.ar (
+		numChannels:1,
+		trigger: 1,
+		bufnum: bufnum:,
+		rate: BufRateScale.kr(bufnum),
+		centerPos: time,
+		dur: 0.1, pan: 0, amp: 0.1, interp: 4)*/
 	sig = GrainBuf.ar(
 		numChannels:1,
 		sndbuf: bufnum,
-		rate: 1,
+		rate: BufRateScale.kr(bufnum),
 		trigger: 1,
 		pos: time,
-		dur: 0.1);
+		dur: 0.1,
+	amp:2,
+	);
 	Out.ar(outbus, sig);
 }).add;
 
@@ -101,7 +111,7 @@ fork {
 	inBuf=Buffer.read(s,infilep);
 	conBuf=Buffer.read(s,confilep);
 	//transectBus = Bus.control(s, numChannels: 6);
-	transectBus = Bus.new(\audio, index: 83, numChannels: 6, server: s);
+	transectBus = Bus.new(\control, index: 83, numChannels: 6, server: s);
 	s.sync;
 	OSCdef(\transect,
 		{ |msg|
@@ -112,7 +122,8 @@ fork {
 	);
 	soundSource = Synth.new(\playbuf__1, [\bufnum, inBuf, \outbus, soundAnalBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [\inbus, soundAnalBus, \outbus, transectBus, \pollrate, 1.0], s, \addToTail);
-	concatNode=Synth.new(\concat__1_1, [\outbus, 0,
+	concatNode=Synth.new(\concat__1_1, [
+		\outbus, 1,
 		\bufnum, conBuf,
 		\time, transectBus.subBus(0,1).asMap,
 	], s, \addToTail);
@@ -131,3 +142,5 @@ fork {
 )
 ~state;
 ~state.transectBus.get;
+~state.transectBus.subBus(0,1).asMap;
+~state.conBuf;
