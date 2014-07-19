@@ -84,7 +84,7 @@ def set_file_handler(path=None, tags=None, args=None, source=None):
 
 def quit_handler(path=None, tags=None, args=None, source=None):
     print "quit", path, tags, args, source
-    sc_synth_facing_server.running = False
+    #not yet implemented
 
 def null_handler(path=None, tags=None, args=None, source=None):
     pass
@@ -99,11 +99,11 @@ sc_synth_client = sc_synth_facing_server.client
 # # fix dicey-looking error messages
 # sc_synth_facing_server.addMsgHandler("default", sc_synth_facing_server.msgPrinter_handler)
 sc_synth_facing_server.addDefaultHandlers()
-sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
-sc_synth_facing_server.addMsgHandler("/set_bus", set_bus_handler )
-sc_synth_facing_server.addMsgHandler("/set_n", set_n_handler )
-sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
-sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
+# sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
+# sc_synth_facing_server.addMsgHandler("/set_bus", set_bus_handler )
+# sc_synth_facing_server.addMsgHandler("/set_n", set_n_handler )
+# sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
+# sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
 #sc_synth_facing_server.print_tracebacks = True
 
 sc_synth_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_SYNTH_PORT))
@@ -114,16 +114,17 @@ sc_lang_client = sc_lang_facing_server.client
 # # fix dicey-looking error messages
 # sc_lang_facing_server.addMsgHandler("default", sc_lang_facing_server.msgPrinter_handler)
 sc_lang_facing_server.addDefaultHandlers()
-sc_lang_facing_server.addMsgHandler("/transect", transect_handler )
-sc_lang_facing_server.addMsgHandler("/set_bus", set_bus_handler )
-sc_lang_facing_server.addMsgHandler("/set_n", set_n_handler )
-sc_lang_facing_server.addMsgHandler("/set_file", set_file_handler )
-sc_lang_facing_server.addMsgHandler("/quit", quit_handler )
+# sc_lang_facing_server.addMsgHandler("/transect", transect_handler )
+# sc_lang_facing_server.addMsgHandler("/set_bus", set_bus_handler )
+# sc_lang_facing_server.addMsgHandler("/set_n", set_n_handler )
+# sc_lang_facing_server.addMsgHandler("/set_file", set_file_handler )
+# sc_lang_facing_server.addMsgHandler("/quit", quit_handler )
 
-#sc_lang_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_LANG_PORT))
+sc_lang_client.sendto(OSCMessage("/notify"),("127.0.0.1", SC_LANG_PORT))
 
 
-print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_lang_facing_server.server_address, sc_lang_client.address()
+print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_synth_facing_server.getOSCAddressSpace()
+print sc_lang_facing_server.server_address, sc_lang_client.address(), sc_lang_facing_server.getOSCAddressSpace()
 
 #hack to eliminate the possibility that rogue exceptions are poisoning this fucking thing
 def handle_error(self,request,client_address):
