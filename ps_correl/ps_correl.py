@@ -10,9 +10,9 @@ Also, what loss function? negative correlation is more significant than positive
 
 TODO: pass ports and filenames using CLI
 TODO: implement shutdown command
+TODO: more conservative pregain management to avoid onset clipping
 TODO: rapdily becoming the most time-consuming thing is trying to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
-TODO: report amplitude of matched file section
 TODO: cache analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised. might be worth it to avoid hiccups in single-threaded mode)
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
 TODO: search ALSO on gradient
@@ -75,7 +75,7 @@ def transect_handler(path=None, tags=None, args=None, source=None):
     makeup_gains = (1.0/amps[indices])
     # send scsynth bus messages
     print "dispatching", SCSYNTH_BUS_NUM, N_RESULTS*3, times, makeup_gains, dists
-    msg = OSCMessage("/c_setn", [SCSYNTH_BUS_NUM, N_RESULTS])
+    msg = OSCMessage("/c_setn", [SCSYNTH_BUS_NUM, N_RESULTS*3])
     #msg.extend() 
     msg.extend(times)
     msg.extend(makeup_gains)

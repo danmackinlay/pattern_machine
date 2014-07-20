@@ -67,7 +67,9 @@ SynthDef.new(\concat__1_1, {|outbus,
 	playrate=1,
 	grainrate=80.0,
 	overlap=2,
-	jitter=0|
+	jitter=0,
+	pregain=1,
+	amp=1|
 	var sig, trig, dur, jitdur;
 	trig = Impulse.ar(grainrate);
 	dur = grainrate.reciprocal*overlap;
@@ -80,7 +82,9 @@ SynthDef.new(\concat__1_1, {|outbus,
 		rate: BufRateScale.kr(bufnum)*playrate,
 		centerPos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
 		dur: dur,
-		pan: -1, amp: 2, interp: 4)[0];
+		pan: -1,
+		amp: pregain,
+		interp: 1)[0];
 	/*
 	sig = GrainBuf.ar(
 		numChannels:1,
@@ -89,10 +93,10 @@ SynthDef.new(\concat__1_1, {|outbus,
 		trigger: trig,
 		pos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
 		dur: dur,
-		mul: 2,
+		mul: pregain,
 	);
 	*/
-	Out.ar(outbus, sig);
+	Out.ar(outbus, sig*amp);
 }).add;
 
 state.putAll((
@@ -139,6 +143,8 @@ fork {
 		\jitter, 0.0,
 		\overlap, 4,
 		\grainrate, 80,
+		\amp, 0.5,
+		\pregain, transectBus.subBus(6,1).asMap,
 	], s, \addToTail);
 	state.putAll((
 		analNode: analNode,
@@ -155,5 +161,5 @@ fork {
 )
 ~state;
 ~state.transectBus.get;
-~state.transectBus.subBus(0,1).asMap;
+~state.transectBus.subBus(6,1).get;
 ~state.conBuf;
