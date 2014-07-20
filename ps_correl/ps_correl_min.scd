@@ -44,10 +44,10 @@ fork {
 	concatNode=Synth.new(\concat__1_1, [
 		\outbus, 1,
 		\bufnum, conBuf,
-		\time, 22.0,
-		\jitter, 0.5,
+		\time, 26.0,
+		\jitter, 0.0,
 		\overlap, 4,
-		\grainrate, 5
+		\grainrate, 50,
 	], s, \addToTail);
 	state.putAll((
 		concatNode: concatNode,

@@ -39,6 +39,7 @@ http://www.tau.ac.il/~kineret/amit/scipy_tutorial/
 http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
+http://cnx.org/content/m15490/latest/
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
