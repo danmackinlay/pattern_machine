@@ -63,25 +63,35 @@ SynthDef.new(\transect12__1, {|inbus=0,
 }).add;
 SynthDef.new(\concat__1_1, {|outbus,
 	bufnum,
-	time, rate=1|
-	var sig;
+	time=0,
+	playrate=1,
+	grainrate=80.0,
+	overlap=2,
+	jitter=0|
+	var sig, trig, dur, jitdur;
+	trig = Impulse.ar(grainrate);
+	dur = grainrate.reciprocal*overlap;
+	jitdur = dur*jitter/2;
 	// Should probably be TGrains:
-/*	sig = TGrains.ar (
-		numChannels:1,
-		trigger: 1,
-		bufnum: bufnum:,
-		rate: BufRateScale.kr(bufnum),
-		centerPos: time,
-		dur: 0.1, pan: 0, amp: 0.1, interp: 4)*/
+	sig = TGrains.ar (
+		numChannels:2,
+		trigger: trig,
+		bufnum: bufnum,
+		rate: BufRateScale.kr(bufnum)*playrate,
+		centerPos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
+		dur: dur,
+		pan: -1, amp: 2, interp: 4)[0];
+	/*
 	sig = GrainBuf.ar(
 		numChannels:1,
 		sndbuf: bufnum,
-		rate: BufRateScale.kr(bufnum),
-		trigger: 1,
-		pos: time,
-		dur: 0.1,
-	amp:2,
+		rate: BufRateScale.kr(bufnum)*playrate,
+		trigger: trig,
+		pos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
+		dur: dur,
+		mul: 2,
 	);
+	*/
 	Out.ar(outbus, sig);
 }).add;
 
@@ -126,6 +136,9 @@ fork {
 		\outbus, 1,
 		\bufnum, conBuf,
 		\time, transectBus.subBus(0,1).asMap,
+		\jitter, 0.0,
+		\overlap, 4,
+		\grainrate, 80,
 	], s, \addToTail);
 	state.putAll((
 		analNode: analNode,

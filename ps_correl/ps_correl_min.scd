@@ -10,9 +10,10 @@ SynthDef.new(\concat__1_1, {|outbus,
 	jitter=0|
 	var sig, trig, dur, jitdur;
 	trig = Impulse.ar(grainrate);
-	dur = playrate.reciprocal*overlap;
+	dur = grainrate.reciprocal*overlap;
 	jitdur = dur*jitter/2;
 	// Should probably be TGrains:
+	/*
 	sig = TGrains.ar (
 		numChannels:2,
 		trigger: trig,
@@ -21,15 +22,16 @@ SynthDef.new(\concat__1_1, {|outbus,
 		centerPos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
 		dur: dur,
 		pan: -1, amp: 2, interp: 4)[0];
-	/*sig = GrainBuf.ar(
+	*/
+	sig = GrainBuf.ar(
 		numChannels:1,
 		sndbuf: bufnum,
 		rate: BufRateScale.kr(bufnum)*playrate,
 		trigger: trig,
-		pos: TRand.ar(jitdur.neg, jitdur, trig)+ time,,
+		pos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
 		dur: dur,
 		mul: 2,
-	);*/
+	);
 	Out.ar(outbus, sig);
 }).add;
 
