@@ -10,10 +10,10 @@ Also, what loss function? negative correlation is more significant than positive
 
 TODO: pass ports and filenames using CLI
 TODO: implement shutdown command
-TODO: caching of analyses
 TODO: rapdily becoming the most time-consuming thing is trying to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
 TODO: report amplitude of matched file section
+TODO: cache analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised. might be worth it to avoid hiccups in single-threaded mode)
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
 TODO: search ALSO on gradient
 TODO: handle multiple files
@@ -25,7 +25,6 @@ TODO: plot spectrograms and sanity check against analysis data
 TODO: handle errors; at least print them somewhere; report ready and success
 TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
 TODO: work out how to suppress "no handler" warnings
-TODO: serialise analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised. might be worth it to avoid hiccups in single-threaded mode)
 TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? 
 TODO: dimension reduction
 TODO: live scsynth synth triggering
@@ -57,6 +56,13 @@ amps = wavdata['amp']
 print "Indexing..."
 tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
 
+
+OSCServer.timeout = 0.01
+
+sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
+sc_synth_client = sc_synth_facing_server.client
+sc_synth_facing_server.addDefaultHandlers()
+
 def transect_handler(path=None, tags=None, args=None, source=None):
     node = args[0]
     idx = args[1]
@@ -76,35 +82,25 @@ def transect_handler(path=None, tags=None, args=None, source=None):
     msg.extend(dists)
     sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
 
+# This currently never gets called as pyOSC will ignore everything
+# apart from the scsynth instance, in defience of my understanding of UDP
+# Need to set up an additional OSC server on a new port
+# or somehow relay through scsynth
 def quit_handler(path=None, tags=None, args=None, source=None):
     print "quit", path, tags, args, source
-    #not yet implemented
+    sc_synth_facing_server.close()
 
 def null_handler(path=None, tags=None, args=None, source=None):
     pass
 
-OSCServer.timeout = 0.01
-# sc_synth_client = OSCClient()
-# sc_synth_client.connect( ("127.0.0.1", PS_CORREL_PORT))
-# sc_synth_facing_server = OSCServer(("0.0.0.0", PS_CORREL_PORT), client=sc_synth_client, return_port=PS_CORREL_PORT) #SC_SYNTH_PORT
-sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
-sc_synth_client = sc_synth_facing_server.client
-sc_synth_facing_server.addDefaultHandlers()
 sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
-# sc_synth_facing_server.addMsgHandler("/set_file", set_file_handler )
-# sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
+sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
 #sc_synth_facing_server.print_tracebacks = True
 
 sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", SC_SYNTH_PORT))
 
 print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_synth_facing_server.getOSCAddressSpace()
 
-#hack to eliminate the possibility that rogue exceptions are poisoning this fucking thing
-def handle_error(self,request,client_address):
-    print "ERROR",self,request,client_address
-    pass
-
-sc_synth_facing_server.handle_error = types.MethodType(handle_error, sc_synth_facing_server)
 sc_synth_facing_server.running = True
 
 # i = 0
