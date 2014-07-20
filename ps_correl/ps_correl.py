@@ -11,7 +11,6 @@ Also, what loss function? negative correlation is more significant than positive
 TODO: pass ports and filenames using CLI
 TODO: implement shutdown command
 TODO: more conservative pregain management to avoid onset clipping
-TODO: rapdily becoming the most time-consuming thing is trying to get sclang to send data to python. everything else works. try: http://pymotw.com/2/SocketServer/#threading-and-forking and https://docs.python.org/2/library/socketserver.html
 TODO: search based on amplitude (what is an appropriate normalisation for it?)
 TODO: cache analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised. might be worth it to avoid hiccups in single-threaded mode)
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
@@ -20,14 +19,11 @@ TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
 TODO: settable ports/addresses
-TODO: check alternate metrics
 TODO: plot spectrograms and sanity check against analysis data
-TODO: handle errors; at least print them somewhere; report ready and success
 TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
 TODO: work out how to suppress "no handler" warnings
 TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? 
 TODO: dimension reduction
-TODO: live scsynth synth triggering
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 TODO: switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg https://github.com/cournape/samplerate
 TODO: treat smoothing or other free parameters (or neighbourhood size) as a model-selection problem? AIC or cross-validation?
@@ -54,8 +50,11 @@ sample_times = wavdata['sample_times']
 amps = wavdata['amp']
 
 print "Indexing..."
-tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
-
+# Startlingly, manhattan distance performs poorly.
+# euclidean is OK, or higher p-norms even.
+# should test the robustness of that against, e.g. pre-filtering
+#tree = BallTree(wavdata['all_corrs'].T, metric='minkowski', p=4) 
+tree = BallTree(wavdata['all_corrs'].T, metric='euclidean') 
 
 OSCServer.timeout = 0.01
 
@@ -83,7 +82,7 @@ def transect_handler(path=None, tags=None, args=None, source=None):
     sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
 
 # This currently never gets called as pyOSC will ignore everything
-# apart from the scsynth instance, in defience of my understanding of UDP
+# apart from the scsynth instance, in defiance of my understanding of UDP
 # Need to set up an additional OSC server on a new port
 # or somehow relay through scsynth
 def quit_handler(path=None, tags=None, args=None, source=None):
