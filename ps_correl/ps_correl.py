@@ -20,7 +20,6 @@ TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
 TODO: settable ports/addresses
-TODO: indicate how good matches are (distance)
 TODO: check alternate metrics
 TODO: plot spectrograms and sanity check against analysis data
 TODO: handle errors; at least print them somewhere; report ready and success
@@ -43,7 +42,7 @@ http://cnx.org/content/m15490/latest/
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
-from ps_correl_config import PS_CORREL_PORT, SC_SYNTH_PORT, SF_PATH, SCSYNTH_BUS_NUM, SCSYNTH_BUS_CHANNELS
+from ps_correl_config import PS_CORREL_PORT, SC_SYNTH_PORT, SF_PATH, SCSYNTH_BUS_NUM, N_RESULTS
 from ps_correl_analyze import sf_anal
 import types
 import time
@@ -62,19 +61,20 @@ def transect_handler(path=None, tags=None, args=None, source=None):
     node = args[0]
     idx = args[1]
     lookup = args[3:] #ignores the amplitude
-    dists, indices = tree.query(lookup, k=SCSYNTH_BUS_CHANNELS, return_distance=True)
-    print "hunting", lookup, dists, indices
-    times = list(*sample_times[indices])
+    dists, indices = tree.query(lookup, k=N_RESULTS, return_distance=True)
+    dists = dists.flatten()
+    indices = indices.flatten()
+    print "hunting", lookup
+    times = sample_times[indices]
+    makeup_gains = (1.0/amps[indices])
     # send scsynth bus messages
-    print "dispatching", SCSYNTH_BUS_NUM, SCSYNTH_BUS_CHANNELS, times
-    msg = OSCMessage("/c_setn")
-    msg.extend([SCSYNTH_BUS_NUM, SCSYNTH_BUS_CHANNELS])
+    print "dispatching", SCSYNTH_BUS_NUM, N_RESULTS*3, times, makeup_gains, dists
+    msg = OSCMessage("/c_setn", [SCSYNTH_BUS_NUM, N_RESULTS])
+    #msg.extend() 
     msg.extend(times)
+    msg.extend(makeup_gains)
+    msg.extend(dists)
     sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
-
-def set_file_handler(path=None, tags=None, args=None, source=None):
-    print "set_file", path, tags, args, source
-    #not yet implemented
 
 def quit_handler(path=None, tags=None, args=None, source=None):
     print "quit", path, tags, args, source

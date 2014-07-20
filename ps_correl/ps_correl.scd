@@ -121,7 +121,7 @@ fork {
 	inBuf=Buffer.read(s,infilep);
 	conBuf=Buffer.read(s,confilep);
 	//transectBus = Bus.control(s, numChannels: 6);
-	transectBus = Bus.new(\control, index: 83, numChannels: 6, server: s);
+	transectBus = Bus.new(\control, index: 83, numChannels: 18, server: s);
 	s.sync;
 	OSCdef(\transect,
 		{ |msg|
