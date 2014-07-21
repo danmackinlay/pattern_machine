@@ -10,23 +10,21 @@ Also, what loss function? negative correlation is more significant than positive
 
 TODO: cache analysis to disk ?
 TODO: more conservative pregain management to avoid onset clipping
-TODO: restric search based on amplitude range
-TODO: restric search based on certainty range (this woudl require us to actually have a model)
+TODO: include grain size in search and search based on that (tricky but safer)
+TODO: restrict search based on amplitude range
+TODO: restrict search based on certainty range (this would require us to actually have a model), e.g. higher when amp is low, or around major changes, or estimated from sample variance
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
 TODO: search ALSO on gradient
 TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
-TODO: settable ports/addresses
 TODO: plot spectrograms and sanity check against analysis data
-TODO: estimate variance of analysis; e.g. higher when amp is low, or around major changes
 TODO: work out how to suppress "no handler" warnings
 TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? 
 TODO: dimension reduction
-TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 TODO: switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg https://github.com/cournape/samplerate
 TODO: treat smoothing or other free parameters (or neighbourhood size) as a model-selection problem? AIC or cross-validation?
-
+TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.
 For fractional sample delay, we could do cubic interpolation, or polyphase filtering:
 http://www.tau.ac.il/~kineret/amit/scipy_tutorial/
 http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
