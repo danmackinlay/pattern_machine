@@ -3,6 +3,7 @@
  *
  * turn this into a class to make it less horribly chaotic.
  * pause unused (analysis) synths
+ * record samples live
  * switch to TCP instead of UDP to avoid dropped packets
  * spectral improvements
    * colourise spectral display to indicate chromaticity
@@ -182,8 +183,10 @@ FLustre {
 			numFrames: numFrames,
 			action: {|buf|
 				//Note, the buffer *won't* actually be defined here, but rather blank
-				this.debugPostln(buf.asCompileString++buf.bufnum);
-				this.startAnalysis;
+				this.debugPostln("a:" ++ buf.asCompileString++buf.bufnum);
+				{this.debugPostln("b:" ++ buf.asCompileString++buf.bufnum)}.defer;
+				//Hack to force reanalysis after the buffer is reallly really loaded
+				{this.startAnalysis}.defer;
 			}
 		);
 	}
