@@ -8,7 +8,6 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
-TODO: implement shutdown command
 TODO: cache analysis to disk ?
 TODO: more conservative pregain management to avoid onset clipping
 TODO: restric search based on amplitude range
@@ -165,5 +164,5 @@ sc_synth_facing_server.running = True
 synth_server_thread = threading.Thread( target = sc_synth_facing_server.serve_forever )
 synth_server_thread.start()
 
-print "serving1"
-
+raw_input("Serving analysis. Press Enter to quit...")
+sc_synth_facing_server.close()
