@@ -16,7 +16,7 @@ this naive markov model still has lots of hairy bits. Questions:
 Possible techniques
 ----------------------
 
-### HIDDEN markov models
+### Hidden Markov models
 
 It's been done though, and is boring.
 
@@ -36,7 +36,7 @@ gRaphHD http://www.jstatsoft.org/v37/i01/
 http://www.bnlearn.com/
 but let's stay simple and start with a linear model.
 
-### specifically that Linear Model
+### specifically logistic regression
 
 #### In R
 
@@ -62,24 +62,22 @@ This might be quicker with SGD: http://scikit-learn.org/stable/modules/sgd.html#
 
     mod = SGDClassifier(loss="log", penalty="l1", shuffle=True)
 
-### Other trendy alternatives
-
-Stability regularisation instead of CV:
-
-* lasso.stars http://cran.r-project.org/web/packages/bigdata/ (no logistic!)
-* http://papers.nips.cc/paper/3966-stability-approach-to-regularization-selection-stars-for-high-dimensional-graphical-models.pdf
-
 TODO
 ------
 
-* fit logistic purely to downbeat (or any other beat)
-* or implement graphical model outputs in SC
+* This model is terrible. It *looks* like it's fitting from the CV curve, but the reported deviance explained (0.165) is no better than a randomly permuted model with 0 terms. What could I do better?
+* handle multiplicity of note events?
+  * Full cellular automata-style, not just recentness of last event (parameter explosion!)
+  * Or regress against an exponential decay curve
+    * have to fit filter time, which will have nonlinear interactions with the other terms
+    * plus why would we then expect the response to the exponentially decayed event information to be linear?
+    * decaying sinusoidal impulses would seem more natural. but with what period? likely several harmonics of note length. What decay? No idea. Even several superposed decays could be natural.
+    * also, what phase would we add to the modeled impulse? harmonic in bar length? (exp(i\theta))? 0 phase added each time? Anyway, this gives us a very large optimisation problem. But possibly we could handle it in the spectral domain. Smoothing problem (per harmonic or overall) + say, 5 harmonics above 0 for each neighbourhood member
+* implement graphical model outputs in SC
 * truncate fit models to a minimum coeff magnitude (1E-17 is a silly weight for an event occurring .001% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis" functions
 * make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
-* fix bar position features; interacts weirdly with my ad hoc feature manufacture
-* it's weird that bar pos and the filter vectors use related by slightly different time quanta, no? Should I change that?
-* weight features to de-favour annoying ones
+* it's weird that bar pos and the filter vectors use related by slightly different time quanta, no? Should I change that? Quantise the entire thing to a cellular grid?
 * more generous compound feature search which allows features to appear which are *ONLY* interaction terms, despite both parents not being significant
 * hint hdf chunk size http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays
 * trim data set to save time http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?
