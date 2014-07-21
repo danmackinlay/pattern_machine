@@ -106,13 +106,14 @@ sc_synth_facing_server.addDefaultHandlers()
 def transect_handler(osc_path=None, osc_tags=None, osc_args=None, osc_source=None):
     node = osc_args[0]
     idx = osc_args[1]
+    curr_amp = float(osc_args[2])
     lookup = osc_args[3:] #ignores the amplitude
     dists, indices = tree.query(lookup, k=args.n_results, return_distance=True)
     dists = dists.flatten()
     indices = indices.flatten()
     print "hunting", lookup
     times = sample_times[indices]
-    makeup_gains = (1.0/amps[indices])
+    makeup_gains = (curr_amp/amps[indices])
     # send scsynth bus messages
     print "dispatching", args.bus_num, args.n_results*3, times, makeup_gains, dists
     msg = OSCMessage("/c_setn", [args.bus_num, args.n_results*3])
