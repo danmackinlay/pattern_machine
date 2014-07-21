@@ -13,7 +13,7 @@ TODO: more conservative pregain management to avoid onset clipping
 TODO: include grain size in search and search based on that (tricky but safer)
 TODO: restrict search based on amplitude range
 TODO: restrict search based on certainty range (this would require us to actually have a model), e.g. higher when amp is low, or around major changes, or estimated from sample variance
-TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
+TODO: search ALSO on variance, to avoid spurious transient onset matches
 TODO: search ALSO on gradient
 TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
@@ -95,7 +95,10 @@ print "Indexing..."
 # euclidean is OK, or higher p-norms even.
 # should test the robustness of that against, e.g. pre-filtering
 #tree = BallTree(wavdata['all_corrs'].T, metric='minkowski', p=4) 
-tree = BallTree(wavdata['all_corrs'].T, metric='euclidean') 
+tree = BallTree(wavdata['all_corrs'].T, metric='manhattan') # l1
+#tree = BallTree(wavdata['all_corrs'].T, metric='euclidean') # l2
+#tree = BallTree(wavdata['all_corrs'].T, metric='chebyshev') # l-infinity
+
 
 OSCServer.timeout = 0.01
 

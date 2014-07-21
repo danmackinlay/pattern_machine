@@ -16,7 +16,8 @@ var makeCLI,cli;
 var state = (
 	pscorrelpath: ~pm +/+ "ps_correl",
 	infilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
-	confilep: "/Users/dan/src/sc/f_lustre/sounds/draingigm.aif",
+	confilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
+	//confilep: "/Users/dan/src/sc/f_lustre/sounds/draingigm.aif",
 	langport: NetAddr.langPort,
 	nresults: 6,
 	basefreq: 440.0,
