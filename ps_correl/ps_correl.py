@@ -8,11 +8,11 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
-TODO: pass ports and filenames using CLI
 TODO: implement shutdown command
+TODO: cache analysis to disk ?
 TODO: more conservative pregain management to avoid onset clipping
-TODO: search based on amplitude (what is an appropriate normalisation for it?)
-TODO: cache analysis to disk ? (not worth it right now; analysis speed is negligible even unoptimised. might be worth it to avoid hiccups in single-threaded mode)
+TODO: restric search based on amplitude range
+TODO: restric search based on certainty range (this woudl require us to actually have a model)
 TODO: search ALSO on variance, to avoid spurious transient onset matches, or to at least allow myself to have such things
 TODO: search ALSO on gradient
 TODO: handle multiple files
@@ -37,14 +37,58 @@ http://cnx.org/content/m15490/latest/
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from OSC import OSCClient, OSCMessage, OSCServer
-from ps_correl_config import PS_CORREL_PORT, SC_SYNTH_PORT, SF_PATH, SCSYNTH_BUS_NUM, N_RESULTS
 from ps_correl_analyze import sf_anal
 import types
 import time
 import threading
+import argparse
+import os.path
 
-print "Analysing", SF_PATH
-wavdata = sf_anal(SF_PATH)
+parser = argparse.ArgumentParser(description='Sound analysis server')
+parser.add_argument('infile',
+    # nargs='+',
+    nargs='?',
+    default=os.path.expanduser('~/src/sc/f_lustre/sounds/draingigm.aif'),
+    # default=os.path.expanduser('~/src/sc/f_lustre/sounds/note_sweep.aif'),
+    help='file to analyse')
+parser.add_argument('--bus-num', dest='bus_num', type=int,
+    default=83,
+    help='which SC bus should I set?')
+parser.add_argument('--n', dest='n_results', type=int,
+    default=6,
+    help='how many results to return? (NB need 3 times this many buses)')
+parser.add_argument('--rate', dest='rate', type=float,
+    default=80.0,
+    help='how many points per second will I classify?')
+parser.add_argument('--port', dest='ps_correl_port', type=int,
+    default=36000,
+    help='port of scsynth to talk to (but monopolised by scsynth)')
+parser.add_argument('--sc-synth-port', dest='sc_synth_port', type=int,
+    default=57110,
+    help='port of scsynth to talk to')
+parser.add_argument('--sc-lang-port', dest='sc_lang_port', type=int,
+    default=57120,
+    help='port of scsynth to talk to (not currently used)')
+parser.add_argument('--base-freq', dest='base_freq', type=float,
+    default=440.0,
+    help='base analysis frequency')
+parser.add_argument('--steps', dest='n_steps', type=int,
+    default=12,
+    help='number of analysis frequencies')
+parser.add_argument('--min-level', dest='min_level', type=float,
+    default=0.001,
+    help='min rms amplitude')
+
+args = parser.parse_args()
+
+print "Analysing", args.infile
+wavdata = sf_anal(
+    args.infile,
+    rate=args.rate,
+    n_steps=args.n_steps,
+    base_freq=args.base_freq,
+    min_level=args.min_level)
+    
 all_corrs = wavdata['all_corrs']
 sample_times = wavdata['sample_times']
 amps = wavdata['amp']
@@ -58,28 +102,28 @@ tree = BallTree(wavdata['all_corrs'].T, metric='euclidean')
 
 OSCServer.timeout = 0.01
 
-sc_synth_facing_server = OSCServer(("127.0.0.1", PS_CORREL_PORT))
+sc_synth_facing_server = OSCServer(("127.0.0.1", args.ps_correl_port))
 sc_synth_client = sc_synth_facing_server.client
 sc_synth_facing_server.addDefaultHandlers()
 
-def transect_handler(path=None, tags=None, args=None, source=None):
-    node = args[0]
-    idx = args[1]
-    lookup = args[3:] #ignores the amplitude
-    dists, indices = tree.query(lookup, k=N_RESULTS, return_distance=True)
+def transect_handler(osc_path=None, osc_tags=None, osc_args=None, osc_source=None):
+    node = osc_args[0]
+    idx = osc_args[1]
+    lookup = osc_args[3:] #ignores the amplitude
+    dists, indices = tree.query(lookup, k=args.n_results, return_distance=True)
     dists = dists.flatten()
     indices = indices.flatten()
     print "hunting", lookup
     times = sample_times[indices]
     makeup_gains = (1.0/amps[indices])
     # send scsynth bus messages
-    print "dispatching", SCSYNTH_BUS_NUM, N_RESULTS*3, times, makeup_gains, dists
-    msg = OSCMessage("/c_setn", [SCSYNTH_BUS_NUM, N_RESULTS*3])
+    print "dispatching", args.bus_num, args.n_results*3, times, makeup_gains, dists
+    msg = OSCMessage("/c_setn", [args.bus_num, args.n_results*3])
     #msg.extend() 
     msg.extend(times)
     msg.extend(makeup_gains)
     msg.extend(dists)
-    sc_synth_client.sendto(msg, ("127.0.0.1", SC_SYNTH_PORT))
+    sc_synth_client.sendto(msg, ("127.0.0.1", args.sc_synth_port))
 
 # This currently never gets called as pyOSC will ignore everything
 # apart from the scsynth instance, in defiance of my understanding of UDP
@@ -96,7 +140,7 @@ sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
 sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
 #sc_synth_facing_server.print_tracebacks = True
 
-sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", SC_SYNTH_PORT))
+sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", args.sc_synth_port))
 
 print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_synth_facing_server.getOSCAddressSpace()
 
@@ -122,3 +166,4 @@ synth_server_thread = threading.Thread( target = sc_synth_facing_server.serve_fo
 synth_server_thread.start()
 
 print "serving1"
+
