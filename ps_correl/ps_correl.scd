@@ -135,14 +135,18 @@ fork {
 		}, '/transect'
 	);
 	soundSource = Synth.new(\playbuf__1, [\bufnum, inBuf, \outbus, soundAnalBus], s, \addToHead);
-	analNode=Synth.new(\transect12__1, [\inbus, soundAnalBus, \outbus, transectBus, \pollrate, 1.0], s, \addToTail);
+	analNode=Synth.new(\transect12__1, [
+		\inbus, soundAnalBus, \outbus,
+		transectBus,
+		\pollrate, 160.0
+	], s, \addToTail);
 	concatNode=Synth.new(\concat__1_1, [
 		\outbus, 1,
 		\bufnum, conBuf,
 		\time, transectBus.subBus(0,1).asMap,
 		\jitter, 0.0,
 		\overlap, 4,
-		\grainrate, 80,
+		\grainrate, 20,
 		\amp, 0.5,
 		\pregain, transectBus.subBus(6,1).asMap,
 	], s, \addToTail);
