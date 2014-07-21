@@ -17,12 +17,14 @@ var state = (
 	pscorrelpath: ~pm +/+ "ps_correl",
 	infilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
 	confilep: "/Users/dan/src/sc/f_lustre/sounds/draingigm.aif",
-	correlport: 36000,
 	langport: NetAddr.langPort,
 	nresults: 6,
 	basefreq: 440.0,
 );
 ~state = state;
+//cute hack to keep the scripts launching
+~correlport = (~correlport ? 36000 + 1).wrap(36000, 36100);
+state[\correlport] = ~correlport;
 
 makeCLI = {|settings|
 	cli = "python %".format((settings[\pscorrelpath] +/+ "ps_correl.py").shellQuote);
