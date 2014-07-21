@@ -2,20 +2,9 @@
  * Messing around trying to find a low-dimensional feature vector that represents harmonicity
  */
 s=~serverboot.(prox:\local, device:\builtin);
-~pscorrelpath = ~pm +/+ "ps_correl";
-~cli = "python %".format((~pscorrelpath +/+ "ps_correl.py").shellQuote);
-// ~dataServerPid = -1000;
-// ~dataServerPid.pidRunning.not.if({
-// ~dataServerPid= (~cli).unixCmd(
-// 		action: {|result, pid| [result, pid].postln},
-// 		postOutput: true
-// 	);
-// });
-(~cli).runInTerminal;
 
 s.dumpOSC(1);
 OSCdef.trace(true);
-
 s.dumpOSC(0);
 OSCdef.trace(false);
 
@@ -23,9 +12,37 @@ OSCdef.trace(false);
 var analNode, concatNode, soundSource, infilep, confilep, inBuf, conBuf;
 var soundAnalBus, transectBus;
 var analServer, plotter;
-var state=();
+var makeCLI,cli;
+var state = (
+	pscorrelpath: ~pm +/+ "ps_correl",
+	infilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
+	confilep: "/Users/dan/src/sc/f_lustre/sounds/draingigm.aif",
+	correlport: 36000,
+	langport: NetAddr.langPort,
+	nresults: 6,
+	basefreq: 440.0,
+);
 ~state = state;
-SynthDef.new(\transect12__1, {|inbus=0,
+
+makeCLI = {|settings|
+	cli = "python %".format((settings[\pscorrelpath] +/+ "ps_correl.py").shellQuote);
+	//This next one is pretty crucial.
+	cli = cli ++ " --bus-num=%".format(settings[\transectBus].index);
+	settings[\nresults] !? {|a| cli = cli ++ " --n=%".format(a)};
+	settings[\rate] !? {|a| cli = cli ++ " --rate=%".format(a)};
+	settings[\correlport] !? {|a| cli = cli ++ " --port=%".format(a)};
+	settings[\synthport] !? {|a| cli = cli ++ " --sc-synth-port=%".format(a)};
+	settings[\langport] !? {|a| cli = cli ++ " --sc-lang-port=%".format(a)};
+	settings[\basefreq] !? {|a| cli = cli ++ " --base-freq=%".format(a)};
+	settings[\steps] !? {|a| cli = cli ++ " --steps=%".format(a)};
+	settings[\minlevel] !? {|a| cli = cli ++ " --min-level=%".format(a)};
+	settings[\infilep] !? {|a| cli = cli ++ "  %".format(a)};
+	cli;
+};
+~makeCLI = makeCLI;
+
+SynthDef.new(\transect12__1, {
+	|inbus=0,
 	basef=440.0,
 	smoothness=4,
 	idx=1,
@@ -118,15 +135,17 @@ state[\plotterrout] = AppClock.play(
 );
 fork {
 	s.notify(true);
-	infilep="/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif";
-	confilep="/Users/dan/src/sc/f_lustre/sounds/draingigm.aif";
 	//soundAnalBus = Bus.audio(s,1);
 	//~meter=transectBus.makeBusMeter;
-	inBuf=Buffer.read(s,infilep);
-	conBuf=Buffer.read(s,confilep);
-	//transectBus = Bus.control(s, numChannels: 6);
-	transectBus = Bus.new(\control, index: 83, numChannels: 18, server: s);
+	inBuf=Buffer.read(s,state[\infilep]);
+	conBuf=Buffer.read(s,state[\confilep]);
+	transectBus = Bus.control(s, numChannels: state[\nresults]*3);
 	s.sync;
+	state.putAll((
+		transectBus:transectBus,
+		inBuf: inBuf,
+		conBuf: conBuf,
+	));
 	OSCdef(\transect,
 		{ |msg|
 			var vals=msg[3..];
@@ -152,18 +171,31 @@ fork {
 	], s, \addToTail);
 	state.putAll((
 		analNode: analNode,
-		transectBus: transectBus,
 		concatNode: concatNode,
 		soundSource: soundSource,
-		infilep: infilep,
-		confilep: confilep,
 		inBuf: inBuf,
 		conBuf: conBuf,
 		soundAnalBus: soundAnalBus,
 	));
+	cli = makeCLI.value(state);
+	state[\cli] = cli;
+	~cli=cli;
+	s.sync;
+	~cli.runInTerminal;
+	// ~dataServerPid = -1000;
+	// ~dataServerPid.pidRunning.not.if({
+	// ~dataServerPid= (~cli).unixCmd(
+	// 		action: {|result, pid| [result, pid].postln},
+	// 		postOutput: true
+	// 	);
+	// });
+	~state = state;
 };
 )
 ~state;
+~state.cli;
+~makeCLI.value(~state);
+~state.transectBus.index
 ~state.transectBus.get;
-~state.transectBus.subBus(6,1).get;
+~state.transectBus.subBus(12,1).get;
 ~state.conBuf;
