@@ -20,7 +20,6 @@ def sf_anal(infile, rate=80.0, n_steps=12, base_freq=440.0, min_level=0.001):
     sr, wav = load_non_wav(infile)
     blocksize = int(round(float(sr) / rate))
     wav = high_passed(sr, wav)
-    wav = normalized(wav)
     wav2 = wav * wav
     freqs = 2**(np.linspace(0.0, n_steps, num=n_steps, endpoint=False)/n_steps) * base_freq
 
