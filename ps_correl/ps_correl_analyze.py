@@ -38,23 +38,23 @@ def sf_anal(infile, rate=80.0, n_steps=12, base_freq=440.0, min_level=0.001):
 
     little_corrs = []
     for freq in freqs:
-        # For now, offset is rounded to the nearest sample; we don't use e.g polyphase delays 
+        # For now, offset is rounded to the nearest sample
         offset = int(round(float(sr)/freq))
         cov = np.zeros_like(wav)
         cov[:-offset] = wav[offset:]*wav[:-offset]
-        # repeatedly filter; this is effectively and 8th-order lowpass now
+        # repeatedly filter; this is effectively an 8th-order lowpass now
         smooth_cov = cov
         for i in xrange(4):
             smooth_cov = filtfilt(b, a, smooth_cov)
         
         # technically the correlation should be taken wrt the harmonic mean of the variances at
-        # the two times, but we assume autocorrelation lag << smooth lag
+        # the two times, but we assume autocorrelation lag << smooth time
         little_corrs.append(
             decimate(
                 mask * smooth_cov/np.maximum(amp2, min_sq_level),
                 blocksize,
                 ftype='fir' #FIR is needed to be stable at haptic rates
-            ) #we could use libsamplerate to do this instead
+            )
         )
 
     all_corrs = np.vstack(little_corrs)

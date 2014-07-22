@@ -8,6 +8,8 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
+TODO: alternative ratios-  (more) enharmoic
+TODO: never return times at start and end of the file
 TODO: cache analysis to disk ?
 TODO: more conservative pregain management to avoid onset clipping
 TODO: include grain size in search and search based on that (tricky but safer)
@@ -20,7 +22,7 @@ TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
 TODO: plot spectrograms and sanity check against analysis data
 TODO: work out how to suppress "no handler" warnings
-TODO: How do we detect inharmonic noise? Convolved with shuffled, or enveloped pink/white noise? 
+TODO: How do we detect noise? Convolved with shuffled, or enveloped pink/white noise? 
 TODO: dimension reduction
 TODO: switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg https://github.com/cournape/samplerate
 TODO: treat smoothing or other free parameters (or neighbourhood size) as a model-selection problem? AIC or cross-validation?

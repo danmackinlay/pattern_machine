@@ -29,8 +29,9 @@ state[\correlport] = ~correlport;
 
 makeCLI = {|settings|
 	cli = "python %".format((settings[\pscorrelpath] +/+ "ps_correl.py").shellQuote);
-	//This next one is pretty crucial.
+	//This next one is pretty crucial:
 	cli = cli ++ " --bus-num=%".format(settings[\transectBus].index);
+	//optional:
 	settings[\nresults] !? {|a| cli = cli ++ " --n=%".format(a)};
 	settings[\rate] !? {|a| cli = cli ++ " --rate=%".format(a)};
 	settings[\correlport] !? {|a| cli = cli ++ " --port=%".format(a)};
@@ -52,8 +53,6 @@ SynthDef.new(\transect12__1, {
 	pollrate=10.0,
 	minamp=0.0001|
 	var delTimes, delFreqs, sig, inamp, corrs, lowpassF;
-	//should individual bands have their own attack rates?
-	//should we exploit diff attack and decays?
 	delFreqs = Array.geom(12,basef,2**(1.0/12.0));
 	delTimes = delFreqs.reciprocal;
 	lowpassF = basef/smoothness;
@@ -72,9 +71,8 @@ SynthDef.new(\transect12__1, {
 			iter: 4
 		)
 	)/(inamp.max(minamp));
-	//include amplitude info in query (currently ignored)
+	//include amplitude info in query
 	corrs = [inamp] ++ corrs;
-	// TextVU.ar(5, corrs, "Analy");
 	SendReply.kr(
 		Impulse.kr(pollrate)*(inamp>minamp),
 		'/transect',
@@ -139,7 +137,6 @@ state[\plotterrout] = AppClock.play(
 fork {
 	s.notify(true);
 	//soundAnalBus = Bus.audio(s,1);
-	//~meter=transectBus.makeBusMeter;
 	inBuf=Buffer.read(s,state[\infilep]);
 	conBuf=Buffer.read(s,state[\confilep]);
 	transectBus = Bus.control(s, numChannels: state[\nresults]*3);

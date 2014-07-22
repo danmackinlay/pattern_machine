@@ -32,7 +32,7 @@
     * stable attactors, with friction
     * hamiltonians, orbits?
 * control RME mixer from supercollider
-* you can constrain a synth genom for evolution by only effecting downstream oscs. apart from that f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
+* you can constrain a synth genome for evolution by only effecting downstream oscs. both  f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
   * Gaussian correlation
   * Student-t correlation
@@ -74,7 +74,7 @@
   * marsenator that marsenates samples
   * notestream app, streaming chords in different patterns to different midi channels
   * polyrhythm as highlighting different cycles within a rhythmn cascade
-  * imply a pure server-side pso or particle filter flocking algorithm
+  * implement a pure server-side pso or particle filter flocking algorithm
   * granular flanger with nice tuning options
   * automatic synth-tracking eye-candy for grammarthing
   * particle filter tracking models
