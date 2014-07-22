@@ -35,10 +35,8 @@ http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 http://cnx.org/content/m15490/latest/
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
-from OSC import OSCClient, OSCMessage, OSCServer
 from ps_correl_analyze import sf_anal
-import types
-import time
+from ps_correl_serve import serve
 import threading
 import argparse
 import os.path
@@ -78,95 +76,31 @@ parser.add_argument('--min-level', dest='min_level', type=float,
     default=0.001,
     help='min rms amplitude')
 
-args = parser.parse_args()
+if __name__ == '__main__': 
+    args = parser.parse_args()
 
-print "Analysing", args.infile
-wavdata = sf_anal(
-    args.infile,
-    chunk_rate=args.rate,
-    n_steps=args.n_steps,
-    base_freq=args.base_freq,
-    min_level=args.min_level)
+    print "Analysing", args.infile
+    wavdata = sf_anal(
+        args.infile,
+        chunk_rate=args.rate,
+        n_steps=args.n_steps,
+        base_freq=args.base_freq,
+        min_level=args.min_level)
+
+    print "Indexing..."
+    # Startlingly, manhattan distance performs poorly.
+    # euclidean is OK, or higher p-norms even.
+    # should test the robustness of that against, e.g. pre-filtering
+    #tree = BallTree(wavdata['all_corrs'].T, metric='minkowski', p=4) 
+    tree = BallTree(wavdata['all_corrs'].T, metric='manhattan') # l1
+    #tree = BallTree(wavdata['all_corrs'].T, metric='euclidean') # l2
+    #tree = BallTree(wavdata['all_corrs'].T, metric='chebyshev') # l-infinity
     
-all_corrs = wavdata['all_corrs']
-sample_times = wavdata['sample_times']
-amps = wavdata['amp']
+    server = serve(tree, wavdata, args.ps_correl_port, args.n_results, args.sc_synth_port, args.bus_num)
+    
+    synth_server_thread = threading.Thread( target = server.serve_forever )
+    synth_server_thread.start()
 
-print "Indexing..."
-# Startlingly, manhattan distance performs poorly.
-# euclidean is OK, or higher p-norms even.
-# should test the robustness of that against, e.g. pre-filtering
-#tree = BallTree(wavdata['all_corrs'].T, metric='minkowski', p=4) 
-tree = BallTree(wavdata['all_corrs'].T, metric='manhattan') # l1
-#tree = BallTree(wavdata['all_corrs'].T, metric='euclidean') # l2
-#tree = BallTree(wavdata['all_corrs'].T, metric='chebyshev') # l-infinity
-
-
-OSCServer.timeout = 0.01
-
-sc_synth_facing_server = OSCServer(("127.0.0.1", args.ps_correl_port))
-sc_synth_client = sc_synth_facing_server.client
-sc_synth_facing_server.addDefaultHandlers()
-
-def transect_handler(osc_path=None, osc_tags=None, osc_args=None, osc_source=None):
-    node = osc_args[0]
-    idx = osc_args[1]
-    curr_amp = float(osc_args[2])
-    lookup = osc_args[3:] #ignores the amplitude
-    dists, indices = tree.query(lookup, k=args.n_results, return_distance=True)
-    dists = dists.flatten()
-    indices = indices.flatten()
-    print "hunting", lookup
-    times = sample_times[indices]
-    makeup_gains = (curr_amp/amps[indices])
-    # send scsynth bus messages
-    print "dispatching", args.bus_num, args.n_results*3, times, makeup_gains, dists
-    msg = OSCMessage("/c_setn", [args.bus_num, args.n_results*3])
-    #msg.extend() 
-    msg.extend(times)
-    msg.extend(makeup_gains)
-    msg.extend(dists)
-    sc_synth_client.sendto(msg, ("127.0.0.1", args.sc_synth_port))
-
-# This currently never gets called as pyOSC will ignore everything
-# apart from the scsynth instance, in defiance of my understanding of UDP
-# Need to set up an additional OSC server on a new port
-# or somehow relay through scsynth
-def quit_handler(path=None, tags=None, args=None, source=None):
-    print "quit", path, tags, args, source
-    sc_synth_facing_server.close()
-
-def null_handler(path=None, tags=None, args=None, source=None):
-    pass
-
-sc_synth_facing_server.addMsgHandler("/transect", transect_handler )
-sc_synth_facing_server.addMsgHandler("/quit", quit_handler )
-#sc_synth_facing_server.print_tracebacks = True
-
-sc_synth_client.sendto(OSCMessage("/notify", 1),("127.0.0.1", args.sc_synth_port))
-
-print sc_synth_facing_server.server_address, sc_synth_client.address(), sc_synth_facing_server.getOSCAddressSpace()
-
-sc_synth_facing_server.running = True
-
-# i = 0
-# ptime = time.time()
-# while True:
-#     i=i+1
-#     ntime = time.time()
-#     deltime = ntime - ptime
-#     if deltime>=1.0:
-#         print i, deltime
-#         ptime = ntime
-#     sc_synth_facing_server.handle_request()
-#     sc_lang_facing_server.handle_request()
-#
-# print "NOOOOOO"
-# sc_synth_facing_server.close()
-# sc_lang_facing_server.close()
-
-synth_server_thread = threading.Thread( target = sc_synth_facing_server.serve_forever )
-synth_server_thread.start()
-
-raw_input("Serving analysis. Press Enter to quit...")
-sc_synth_facing_server.close()
+    raw_input("Serving analysis. Press Enter to quit...")
+    server.close()
+    

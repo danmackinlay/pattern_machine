@@ -57,7 +57,8 @@ def sf_anal(infile, chunk_rate=80.0, n_steps=12, base_freq=440.0, min_level=0.00
                 ftype='fir' #FIR is needed to be stable at haptic rates
             )
         )
-
+    
+    
     all_corrs = np.vstack(little_corrs)
     sample_times = (np.arange(0,little_amp2.size,1)*chunk_size).astype(np.float)/sr
 
