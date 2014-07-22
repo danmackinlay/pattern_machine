@@ -83,7 +83,7 @@ args = parser.parse_args()
 print "Analysing", args.infile
 wavdata = sf_anal(
     args.infile,
-    rate=args.rate,
+    chunk_rate=args.rate,
     n_steps=args.n_steps,
     base_freq=args.base_freq,
     min_level=args.min_level)

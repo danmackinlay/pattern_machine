@@ -48,26 +48,25 @@ makeCLI = {|settings|
 SynthDef.new(\transect12__1, {
 	|inbus=0,
 	basef=440.0,
-	smoothness=4,
+	cutoff=80.0,
 	idx=1,
 	pollrate=10.0,
 	minamp=0.0001|
 	var delTimes, delFreqs, sig, inamp, corrs, lowpassF;
 	delFreqs = Array.geom(12,basef,2**(1.0/12.0));
 	delTimes = delFreqs.reciprocal;
-	lowpassF = basef/smoothness;
 	sig = LeakDC.ar(In.ar(inbus,1));
 	inamp = A2K.kr(
 		OpLPF.ar(
 			sig.squared,
-			lowpassF,
+			cutoff,
 			iter: 4
 		)
 	);
 	corrs = A2K.kr(
 		OpLPF.ar(
 			(DelayC.ar(sig, delaytime:delTimes) * sig),
-			lowpassF,
+			cutoff,
 			iter: 4
 		)
 	)/(inamp.max(minamp));

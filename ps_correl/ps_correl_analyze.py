@@ -15,25 +15,27 @@ def normalized(wavdata):
     wavdata *= 1.0/np.abs(wavdata).max()
     return wavdata
 
-def sf_anal(infile, rate=80.0, n_steps=12, base_freq=440.0, min_level=0.001):
+def sf_anal(infile, chunk_rate=80.0, n_steps=12, base_freq=440.0, min_level=0.001, cutoff=None):
     min_sq_level = min_level**2
+    if cutoff is None: cutoff = chunk_rate
+
     sr, wav = load_non_wav(infile)
-    blocksize = int(round(float(sr) / rate))
+    chunk_size = int(round(float(sr) / chunk_rate))
     wav = high_passed(sr, wav)
     wav2 = wav * wav
     freqs = 2**(np.linspace(0.0, n_steps, num=n_steps, endpoint=False)/n_steps) * base_freq
 
     amp2 = wav2
-    rel_f = 2.0/(float(sr)/rate)  # relative to nyquist freq, not samplerate
-    b, a = RC(Wn=rel_f)
+    rel_cutoff = 2.0/(float(sr)/cutoff)  # relative to nyquist freq, not samplerate
+    b, a = RC(Wn=rel_cutoff)
     for i in xrange(4):
         amp2 = filtfilt(b, a, amp2)
 
     mask = amp2>min_sq_level
     little_amp2 = decimate(
-        amp2, blocksize, ftype='fir'
+        amp2, chunk_size, ftype='fir'
     )
-    little_mask = mask[np.arange(0,little_amp2.size,1)*blocksize]
+    little_mask = mask[np.arange(0,little_amp2.size,1)*chunk_size]
 
     little_corrs = []
     for freq in freqs:
@@ -51,13 +53,13 @@ def sf_anal(infile, rate=80.0, n_steps=12, base_freq=440.0, min_level=0.001):
         little_corrs.append(
             decimate(
                 mask * smooth_cov/np.maximum(amp2, min_sq_level),
-                blocksize,
+                chunk_size,
                 ftype='fir' #FIR is needed to be stable at haptic rates
             )
         )
 
     all_corrs = np.vstack(little_corrs)
-    sample_times = (np.arange(0,little_amp2.size,1)*blocksize).astype(np.float)/sr
+    sample_times = (np.arange(0,little_amp2.size,1)*chunk_size).astype(np.float)/sr
 
     #trim "too quiet" stuff
     all_corrs = all_corrs[:,np.where(little_mask)[0]]
