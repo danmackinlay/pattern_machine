@@ -1,17 +1,5 @@
-var localstate, localvox;
-localstate = Event.new(n:60, proto:~state).putAll((
-	bardelta: 8,
-	seed: 127,
-	reseed: true,
-	looping: 0,
-	parambus1: ~state[\control].subBus(2),
-	pan: 0.0,
-	chaos: 0,
-	trans: [1],
-));
-~state[\vox3state] = localstate;
-localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
-	~state.vox3channel.play(
+{|parentstate, localstate, i|
+	var localvoice =  localstate.vox4channel.play(
 		Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat, beatTime;
@@ -37,7 +25,6 @@ localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
 					\sustain, Prand([1,1/2], inf),
 					\modulate, localstate[\parambus1].asMap,
 				); //.postcs.trace(prefix: \outer)
-
 				localstate[\reseed].if({
 					pat = Pseed(localstate[\seed], pat);
 				});
@@ -51,15 +38,17 @@ localvox = ~state.vox3 = (~state.vox3 ? List.new ).add(
 			});
 		}),
 		(
-			clock: ~state.clock,
+			clock: parentstate.clock,
 			//protoEvent: localstate,
 		)
-	)
-);
-~state.paramUpdaters.add({|val|
-	localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
-});
-~state.paramUpdaters.add({|val|
-	//[\val,val].postln;
-	localstate[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
-});
+	);
+	parentstate.paramUpdaters.add({|val|
+		localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
+	});
+	parentstate.paramUpdaters.add({|val|
+		//[\val,val].postln;
+		localstate[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
+	});
+	parentstate.voices.add(localvoice);
+	localstate;
+}

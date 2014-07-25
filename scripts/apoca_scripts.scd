@@ -40,18 +40,32 @@ Server.default=s=~serverboot.(prox:\local, device:\rme);
 //Server.default=s=~serverboot.(prox:\local, device:\builtin);
 
 this.executeFile(~pmscripts +/+ "apoca_setup.scd");
+~state[\voices]= Array.fill(4, {List.new});
+~state[\voicestates]= Array.fill(4, {Event.new(n:60, proto: ~state).putAll((
+	bardelta: 4,
+	seed: 1128,
+	reseed: true,
+	looping: 0,
+	pan: 0.0,
+	chaos: 0,
+	trans: [1],
+	))
+});
+~state.voices[0].add(
+	this.executeFile(~pmscripts +/+ "apoca_inst.scd").value(
+		~state[\voices][0].putAll((
+			parambus1: ~state.subBus(i),
+		)),
+		0
+	)
+);
 
-this.executeFile(~pmscripts +/+ "apoca_1.scd");
-this.executeFile(~pmscripts +/+ "apoca_2.scd");
-this.executeFile(~pmscripts +/+ "apoca_3.scd");
-this.executeFile(~pmscripts +/+ "apoca_4.scd");
-
-~state.vox1state[\trans]=[1/4,1,4/3];
+~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.vox2state[\trans]=[1/4,1];
 ~state.vox3state[\trans]=[1,2];
 ~state.vox4state[\trans]=[1,4/3,2];
 
-~killList.value(~state.vox1);
+~killList.value(~state.voices[0]);
 ~killList.value(~state.vox2);
 ~killList.value(~state.vox3);
 ~killList.value(~state.vox4);
