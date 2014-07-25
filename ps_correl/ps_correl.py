@@ -8,22 +8,29 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
-TODO: alternative ratios-  (more) enharmoic
+TODO: search using pytables instead of BallTree; gives us more dynamic axial scaling. (*both* could be fun)
+TODO: mine MIDI files for spectral co-ocurrence data and see if this allows us to predict "matching" spectra
+TODO: alternative ratios- (more) enharmonic
+TODO: project pitch shifts that would align spectra correctly
+TODO: possibly w=this would require quadratic peak interpolation - http://www.dsprelated.com/dspbooks/sasp/Quadratic_Interpolation_Spectral_Peaks.html
+TODO: sharper comb filters? This current model has quadratic maxima, but sharper would be better; this could be a combination FB+FF, or an extra layer of FF
+TODO: median filters for bands
 TODO: never return times at start and end of the file
-TODO: cache analysis to disk ?
+TODO: cache analysis to disk?
+TODO: How do we detect noise? Convolved with shuffled, or enveloped pink/white noise? 
+TODO: search ALSO on variance, to avoid spurious transient onset matches
+TODO: search ALSO on gradient
+TODO: dimension reduction through PCA
+TODO: dimension reduction through MDS
 TODO: more conservative pregain management to avoid onset clipping
 TODO: include grain size in search and search based on that (tricky but safer)
 TODO: restrict search based on amplitude range
-TODO: restrict search based on certainty range (this would require us to actually have a model), e.g. higher when amp is low, or around major changes, or estimated from sample variance
-TODO: search ALSO on variance, to avoid spurious transient onset matches
-TODO: search ALSO on gradient
+TODO: restrict search based on certainty range (this would require us to actually have a model), e.g. higher when amp is low, or around major changes, or estimated from sample variance (this should be taken wrt the innovation process)
 TODO: handle multiple files
 TODO: handle multiple clients through e.g. nodeid
 TODO: adaptive masking noise floor
 TODO: plot spectrograms and sanity check against analysis data
 TODO: work out how to suppress "no handler" warnings
-TODO: How do we detect noise? Convolved with shuffled, or enveloped pink/white noise? 
-TODO: dimension reduction
 TODO: switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg https://github.com/cournape/samplerate
 TODO: treat smoothing or other free parameters (or neighbourhood size) as a model-selection problem? AIC or cross-validation?
 TODO: decimation is to neareset whole number ratio and therefore does not respect time exactly.

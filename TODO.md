@@ -43,10 +43,10 @@
   * random sparse physical models as input
   * When does random physics produce partial order?
 * rhythms
-  * randomiser pattern
-  * quantizer pattern
-  * or a clock?
+  * randomizer/quantizer clock?
   * hawkes process
+* interface
+  * https://github.com/triss/duplex-nexus-osc
 * sync oscillator system
   * continuous Kuramoto, possibly on a graph
   * or Strogatz/Perkel/Haken-style pulse-synch, possibly on a graph
