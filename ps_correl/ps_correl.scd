@@ -16,8 +16,8 @@ var makeCLI,cli;
 var state = (
 	pscorrelpath: ~pm +/+ "ps_correl",
 	infilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
-	confilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
-	//confilep: "/Users/dan/src/sc/f_lustre/sounds/draingigm.aif",
+	//confilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
+	confilep: "/Users/dan/src/sc/f_lustre/sounds/draingigm.aif",
 	langport: NetAddr.langPort,
 	nresults: 6,
 	basefreq: 440.0,
@@ -40,7 +40,7 @@ makeCLI = {|settings|
 	settings[\basefreq] !? {|a| cli = cli ++ " --base-freq=%".format(a)};
 	settings[\steps] !? {|a| cli = cli ++ " --steps=%".format(a)};
 	settings[\minlevel] !? {|a| cli = cli ++ " --min-level=%".format(a)};
-	settings[\infilep] !? {|a| cli = cli ++ "  %".format(a)};
+	settings[\confilep] !? {|a| cli = cli ++ "  %".format(a)};
 	cli;
 };
 ~makeCLI = makeCLI;
@@ -86,7 +86,9 @@ SynthDef.new(\concat__1_1, {|outbus,
 	overlap=2,
 	jitter=0,
 	pregain=1,
-	amp=1|
+	amp=1,
+	badness=0,
+	maxBadness=2.0|
 	var sig, trig, dur, jitdur;
 	trig = Impulse.ar(grainrate);
 	dur = grainrate.reciprocal*overlap;
@@ -100,7 +102,7 @@ SynthDef.new(\concat__1_1, {|outbus,
 		centerPos: TRand.ar(jitdur.neg, jitdur, trig)+ time,
 		dur: dur,
 		pan: -1,
-		amp: pregain,
+		amp: pregain*(badness<maxBadness),
 		interp: 1)[0];
 	/*
 	sig = GrainBuf.ar(
@@ -167,6 +169,8 @@ fork {
 		\grainrate, 20,
 		\amp, 0.5,
 		\pregain, transectBus.subBus(6,1).asMap,
+		\badness, transectBus.subBus(12,1).asMap,
+		\maxBadness, 2
 	], s, \addToTail);
 	state.putAll((
 		analNode: analNode,
