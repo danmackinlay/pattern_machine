@@ -6,7 +6,7 @@ var control;
 var voicechannels, mixingboard;
 var tempo, beatTime, clock;
 var state;
-var reverb1, reverb2, reverb3, reverb4;
+var reverbs;
 var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
 var mididefs;
 
@@ -25,49 +25,50 @@ state = (
 	density: 1,
 	chaos: 0,
 );
-fork {
-	//UI interaction stuff
-	metaparams = FloatArray.fill(7,0.5);
-	params = FloatArray.fill(32,0.5);
-	pitchrollyawaccel = FloatArray.fill(4,0.5);
-	paramUpdaters = List.new;
-	mididefs = List.new;
-	state.params = params;
-	state.metaparams = metaparams;
-	state.pitchrollyawaccel = pitchrollyawaccel;
-	state.paramMap = PSRandomMap(inDims:7, outDims:32, phi:1.2);
-	state.paramUpdaters = paramUpdaters;
-	state.mididefs = mididefs;
 
-	paramWatcher = Routine({|newinval|
-		var lastposttime=0.0, delta=0.0;
-		inf.do({|ix|
-			state.paramDirty.if({
-				state.paramDirty = false;
-				(delta>10.0).if({
-					[\wii_updating,state.metaparams, newinval, delta].postln;
-					lastposttime = newinval;
-				});
-				state.params = state.paramMap.value(state.metaparams);
-				state.paramUpdaters.do({|fn, i|
-					fn.value(state.params[i]);
-				});
+//UI interaction stuff
+metaparams = FloatArray.fill(7,0.5);
+params = FloatArray.fill(32,0.5);
+pitchrollyawaccel = FloatArray.fill(4,0.5);
+paramUpdaters = List.new;
+mididefs = List.new;
+state.params = params;
+state.metaparams = metaparams;
+state.pitchrollyawaccel = pitchrollyawaccel;
+state.paramMap = PSRandomMap(inDims:7, outDims:32, phi:1.2);
+state.paramUpdaters = paramUpdaters;
+state.mididefs = mididefs;
+
+paramWatcher = Routine({|newinval|
+	var lastposttime=0.0, delta=0.0;
+	inf.do({|ix|
+		state.paramDirty.if({
+			state.paramDirty = false;
+			(delta>10.0).if({
+				[\wii_updating,state.metaparams, newinval, delta].postln;
+				lastposttime = newinval;
 			});
-			newinval = 0.02.yield;
-			delta = newinval-lastposttime;
+			state.params = state.paramMap.value(state.metaparams);
+			state.paramUpdaters.do({|fn, i|
+				fn.value(state.params[i]);
+			});
 		});
-	}).play;
-	CmdPeriod.doOnce { paramWatcher.free };
-	state.paramWatcher = paramWatcher;
+		newinval = 0.02.yield;
+		delta = newinval-lastposttime;
+	});
+}).play;
+CmdPeriod.doOnce { paramWatcher.free };
+state.paramWatcher = paramWatcher;
 
-	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
-	//to disable:
-	//OSCdef(\wii).free;
-	CmdPeriod.doOnce { OSCdef(\wii).free };
+this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
+//to disable:
+//OSCdef(\wii).free;
+CmdPeriod.doOnce { OSCdef(\wii).free };
 
-	this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state).do(state.mididefs.add(_));
-	CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
+this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state).do(state.mididefs.add(_));
+CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
 
+fork {
 	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
@@ -77,11 +78,14 @@ fork {
 
 	s.sync;
 	sourcebuf = ~sampsetbufdict[\tuneful][0];
-	voicechannels[0] = MixerChannel.new("echette1", s, 2,2, outbus:outbus);
-	CmdPeriod.doOnce { voices[0]channel.free };
+	voicechannels = 4.collect({|i|
+		MixerChannel.new("vox" ++ i.asString, s, 2,2, outbus:outbus)
+	});
+	//is this one necessary?
+	CmdPeriod.doOnce { voicechannels.do(_.free) };
 	s.sync;
 	mixingboard = MixingBoard.new("apocalypse", nil,
-		voicechannels[0],
+		*voicechannels,
 	);
 	CmdPeriod.doOnce { mixingboard.free };
 	s.sync;
@@ -91,13 +95,15 @@ fork {
 	CmdPeriod.doOnce { postgroup.free };
 
 	//channel fx
-	reverb1 = voices[0]channel.playfx(\ps_gverb__2_2, [
-		\index, 1,
-		\wet, 0.2,
-		\damping, 0.4,
-		\revtime, 0.8,
-		\roomsize, 170,
-	]);
+	reverbs = voicechannels.collect({|chan, i|
+		chan.playfx(\ps_gverb__2_2, [
+			\index, 1,
+			\wet, 0.2,
+			\damping, 0.4,
+			\revtime, 0.8,
+			\roomsize, 170,
+		]);
+	});
 	s.sync;
 
 	//sample-loop action
@@ -159,7 +165,7 @@ fork {
 		loopphasebuses: loopphasebuses,
 		voicechannels: voicechannels,
 		fxgroup: fxgroup,
-		reverb1: reverb1,
+		reverbs: reverbs,
 		mixingboard: mixingboard,
 		postgroup: postgroup,
 		sourcebuf: sourcebuf,
@@ -167,7 +173,8 @@ fork {
 		control: control,
 	));
 	~state=state;
+	~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
+	~killAll = {~state.voices.do({|thing| thing.postln;~killList.value(thing)})};
 };
 
-~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
-~killAll = {~state.voices.do({|thing| thing.postln;~killList.value(thing)})};
+state;

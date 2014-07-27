@@ -1,5 +1,7 @@
-{|parentstate, localstate, i|
-	var localvoice =  localstate.vox4channel.play(
+{|localstate, i|
+	var localvoice;
+	localvoice =  localstate.channel.play(
+		/*
 		Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat, beatTime;
@@ -38,17 +40,17 @@
 			});
 		}),
 		(
-			clock: parentstate.clock,
+			clock: localstate.clock,
 			//protoEvent: localstate,
 		)
+		*/
 	);
-	parentstate.paramUpdaters.add({|val|
+	localstate.paramUpdaters.add({|val|
 		localstate[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
 	});
-	parentstate.paramUpdaters.add({|val|
+	localstate.paramUpdaters.add({|val|
 		//[\val,val].postln;
 		localstate[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
 	});
-	parentstate.voices.add(localvoice);
 	localstate;
 }

@@ -34,106 +34,106 @@
 	alldefs.add(MIDIdef.cc(\vol1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.voices[0]channel.level_(mapped);
+		state.voicechannels[0].level_(mapped);
 		[\vol1, mapped].postln;
 	}, ccNum: 0, chan: 1));
 	alldefs.add(MIDIdef.cc(\vol2, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.vox2channel.level_(mapped);
+		state.voicechannels[1].level_(mapped);
 		[\vol2, mapped].postln;
 	}, ccNum: 1, chan: 1));
 	alldefs.add(MIDIdef.cc(\vol3, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.vox3channel.level_(mapped);
+		state.voicechannels[2].level_(mapped);
 		[\vol3, mapped].postln;
 	}, ccNum: 2, chan: 1));
 	alldefs.add(MIDIdef.cc(\vol4, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.vox4channel.level_(mapped);
+		state.voicechannels[3].level_(mapped);
 		[\vol4, mapped].postln;
 	}, ccNum: 3, chan: 1));
 
 	//seed on knobs (eww)
+	alldefs.add(MIDIdef.cc(\seed0, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,16).asInt;
+		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
+		state.voicestates[0][\seed] = mapped;
+		[\seed0, mapped].postln;
+	}, ccNum: 16, chan: 1));
 	alldefs.add(MIDIdef.cc(\seed1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,1,16).asInt;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.voicestates[0][\seed] = mapped;
+		state.voicestates[1][\seed] = mapped;
 		[\seed1, mapped].postln;
-	}, ccNum: 16, chan: 1));
+	}, ccNum: 17, chan: 1));
 	alldefs.add(MIDIdef.cc(\seed2, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,1,16).asInt;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.voicestates[0][\seed] = mapped;
+		state.voicestates[2][\seed] = mapped;
 		[\seed2, mapped].postln;
-	}, ccNum: 17, chan: 1));
+	}, ccNum: 18, chan: 1));
 	alldefs.add(MIDIdef.cc(\seed3, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,1,16).asInt;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.voicestates[0][\seed] = mapped;
+		state.voicestates[3][\seed] = mapped;
 		[\seed3, mapped].postln;
-	}, ccNum: 18, chan: 1));
-	alldefs.add(MIDIdef.cc(\seed4, {|val,num,chan,src|
-		var mapped = val.linlin(0.0,127.0,1,16).asInt;
-		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.voicestates[0][\seed] = mapped;
-		[\seed4, mapped].postln;
 	}, ccNum: 19, chan: 1));
 
 	//loops on the buttons
-	alldefs.add(MIDIdef.noteOn(\loop1, {|vel,pitch,chan,src|
+	alldefs.add(MIDIdef.noteOn(\loop0, {|vel,pitch,chan,src|
 		var tog;
 		tog = state.voicestates[0][\looping] ? 0;
 		state.voicestates[0][\looping] = 1-tog;
 		state.loopsynths[0].set(\wet, tog);
-		[\loop1, tog].postln;
+		[\loop0, tog].postln;
 	}, noteNum: 64, chan: 1));
-	alldefs.add(MIDIdef.noteOn(\reseed1, {|vel,pitch,chan,src|
+	alldefs.add(MIDIdef.noteOn(\reseed0, {|vel,pitch,chan,src|
 		var tog;
 		tog = state.voicestates[0][\reseed] ? false;
-		state.voicestates[0][\reseed] = tog.not;
-		[\reseed1, tog].postln;
+		state.voicestates[1][\reseed] = tog.not;
+		[\reseed0, tog].postln;
 	}, noteNum: 48, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\loop1, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.voicestates[1][\looping] ? 0;
+		state.voicestates[1][\looping] = 1-tog;
+		state.loopsynths[1].set(\wet, tog);
+		[\loop1, tog].postln;
+	}, noteNum: 65, chan: 1));
+	alldefs.add(MIDIdef.noteOn(\reseed1, {|vel,pitch,chan,src|
+		var tog;
+		tog = state.voicestates[1][\reseed] ? false;
+		state.voicestates[1][\reseed] = tog.not;
+		[\reseed0, tog].postln;
+	}, noteNum: 49, chan: 1));
 	alldefs.add(MIDIdef.noteOn(\loop2, {|vel,pitch,chan,src|
 		var tog;
-		tog = state.vox2state[\looping] ? 0;
-		state.vox2state[\looping] = 1-tog;
+		tog = state.voicestates[1][\looping] ? 0;
+		state.voicestates[1][\looping] = 1-tog;
 		state.loopsynths[1].set(\wet, tog);
 		[\loop2, tog].postln;
-	}, noteNum: 65, chan: 1));
+	}, noteNum: 66, chan: 1));
 	alldefs.add(MIDIdef.noteOn(\reseed2, {|vel,pitch,chan,src|
 		var tog;
-		tog = state.vox2state[\reseed] ? false;
-		state.vox2state[\reseed] = tog.not;
+		tog = state.voicestates[0][\reseed] ? false;
+		state.voicestates[1][\reseed] = tog.not;
 		[\reseed2, tog].postln;
-	}, noteNum: 49, chan: 1));
+	}, noteNum: 50, chan: 1));
 	alldefs.add(MIDIdef.noteOn(\loop3, {|vel,pitch,chan,src|
 		var tog;
-		tog = state.vox3state[\looping] ? 0;
-		state.vox3state[\looping] = 1-tog;
-		state.loopsynths[2].set(\wet, tog);
+		tog = state.voicestates[0][\looping] ? 0;
+		state.voicestates[0][\looping] = 1-tog;
+		state.loopsynths[0].set(\wet, tog);
 		[\loop3, tog].postln;
-	}, noteNum: 66, chan: 1));
+	}, noteNum: 67, chan: 1));
 	alldefs.add(MIDIdef.noteOn(\reseed3, {|vel,pitch,chan,src|
 		var tog;
-		tog = state.vox3state[\reseed] ? false;
-		state.vox3state[\reseed] = tog.not;
+		tog = state.voicestates[0][\reseed] ? false;
+		state.voicestates[1][\reseed] = tog.not;
 		[\reseed3, tog].postln;
-	}, noteNum: 50, chan: 1));
-	alldefs.add(MIDIdef.noteOn(\loop4, {|vel,pitch,chan,src|
-		var tog;
-		tog = state.vox4state[\looping] ? 0;
-		state.vox4state[\looping] = 1-tog;
-		state.loopsynths[3].set(\wet, tog);
-		[\loop4, tog].postln;
-	}, noteNum: 67, chan: 1));
-	alldefs.add(MIDIdef.noteOn(\reseed4, {|vel,pitch,chan,src|
-		var tog;
-		tog = state.vox4state[\reseed] ? false;
-		state.vox4state[\reseed] = tog.not;
-		[\reseed4, tog].postln;
 	}, noteNum: 51, chan: 1));
 
 	//input on last knobs
@@ -149,7 +149,7 @@
 	}, ccNum: 21, chan: 1));
 	alldefs.add(MIDIdef.cc(\livefade, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
-		~state.sourcesound.set(\livefade, mapped);
+		state.sourcesound.set(\livefade, mapped);
 		[\livefade, mapped].postln;
 	}, ccNum: 22, chan: 1));
 	alldefs.add(MIDIdef.cc(\buffsel, {|val,num,chan,src|

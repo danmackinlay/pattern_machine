@@ -23,30 +23,40 @@ TODO: (priority order)
 * automatic param control bus numbering
 */
 
-Server.default=s=~serverboot.(prox:\local, device:\rme);
-//Server.default=s=~serverboot.(prox:\local, device:\builtin);
-
-this.executeFile(~pmscripts +/+ "apoca_setup.scd");
-~state[\voices]= Array.fill(4, {List.new});
-~state[\voicestates]= Array.fill(4, {Event.new(n:60, proto: ~state).putAll((
-	bardelta: 4,
-	seed: 1128,
-	reseed: true,
-	looping: 0,
-	pan: 0.0,
-	chaos: 0,
-	trans: [1],
-	))
-});
-~state.voices[0].add(
-	this.executeFile(~pmscripts +/+ "apoca_inst.scd").value(
-		~state[\voices][0].putAll((
-			parambus1: ~state.subBus(i),
-		)),
-		0
-	)
-);
-
+//Server.default=s=~serverboot.(prox:\local, device:\rme);
+Server.default=s=~serverboot.(prox:\local, device:\builtin);
+(
+var state;
+fork {
+	state = this.executeFile(~pmscripts +/+ "apoca_setup.scd");
+	s.sync;
+	state.postcs;
+	state.putAll((
+		voices: Array.fill(4, List.new),
+		bardelta: 4,
+		seed: 1128,
+		reseed: true,
+		looping: 0,
+		pan: 0.0,
+		chaos: 0,
+		trans: [1],
+		voicestates: Array.fill(4, nil),
+	));
+	state[\voicestates][0] = Event.new(n:60, proto: ~state).putAll((
+		parambus1: ~state.subBus(0),
+		channel: ~state.voicechannels[0]
+	));
+	state.voices[0].add(
+		this.executeFile(
+			~pmscripts +/+ "apoca_inst.scd"
+		).value(
+			~state[\voicestates][0],
+			0
+		)
+	);
+	~state=state;
+}
+)
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.vox2state[\trans]=[1/4,1];
 ~state.vox3state[\trans]=[1,2];
