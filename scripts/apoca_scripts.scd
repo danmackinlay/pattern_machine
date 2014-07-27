@@ -6,34 +6,21 @@ TODO: (priority order)
   * looping
   * loop re-ordering
   * kill all synths (~killall.value;)
-  * triggering karin's gestures
-* Some kind of sequencing things based on order parameters, pulling in and out of chaos
+  * gestures
 * markov models with reseedable seed (see MarkovSet)
 * audio-input-driven effects
 * granular choir
-* change random seeds
-* extra chaosifier
 * tap sync
 * enveloped gestures
-* timestretched escalating background accompaniment
-* meditation bells
 * restrict sample looping to first 30 seconds, OR
 * soundfile-length-sensitive sound playing OR
-* put fade-outs in
-* variable delay in front of allpass to make it more interesting
-* midi keyboard toggle lights
-* VU meter
-* ticking clock sample
-* control ableton with SC
-* Jack routing into Live?
-* Bulk sample loading based on MIR
+* put fade-outs in sound files
+* toggle feedback lights on midi keyboard
+* level meter
 * stateful algorithm to navigate through with wiimote
 * instead of explicitly accessing "state" all the time, I should execute all the code inside the Environment, then pop off and pass it around.
 * MIDI slider velocity
-* remap to various RME outputs for hardware mixing (dammit, website down)
-* go to 0-based indexing throughout
 * automatic param control bus numbering
-* hi pass
 */
 
 Server.default=s=~serverboot.(prox:\local, device:\rme);
