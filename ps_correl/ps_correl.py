@@ -12,12 +12,12 @@ TODO: search using pytables instead of BallTree; gives us more dynamic axial sca
 TODO: mine MIDI files for spectral co-ocurrence data and see if this allows us to predict "matching" spectra
 TODO: alternative ratios- (more) enharmonic
 TODO: project pitch shifts that would align spectra correctly
-TODO: possibly w=this would require quadratic peak interpolation - http://www.dsprelated.com/dspbooks/sasp/Quadratic_Interpolation_Spectral_Peaks.html
-TODO: sharper comb filters? This current model has quadratic maxima, but sharper would be better; this could be a combination FB+FF, or an extra layer of FF
+TODO: possibly this would require quadratic peak interpolation - http://www.dsprelated.com/dspbooks/sasp/Quadratic_Interpolation_Spectral_Peaks.html
+TODO: Comb filters instead of autocorrelation? This would model have quadratic maxima, but sharper would be better; this could be a combination FB+FF, or an extra layer of FF. Advantage: linear, well-behaved z-transform. \ | H(e^{j \omega}) | = \sqrt{(1 + \alpha^2) + 2 \alpha \cos(\omega K)}
 TODO: median filters for bands
 TODO: never return times at start and end of the file
 TODO: cache analysis to disk?
-TODO: How do we detect noise? Convolved with shuffled, or enveloped pink/white noise? 
+TODO: How do we detect noise? Correlated with shuffled, or enveloped pink/white noise? 
 TODO: search ALSO on variance, to avoid spurious transient onset matches
 TODO: search ALSO on gradient
 TODO: dimension reduction through PCA
