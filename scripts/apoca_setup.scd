@@ -10,8 +10,7 @@ var reverb1, reverb2, reverb3, reverb4;
 var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
 var mididefs;
 
-~apocasamp = "/Users/dan/Dropbox/cheeky\ shares/apocalypse";
-this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~apocasamp);
+this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~sczamples);
 this.executeFile(~pmscripts +/+ "apoca_synths.scd");
 
 tempo = 80.0;

@@ -19,7 +19,7 @@
 			"varese_on_a_lathe.wav",
 			"whistling-wind.wav",
 			"seagull-walk.wav",
-			"577_batchku_piano_dry_ice/10334_batchku_burning_iceberg.wav",
+			"10334_batchku_burning_iceberg.aiff",
 		].collect(basepath +/+ _),
 		tuneful: [
 			"Unknown_Lead_Vocal.wav",
@@ -27,12 +27,12 @@
 			"CONCERTOFORCLARINETP2_ArtieShaw_VICTOR_36383-B-solo.wav",
 			"uc-ezchord.wav",
 		].collect(basepath +/+ _),
-		choral: [
-			"choir/namgyalmonastery-chanthighlight.wav",
-			"choir/magnificat-build.wav",
-			"choir/huunhuurtu-legend.wav",
-			"choir/bulgur-legend.wav",
-		].collect(basepath +/+ _),
+		// choral: [
+		// 	"choir/namgyalmonastery-chanthighlight.wav",
+		// 	"choir/magnificat-build.wav",
+		// 	"choir/huunhuurtu-legend.wav",
+		// 	"choir/bulgur-legend.wav",
+		// ].collect(basepath +/+ _),
 	);
 	fork {
 		var ind=0;
