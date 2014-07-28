@@ -39,6 +39,10 @@ fork {
 		pan: 0.0,
 		chaos: 0,
 		trans: [1],
+		lambda:2,
+		quant:1/4,
+		strength: 1,
+
 	));
 }
 )
@@ -48,6 +52,7 @@ var localstate, state = ~state;
 fork {
 	localstate = Event.new(n:60, proto: state).putAll((
 		parambus1: state.parambuses.subBus(0),
+		loopbuf: state.loopbufs[0],
 		channel: state.voicechannels[0],
 		phasebus: state.loopphasebuses.subBus(0),
 		fuck: \you,

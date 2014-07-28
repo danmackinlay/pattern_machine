@@ -107,7 +107,7 @@
 	});
 	s.sync;
 
-	//sample-loop action
+	// delay/loop action action
 	loopbufs = Buffer.allocConsecutive(4, s, s.sampleRate * 10.0, 1);
 	CmdPeriod.doOnce { loopbufs.do(_.free) };
 	loopphasebuses = Bus.control(s, 4);

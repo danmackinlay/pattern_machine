@@ -1,71 +1,51 @@
 {|state, i|
-	var localvoice;
-	localvoice =  state.channel.play(
-		Pbind(
-			\dur, Pn(1, 10),
-			\degree, 1,
-		);
-		/*
-		Pspawner({|spawner|
-			inf.do({|i|
-				var newSeed, pat, beatTime;
-				beatTime = localstate.beatTime;
-				//Pindex? or Pfsm?
-				pat = Pbind(
-					\instrument, \ps_buf_delay_play__1_2,
-					\bartime, Pseg(
-						[0,localstate[\bardelta]],
-						localstate[\bardelta], \lin, inf),
-					\bufnum, localstate[\loopbufs][2],
-					\phasebus, localstate[\loopphasebuses].subBus(2),
-					\dur, Prand([0,1/2,3/2], inf)*Pfunc({localstate[\density]?1}),
-					\delta, Prand([0,1/2], inf)*(1+Pfunc({localstate[\chaos].rand2;})),
-					\deltime, (
-						(Prand([0,1/2,3/4,2/3], inf) +
-							Pkey(\bartime)
-						).wrap(0, localstate[\bardelta]) *
-						beatTime),
-					\amp, 1,
-					\pan, Pfunc({localstate[\pan]}),
-					\rate, Prand(localstate[\trans], inf),
-					\sustain, Prand([1,1/2], inf),
-					\modulate, localstate[\parambus1].asMap,
-				); //.postcs.trace(prefix: \outer)
-				localstate[\reseed].if({
-					pat = Pseed(localstate[\seed], pat);
-				});
-				spawner.par(
-					pattern: Pfindur(
-						dur: localstate[\bardelta],
-						pattern: pat), //.postcs.trace(prefix: \inner),
-					delta: 0,
-				);
-				spawner.wait(localstate[\bardelta]);
+	var localvoice, pat;
+	pat = Pbind(
+		\instrument, \ps_buf_delay_play__1_2,
+		\bartime, Pseg(
+			[0,state[\bardelta]],
+			state[\bardelta], \lin, inf),
+		\bufnum, state[\loopbuf],
+		\phasebus, state[\phasebus],
+		\dur, Prand([0,1/2,3/2], inf)*Pfunc({state[\density]?1}),
+		\delta, Prand([0,1/2], inf)*(1+Pfunc({state[\chaos].rand2;})), //or PexpR(Pfunc({state.lambda})),
+		\deltime, (
+			(Prand([0,1/2,3/4,2/3], inf) +
+				Pkey(\bartime)
+			).wrap(0, state[\bardelta]) *
+			state.beatTime),
+		\amp, 1,
+		\pan, Pfunc({state[\pan]}),
+		\rate, Prand(state[\trans], inf),
+		\sustain, Prand([1,1/2], inf),
+		\modulate, state[\parambus1].asMap,
+	); //.postcs.trace(prefix: \outer);
+	pat = Pquantize(pat,
+		quant: Pfunc({state.quant}),
+		debug: true); //.trace;
+	localvoice =  state.channel.play(pat,(
+		clock: state.clock,
+	));
+
+	/* //How the Pspawner version works
+	Pspawner({|spawner|
+		inf.do({|i|
+			var newSeed, pat, beatTime;
+			beatTime = state.beatTime;
+			//Pindex? or Pfsm?
+			pat = //BLAH
+			state[\reseed].if({
+				pat = Pseed(state[\seed], pat);
 			});
-		}),
-		(
-			clock: localstate.clock,
-			//protoEvent: localstate,
-		)
-		*/
-	);
-	/*
-	~state=(
-	lambda:2,
-	quant:1/4,
-	strength: 1,
-	);
-	~patt=Pbind(
-	\delta, PexpR(Pfunc({~state.lambda})),
-	\degree, Prand([0,3,5,7,10], inf),
-	\strength, Pfunc({~state.strength})
-	);
-	)
-	~str=Pquantize(~patt, quant: Pfunc({~state.quant}), debug:true).trace.play;
-	~state.quant=1/16;
-	~state.lambda=4;
-	Pquantize(~patt, quant: 1/4, debug:true).quant;
-	~state.lambda=1/4;
+			spawner.par(
+				pattern: Pfindur(
+					dur: state[\bardelta],
+					pattern: pat), //.postcs.trace(prefix: \inner),
+				delta: 0,
+			);
+			spawner.wait(state[\bardelta]);
+		});
+	}));
 	*/
 	state.paramUpdaters.add({|val|
 		state[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
@@ -74,5 +54,5 @@
 		//[\val,val].postln;
 		state[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
 	});
-	state;
+	localvoice;
 }
