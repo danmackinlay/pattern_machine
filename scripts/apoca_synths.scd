@@ -1,3 +1,4 @@
+//load synthdefs
 SynthDef.new(\ps_echette_live__1_2,
 	{|inbus=0, outbus=0, deltime=0.1, ringtime=1, amp=1, pan=0|
 		var env, sig;

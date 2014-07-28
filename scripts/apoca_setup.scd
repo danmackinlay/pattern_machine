@@ -1,83 +1,84 @@
-var inbus, outbus;
-var ingroup, fxgroup, postgroup;
-var loopbufs, loopsynths, loopphasebuses;
-var sourcebuf, sourcesound, limiter;
-var control;
-var voicechannels, mixingboard;
-var tempo, beatTime, clock;
-var state;
-var reverbs;
-var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
-var mididefs;
+// core setup script; must be invoked by a forked thread.
 
-this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(~sczamples);
-this.executeFile(~pmscripts +/+ "apoca_synths.scd");
+{|state|
+	var inbus, outbus;
+	var ingroup, fxgroup, postgroup;
+	var loopbufs, loopsynths, loopphasebuses;
+	var sourcebuf, sourcesound, limiter;
+	var parambuses;
+	var voicechannels, mixingboard;
+	var tempo, beatTime, clock;
+	var reverbs;
+	var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
+	var mididefs;
 
-tempo = 80.0;
-beatTime = 60.0/tempo;
-clock = TempoClock.default.tempo_(tempo/60.0);
+	tempo = 80.0;
+	beatTime = 60.0/tempo;
+	clock = TempoClock.default.tempo_(tempo/60.0);
 
-state = (
-	clock: clock,
-	tempo: tempo,
-	beatTime: beatTime,
-	paramDirty: false,
-	density: 1,
-	chaos: 0,
-);
+	state.putAll((
+		clock: clock,
+		tempo: tempo,
+		beatTime: beatTime,
+		paramDirty: false,
+		density: 1,
+		chaos: 0,
+	));
 
-//UI interaction stuff
-metaparams = FloatArray.fill(7,0.5);
-params = FloatArray.fill(32,0.5);
-pitchrollyawaccel = FloatArray.fill(4,0.5);
-paramUpdaters = List.new;
-mididefs = List.new;
-state.params = params;
-state.metaparams = metaparams;
-state.pitchrollyawaccel = pitchrollyawaccel;
-state.paramMap = PSRandomMap(inDims:7, outDims:32, phi:1.2);
-state.paramUpdaters = paramUpdaters;
-state.mididefs = mididefs;
+	//sample loading
+	this.executeFile(~pmscripts +/+ "apoca_samples.scd").value(state, ~sczamples);
+	//synth loading
+	this.executeFile(~pmscripts +/+ "apoca_synths.scd").value(state);
+	s.sync;
 
-paramWatcher = Routine({|newinval|
-	var lastposttime=0.0, delta=0.0;
-	inf.do({|ix|
-		state.paramDirty.if({
-			state.paramDirty = false;
-			(delta>10.0).if({
-				[\wii_updating,state.metaparams, newinval, delta].postln;
-				lastposttime = newinval;
+	//UI interaction stuff
+	metaparams = FloatArray.fill(7,0.5);
+	params = FloatArray.fill(32,0.5);
+	pitchrollyawaccel = FloatArray.fill(4,0.5);
+	paramUpdaters = List.new;
+	mididefs = List.new;
+	state.params = params;
+	state.metaparams = metaparams;
+	state.pitchrollyawaccel = pitchrollyawaccel;
+	state.paramMap = PSRandomMap(inDims:7, outDims:32, phi:1.2);
+	state.paramUpdaters = paramUpdaters;
+	state.mididefs = mididefs;
+
+	paramWatcher = Routine({|newinval|
+		var lastposttime=0.0, delta=0.0;
+		inf.do({|ix|
+			state.paramDirty.if({
+				state.paramDirty = false;
+				(delta>10.0).if({
+					[\wii_updating,state.metaparams, newinval, delta].postln;
+					lastposttime = newinval;
+				});
+				state.params = state.paramMap.value(state.metaparams);
+				state.paramUpdaters.do({|fn, i|
+					fn.value(state.params[i]);
+				});
 			});
-			state.params = state.paramMap.value(state.metaparams);
-			state.paramUpdaters.do({|fn, i|
-				fn.value(state.params[i]);
-			});
+			newinval = 0.02.yield;
+			delta = newinval-lastposttime;
 		});
-		newinval = 0.02.yield;
-		delta = newinval-lastposttime;
-	});
-}).play;
-CmdPeriod.doOnce { paramWatcher.free };
-state.paramWatcher = paramWatcher;
+	}).play;
+	CmdPeriod.doOnce { paramWatcher.free };
+	state.paramWatcher = paramWatcher;
 
-this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
-//to disable:
-//OSCdef(\wii).free;
-CmdPeriod.doOnce { OSCdef(\wii).free };
+	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
+	//to disable:
+	//OSCdef(\wii).free;
+	CmdPeriod.doOnce { OSCdef(\wii).free };
 
-this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state).do(state.mididefs.add(_));
-CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
+	this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(state ).do(state.mididefs.add(_));
+	CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
 
-fork {
 	//basic overall mixer setup
 	inbus = Bus.audio(s,1);
 	//inbus = Bus.newFrom(s.inputBus,0,1);
 	CmdPeriod.doOnce { inbus.free };
 	outbus = Bus.new(\audio, 0, 2, s);
-	this.executeFile(~pmscripts +/+ "apoca_synths.scd");
-
 	s.sync;
-	sourcebuf = ~sampsetbufdict[\tuneful][0];
 	voicechannels = 4.collect({|i|
 		MixerChannel.new("vox" ++ i.asString, s, 2,2, outbus:outbus)
 	});
@@ -151,8 +152,8 @@ fork {
 	CmdPeriod.doOnce { limiter.free };
 	s.sync;
 
-	control = Bus.control(s, 8);
-	CmdPeriod.doOnce { control.free };
+	parambuses = Bus.control(s, 8);
+	CmdPeriod.doOnce { parambuses.free };
 	s.sync;
 
 	state.putAll((
@@ -170,11 +171,10 @@ fork {
 		postgroup: postgroup,
 		sourcebuf: sourcebuf,
 		sourcesound: sourcesound,
-		control: control,
+		parambuses: parambuses,
 	));
-	~state=state;
 	~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
 	~killAll = {~state.voices.do({|thing| thing.postln;~killList.value(thing)})};
-};
 
-state;
+	state;
+};

@@ -22,17 +22,16 @@ TODO: (priority order)
 * MIDI slider velocity
 * automatic param control bus numbering
 */
-
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
 (
-var state;
+var state = ();
+~state=state;
 fork {
-	state = this.executeFile(~pmscripts +/+ "apoca_setup.scd");
-	s.sync;
-	state.postcs;
+	this.executeFile(~pmscripts +/+ "apoca_setup.scd").value(state);
 	state.putAll((
 		voices: Array.fill(4, List.new),
+		voicestates: Array.fill(4, nil),
 		bardelta: 4,
 		seed: 1128,
 		reseed: true,
@@ -40,53 +39,64 @@ fork {
 		pan: 0.0,
 		chaos: 0,
 		trans: [1],
-		voicestates: Array.fill(4, nil),
 	));
-	state[\voicestates][0] = Event.new(n:60, proto: ~state).putAll((
-		parambus1: ~state.subBus(0),
-		channel: ~state.voicechannels[0]
+}
+)
+~state.postcs;
+(
+var localstate, state = ~state;
+fork {
+	localstate = Event.new(n:60, proto: state).putAll((
+		parambus1: state.parambuses.subBus(0),
+		channel: state.voicechannels[0],
+		phasebus: state.loopphasebuses.subBus(0),
+		fuck: \you,
 	));
+	localstate.postcs;
+	state[\voicestates][0] = localstate;
 	state.voices[0].add(
 		this.executeFile(
 			~pmscripts +/+ "apoca_inst.scd"
 		).value(
-			~state[\voicestates][0],
+			state[\voicestates][0],
 			0
 		)
 	);
-	~state=state;
-}
+};
 )
+~state.loopphasebuses.subBus(0).asMap;
+~state[\voicestates][0].postcs;
+~state[\voicestates][0][\phasebus]=~state.loopphasebuses.subBus(0);
+.postcs;
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
-~state.vox2state[\trans]=[1/4,1];
-~state.vox3state[\trans]=[1,2];
-~state.vox4state[\trans]=[1,4/3,2];
+~state.voicestates[1][\trans]=[1/4,1];
+~state.voicestates[2][\trans]=[1,2];
+~state.voicestates[3][\trans]=[1,4/3,2];
 
 ~killList.value(~state.voices[0]);
-~killList.value(~state.vox2);
-~killList.value(~state.vox3);
-~killList.value(~state.vox4);
+~killList.value(~state.voices[1]);
+~killList.value(~state.voices[2]);
+~killList.value(~state.voices[3]);
 
 ~killAll.value;
 
-~state.reverb1.set(\wet,1);
-~state.reverb2.set(\wet,1);
-~state.reverb3.set(\wet,1);
-~state.reverb4.set(\wet,1);
+~state.reverbs[0].set(\wet,1);
+~state.reverbs[1].set(\wet,1);
+~state.reverbs[2].set(\wet,1);
+~state.reverbs[3].set(\wet,1);
 
 ~state.metaparams;
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\desolation][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\choral][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\people][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\tuneful][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\siren][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\desolation][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\choral][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\people][0]);
 
 ~state.sourcesound.set(\livefade, 0);
 ~state.sourcesound.set(\livefade, 1);
 ~state.mixingboard.free;
 
-~sampsetpaths;
-~sampsetbufdict;
-~sampsetbufarray;
+~state.sampsetpaths;
+~state.sampsetbufdict;
+~state.sampsetbufarray;
 
-this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(~state).do(~state.mididefs.add(_));

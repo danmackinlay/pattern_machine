@@ -1,5 +1,6 @@
-{|basepath|
-	var sampsetbufdict, sampsetbufarray, sampsetpaths;
+//load synthdefs; must be invoked by a forked thread.
+{|state, basepath|
+	var sampsetbufdict, sampsetbufarray, sampsetpaths, ind=0;
 	sampsetbufdict = ();
 
 	sampsetpaths = (
@@ -34,26 +35,25 @@
 		// 	"choir/bulgur-legend.wav",
 		// ].collect(basepath +/+ _),
 	);
-	fork {
-		var ind=0;
-		sampsetbufarray = Buffer.allocConsecutive(
-			20,
-			s, 44100*60, 1); //dangerously hard coded, soz.
-		s.sync;
-		sampsetpaths.keysValuesDo({|key,paths|
-			paths.do({|path|
-				var buf;
-				[\loadin, key, ind, path].postln;
-				buf=sampsetbufarray[ind];
-				buf.readChannel(path, channels:[0]);
-				sampsetbufdict[key]=(sampsetbufdict[key] ?? {Array.new}).add(buf);
-				CmdPeriod.doOnce { buf.free };
-				ind = ind + 1;
-			});
+	sampsetbufarray = Buffer.allocConsecutive(
+		20,
+		s, 44100*60, 1); //dangerously hard coded, soz.
+	s.sync;
+	state[\sourcebuf] = sampsetbufarray[0];
+	sampsetpaths.keysValuesDo({|key,paths|
+		paths.do({|path|
+			var buf;
+			//[\loadin, key, ind, path].postln;
+			buf=sampsetbufarray[ind];
+			buf.readChannel(path, channels:[0]);
+			sampsetbufdict[key]=(sampsetbufdict[key] ?? {Array.new}).add(buf);
+			CmdPeriod.doOnce { buf.free };
+			ind = ind + 1;
 		});
-		s.sync;
-		~sampsetpaths = sampsetpaths;
-		~sampsetbufdict = sampsetbufdict;
-		~sampsetbufarray = sampsetbufarray;
-	}
+	});
+	s.sync;
+	state[\sampsetpaths] = sampsetpaths;
+	state[\sampsetbufdict] = sampsetbufdict;
+	state[\sampsetbufarray] = sampsetbufarray;
+	state;
 }
