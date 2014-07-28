@@ -25,14 +25,14 @@ SynthDef.new(\ps_echette_live__1_2,
 //ChannelMixer test thingy
 //a = voicechannels[0].play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, voiceschannels[0].inbus.index]);
 SynthDef.new(\pinkfilt, {
-	arg	outbus=0,	// outbus is the standard name used by MixerChannel
+	arg outbus=0,	// outbus is the standard name used by MixerChannel
 	freq, rq;
 	Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
 }).add;
 
 //Looping delay - sample and hold, e.g. a bar.
 SynthDef.new(\ps_buf_delay_loop__1_1, {
-	arg	outbus=0,
+	arg outbus=0,
 	deltime=1.0,
 	bufnum, wet=0, fadetime=0.2,
 	phasebus=1000; //NB: DO set the phase out if you don't want bleed.
@@ -58,7 +58,7 @@ SynthDef.new(\ps_buf_delay_loop__1_1, {
 
 //Delay grain - plays snippets of the past
 SynthDef.new(\ps_buf_delay_simple_play__1_2, {
-	arg	outbus=0,
+	arg outbus=0,
 	bufnum,
 	deltime=1.0,
 	pan=0, amp=1, gate=1,
@@ -87,7 +87,7 @@ SynthDef.new(\ps_buf_delay_simple_play__1_2, {
 
 //Delay grain - plays snippets of the past, with bending
 SynthDef.new(\ps_buf_delay_play__1_2, {
-	arg	outbus=0,
+	arg outbus=0,
 	bufnum,
 	deltime=1.0,
 	rate=1.0, modulate=0, modlag=0.5,
