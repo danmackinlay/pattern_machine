@@ -37,7 +37,7 @@ Pstumble : FilterPattern {
 }
 
 //quantize timings wrt a given fraction of a beat (could do full-blown Quant but looks boring)
-/* will need
+/* would need
 nextTimeOnGrid { arg quant = 1, phase = 0;
 	if (quant == 0) { ^this.beats + phase };
 	if (quant < 0) { quant = beatsPerBar * quant.neg };
@@ -47,8 +47,8 @@ nextTimeOnGrid { arg quant = 1, phase = 0;
 */
 //nb, this uses a purely local notion of time because raiding the Tempoclock is lame; but could make finding the bar boundaries impossible.
 //TODO: provide a "time reset" input to allow start-of-bar markings or something
-//TODO: actual exponential random
-//TODO: provide interpolation of quantization.
+//TODO: adjustable barlen
+//TODO: the same, but for sample offset *times*
 Pquantize : FilterPattern {
 	var <>quant,<>strength,<>barlen,<>tol, <>debug;
 	*new { arg pattern, quant=1/4, strength=1.0, barlen=4, tol=0.0001, debug=false;

@@ -49,7 +49,7 @@ SynthDef.new(\ps_buf_delay_loop__1_1, {
 		buffer:bufnum,
 		phase: phase,
 		delTime:(deltime - ControlRate.ir.reciprocal),//feedback correction
-		interp:1, //no decay
+		interp:1, //no decay, at the expense of time drift
 	);
 	LocalOut.ar(partdelayed);
 	ReplaceOut.ar(outbus, outmix);
