@@ -1,70 +1,156 @@
 /*
 We create pattern with very open parameters, and infer a manifold of optimal sickness.
 
-This has 2 phases.
+I'd like to do this in 2 different ways:
 
-First, a convenient way of finding optimal parameters; This will prolly be through some random matrix projection.
+	* calculate a manifold that fits several desirable presets
+	* generate random param manifolds/hyperplanes and interpolate
 
-Second infer a hyperplane (or even just a simplex?) defined by this and interpolate it.
-
-If I chose adroit marginal distributions, could I skip the second step
-entirely? Perhaps. That leads to a weird meta-optimisation problem though -
-what are *appropriate* mappings?
-Also, what gives me PRNGs with continuous dependence on seed?
-And what is an appropriate scaling for the matrix?
-To check: do we have extreme enough param values ATM?
+TODO: impose continuous sparseness
+TODO: multiple set to avoid too many triggers
+TODO: poll values and update params accordingly
 */
-//Produces an RNG that returns a vector of uncorrelated pseudo-randoms indexed by a scalar
-PSRandomIndexedProjection {
-	var <aVals;
-	var <cVals;
-	var <parentPrng;
-	*new{|n=4, seed=3.7|
-		var aVals, cVals, parentPRNG ;
-		parentPRNG = LinCongRNG(seed:seed);
-		aVals = parentPRNG.nextN(n)*8 +5.0001.postln;
-		cVals = parentPRNG.nextN(n)*8 +0.0001.postln;
-		^super.newCopyArgs(aVals, cVals);
+
+//Linear-congruantial-like pseudo RNG; not of course an RNG, but conveniently indexed
+//for ease, generates in range [0.0,1.0]
+PSSawMapGenerator {
+	*new{|abase=3.117111, astep=0.77733, cbase=0.23335, cstep=0.3347|
+		^Routine({|phi=0.1|
+			var a=abase;
+			var c=cbase;
+			inf.do({
+				phi = ((phi+c)*a).fold(0.0,1.0).yield;
+				a=a+astep;
+				c=c+cstep;
+			});
+		});
 	}
-	value {|subSeed|
-		^((aVals*subSeed)+cVals)%1
-	}
+
 }
 
-PSRandomMap {
+//operates internally in range [-1.0,1.0]
+PSMetaParamMap {
 	var <inDims;
 	var <outDims;
-	var <>gain;
-	var <projGenerator;
+	var <gain;
 	var <phi;
-	var <transformMat;
-	var <seed;
-	*new{|inDims=2, outDims=5, gain=1.0, phi=1.1, seed=3.7|
+	var <abase;
+	var <astep;
+	var <cbase;
+	var <cstep;
+	var <combiners;
+	var <prng;
+	var <inParams;
+	var <outParams;
+	var <combinercoefs;//just for debugging
+	
+	*new{|inDims=3, //less than 3 is not interesting
+		outDims=5,
+		gain=1.0,
+		phi=0.1,
+		abase=3.117111,
+		astep=0.77733,
+		cbase=0.23335,
+		cstep=0.334|
 		^super.newCopyArgs(
 			inDims,
 			outDims,
 			gain,
-		).seed_(seed).phi_(phi);
+			phi,
+			abase, astep, cbase, cstep
+		).initPSRandomMap;
 	}
-	seed_{|newSeed|
-		seed = newSeed;
-		projGenerator = PSRandomIndexedProjection(inDims*outDims, seed);
+	initPSRandomMap {
+		inParams = Array.fill(inDims, 0.0);
+		outParams = Array.fill(outDims, 0.0);
+		combinercoefs = Array.fill(outDims, {Array.fill(inDims,0.0)});
+		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
+		this.genCombiners;
 	}
-	phi_ {|newPhi|
-		phi = newPhi;
-		// probably could rescale to adjust variance here.
-		// Use Gaussian coef distribution because rotation-invariant
-		// Could take other dists; there's nothing magic about rotation invariance
-		// in fact, heavy tailed is probably more interesting; t-dist or Cauchy, perhaps.
-		transformMat = Matrix.withFlatArray(
-			inDims, outDims, 
-			PSInvPhi(projGenerator.value(phi).asFloatArray/(inDims.sqrt));
-		);
+	genCombiners {
+		prng.reset;
+		combiners = outDims.collect({|i|this.genCombiner(i)});
+		this.value;
 	}
-	value{|inParams|
-		//TODO: optimise out the Matrix library here, which is not all that great codewise
-		//full of halts and inconsistent w/rt permission and forgiveness
-		var paramMat = Matrix.withFlatArray(1, inDims, PSInvPhi(inParams.asFloatArray));
-		^PSPhi((paramMat*transformMat).asFlatArray*gain);
+	genCombiner {|i|
+		var fn;
+		var coefs = inDims.collect({((prng.next(phi)-0.5)*pi).atan});
+		//normalize coeffs to sane range
+		//not sure whether i should be doing this
+		coefs = coefs - (coefs.mean);
+		//normalise "variance" of the parameters
+		//NB, as "uniform" variables, variance per param = 1/3
+		//NB also this is nonsense for <3 params; should perhaps be normalising
+		// by sampling distribution of Cauchy RV instead
+		// http://www.mathematica-journal.com/2011/12/sampling-distribution-of-ml-estimators-cauchy-example/
+		//but that is some serious nasty coding for an already arbitrary construction
+		coefs = coefs / (((coefs**2)/3.0).sum.sqrt);
+		combinercoefs[i] = coefs;
+		fn = {
+			(this.inParams * coefs).sum;
+		};
+		^fn;
+	}
+	phi_ {|val|
+		phi = val;
+		this.genCombiners;
+	}
+	abase_{|val|
+		abase = val;
+		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
+		this.genCombiners;
+	}
+	astep_{|val|
+		astep = val;
+		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
+		this.genCombiners;
+	}
+	cbase_{|val|
+		cbase = val;
+		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
+		this.genCombiners;
+	}
+	cstep_{|val|
+		cstep = val;
+		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
+		this.genCombiners;
+	}
+	set{|i, val, lo=(-1.0), hi=1.0|
+		inParams[i] = val.linlin(lo.asFloat, hi.asFloat, -1.0, 1.0);
+	}
+	value {
+		outParams = combiners.collect({|combiner|
+			Logit(combiner.value * gain)
+		});
+		^outParams;
 	}
 }
+/*
+PSParammapper {
+	metaparams = FloatArray.fill(7,0.5);
+	params = FloatArray.fill(32,0.5);
+	pitchrollyawaccel = FloatArray.fill(4,0.5);
+
+	paramUpdaters = List.new;
+		paramWatcher = Routine({|newinval|
+		var lastposttime=0.0, delta=0.0;
+		inf.do({|ix|
+			state.paramDirty.if({
+				state.paramDirty = false;
+				(delta>10.0).if({
+					[\wii_updating,state.metaparams, newinval, delta].postln;
+					lastposttime = newinval;
+				});
+				state.params = state.paramMap.value(state.metaparams);
+				state.paramUpdaters.do({|fn, i|
+					fn.value(state.params[i]);
+				});
+			});
+			newinval = 0.02.yield;
+			delta = newinval-lastposttime;
+		});
+	}).play;
+	CmdPeriod.doOnce { paramWatcher.free };
+
+}
+*/
