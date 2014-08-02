@@ -9,6 +9,7 @@ I'd like to do this in 2 different ways:
 TODO: impose continuous sparseness
 TODO: multiple set to avoid too many triggers
 TODO: poll values and update params accordingly
+TODO: make sure outputs are full range
 */
 
 //Linear-congruantial-like pseudo RNG; not of course an RNG, but conveniently indexed
@@ -43,8 +44,9 @@ PSMetaParamMap {
 	var <inParams;
 	var <outParams;
 	var <combinercoefs;//just for debugging
+	var <paramDirty = true;
 	
-	*new{|inDims=3, //less than 3 is not interesting
+	*new{|inDims=3,
 		outDims=5,
 		gain=1.0,
 		phi=0.1,
@@ -74,17 +76,9 @@ PSMetaParamMap {
 	}
 	genCombiner {|i|
 		var fn;
-		var coefs = inDims.collect({((prng.next(phi)-0.5)*pi).atan});
-		//normalize coeffs to sane range
-		//not sure whether i should be doing this
-		coefs = coefs - (coefs.mean);
-		//normalise "variance" of the parameters
-		//NB, as "uniform" variables, variance per param = 1/3
-		//NB also this is nonsense for <3 params; should perhaps be normalising
-		// by sampling distribution of Cauchy RV instead
-		// http://www.mathematica-journal.com/2011/12/sampling-distribution-of-ml-estimators-cauchy-example/
-		//but that is some serious nasty coding for an already arbitrary construction
-		coefs = coefs / (((coefs**2)/3.0).sum.sqrt);
+		var coefs = inDims.collect({
+			(((prng.next(phi)-0.5)*pi).atan/(inDims.sqrt)).clip2(10.0)
+		});
 		combinercoefs[i] = coefs;
 		fn = {
 			(this.inParams * coefs).sum;
@@ -118,9 +112,12 @@ PSMetaParamMap {
 	set{|i, val, lo=(-1.0), hi=1.0|
 		inParams[i] = val.linlin(lo.asFloat, hi.asFloat, -1.0, 1.0);
 	}
+	curve {|val|
+		^1/(1+val.neg.exp);
+	}
 	value {
 		outParams = combiners.collect({|combiner|
-			Logit(combiner.value * gain)
+			this.curve(combiner.value * gain)
 		});
 		^outParams;
 	}
