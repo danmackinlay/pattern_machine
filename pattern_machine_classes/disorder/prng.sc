@@ -1,4 +1,4 @@
-// Linear Congruential 
+// Linear Congruential Pseudo Random Number Generator
 // Lifted in spirit if not details from chaos lib, runs at sensible, non-audio rates
 // TODO: demand-rate pseudo-UGen
 
@@ -29,3 +29,4 @@ SawRNG : LinCongRNG {
 		^((a*inseed)+c).fold(0.0,1.0);
 	}
 }
+
