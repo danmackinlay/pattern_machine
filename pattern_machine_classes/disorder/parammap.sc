@@ -44,7 +44,7 @@ PSMetaParamMap {
 	var <inParams;
 	var <outParams;
 	var <combinercoefs;//just for debugging
-	var <paramDirty = true;
+	var <>paramDirty = true;
 	
 	*new{|inDims=3,
 		outDims=5,
@@ -66,12 +66,14 @@ PSMetaParamMap {
 		inParams = Array.fill(inDims, 0.0);
 		outParams = Array.fill(outDims, 0.0);
 		combinercoefs = Array.fill(outDims, {Array.fill(inDims,0.0)});
+		updaterFns = Array.fill(outDims, {List.new});
 		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
 		this.genCombiners;
 	}
 	genCombiners {
 		prng.reset;
 		combiners = outDims.collect({|i|this.genCombiner(i)});
+		paramDirty = true;
 		this.value;
 	}
 	genCombiner {|i|
@@ -111,6 +113,7 @@ PSMetaParamMap {
 	}
 	set{|i, val, lo=(-1.0), hi=1.0|
 		inParams[i] = val.linlin(lo.asFloat, hi.asFloat, -1.0, 1.0);
+		paramDirty = true;
 	}
 	curve {|val|
 		^1/(1+val.neg.exp);
@@ -122,32 +125,31 @@ PSMetaParamMap {
 		^outParams;
 	}
 }
-/*
-PSParammapper {
-	metaparams = FloatArray.fill(7,0.5);
-	params = FloatArray.fill(32,0.5);
-	pitchrollyawaccel = FloatArray.fill(4,0.5);
-
-	paramUpdaters = List.new;
-		paramWatcher = Routine({|newinval|
-		var lastposttime=0.0, delta=0.0;
-		inf.do({|ix|
-			state.paramDirty.if({
-				state.paramDirty = false;
-				(delta>10.0).if({
-					[\wii_updating,state.metaparams, newinval, delta].postln;
-					lastposttime = newinval;
+PSParamWatcher {
+	var <metaParamMap;
+	var <pollPeriod;
+	var <updaterFns;
+	var <watcher;
+	*new {|metaParamMap, pollPeriod=0.05|
+		^super.newCopyArgs(metaParamMap, pollPeriod).initPSParamWatcher;
+	}
+	initPSParamWatcher {
+		updaterFns = Array.new(n:metaParamMap.outDims);
+		watcher = Routine({|newinval|
+			var lastposttime=0.0, delta=0.0;
+			inf.do({|ix|
+				metaParamMap.paramDirty.if({
+					metaParamMap.paramDirty = false;
+					updaterFns.do({|fn, i|
+						fn.value(metaParamMap.outParams[i]);
+					});
 				});
-				state.params = state.paramMap.value(state.metaparams);
-				state.paramUpdaters.do({|fn, i|
-					fn.value(state.params[i]);
-				});
+				this.pollPeriod.yield;
 			});
-			newinval = 0.02.yield;
-			delta = newinval-lastposttime;
-		});
-	}).play;
-	CmdPeriod.doOnce { paramWatcher.free };
-
+		}).play;
+		CmdPeriod.doOnce { watcher.free };
+	}
+	addUpdater {|updater|
+		updaterFns = updaterFns.add(updater);
+	}
 }
-*/
