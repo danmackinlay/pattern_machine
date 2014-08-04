@@ -44,7 +44,7 @@ PSMetaParamMap {
 	var <inParams;
 	var <outParams;
 	var <combinercoefs;//just for debugging
-	var <>paramDirty = true;
+	var <paramDirty = true;
 	
 	*new{|inDims=3,
 		outDims=5,
@@ -118,45 +118,50 @@ PSMetaParamMap {
 	curve {|val|
 		^1/(1+val.neg.exp);
 	}
-	value {
-		outParams = combiners.collect({|combiner|
-			this.curve(combiner.value * gain)
+	next {
+		paramDirty.if({
+			outParams = combiners.collect({|combiner|
+				this.curve(combiner.value * gain)
+			});
+			paramDirty = false;
 		});
 		^outParams;
 	}
 }
-PSParamWatcher {
+PSParamForwarder {
 	var <metaParamMap;
 	var <pollPeriod;
 	var <updaterFns;
 	var <watcher;
 	var <active;
 	var <all;
+	var <params;
 	*new {|metaParamMap, pollPeriod=0.05|
-		^super.newCopyArgs(metaParamMap, pollPeriod).initPSParamWatcher;
+		^super.newCopyArgs(metaParamMap, pollPeriod).initPSParamForwarder;
 	}
-	initPSParamWatcher {
-		updaterFns = Array.new(metaParamMap.outDims);
+	initPSParamForwarder {
+		updaterFns = Array.fill(metaParamMap.outDims);
 		active = IdentitySet.new(metaParamMap.outDims);
 		all = IdentitySet.new(metaParamMap.outDims);
 		watcher = Routine({|newinval|
-			var lastposttime=0.0, delta=0.0;
 			inf.do({|ix|
-				metaParamMap.paramDirty.if({
-					metaParamMap.paramDirty = false;
-					active.do({|i|
-						updaterFns[i].value(metaParamMap.outParams[i]);
-					});
+				params = metaParamMap.next;
+				active.do({|i|
+					this.transmit(i);
 				});
 				this.pollPeriod.yield;
 			});
 		}).play;
 		CmdPeriod.doOnce { watcher.free };
 	}
+	//send some data down the correct pipe for this param
+	transmit {|i|
+		updaterFns[i].value(params[i]);
+	}
 	addUpdater {|updater, i|
 		i.isNil.if({
 			i = all.size;
-			updaterFns.add(nil);
+			updaterFns.add({});
 		});
 		updaterFns[i] = updater;
 		all.add(i);
@@ -165,14 +170,21 @@ PSParamWatcher {
 	solo {|...args|
 		active = IdentitySet.newFrom(args);
 	}
+	// send whatever data down the pipe; mostly useful for MIDI/OSC learn
+	ping {
+		active.do({|i|
+			this.transmit(i);
+		});
+	}
 	soloAndPing{|i|
-		
+		active = IdentitySet.newFrom([i]);
+		this.ping;
 	}
 	tutti {
 		active = all.copy;
 	}
 }
-PSParamWatcherMIDI : PSParamWatcher {
+PSParamForwarderMIDI : PSParamForwarder {
 	var <>midiout;
 	
 	*new {|metaParamMap, pollPeriod, midiout|
@@ -181,8 +193,8 @@ PSParamWatcherMIDI : PSParamWatcher {
 	}
 	addMIDIUpdater {|chan, cc, i|
 		var midifunc = {|val|
-			[\pinging, chan, cc, val.linlin(0.0,1.0,0,127)].postln;
-			midiout.control (chan:chan, ctlNum: cc, val: val.linlin(0.0,1.0,0,127));
+			//[\pinging, chan, cc, val.linlin(0.0,1.0,0,127)].postln;
+			midiout.control (chan:chan, ctlNum: cc, val: val.linlin(0.0,1.0,0,127).asInt);
 		};
 		this.addUpdater(midifunc, i);
 	}
