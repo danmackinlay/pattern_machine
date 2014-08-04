@@ -194,7 +194,7 @@ PSParamForwarderMIDI : PSParamForwarder {
 		^super.new(metaParamMap, pollPeriod
 			).midiout_(midiout);
 	}
-	addMIDIUpdater {|chan, cc, i|
+	addMIDICCUpdater {|chan, cc, i|
 		var midifunc = {|val|
 			//[\pinging, chan, cc, val.linlin(0.0,1.0,0,127)].postln;
 			midiout.control (chan:chan, ctlNum: cc, val: val.linlin(0.0,1.0,0,127).asInt);
