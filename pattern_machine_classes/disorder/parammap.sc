@@ -66,7 +66,6 @@ PSMetaParamMap {
 		inParams = Array.fill(inDims, 0.0);
 		outParams = Array.fill(outDims, 0.0);
 		combinercoefs = Array.fill(outDims, {Array.fill(inDims,0.0)});
-		updaterFns = Array.fill(outDims, {List.new});
 		prng = PSSawMapGenerator.new(abase,astep,cbase,cstep);
 		this.genCombiners;
 	}
@@ -130,18 +129,22 @@ PSParamWatcher {
 	var <pollPeriod;
 	var <updaterFns;
 	var <watcher;
+	var <active;
+	var <all;
 	*new {|metaParamMap, pollPeriod=0.05|
 		^super.newCopyArgs(metaParamMap, pollPeriod).initPSParamWatcher;
 	}
 	initPSParamWatcher {
-		updaterFns = Array.new(n:metaParamMap.outDims);
+		updaterFns = Array.new(metaParamMap.outDims);
+		active = IdentitySet.new(metaParamMap.outDims);
+		all = IdentitySet.new(metaParamMap.outDims);
 		watcher = Routine({|newinval|
 			var lastposttime=0.0, delta=0.0;
 			inf.do({|ix|
 				metaParamMap.paramDirty.if({
 					metaParamMap.paramDirty = false;
-					updaterFns.do({|fn, i|
-						fn.value(metaParamMap.outParams[i]);
+					active.do({|i|
+						updaterFns[i].value(metaParamMap.outParams[i]);
 					});
 				});
 				this.pollPeriod.yield;
@@ -149,7 +152,37 @@ PSParamWatcher {
 		}).play;
 		CmdPeriod.doOnce { watcher.free };
 	}
-	addUpdater {|updater|
-		updaterFns = updaterFns.add(updater);
+	addUpdater {|updater, i|
+		i.isNil.if({
+			i = all.size;
+			updaterFns.add(nil);
+		});
+		updaterFns[i] = updater;
+		all.add(i);
+		active.add(i);
+	}
+	solo {|...args|
+		active = IdentitySet.newFrom(args);
+	}
+	soloAndPing{|i|
+		
+	}
+	tutti {
+		active = all.copy;
+	}
+}
+PSParamWatcherMIDI : PSParamWatcher {
+	var <>midiout;
+	
+	*new {|metaParamMap, pollPeriod, midiout|
+		^super.new(metaParamMap, pollPeriod
+			).midiout_(midiout);
+	}
+	addMIDIUpdater {|chan, cc, i|
+		var midifunc = {|val|
+			[\pinging, chan, cc, val.linlin(0.0,1.0,0,127)].postln;
+			midiout.control (chan:chan, ctlNum: cc, val: val.linlin(0.0,1.0,0,127));
+		};
+		this.addUpdater(midifunc, i);
 	}
 }
