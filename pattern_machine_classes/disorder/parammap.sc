@@ -78,8 +78,9 @@ PSMetaParamMap {
 	}
 	genCombiner {|i|
 		var fn;
+		//Generate coeffs by a Cauchy dist; why not?
 		var coefs = inDims.collect({
-			(((prng.next(phi)-0.5)*pi).atan/(inDims.sqrt)).clip2(10.0)
+			(((prng.next(phi)-0.5)*pi).tan/(inDims.sqrt)).clip2(10.0)
 		});
 		combinercoefs[i] = coefs;
 		fn = {
