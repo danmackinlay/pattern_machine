@@ -25,7 +25,7 @@
 		tuneful: [
 			"Unknown_Lead_Vocal.wav",
 			"NS-wind-chimes-002-denoise-edit.wav",
-			"CONCERTOFORCLARINETP2_ArtieShaw_VICTOR_36383-B-solo.wav",
+			"CONCERTOFORCLARINETP2-solo.wav",
 			"uc-ezchord.wav",
 		].collect(basepath +/+ _),
 		// choral: [

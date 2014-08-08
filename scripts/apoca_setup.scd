@@ -34,7 +34,7 @@
 	mididefs = List.new;
 
 	metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
-	paramUpdater = PSParamForwarder(state.metaparamMap, 0.05);
+	paramUpdater = PSParamForwarder(metaparamMap, 0.05);
 	CmdPeriod.doOnce { paramUpdater.free };
 	state.metaparamMap = metaparamMap;
 	state.paramUpdater = paramUpdater;

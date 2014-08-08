@@ -1,5 +1,4 @@
 {|state|
-	//TODO: rate limit. ca 50Hz atm
 	//OSCFunc.trace(true);
 	OSCdef.new(\wii, {
 		arg msg, time, addr, ports;

@@ -2,25 +2,23 @@
 Apocalypse
 
 TODO: (priority order)
+* structure setup per-channel? i.e. move some apoca_setup into apoca_inst
 * MIDI/wii triggering for:
-  * looping
   * loop re-ordering
-  * kill all synths (~killall.value;)
   * gestures
-* markov models with reseedable seed (see MarkovSet)
 * audio-input-driven effects
 * granular choir
 * tap sync
 * enveloped gestures
-* restrict sample looping to first 30 seconds, OR
-* soundfile-length-sensitive sound playing OR
-* put fade-outs in sound files
+* get rid of clicks by
+  * restrict sample looping to first 30 seconds, OR
+  * soundfile-length-sensitive sound playing OR
+  * put fade-outs in sound files
 * toggle feedback lights on midi keyboard
 * level meter
 * stateful algorithm to navigate through with wiimote
-* instead of explicitly accessing "state" all the time, I should execute all the code inside the Environment, then pop off and pass it around.
+* instead of explicitly accessing "state" all the time, I should do it as state.use
 * MIDI slider velocity
-* automatic param control bus numbering
 */
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
 Server.default=s=~serverboot.(prox:\local, device:\builtin);
@@ -42,7 +40,6 @@ fork {
 		lambda:2,
 		quant:1/4,
 		strength: 1,
-
 	));
 }
 )
