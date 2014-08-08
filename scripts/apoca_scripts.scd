@@ -2,80 +2,103 @@
 Apocalypse
 
 TODO: (priority order)
+* structure setup per-channel? i.e. move some apoca_setup into apoca_inst
 * MIDI/wii triggering for:
-  * looping
   * loop re-ordering
-  * kill all synths (~killall.value;)
-  * triggering karin's gestures
-* Some kind of sequencing things based on order parameters, pulling in and out of chaos
-* markov models with reseedable seed (see MarkovSet)
+  * gestures
 * audio-input-driven effects
 * granular choir
-* change random seeds
-* extra chaosifier
 * tap sync
 * enveloped gestures
-* timestretched escalating background accompaniment
-* meditation bells
-* restrict sample looping to first 30 seconds, OR
-* soundfile-length-sensitive sound playing OR
-* put fade-outs in
-* variable delay in front of allpass to make it more interesting
-* midi keyboard toggle lights
-* VU meter
-* ticking clock sample
-* control ableton with SC
-* Jack routing into Live?
-* Bulk sample loading based on MIR
+* get rid of clicks by
+  * restrict sample looping to first 30 seconds, OR
+  * soundfile-length-sensitive sound playing OR
+  * put fade-outs in sound files
+* toggle feedback lights on midi keyboard
+* level meter
 * stateful algorithm to navigate through with wiimote
-* instead of explicitly accessing "state" all the time, I should execute all the code inside the Environment, then pop off and pass it around.
+* instead of explicitly accessing "state" all the time, I should do it as state.use
 * MIDI slider velocity
-* remap to various RME outputs for hardware mixing (dammit, website down)
-* go to 0-based indexing throughout
-* automatic param control bus numbering
-* hi pass
 */
+//Server.default=s=~serverboot.(prox:\local, device:\rme);
+Server.default=s=~serverboot.(prox:\local, device:\builtin);
+(
+var state = ();
+~state=state;
+fork {
+	this.executeFile(~pmscripts +/+ "apoca_setup.scd").value(state);
+	state.putAll((
+		voices: Array.fill(4, List.new),
+		voicestates: Array.fill(4, nil),
+		bardelta: 4,
+		seed: 1128,
+		reseed: true,
+		looping: 0,
+		pan: 0.0,
+		chaos: 0,
+		trans: [1],
+		lambda:2,
+		quant:1/4,
+		strength: 1,
+	));
+}
+)
+~state.postcs;
+(
+var localstate, state = ~state;
+fork {
+	localstate = Event.new(n:60, proto: state).putAll((
+		parambus1: state.parambuses.subBus(0),
+		loopbuf: state.loopbufs[0],
+		channel: state.voicechannels[0],
+		phasebus: state.loopphasebuses.subBus(0),
+		fuck: \you,
+	));
+	localstate.postcs;
+	state[\voicestates][0] = localstate;
+	state.voices[0].add(
+		this.executeFile(
+			~pmscripts +/+ "apoca_inst.scd"
+		).value(
+			state[\voicestates][0],
+			0
+		)
+	);
+};
+)
+~state.loopphasebuses.subBus(0).asMap;
+~state[\voicestates][0].postcs;
+~state[\voicestates][0][\phasebus]=~state.loopphasebuses.subBus(0);
+.postcs;
+~state.voicestates[0][\trans]=[1/4,1,4/3];
+~state.voicestates[1][\trans]=[1/4,1];
+~state.voicestates[2][\trans]=[1,2];
+~state.voicestates[3][\trans]=[1,4/3,2];
 
-Server.default=s=~serverboot.(prox:\local, device:\rme);
-//Server.default=s=~serverboot.(prox:\local, device:\builtin);
-
-this.executeFile(~pmscripts +/+ "apoca_setup.scd");
-
-this.executeFile(~pmscripts +/+ "apoca_1.scd");
-this.executeFile(~pmscripts +/+ "apoca_2.scd");
-this.executeFile(~pmscripts +/+ "apoca_3.scd");
-this.executeFile(~pmscripts +/+ "apoca_4.scd");
-
-~state.vox1state[\trans]=[1/4,1,4/3];
-~state.vox2state[\trans]=[1/4,1];
-~state.vox3state[\trans]=[1,2];
-~state.vox4state[\trans]=[1,4/3,2];
-
-~killList.value(~state.vox1);
-~killList.value(~state.vox2);
-~killList.value(~state.vox3);
-~killList.value(~state.vox4);
+~killList.value(~state.voices[0]);
+~killList.value(~state.voices[1]);
+~killList.value(~state.voices[2]);
+~killList.value(~state.voices[3]);
 
 ~killAll.value;
 
-~state.reverb1.set(\wet,1);
-~state.reverb2.set(\wet,1);
-~state.reverb3.set(\wet,1);
-~state.reverb4.set(\wet,1);
+~state.reverbs[0].set(\wet,1);
+~state.reverbs[1].set(\wet,1);
+~state.reverbs[2].set(\wet,1);
+~state.reverbs[3].set(\wet,1);
 
 ~state.metaparams;
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\tuneful][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\siren][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\desolation][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\choral][0]);
-~state.sourcesound.set(\bufnum,~sampsetbufdict[\people][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\tuneful][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\siren][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\desolation][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\choral][0]);
+~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\people][0]);
 
 ~state.sourcesound.set(\livefade, 0);
 ~state.sourcesound.set(\livefade, 1);
 ~state.mixingboard.free;
 
-~sampsetpaths;
-~sampsetbufdict;
-~sampsetbufarray;
+~state.sampsetpaths;
+~state.sampsetbufdict;
+~state.sampsetbufarray;
 
-this.executeFile(~pmscripts +/+ "apoca_midi.scd").value(~state).do(~state.mididefs.add(_));
