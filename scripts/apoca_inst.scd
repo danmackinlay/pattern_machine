@@ -47,10 +47,10 @@
 		});
 	}));
 	*/
-	state.paramUpdaters.add({|val|
+	state.addUpdater({|val|
 		state[\parambus1].set(val.linlin(0.0,1.0,0.0, 2.0));
 	});
-	state.paramUpdaters.add({|val|
+	state.addUpdater({|val|
 		//[\val,val].postln;
 		state[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
 	});

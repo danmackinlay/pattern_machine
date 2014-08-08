@@ -30,7 +30,7 @@
 		[1,  7],
 		[1, 23],
 	];
-	//level-on faders
+	//level-on the first 4 faders
 	alldefs.add(MIDIdef.cc(\vol1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-50.0,0.0).dbamp;
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
@@ -164,34 +164,29 @@
 		killAll = {[state.voices[0],state.vox2,state.vox3,state.vox4].do({|thing| thing.postln; killList.value(thing);[\killing, thing].postln;})};
 	}, noteNum: 42, chan: 1));
 
-
 	//metaparam on the faders
 	alldefs.add(MIDIdef.cc(\meta1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.metaparams[3] = mapped;
-		state.paramDirty = true;
+		state.metaparamMap.set(3, mapped);
 		[\meta1, mapped].postln;
 	}, ccNum: 4, chan: 1));
 	alldefs.add(MIDIdef.cc(\meta2, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.metaparams[4] = mapped;
-		state.paramDirty = true;
+		state.metaparamMap.set(4, mapped);
 		[\meta2, mapped].postln;
 	}, ccNum: 5, chan: 1));
 	alldefs.add(MIDIdef.cc(\meta3, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.metaparams[5] = mapped;
-		state.paramDirty = true;
+		state.metaparamMap.set(5, mapped);
 		[\meta3, mapped].postln;
 	}, ccNum: 6, chan: 1));
 	alldefs.add(MIDIdef.cc(\meta4, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
 		//[val,num,chan,src,key, spec.map(val/127.0)].postln;
-		state.metaparams[6] = mapped;
-		state.paramDirty = true;
+		state.metaparamMap.set(6, mapped);
 		[\meta4, mapped].postln;
 	}, ccNum: 7, chan: 1));
 

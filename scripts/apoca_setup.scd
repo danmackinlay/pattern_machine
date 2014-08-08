@@ -9,8 +9,8 @@
 	var voicechannels, mixingboard;
 	var tempo, beatTime, clock;
 	var reverbs;
-	var pitchrollyawaccel, metaparams, params, paramUpdaters, paramWatcher;
 	var mididefs;
+	var metaparamMap, paramUpdater;
 
 	tempo = 80.0;
 	beatTime = 60.0/tempo;
@@ -20,7 +20,6 @@
 		clock: clock,
 		tempo: tempo,
 		beatTime: beatTime,
-		paramDirty: false,
 		density: 1,
 		chaos: 0,
 	));
@@ -32,38 +31,14 @@
 	s.sync;
 
 	//UI interaction stuff
-	metaparams = FloatArray.fill(7,0.5);
-	params = FloatArray.fill(32,0.5);
-	pitchrollyawaccel = FloatArray.fill(4,0.5);
-	paramUpdaters = List.new;
 	mididefs = List.new;
-	state.params = params;
-	state.metaparams = metaparams;
-	state.pitchrollyawaccel = pitchrollyawaccel;
-	state.paramMap = PSRandomMap(inDims:7, outDims:32, phi:1.2);
-	state.paramUpdaters = paramUpdaters;
-	state.mididefs = mididefs;
 
-	paramWatcher = Routine({|newinval|
-		var lastposttime=0.0, delta=0.0;
-		inf.do({|ix|
-			state.paramDirty.if({
-				state.paramDirty = false;
-				(delta>10.0).if({
-					[\wii_updating,state.metaparams, newinval, delta].postln;
-					lastposttime = newinval;
-				});
-				state.params = state.paramMap.value(state.metaparams);
-				state.paramUpdaters.do({|fn, i|
-					fn.value(state.params[i]);
-				});
-			});
-			newinval = 0.02.yield;
-			delta = newinval-lastposttime;
-		});
-	}).play;
-	CmdPeriod.doOnce { paramWatcher.free };
-	state.paramWatcher = paramWatcher;
+	metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
+	paramUpdater = PSParamForwarder(state.metaparamMap, 0.05);
+	CmdPeriod.doOnce { paramUpdater.free };
+	state.metaparamMap = metaparamMap;
+	state.paramUpdater = paramUpdater;
+	state.mididefs = mididefs;
 
 	this.executeFile(~pmscripts +/+ "apoca_wii.scd").value(state);
 	//to disable:
