@@ -8,8 +8,9 @@ I'd like to do this in 2 different ways:
 
 TODO: impose continuous sparseness
 TODO: multiple set to avoid too many triggers
-TODO: poll values and update params accordingly
+TODO: allow metaparammap to also allocate a param # automagically
 TODO: make sure outputs are full range
+TODO: plot values
 */
 
 //Linear-congruantial-like pseudo RNG; not of course an RNG, but conveniently indexed
@@ -186,3 +187,19 @@ PSParamWatcherMIDI : PSParamWatcher {
 		this.addUpdater(midifunc, i);
 	}
 }
+/*
+plotter = Plotter(\anal);
+plotter.minval_(-1);
+plotter.maxval_(1);
+state[\plotter] = plotter;
+state[\plotterrout] = AppClock.play(
+	Routine({
+		{state[\plotter].notNil}.while({
+			plotter.value = state[\anal];
+			plotter.minval_(-1);
+			plotter.maxval_(1);
+			0.1.yield;
+		})
+	})
+);
+*/
