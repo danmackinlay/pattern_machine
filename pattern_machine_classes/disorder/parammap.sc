@@ -153,7 +153,9 @@ PSParamForwarder {
 				this.pollPeriod.yield;
 			});
 		}).play;
-		CmdPeriod.doOnce { watcher.free };
+	}
+	free {
+		watcher.free;
 	}
 	//send some data down the correct pipe for this param
 	transmit {|i|
