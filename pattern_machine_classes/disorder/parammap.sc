@@ -151,7 +151,9 @@ PSParamWatcher {
 				this.pollPeriod.yield;
 			});
 		}).play;
-		CmdPeriod.doOnce { watcher.free };
+	}
+	free {
+		watcher.free;
 	}
 	addUpdater {|updater, i|
 		i.isNil.if({
