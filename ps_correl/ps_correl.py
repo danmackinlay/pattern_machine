@@ -11,9 +11,17 @@ Also, what loss function? negative correlation is more significant than positive
 TODO: search using pytables instead of BallTree; gives us more dynamic axial scaling. (*both* could be fun)
 TODO: mine MIDI files for spectral co-ocurrence data and see if this allows us to predict "matching" spectra
 TODO: alternative ratios- (more) enharmonic
+TODO: ratio ideas - consider Farey sequence: http://www.johndcook.com/blog/2010/10/20/best-rational-approximation/
 TODO: project pitch shifts that would align spectra correctly
 TODO: possibly this would require quadratic peak interpolation - http://www.dsprelated.com/dspbooks/sasp/Quadratic_Interpolation_Spectral_Peaks.html
 TODO: Comb filters instead of autocorrelation? This would model have quadratic maxima, but sharper would be better; this could be a combination FB+FF, or an extra layer of FF. Advantage: linear, well-behaved z-transform. \ | H(e^{j \omega}) | = \sqrt{(1 + \alpha^2) + 2 \alpha \cos(\omega K)}
+TODO: Does the Hilbert transform do what I want?
+https://en.wikipedia.org/wiki/Hilbert_transform#Relationship_with_the_Fourier_transform
+http://yehar.com/blog/?p=368
+https://en.wikipedia.org/wiki/Convolution_theorem#Functions_of_a_discrete_variable..._sequences
+Hartley transfrom? https://en.wikipedia.org/wiki/Hartley_transform
+more generally
+https://en.wikipedia.org/wiki/Integral_transform#Table_of_transforms https://en.wikipedia.org/wiki/Singular_integral_operators_of_convolution_type
 TODO: median filters for bands
 TODO: never return times at start and end of the file
 TODO: cache analysis to disk?
@@ -40,6 +48,7 @@ http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 http://cnx.org/content/m15490/latest/
+See also Välimäki'st thesis: http://users.spa.aalto.fi/vpv/publications/vesa_phd.html
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from ps_correl_analyze import sf_anal
