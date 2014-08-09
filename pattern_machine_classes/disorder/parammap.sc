@@ -47,6 +47,7 @@ PSMetaParamMap {
 	var <outParams;
 	var <combinercoefs;//just for debugging
 	var <paramDirty = true;
+	var <plotter, <plotupdater;
 
 	*new{|inDims=3,
 		outDims=5,
@@ -129,6 +130,29 @@ PSMetaParamMap {
 		});
 		^outParams;
 	}
+	plot {|name="metaparams", bounds, parent, plotrate=0.1|
+		plotter ?? {this.free;};
+		plotter = Plotter(name, bounds, parent);
+		plotter.minval_(0);
+		plotter.maxval_(1);
+		plotter.plotMode_(\steps);
+		plotupdater = AppClock.play(
+			Routine({
+				{plotter.notNil}.while({
+					plotter.value = outParams;
+					plotter.minval_(0);
+					plotter.maxval_(1);
+					plotrate.yield;
+				})
+			})
+		);
+	}
+	free {
+		plotter.free;
+		plotter = nil;
+		plotupdater.free;
+		plotupdater = nil;
+	}
 }
 PSParamForwarder {
 	var <metaParamMap;
@@ -206,19 +230,3 @@ PSParamForwarder {
 		this.addUpdater(midifunc, i);
 	}
 }
-/*
-plotter = Plotter(\anal);
-plotter.minval_(-1);
-plotter.maxval_(1);
-state[\plotter] = plotter;
-state[\plotterrout] = AppClock.play(
-	Routine({
-		{state[\plotter].notNil}.while({
-			plotter.value = state[\anal];
-			plotter.minval_(-1);
-			plotter.maxval_(1);
-			0.1.yield;
-		})
-	})
-);
-*/

@@ -9,9 +9,10 @@
 */
 (
 m = PSMetaParamMap.new(inDims:3, outDims:10);
+m.plot;
 MIDIClient.init;
 MIDIClient.destinations;
-t = PSParamForwarderMIDI(m, 0.05, MIDIOut.newByName("IAC-Driver", "Bus 1"),);
+t = PSParamForwarder(m, 0.05, MIDIOut.newByName("IAC-Driver", "Bus 1"),);
 OSCdef.new(\wii, {
 	arg msg, time, addr, ports;
 	var dummy, pitch, roll, yaw, accel;
