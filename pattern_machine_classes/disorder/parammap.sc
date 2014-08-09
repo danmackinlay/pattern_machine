@@ -13,8 +13,9 @@ TODO: make sure outputs are full range
 TODO: plot values
 */
 
-//Linear-congruantial-like pseudo RNG; not of course an RNG, but conveniently indexed
-//for ease, generates in range [0.0,1.0]
+// Linear-congruential-like VPRnG, that is, a pseudo-random vector generator.
+// More *pseudo* than *random*
+// Formally, a piecewise continuous map from R -> ([0,1]^n).
 PSSawMapGenerator {
 	*new{|abase=3.117111, astep=0.77733, cbase=0.23335, cstep=0.3347|
 		^Routine({|phi=0.1|
@@ -30,7 +31,7 @@ PSSawMapGenerator {
 
 }
 
-//operates internally in range [-1.0,1.0]
+// Internally uses symmetric variables [-1,1] because they are more convenient than [0,1]
 PSMetaParamMap {
 	var <inDims;
 	var <outDims;
