@@ -47,7 +47,7 @@ PSMetaParamMap {
 	var <outParams;
 	var <combinercoefs;//just for debugging
 	var <paramDirty = true;
-	
+
 	*new{|inDims=3,
 		outDims=5,
 		gain=1.0,
@@ -138,8 +138,13 @@ PSParamForwarder {
 	var <active;
 	var <all;
 	var <params;
-	*new {|metaParamMap, pollPeriod=0.05|
-		^super.newCopyArgs(metaParamMap, pollPeriod).initPSParamForwarder;
+	//optional midi destination
+	var <>defaultMidiout;
+
+	*new {|metaParamMap, pollPeriod=0.05, midiout|
+		^super.newCopyArgs(
+			metaParamMap, pollPeriod
+		).initPSParamForwarder.defaultMidiout_(midiout);
 	}
 	initPSParamForwarder {
 		updaterFns = Array.fill(metaParamMap.outDims);
@@ -162,15 +167,6 @@ PSParamForwarder {
 	transmit {|i|
 		updaterFns[i].value(params[i]);
 	}
-	addUpdater {|updater, i|
-		i.isNil.if({
-			i = all.size;
-			updaterFns.add({});
-		});
-		updaterFns[i] = updater;
-		all.add(i);
-		active.add(i);
-	}
 	solo {|...args|
 		active = IdentitySet.newFrom(args);
 	}
@@ -187,18 +183,25 @@ PSParamForwarder {
 	tutti {
 		active = all.copy;
 	}
-}
-PSParamForwarderMIDI : PSParamForwarder {
-	var <>midiout;
-	
-	*new {|metaParamMap, pollPeriod, midiout|
-		^super.new(metaParamMap, pollPeriod
-			).midiout_(midiout);
+	addUpdater {|updater, i|
+		i.isNil.if({
+			i = all.size;
+			updaterFns.add({});
+		});
+		updaterFns[i] = updater;
+		all.add(i);
+		active.add(i);
 	}
-	addMIDICCUpdater {|chan, cc, i|
+	//shortcut for MIDI-specific mappings
+	//maybe worth it for Bus and OSC dests too?
+	addMIDICCUpdater {|chan=0, cc=0, i=nil, mididest=nil|
 		var midifunc = {|val|
 			//[\pinging, chan, cc, val.linlin(0.0,1.0,0,127)].postln;
-			midiout.control (chan:chan, ctlNum: cc, val: val.linlin(0.0,1.0,0,127).asInt);
+			(mididest ? defaultMidiout).control (
+				chan:chan,
+				ctlNum: cc,
+				val: val.linlin(0.0,1.0,0,127).asInt
+			);
 		};
 		this.addUpdater(midifunc, i);
 	}
