@@ -3,6 +3,7 @@ Apocalypse
 
 TODO: (priority order)
 * structure setup per-channel? i.e. move some apoca_setup into apoca_inst
+  * accordingly maintain a list of params that each channel wants conrtolled
 * MIDI/wii triggering for:
   * loop re-ordering
   * gestures
@@ -40,6 +41,7 @@ fork {
 		lambda:2,
 		quant:1/4,
 		strength: 1,
+		controls: List.new;
 	));
 }
 )
@@ -47,14 +49,7 @@ fork {
 (
 var localstate, state = ~state;
 fork {
-	localstate = Event.new(n:60, proto: state).putAll((
-		parambus1: state.parambuses.subBus(0),
-		loopbuf: state.loopbufs[0],
-		channel: state.voicechannels[0],
-		phasebus: state.loopphasebuses.subBus(0),
-		fuck: \you,
-	));
-	localstate.postcs;
+	localstate = Event.new(n:60, proto: state);
 	state[\voicestates][0] = localstate;
 	state.voices[0].add(
 		this.executeFile(

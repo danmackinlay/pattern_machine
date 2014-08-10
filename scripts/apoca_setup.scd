@@ -6,9 +6,8 @@
 	var loopbufs, loopsynths, loopphasebuses;
 	var sourcebuf, sourcesound, limiter;
 	var parambuses;
-	var voicechannels, mixingboard;
+	var mixingboard;
 	var tempo, beatTime, clock;
-	var reverbs;
 	var mididefs;
 	var metaparamMap, paramUpdater;
 
@@ -54,40 +53,13 @@
 	CmdPeriod.doOnce { inbus.free };
 	outbus = Bus.new(\audio, 0, 2, s);
 	s.sync;
-	voicechannels = 4.collect({|i|
-		MixerChannel.new("vox" ++ i.asString, s, 2,2, outbus:outbus)
-	});
-	//is this one necessary?
-	CmdPeriod.doOnce { voicechannels.do(_.free) };
-	s.sync;
-	mixingboard = MixingBoard.new("apocalypse", nil,
-		*voicechannels,
-	);
+	mixingboard = MixingBoard.new("apocalypse", nil,);
 	CmdPeriod.doOnce { mixingboard.free };
 	s.sync;
 	ingroup = Group.new(s, \addToHead);
 	CmdPeriod.doOnce { ingroup.free };
 	postgroup = Group.new(s, \addAfter);
 	CmdPeriod.doOnce { postgroup.free };
-
-	//channel fx
-	reverbs = voicechannels.collect({|chan, i|
-		chan.playfx(\ps_gverb__2_2, [
-			\index, 1,
-			\wet, 0.2,
-			\damping, 0.4,
-			\revtime, 0.8,
-			\roomsize, 170,
-		]);
-	});
-	s.sync;
-
-	// delay/loop action action
-	loopbufs = Buffer.allocConsecutive(4, s, s.sampleRate * 10.0, 1);
-	CmdPeriod.doOnce { loopbufs.do(_.free) };
-	loopphasebuses = Bus.control(s, 4);
-	CmdPeriod.doOnce { loopphasebuses.free };
-	s.sync;
 
 	//In case I don't want to sing:
 	sourcesound = (
@@ -104,21 +76,6 @@
 	CmdPeriod.doOnce { sourcesound.free };
 	s.sync;
 
-	//delay/loop input
-	loopsynths = 4.collect({|i|(
-		instrument: \ps_buf_delay_loop__1_1,
-		outbus: inbus,
-		bufnum: loopbufs[i],
-		group: ingroup,
-		wet: 0,
-		deltime: beatTime*4,
-		phasebus: loopphasebuses.subBus(i),
-		addAction: \addToTail,
-		sendGate: false,//persist
-	).play;});
-	CmdPeriod.doOnce { loopsynths.do(_.free) };
-	s.sync;
-
 	limiter = (
 	 	instrument: \limi__2,
 	 	group: postgroup,
@@ -127,26 +84,16 @@
 	CmdPeriod.doOnce { limiter.free };
 	s.sync;
 
-	parambuses = Bus.control(s, 8);
-	CmdPeriod.doOnce { parambuses.free };
-	s.sync;
-
 	state.putAll((
 		outbus: outbus,
 		inbus: inbus, //or Bus.newFrom(s.inputBus,0,1) for external
 		limiter: limiter,
 		ingroup: ingroup,
-		loopsynths: loopsynths,
-		loopbufs: loopbufs,
-		loopphasebuses: loopphasebuses,
-		voicechannels: voicechannels,
 		fxgroup: fxgroup,
-		reverbs: reverbs,
 		mixingboard: mixingboard,
 		postgroup: postgroup,
 		sourcebuf: sourcebuf,
 		sourcesound: sourcesound,
-		parambuses: parambuses,
 	));
 	~killList = {|thelist| thelist.size.do({var thing=thelist.pop; thing.stop; thing.free;})};
 	~killAll = {~state.voices.do({|thing| thing.postln;~killList.value(thing)})};
