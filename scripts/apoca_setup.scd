@@ -6,7 +6,7 @@
 	var loopbufs, loopsynths, loopphasebuses;
 	var sourcebuf, sourcesound, limiter;
 	var parambuses;
-	var mixingboard;
+	var mixingboard, masterchannel;
 	var tempo, beatTime, clock;
 	var mididefs;
 	var metaparamMap, paramUpdater;
@@ -33,6 +33,8 @@
 	mididefs = List.new;
 
 	metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
+	{metaparamMap.plot;}.defer;
+	CmdPeriod.doOnce { metaparamMap.free };
 	paramUpdater = PSParamForwarder(metaparamMap, 0.05);
 	CmdPeriod.doOnce { paramUpdater.free };
 	state.metaparamMap = metaparamMap;
@@ -53,7 +55,9 @@
 	CmdPeriod.doOnce { inbus.free };
 	outbus = Bus.new(\audio, 0, 2, s);
 	s.sync;
-	mixingboard = MixingBoard.new("apocalypse", nil,);
+	masterchannel = MixerChannel.new(\master, s, 2, 2, outbus: outbus);
+	s.sync;
+	mixingboard = MixingBoard.new("apocalypse", nil, masterchannel);
 	CmdPeriod.doOnce { mixingboard.free };
 	s.sync;
 	ingroup = Group.new(s, \addToHead);
