@@ -1,6 +1,6 @@
 {|state|
 	//OSCFunc.trace(true);
-	OSCdef.new(\wii, {
+	OSCdef.new(\wiipry, {
 		arg msg, time, addr, ports;
 		var dummy, pitch, roll, yaw, accel;
 		# dummy, pitch, roll, yaw, accel = msg;
@@ -10,5 +10,19 @@
 		state.metaparamMap.set(2, yaw, 0.0, 1.0);
 	}, "/wii/1/accel/pry", nil, 8332);
 	// Have to set up disposal logic when using custom port or sclang implodes
-	CmdPeriod.doOnce { OSCdef(\wii).free };
+	CmdPeriod.doOnce { OSCdef(\wiipry).free };
+	OSCdef.new(\wiiplus, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	m.phi_(m.phi + 0.001953125);
+}, "/wii/1/button/Plus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce { OSCdef(\wiiplus).free };
+OSCdef.new(\wiiminus, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	m.phi_(m.phi - 0.001953125);
+}, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce { OSCdef(\wiiminus).free };
 }
