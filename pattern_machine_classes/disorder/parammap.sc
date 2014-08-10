@@ -13,7 +13,7 @@ TODO: make sure outputs are full range
 TODO: plot values
 */
 
-// Linear-congruential-like VPRnG, that is, a pseudo-random vector generator.
+// Linear-congruential-like PRVG, that is, a pseudo-random vector generator.
 // More *pseudo* than *random*
 // Formally, a piecewise continuous map from R -> ([0,1]^n).
 PSSawMapGenerator {
@@ -22,7 +22,7 @@ PSSawMapGenerator {
 			var a=abase;
 			var c=cbase;
 			inf.do({
-				phi = ((phi+c)*a).fold(0.0,1.0).yield;
+				phi = ((phi*a)+c).fold(0.0,1.0).yield;
 				a=a+astep;
 				c=c+cstep;
 			});
