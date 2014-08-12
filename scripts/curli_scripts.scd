@@ -1,9 +1,9 @@
 /*
-Apocalypse
+Curlique
 
 TODO: (priority order)
-* structure setup per-channel? i.e. move some apoca_setup into apoca_inst
-  * accordingly maintain a list of params that each channel wants conrtolled
+* structure setup per-channel? i.e. move some curli_setup into curli_inst
+  * accordingly maintain a list of params that each channel wants controlled
 * MIDI/wii triggering for:
   * loop re-ordering
   * gestures
@@ -27,7 +27,7 @@ Server.default=s=~serverboot.(prox:\local, device:\builtin);
 var state = ();
 ~state=state;
 fork {
-	this.executeFile(~pmscripts +/+ "apoca_setup.scd").value(state);
+	this.executeFile(~pmscripts +/+ "curli_setup.scd").value(state);
 	state.putAll((
 		voices: Array.fill(4, List.new),
 		voicestates: Array.fill(4, nil),
@@ -53,7 +53,7 @@ fork {
 	state[\voicestates][0] = localstate;
 	state.voices[0].add(
 		this.executeFile(
-			~pmscripts +/+ "apoca_inst.scd"
+			~pmscripts +/+ "curli_inst.scd"
 		).value(
 			state[\voicestates][0],
 			0
