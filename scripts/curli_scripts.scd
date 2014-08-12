@@ -2,6 +2,8 @@
 Curlicue
 
 TODO: (priority order)
+* FUCK THIS HORRIBLE CONCURRENCY HELL
+  * Can I do it with PDef etc?
 * structure setup per-channel? i.e. move some curli_setup into curli_inst
   * accordingly maintain a list of params that each channel wants controlled
 * MIDI/wii triggering for:
@@ -18,7 +20,6 @@ TODO: (priority order)
 * toggle feedback lights on midi keyboard
 * level meter
 * stateful algorithm to navigate through with wiimote
-* instead of explicitly accessing "state" all the time, I should do it as state.use
 * MIDI slider velocity
 */
 //Server.default=s=~serverboot.(prox:\local, device:\rme);
@@ -67,8 +68,8 @@ fork {
 ~state[\voicestates][1].pat.play;
 //not works
 (
-var loc = ~state[\voicestates][1];
-loc.channel.play(loc.pat, (clock: loc.clock)).postcs;
+var loc = ~state[\voicestates][~state[\nextVoice]-1];
+loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 )
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.voicestates[1][\trans]=[1/4,1];

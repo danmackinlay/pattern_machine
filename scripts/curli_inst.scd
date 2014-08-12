@@ -1,6 +1,6 @@
 {|state, i|
 	state.make({
-		var parambus, channel, reverb, loopsynth, loopbuf, loopphasebus, stream, pat;
+		var parambus, inchannel, outchannel, reverb, loopsynth, loopbuf, loopphasebus, stream, pat;
 
 		// delay/loop action action
 		loopbuf = Buffer.alloc(s, s.sampleRate * 10.0, 1);
@@ -9,10 +9,18 @@
 		CmdPeriod.doOnce { loopphasebus.free };
 		parambus = Bus.control(s, 1);
 		CmdPeriod.doOnce { parambus.free };
+		outchannel = MixerChannel.new("outvox" ++ i.asString, s, 2, 2, outbus: ~masterchannel);
+		//is this one necessary?
+		CmdPeriod.doOnce { outchannel.free };
+		inchannel = MixerChannel.new("invox" ++ i.asString, s, 2, 2, outbus: outchannel);
+		//is this one necessary?
+		CmdPeriod.doOnce { outchannel.free };
 		s.sync;
+		~mixingboard.add(inchannel);
+		~mixingboard.add(outchannel);
 
 		//delay/loop input
-		loopsynth = (
+		loopsynth = inchannel.play((
 			instrument: \ps_buf_delay_loop__1_1,
 			outbus: ~inbus,
 			bufnum: loopbuf,
@@ -22,18 +30,13 @@
 			phasebus: loopphasebus,
 			addAction: \addToTail,
 			sendGate: false,//persist
-		).play;
+		));
 		CmdPeriod.doOnce { loopsynth.free };
 
-		channel = MixerChannel.new("vox" ++ i.asString, s, 2, 2, outbus: ~outbus);
-		//is this one necessary?
-		CmdPeriod.doOnce { channel.free };
-
 		s.sync;
-		~mixingboard.add(channel);
 
 		//channel fx
-		reverb = channel.playfx(\ps_gverb__2_2, [
+		reverb = outchannel.playfx(\ps_gverb__2_2, [
 				\index, 1,
 				\wet, 0.2,
 				\damping, 0.4,
@@ -67,7 +70,7 @@
 		pat = Pquantize(pat,
 			quant: Pfunc({state.quant}),
 			debug: true); //.trace;
-		stream =  state.channel.play(pat, (
+		stream =  state.outchannel.play(pat, (
 			clock: state.clock,
 		));
 
@@ -103,7 +106,8 @@
 		~loopphasebus = loopphasebus;
 		~loopbuf = loopbuf;
 		~stream = stream;
-		~channel = channel;
+		~inchannel = inchannel;
+		~outchannel = outchannel;
 		~reverb = reverb;
 	});
 }
