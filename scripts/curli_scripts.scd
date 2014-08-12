@@ -1,5 +1,5 @@
 /*
-Curlique
+Curlicue
 
 TODO: (priority order)
 * structure setup per-channel? i.e. move some curli_setup into curli_inst
@@ -31,6 +31,7 @@ fork {
 	state.putAll((
 		voices: Array.fill(4, List.new),
 		voicestates: Array.fill(4, nil),
+		nextVoice: 0,
 		bardelta: 4,
 		seed: 1128,
 		reseed: true,
@@ -45,26 +46,31 @@ fork {
 	));
 }
 )
-~state.postcs;
 (
-var localstate, state = ~state;
+var localstate, state = ~state, i = state.nextVoice;
 fork {
 	localstate = Event.new(n:60, proto: state);
-	state[\voicestates][0] = localstate;
-	state.voices[0].add(
+	state[\voicestates][i] = localstate;
+	state.voices[i].add(
 		this.executeFile(
 			~pmscripts +/+ "curli_inst.scd"
 		).value(
-			state[\voicestates][0],
-			0
+			localstate,
+			i
 		)
 	);
+	state[\nextVoice] = i + 1;
 };
 )
-~state.loopphasebuses.subBus(0).asMap;
-~state[\voicestates][0].postcs;
-~state[\voicestates][0][\phasebus]=~state.loopphasebuses.subBus(0);
-.postcs;
+~state[\voicestates][0].stream.postcs;
+~state[\voicestates][2].pat.play;
+(
+var loc = ~state[\voicestates][0];
+loc.channel.play(loc.pat, (clock: loc.clock)).postcs;
+stream =  state.channel.play(pat, (
+		clock: state.clock,
+	));
+)
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.voicestates[1][\trans]=[1/4,1];
 ~state.voicestates[2][\trans]=[1,2];
@@ -76,11 +82,6 @@ fork {
 ~killList.value(~state.voices[3]);
 
 ~killAll.value;
-
-~state.reverbs[0].set(\wet,1);
-~state.reverbs[1].set(\wet,1);
-~state.reverbs[2].set(\wet,1);
-~state.reverbs[3].set(\wet,1);
 
 ~state.metaparams;
 ~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\tuneful][0]);

@@ -1,6 +1,6 @@
 {|state, i|
-	state.use({
-	var parambus, voicechannel, reverb, loopsynth, loopbuf, loopphasebus, localvoice, pat;
+	state.make({
+	var parambus, channel, reverb, loopsynth, loopbuf, loopphasebus, stream, pat;
 
 	// delay/loop action action
 	loopbuf = Buffer.alloc(s, s.sampleRate * 10.0, 1);
@@ -25,15 +25,15 @@
 	).play;
 	CmdPeriod.doOnce { loopsynth.free };
 
-	voicechannel = MixerChannel.new("vox" ++ i.asString, s, 2, 2, outbus: ~outbus);
+	channel = MixerChannel.new("vox" ++ i.asString, s, 2, 2, outbus: ~outbus);
 	//is this one necessary?
-	CmdPeriod.doOnce { voicechannel.free };
+	CmdPeriod.doOnce { channel.free };
 
 	s.sync;
-	~mixingboard.add(voicechannel);
+	~mixingboard.add(channel);
 
 	//channel fx
-	reverb = voicechannel.playfx(\ps_gverb__2_2, [
+	reverb = channel.playfx(\ps_gverb__2_2, [
 			\index, 1,
 			\wet, 0.2,
 			\damping, 0.4,
@@ -63,11 +63,11 @@
 		\rate, Prand(state[\trans], inf),
 		\sustain, Prand([1,1/2], inf),
 		\modulate, parambus.asMap,
-	); //.postcs.trace(prefix: \outer);
+	).postcs.trace(prefix: \outer);
 	pat = Pquantize(pat,
 		quant: Pfunc({state.quant}),
 		debug: true); //.trace;
-	localvoice =  state.channel.play(pat,(
+	stream =  state.channel.play(pat, (
 		clock: state.clock,
 	));
 
@@ -91,7 +91,6 @@
 		});
 	}));
 	*/
-
 	~paramUpdater.addUpdater({|val|
 		parambus.set(val.linlin(0.0,1.0,0.0, 2.0));
 	});
@@ -99,6 +98,12 @@
 		//[\val,val].postln;
 		state[\pan]=val.linlin(0.0,1.0,-0.8, 0.8);
 	});
-	localvoice;
+	~pat = pat;
+	~parambus = parambus;
+	~loopphasebus = loopphasebus;
+	~loopbuf = loopbuf;
+	~stream = stream;
+	~channel = channel;
+	~reverb = reverb;
 	});
 }
