@@ -63,13 +63,12 @@ fork {
 };
 )
 ~state[\voicestates][0].stream.postcs;
-~state[\voicestates][2].pat.play;
+//worka
+~state[\voicestates][1].pat.play;
+//not works
 (
-var loc = ~state[\voicestates][0];
+var loc = ~state[\voicestates][1];
 loc.channel.play(loc.pat, (clock: loc.clock)).postcs;
-stream =  state.channel.play(pat, (
-		clock: state.clock,
-	));
 )
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.voicestates[1][\trans]=[1/4,1];
