@@ -1,9 +1,8 @@
 from music21 import converter, instrument, midi
 from music21.note import Note, NotRest, Rest
 from music21.chord import Chord
-import random
 from random import randint, sample
-import math
+from math import floor
 import tables
 import warnings
 
@@ -15,36 +14,6 @@ note_table_description = {
     'thisNote': tables.UIntCol(), # midi note number for central pitch
     'eventId': tables.UIntCol(), # working out which event cause this
 }
-
-
-def analyze_times(note_stream):
-    # do some analysis of note inter-arrival times to check our tempo assumptions
-    first_event = note_stream.flat.notes.offsetMap[0]['offset']
-    last_event = note_stream.flat.notes.offsetMap[-1]['offset']
-    midi_length = float(last_event-first_event)
-    curr_time_stamp = first_event
-    pitch_rates = [0.0] * 128
-    thinned_intervals = []
-    for next_elem in note_stream.flat.notes.offsetMap:
-        #event density stats
-        event = next_elem['element']
-        #only handle Notes and Chords
-        if not isinstance(event, NotRest):
-            continue
-        next_time_stamp = next_elem['offset']
-        if next_time_stamp > curr_time_stamp + ONSET_TOLERANCE:
-            thinned_intervals.append(next_time_stamp-curr_time_stamp)
-            curr_time_stamp = next_time_stamp
-        #individual pitch density stats:
-        pitches = []
-        if hasattr(event, 'pitch'):
-            pitches = [event.pitch.midi]
-        if hasattr(event, 'pitches'):
-            pitches = [p.midi for p in event.pitches]
-        for p in pitches:
-            pitch_rates[p] += 1.0/midi_length
-    mean_event_time = sum(thinned_intervals)/len(thinned_intervals)
-    return mean_event_time, pitch_rates
 
 def get_recence_data(cache=True):
     global event_counter, obs_counter
@@ -101,7 +70,7 @@ def get_recence_data(cache=True):
 
             if n_held_notes>0:
                 #map bar pos to (0,15] ; this is more convenient to interpret
-                barcode = int(math.floor(((next_time_stamp + 1.0/8) % 4.0 ) * 4.0))
+                barcode = int(floor(((next_time_stamp + 1.0/8) % 4.0 ) * 4.0))
                 obs_meta['file'].append(file_key)
                 obs_meta['time'].append(next_time_stamp)
                 obs_meta['obsId'].append(obs_counter)
@@ -121,14 +90,13 @@ def get_recence_data(cache=True):
         """workhorse function
         does too much, for reasons of efficiency
         plus the inconvenient os.path.walk API"""
-        global mean_pitch_rate, event_counter
+        global event_counter
         midi_in_file = os.path.join(base_dir, midi_file)
         file_key = midi_in_file[len(MIDI_BASE_DIR):]
         print "parsing", file_key
         note_stream = converter.parse(midi_in_file)
         note_transitions = []
         note_times = dict()
-        mean_event_time, mean_pitch_rate = analyze_times(note_stream)
 
         for next_elem in note_stream.flat.notes.offsetMap:
             event = next_elem['element']
@@ -169,8 +137,7 @@ def get_recence_data(cache=True):
             obs_list = obs_list,
             p_list = p_list,
             recence_list = recence_list,
-        ),
-        mean_pitch_rate
+        )
     )
 
 def get_note_table(cache=True):

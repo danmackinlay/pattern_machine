@@ -28,7 +28,7 @@ meta_table_description = {
     'b1': tables.IntCol(),
 }
 
-def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
+def numpyfy_tuple(obs_meta, obs_vec):
     n_obs = len(obs_meta['obsId'])
     obs_vec = csc_matrix(
         (
@@ -39,7 +39,6 @@ def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
             )
         ),
         shape=(n_obs, NEIGHBORHOOD_RADIUS*2+1))
-    mean_pitch_rate = np.asarray(mean_pitch_rate, dtype=np.float32)
 
     barcode_arr = np.zeros((n_obs,4), dtype=np.int32)
     barcode_arr[:,0] = obs_meta['b1']
@@ -60,9 +59,9 @@ def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
     obs_meta['time'] = np.asarray(obs_meta['time'], dtype = np.float32)
     obs_meta['diameter'] = np.asarray(obs_meta['diameter'], dtype = np.int32)
 
-    return obs_meta, obs_vec, mean_pitch_rate
+    return obs_meta, obs_vec
 
-obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(*get_recence_data())
+obs_meta, obs_vec = numpyfy_tuple(*get_recence_data())
 n_obs = obs_meta['obsId'].size
 base_success_rate = obs_meta["result"].mean()
 
