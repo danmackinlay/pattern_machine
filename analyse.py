@@ -10,7 +10,7 @@ import numpy as np
 import scipy as sp
 from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
-from parse_midi import get_data_set
+from parse_midi import get_recence_data
 from serialization import write_sparse_hdf
 from config import *
 
@@ -62,7 +62,7 @@ def numpyfy_tuple(obs_meta, obs_vec, mean_pitch_rate):
 
     return obs_meta, obs_vec, mean_pitch_rate
 
-obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(*get_data_set())
+obs_meta, obs_vec, mean_pitch_rate = numpyfy_tuple(*get_recence_data())
 n_obs = obs_meta['obsId'].size
 base_success_rate = obs_meta["result"].mean()
 

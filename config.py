@@ -19,6 +19,7 @@ ONSET_TOLERANCE = 0.06
 
 MIDI_BASE_DIR = os.path.expanduser('~/Music/midi/rag/')
 OUTPUT_BASE_PATH = os.path.normpath("./")
+NOTE_TABLE_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag.h5')
 FEATURE_TABLE_FROM_PYTHON_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_from_python.h5')
 FEATURE_TABLE_TO_PYTHON_PATH = os.path.join(OUTPUT_BASE_PATH, 'rag_to_python.h5')
 
