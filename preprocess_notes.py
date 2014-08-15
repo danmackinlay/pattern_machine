@@ -155,5 +155,5 @@ def encode_recence_data():
             filt=filt)
         barcode_group = note_obs_table_handle.create_group("/", "note_barcode")
         write_sparse_hdf(note_obs_table_handle,
-            barcode_arr, obs_vec,
+            barcode_group, barcode_arr,
             filt=filt)

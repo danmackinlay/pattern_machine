@@ -12,7 +12,7 @@ This naive markov model still has lots of hairy bits. Questions:
 * can I somehow condition on more "control" variables?
 * can I use state transitions to estimate "consonance"?
 
-In fact, this ISN'T a MArkov model as it stands; since we only recal the most
+In fact, this ISN'T a Markov model as it stands; since we only recal the most
 recent occurrence of note, threre is an implicit interaction between notes of
 different ages. That is Bad.  
 
