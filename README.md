@@ -79,12 +79,12 @@ TODO
 * wrap notes to octave
 * handle multiplicity of note events?
   * Full cellular automata-style, not just recentness of last event (parameter explosion!)
-  * regress each-versus-all for every note-co-occurence
-  * Or regress against an exponential decay curve
-    * have to fit filter time, which will have nonlinear interactions with the other terms
-    * plus why would we then expect the response to the exponentially decayed event information to be linear?
-    * decaying sinusoidal impulses would seem more natural. but with what period? likely several harmonics of note length. What decay? No idea. Even several superposed decays could be natural.
-    * also, what phase would we add to the modeled impulse? harmonic in bar length? (exp(i\theta))? 0 phase added each time? Anyway, this gives us a very large optimisation problem. But possibly we could handle it in the spectral domain. Smoothing problem (per harmonic or overall) + say, 5 harmonics above 0 for each neighbourhood member
+  * naive model: recentness versus relative pitch, linear in each. This would be sorta easy to implement. Should we also regress on correct value for recentness then?
+  * Or regress against something time-bound, perhaps...
+    * decaying sinusoidal impulses? but with what period? likely several harmonics of note length.
+    * What decay? No idea. Even several superposed decays could be natural. Would have to fit term decay, which would not be linear
+    * this might possibly work via some kind of iterative method such as expectation maximisation, or just normal newton-raphson optimisation even; it would be polynomial of order no great than degree of interactions tested, which would be exactly automatically differentiable
+    * How would we handle phase? probably by regressing against componenets of an imaginary wave separatedly.
 * implement graphical model outputs in SC
 * truncate fit models to a minimum coeff magnitude (1E-17 is a silly weight for
   an event occurring .001% of the time)
