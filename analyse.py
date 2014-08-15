@@ -10,23 +10,9 @@ import numpy as np
 import scipy as sp
 from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
-from parse_midi import get_recence_data
+from preprocess_notes import get_recence_data
 from serialization import write_sparse_hdf
 from config import *
-
-meta_table_description = {
-    'result': tables.IntCol(dflt=0), #success/fail
-    'file': tables.StringCol(50), # factor: which sourcefile
-    'time': tables.FloatCol(), # event time
-    'thisNote': tables.UIntCol(), # midi note number for central pitch
-    'obsId': tables.UIntCol(), #  for matching with the other data
-    'eventId': tables.UIntCol(), # working out which event cause this
-    'diameter': tables.UIntCol(), # number of notes consider in event changes observation base rate
-    'b4': tables.IntCol(),
-    'b3': tables.IntCol(),
-    'b2': tables.IntCol(),
-    'b1': tables.IntCol(),
-}
 
 def numpyfy_tuple(obs_meta, obs_vec):
     n_obs = len(obs_meta['obsId'])
@@ -54,7 +40,7 @@ def numpyfy_tuple(obs_meta, obs_vec):
     obs_meta['file'] = np.asarray(obs_meta['file'])
     obs_meta['obsId'] = np.asarray(obs_meta['obsId'], dtype = np.int32)
     obs_meta['eventId'] = np.asarray(obs_meta['eventId'], dtype = np.int32)
-    obs_meta['thisNote'] = np.asarray(obs_meta['thisNote'], dtype = np.int32)
+    obs_meta['pitch'] = np.asarray(obs_meta['pitch'], dtype = np.int32)
     obs_meta['result'] = np.asarray(obs_meta['result'], dtype = np.int32)
     obs_meta['time'] = np.asarray(obs_meta['time'], dtype = np.float32)
     obs_meta['diameter'] = np.asarray(obs_meta['diameter'], dtype = np.int32)
@@ -249,14 +235,14 @@ with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
         obs_table = table_out_handle.create_table('/', 'obs_meta',
-            meta_table_description,
+            obs_table_description,
             filters=tables.Filters(complevel=1))
     for r in xrange(n_obs):
         obs_table.row['file'] = obs_meta['file'][r]
         obs_table.row['time'] = obs_meta['time'][r]
         obs_table.row['obsId'] = obs_meta['obsId'][r]
         obs_table.row['eventId'] = obs_meta['eventId'][r]
-        obs_table.row['thisNote'] = obs_meta['thisNote'][r]
+        obs_table.row['pitch'] = obs_meta['pitch'][r]
         obs_table.row['diameter'] = obs_meta['diameter'][r]
         obs_table.row['result'] = obs_meta['result'][r]
         obs_table.row['obsId'] = obs_meta['obsId'][r]
