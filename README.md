@@ -6,11 +6,15 @@ Learning cellular harmony automata
 Probabilistic underpinnings:
 -----------------------------
 
-this naive markov model still has lots of hairy bits. Questions:
+This naive markov model still has lots of hairy bits. Questions:
 * can I get a better "base" point for my notes? e.g. choosing a "key"?
 * or just a most common note?
 * can I somehow condition on more "control" variables?
 * can I use state transitions to estimate "consonance"?
+
+In fact, this ISN'T a MArkov model as it stands; since we only recal the most
+recent occurrence of note, threre is an implicit interaction between notes of
+different ages. That is Bad.  
 
 Possible techniques
 ----------------------
@@ -129,3 +133,21 @@ Data concerns
 --------------
 
 [A list of alternate datasets](http://notes.livingthing.org/musical_corpora.html).
+
+Performance
+-----------
+
+Fit within python is incredibly slow, didn't terminate afer 36 hours (!)
+
+    mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64) #TRULY csr?
+    mega_target = obs_meta["result"].astype(np.float64)
+    mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
+    mod.fit(mega_features, mega_target)
+
+see
+* http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
+* http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
+* http://scikit-learn.org/stable/auto_examples/linear_model/plot_sparse_recovery.html
+* http://scikit-learn.org/stable/modules/feature_selection.html#compressive-sensing
+* http://leon.bottou.org/projects/sgd
+

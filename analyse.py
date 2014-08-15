@@ -196,18 +196,8 @@ while True:
 ranks = sorted([(feature_sizes[i]*feature_liks[i], feature_bases[i], feature_names[i]) for i in xrange(len(features))])
 # I could prune the least interesting half and repeat the process?
 
-# # Fit within python is incredibly slow, didn't terminate afer 36 hours (!)
-# mega_features = sp.sparse.hstack(features).tocsr().astype(np.float64) #TRULY csr?
-# mega_target = obs_meta["result"].astype(np.float64)
-# mod = LogisticRegression(C=1.0, penalty='l1', tol=1e-6)
-# mod.fit(mega_features, mega_target)
-# see http://scikit-learn.org/stable/auto_examples/linear_model/plot_logistic_l1_l2_sparsity.html
-# http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html
-# http://scikit-learn.org/stable/auto_examples/linear_model/plot_sparse_recovery.html
-# http://scikit-learn.org/stable/modules/feature_selection.html#compressive-sensing
-# http://leon.bottou.org/projects/sgd
-
-# So we go to R: (csr for liblineaR use, csc for R use)
+# So we go to R.
+# (csr for liblineaR use, csc for R use)
 mega_features = sp.sparse.hstack(features).tocsc()
 
 # barcodes are not independent features
