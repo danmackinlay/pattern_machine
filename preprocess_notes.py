@@ -15,10 +15,6 @@ note_obs_table_description = {
     'obsId': tables.UIntCol(), #  for matching with the other data
     'eventId': tables.UIntCol(), # working out which event cause this
     'diameter': tables.UIntCol(), # number of notes consider in event changes observation base rate
-    'b4': tables.IntCol(),
-    'b3': tables.IntCol(),
-    'b2': tables.IntCol(),
-    'b1': tables.IntCol(),
 }
 
 
@@ -42,9 +38,7 @@ def encode_recence_data():
     flat_p_list = []
     flat_obs_list = []
     flat_recence_list = []
-    
-    barcode_list_list = []
-    
+        
     with tables.open_file(NOTE_OBS_TABLE_PATH, 'w') as note_obs_table_handle, tables.open_file(NOTE_EVENT_TABLE_PATH, 'r') as note_event_table_handle:
         #ignore warnings for that bit; I know my column names are annoying.
         with warnings.catch_warnings():
@@ -66,17 +60,6 @@ def encode_recence_data():
             for this_note, this_time_stamp in note_times.items():
                 if next_time_stamp-this_time_stamp>MAX_AGE:
                     del(note_times[this_note])
-            
-            #map bar pos to (0,15] ; this is more convenient to interpret
-            barcode = int(floor(((next_time_stamp + 1.0/8) % 4.0 ) * 4.0))
-            # map the barcode to reflct our suspicion that downbeats are more constrained
-            # 1111 0111 1011 0011 ...
-            b1 = 1 - (barcode & 1)
-            b2 = 1 - (barcode & 2) /2
-            b3 = 1 - (barcode & 4) /4
-            b4 = 1 - (barcode & 8) /8
-            #we encode the bardcode thing a little redundently
-            barcode_list = [b1, b2, b3, b4]
             
             domain = set(note_times.keys() + [next_pitch])
             #now we record what transitions have just happened, conditional on the local env
@@ -103,9 +86,7 @@ def encode_recence_data():
 
                 if n_held_notes==0:
                     continue
-                
-                barcode_list_list.append(barcode_list)
-                
+                                
                 note_obs_table.row['file'] = next_event['file']
                 note_obs_table.row['time'] = next_event['time']
                 note_obs_table.row['obsId'] = obs_counter
@@ -113,10 +94,6 @@ def encode_recence_data():
                 note_obs_table.row['pitch'] = next_event['pitch']
                 note_obs_table.row['diameter'] = diameter
                 note_obs_table.row['result'] = result
-                note_obs_table.row['b1'] = b1
-                note_obs_table.row['b2'] = b2
-                note_obs_table.row['b3'] = b3
-                note_obs_table.row['b4'] = b4
                 note_obs_table.row.append()
                 obs_counter += 1
             
@@ -134,9 +111,6 @@ def encode_recence_data():
             ),
             shape=(obs_counter, NEIGHBORHOOD_RADIUS*2+1))
         del(flat_recence_list, flat_obs_list, flat_p_list)
-        barcode_arr = np.asarray(barcode_list_list, dtype=np.int32)
-        # expensive for the barcode, which is dense.
-        barcode_arr = dok_matrix(barcode_arr).tocsc()
         
         col_table = note_obs_table_handle.create_table('/', 'col_names',
             {'i': tables.IntCol(1), 'rname': tables.StringCol(5)})
@@ -152,8 +126,4 @@ def encode_recence_data():
         obs_group = note_obs_table_handle.create_group("/", "note_obs")
         write_sparse_hdf(note_obs_table_handle,
             obs_group, obs_vec,
-            filt=filt)
-        barcode_group = note_obs_table_handle.create_group("/", "note_barcode")
-        write_sparse_hdf(note_obs_table_handle,
-            barcode_group, barcode_arr,
             filt=filt)
