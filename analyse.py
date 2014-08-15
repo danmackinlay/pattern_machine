@@ -11,45 +11,17 @@ import scipy as sp
 from stats_utils import lik_test, log_lik_ratio, square_feature, triangle_feature
 from scipy.sparse import coo_matrix, dok_matrix, csc_matrix
 from preprocess_notes import get_recence_data
-from serialization import write_sparse_hdf
+from serialization import write_sparse_hdf, read_sparse_hdf
 from config import *
 
-def numpyfy_tuple(obs_meta, obs_vec):
-    n_obs = len(obs_meta['obsId'])
-    obs_vec = csc_matrix(
-        (
-            np.asarray(obs_vec['recence_list'], dtype=np.float32),
-            (
-                np.asarray(obs_vec['obs_list'], dtype=np.int32),
-                np.asarray(obs_vec['p_list'], dtype=np.int32)
-            )
-        ),
-        shape=(n_obs, NEIGHBORHOOD_RADIUS*2+1))
+obs_meta_handle = get_recence_data()
+obs_meta_table = obs_meta_handle.get_node('/', 'note_obs_meta')
+obs_vec = obs_meta_handle.get_node('/', 'note_obs_meta')
 
-    barcode_arr = np.zeros((n_obs,4), dtype=np.int32)
-    barcode_arr[:,0] = obs_meta['b1']
-    del(obs_meta['b1'])
-    barcode_arr[:,1] = obs_meta['b2']
-    del(obs_meta['b2'])
-    barcode_arr[:,2] = obs_meta['b3']
-    del(obs_meta['b3'])
-    barcode_arr[:,3] = obs_meta['b4']
-    del(obs_meta['b4'])
-    obs_meta['barcode'] = barcode_arr
+result = obs_meta_table.col('result')
+n_obs = result.size
 
-    obs_meta['file'] = np.asarray(obs_meta['file'])
-    obs_meta['obsId'] = np.asarray(obs_meta['obsId'], dtype = np.int32)
-    obs_meta['eventId'] = np.asarray(obs_meta['eventId'], dtype = np.int32)
-    obs_meta['pitch'] = np.asarray(obs_meta['pitch'], dtype = np.int32)
-    obs_meta['result'] = np.asarray(obs_meta['result'], dtype = np.int32)
-    obs_meta['time'] = np.asarray(obs_meta['time'], dtype = np.float32)
-    obs_meta['diameter'] = np.asarray(obs_meta['diameter'], dtype = np.int32)
-
-    return obs_meta, obs_vec
-
-obs_meta, obs_vec = numpyfy_tuple(*get_recence_data())
-n_obs = obs_meta['obsId'].size
-base_success_rate = obs_meta["result"].mean()
+base_success_rate = result.mean()
 
 n_basic_vars = NEIGHBORHOOD_RADIUS * 2 + 1
 col_names = [r_name_for_i[i] for i in xrange(n_basic_vars)]

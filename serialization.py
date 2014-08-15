@@ -38,6 +38,28 @@ def write_sparse_hdf(handle, group, data, colnames=None, filt=None):
             title="col names",
             filters=filt)[:] = colnames
 
+def read_sparse_hdf(handle, group):
+    """
+    sparse CSC (compressed sparse colums) matrices via hdf5
+    """
+    shape = group.get_node(group,'v_datadims')
+    return csc_matrix(
+        (
+            group.get_node(group,'v_data'),
+            (
+                group.get_node(group,'v_indices'),
+                group.get_node(group,'v_indptr')
+            )
+        ),
+        shape=shape)
+    # if colnames:
+    #     handle.create_carray(group,'v_col_names',
+    #         atom=tables.StringAtom(
+    #             max([len(n) for n in colnames])
+    #         ), shape=(len(colnames),),
+    #         title="col names",
+    #         filters=filt)[:] = colnames
+
 def read_cv_glmnet(handle, group):
     cv_lo = handle.get_node(group, 'v_cvlo').read()
     cv_up = handle.get_node(group, 'v_cvup').read()
