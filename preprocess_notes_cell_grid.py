@@ -20,40 +20,35 @@ note_obs_table_description = {
     'pitch': tables.UIntCol(), # midi note number for central pitch
     'obsId': tables.UIntCol(), #  for matching with the other data
     'eventId': tables.UIntCol(), # working out which event cause this
-    'p0': tables.Float32Col(), # note  0-based float signal
-    'p1': tables.Float32Col(), # note  1-based float signal
-    'p2': tables.Float32Col(), # note  2-based float signal
-    'p3': tables.Float32Col(), # note  3-based float signal
-    'p4': tables.Float32Col(), # note  4-based float signal
-    'p5': tables.Float32Col(), # note  5-based float signal
-    'p6': tables.Float32Col(), # note  6-based float signal
-    'p7': tables.Float32Col(), # note  7-based float signal
-    'p8': tables.Float32Col(), # note  8-based float signal
-    'p9': tables.Float32Col(), # note  9-based float signal
-    'p10': tables.Float32Col(), # note 10-based float signal
-    'p11': tables.Float32Col(), # note 11-based float signal
 }
 
+for p in xrange(12):
+    for t in xrange(8):
+        note_obs_table_description['p%i-%i' % (p, t)] = tables.Int32Col()
 
-def get_recence_data(max_age=2.0, cache=True):
-    if not cache:
+def get_recence_data(
+        max_age=2.0,
+        input_filename=NOTE_EVENT_TABLE_PATH,
+        output_filename=NOTE_OBS_TABLE_PATH,
+        cached=True):
+    if not cached:
         try:
-            os.unlink(NOTE_OBS_TABLE_PATH)
+            os.unlink(output_filename)
         except OSError, e:
             print e
             pass
-    if not os.path.exists(NOTE_OBS_TABLE_PATH):
-        encode_recence_data(max_age=2.0)
-    return tables.open_file(NOTE_OBS_TABLE_PATH, 'r').get_node('/','note_obs_meta')
+    if not os.path.exists(output_filename):
+        encode_recence_data(max_age=2.0, output_filename=output_filename)
+    return tables.open_file(output_filename, 'r').get_node('/','note_obs_meta')
 
-def encode_recence_data(max_age=2.0):
+def encode_recence_data(max_age=2.0, output_filename, input_filenae):
     global obs_counter
     obs_counter = 0
     
     time_window = set()
     now = 0.0
     
-    with tables.open_file(NOTE_OBS_TABLE_PATH, 'w') as note_obs_table_handle, tables.open_file(NOTE_EVENT_TABLE_PATH, 'r') as note_event_table_handle:
+    with tables.open_file(output_filename, 'w') as note_obs_table_handle, tables.open_file(input_filename, 'r') as note_event_table_handle:
         #ignore warnings for that bit; I know my column names are annoying.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -94,8 +89,9 @@ def encode_recence_data(max_age=2.0):
                 note_obs_table.row['eventId'] = next_event['eventId']
                 note_obs_table.row['pitch'] = next_event['pitch']
                 note_obs_table.row['result'] = result
-                for p in xrange (12):
-                    note_obs_table.row[r_name_for_p[p]] = bases[p]
+                for p in xrange(12):
+                    for t in xrange(8):
+                        note_obs_table.row[r_name_for_p[p]] = bases[p]
                 note_obs_table.row.append()
                 obs_counter += 1
             

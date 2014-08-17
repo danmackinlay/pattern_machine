@@ -14,17 +14,12 @@ from preprocess_notes import get_recence_data
 from serialization import write_sparse_hdf, read_sparse_hdf
 from config import *
 
-obs_meta_handle = get_recence_data()
+obs_meta_table = get_recence_data()
 obs_meta_table = obs_meta_handle.get_node('/', 'note_obs_meta')
-obs_vec = obs_meta_handle.get_node('/', 'note_obs_meta')
-
 result = obs_meta_table.col('result')
-n_obs = result.size
+n_obs = obs_meta_table.nrows
+col_names = [r_name_for_p[p] for p in xrange(12)]
 
-base_success_rate = result.mean()
-
-n_basic_vars = NEIGHBORHOOD_RADIUS * 2 + 1
-col_names = [r_name_for_i[i] for i in xrange(n_basic_vars)]
 
 # TODO: Now that I have a better feature finder, could do this with broader features, or more features or sth
 f0 = csc_matrix(
