@@ -47,12 +47,12 @@ tidycoef = function(spcoef, cutoff=0) {
 notes.obsdata = h5read(h5.file.name.from.python, "/note_obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
 #reduce the data for testing
-notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid"),]
+# notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid"),]
 # design matrix; we need the +0 term to elinimate the intercept which will just be added in again later
 # sparse support:
 #notes.f = model.Matrix(~(p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11)+0, data=notes.obsdata)
 # strictly dense:
-notes.f = model.matrix(~(p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11)+0, data=notes.obsdata)
+notes.f = model.matrix(~(p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11)^2+0, data=notes.obsdata)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(

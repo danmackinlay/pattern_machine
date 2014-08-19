@@ -47,17 +47,14 @@ def get_recence_data(
             print e
             pass
     if not os.path.exists(output_filename):
-        encode_recence_data(max_age=2.0, output_filename=output_filename)
+        encode_recence_data(
+            max_age=max_age,
+            input_filename=input_filename,
+            output_filename=output_filename)
     return tables.open_file(output_filename, 'r').get_node('/','note_obs_meta')
 
-def encode_recence_data(max_age=2.0, output_filename, input_filenae):
-    global obs_counter
-    obs_counter = 0
-    
-    time_window = set()
-    now = 0.0
-    
-    with tables.open_file(output_filename, 'w') as note_obs_table_handle, tables.open_file(input_filename, 'r') as note_event_table_handle
+def encode_recence_data(output_filename, input_filename, max_age=2.0, ):    
+    with tables.open_file(output_filename, 'w') as note_obs_table_handle, tables.open_file(input_filename, 'r') as note_event_table_handle:
         #ignore warnings for that bit; I know my column names are annoying.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -68,8 +65,14 @@ def encode_recence_data(max_age=2.0, output_filename, input_filenae):
         note_event_table = note_event_table_handle.get_node(
             '/', 'note_event_meta'
         )
-
+        obs_counter = 0
+        time_window = set()
+        now = 0.0
+        current_song = ""
         for next_event in note_event_table:
+            if current_song != next_song:
+                time_window = set()
+                now = 0.0
             next_now = next_event['time']
             delta_time = next_now - now
             now = next_now
@@ -105,12 +108,5 @@ def encode_recence_data(max_age=2.0, output_filename, input_filenae):
             
             #for the next time step, we need to include the new note:
             time_window.add((now, next_pitch))
-
-        col_table = note_obs_table_handle.create_table('/', 'col_names',
-            {'p': tables.IntCol(1), 'rname': tables.StringCol(5)})
-        for i in sorted(r_name_for_p.keys()):
-            col_table.row['p'] = p
-            col_table.row['rname'] = r_name_for_p[p]
-            col_table.row.append()
 
         note_obs_table.attrs.maxAge = max_age
