@@ -50,21 +50,25 @@ notes.obsdata = h5read(h5.file.name.from.python, "/note_obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
 #reduce the data for testing
 notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid"),]
-#TODO: climp to boolean?
 predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dx%d", p, t)})
 dim(predictorNames)=prod(dim(predictorNames))
+
+# clip to binary factors
 for (pn in predictorNames) {notes.obsdata[,pn] = factor(pmin(notes.obsdata[,pn],1))}
-notes.obsdata[,"result"] = factor(pmin(notes.obsdata[,"result"] ,1))
+notes.obsdata[,"result"] = factor(notes.obsdata[,"result"])
 
 # design matrix; we need the +0 term to eliminate the intercept which will just be added in again later
 notes.f = model.Matrix(
   as.formula(paste("result ~ (", paste(predictorNames, collapse=" + "), ")^2 +0")),
-  data=notes.obsdata, sparse=T)
+  data=notes.obsdata, sparse=T, 
+  drop.unused.levels=T)
+# This does not do what i think; else why would i get colnames like "p6x31:p2x51"?
+notes.result = notes.f[,"result"]
 
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
-    x=notes.f,
-    y=notes.obsdata[,"result"],
+    x=notes.f[,predictorNames],
+    y=notes.f[,"result"],
     family="binomial",
     alpha=1,
     #dfmax=200,
