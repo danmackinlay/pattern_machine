@@ -48,7 +48,7 @@ def encode_recence_data(
 
     for p in xrange(12):
         for t in xrange(max_steps):
-            note_obs_table_description['p%ix%i' % (p, t)] = tables.Int32Col(dflt=0)
+            note_obs_table_description['p%it%iP' % (p, t)] = tables.Int32Col(dflt=0)
     
     with tables.open_file(output_filename, 'w') as note_obs_table_handle, tables.open_file(input_filename, 'r') as note_event_table_handle:
         #ignore warnings for that bit; I know my column names are annoying.
@@ -106,7 +106,7 @@ def encode_recence_data(
                 note_obs_table.row['pitch'] = next_event['pitch']
                 note_obs_table.row['result'] = result
                 for (p, t), v in bases.iteritems():
-                    note_obs_table.row['p%ix%i' % (p, t)] = v
+                    note_obs_table.row['p%it%iP' % (p, t)] = v
                 note_obs_table.row.append()
                 obs_counter += 1
             

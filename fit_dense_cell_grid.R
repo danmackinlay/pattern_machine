@@ -50,7 +50,7 @@ notes.obsdata = h5read(h5.file.name.from.python, "/note_obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
 #reduce the data for testing
 notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid"),]
-predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dx%d", p, t)})
+predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dt%dP", p, t)})
 dim(predictorNames)=prod(dim(predictorNames))
 
 # clip to binary factors
@@ -60,10 +60,13 @@ notes.obsdata[,"result"] = factor(notes.obsdata[,"result"])
 # design matrix; we need the +0 term to eliminate the intercept which will just be added in again later
 notes.f = model.Matrix(
   as.formula(paste("result ~ (", paste(predictorNames, collapse=" + "), ")^2 +0")),
-  data=notes.obsdata, sparse=T, 
-  drop.unused.levels=T)
+  data=notes.obsdata,
+  sparse=T, 
+  #drop.unused.levels=T
+)
 # This does not do what i think; else why would i get colnames like "p6x31:p2x51"?
 notes.result = notes.f[,"result"]
+colnames(notes.f)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
