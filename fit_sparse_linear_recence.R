@@ -1,22 +1,22 @@
-require("Matrix")
-require("glmnet")
-require("rhdf5")
+library("Matrix")
+library("glmnet")
+library("rhdf5")
 source("serialization.R")
 # # crashes with index error; seems to work ATM though
-# require(doMC)
+# library(doMC)
 # registerDoMC(cores=4)
 
 # # crashes with index error
-# require(doParallel)
+# library(doParallel)
 # registerDoParallel(cores=4)
 
 # # ?
-# require(doParallel)
+# library(doParallel)
 # cl <- makeCluster(2)
 # registerDoParallel(cl)
 
 # # works; could be faster
-# require(doSNOW)
+# library(doSNOW)
 # cl <- makeCluster(4)
 # registerDoSNOW(cl)
 

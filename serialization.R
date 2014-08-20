@@ -1,4 +1,4 @@
-require(rhdf5)
+library(rhdf5)
 
 load.sparse.hdf = function (filename, path) {
   idx = as.vector(h5read(filename, paste(path, "v_indices", sep="/")))
