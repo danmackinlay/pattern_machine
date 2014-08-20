@@ -48,14 +48,13 @@ notes.obsdata = h5read(h5.file.name.from.python, "/note_obs_meta")
 notes.obsdata$file = as.factor(notes.obsdata$file)
 #reduce the data for testing
 notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid"),]
-predictorNames = 
-notes.f = Matrix(notes.f, sparse=T)
+#TODO: climp to boolean?
+predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dx%d", p, t)})
+dim(predictorNames)=prod(dim(predictorNames))
+notes.f.basis = Matrix(as.matrix(notes.obsdata[,predictorNames]), sparse=T)
 
-# design matrix; we need the +0 term to elinimate the intercept which will just be added in again later
-# sparse support:
-#notes.f = model.Matrix(~(p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11)+0, data=notes.obsdata)
-# strictly dense:
-notes.f = model.matrix(~(p0+p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11)^2+0, data=notes.obsdata)
+# design matrix; we need the +0 term to eliminate the intercept which will just be added in again later
+notes.f = model.Matrix(as.formula(paste(" ~ (", paste(predictorNames, collapse=" + "), ") +0")), data=notes.f.basis)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
