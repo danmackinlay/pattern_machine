@@ -2,6 +2,8 @@ library("Matrix")
 library("MatrixModels")
 library("glmnet")
 library("rhdf5")
+library("pcalg")
+
 source("serialization.R")
 # # crashes with index error; seems to work ATM though
 # library(doMC)
@@ -51,15 +53,18 @@ notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid")
 #TODO: climp to boolean?
 predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dx%d", p, t)})
 dim(predictorNames)=prod(dim(predictorNames))
-notes.f.basis = Matrix(as.matrix(notes.obsdata[,predictorNames]), sparse=T)
+for (pn in predictorNames) {notes.obsdata[,pn] = factor(pmin(notes.obsdata[,pn],1))}
+notes.obsdata[,"result"] = factor(pmin(notes.obsdata[,"result"] ,1))
 
 # design matrix; we need the +0 term to eliminate the intercept which will just be added in again later
-notes.f = model.Matrix(as.formula(paste(" ~ (", paste(predictorNames, collapse=" + "), ") +0")), data=notes.f.basis)
+notes.f = model.Matrix(
+  as.formula(paste("result ~ (", paste(predictorNames, collapse=" + "), ")^2 +0")),
+  data=notes.obsdata, sparse=T)
 
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
     x=notes.f,
-    y=as.factor(notes.obsdata$result),
+    y=notes.obsdata[,"result"],
     family="binomial",
     alpha=1,
     #dfmax=200,
@@ -76,3 +81,12 @@ if (file.exists(h5.file.name.to.python)) file.remove(h5.file.name.to.python)
 h5createFile(h5.file.name.to.python)
 h5createGroup(h5.file.name.to.python, "/fit")
 save.glmnet.hdf(h5.file.name.to.python, "/fit/all", notes.fit)
+
+
+
+> ## using data("gmG", package="pcalg")
+  > suffStat <- list(C = cor(gmG$x), n = nrow(gmG$x))
+> skel.gmG <- skeleton(suffStat, indepTest = gaussCItest,
+                       p = ncol(gmG$x), alpha = 0.01)
+> par(mfrow = c(1,2))
+> plot(gmG$g, main = ""); plot(skel.gmG, main = "")
