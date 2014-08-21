@@ -85,22 +85,27 @@ TODO
     * What decay? No idea. Even several superposed decays could be natural. Would have to fit term decay, which would not be linear
     * this might possibly work via some kind of iterative method such as expectation maximisation, or just normal newton-raphson optimisation even; it would be polynomial of order no great than degree of interactions tested, which would be exactly automatically differentiable
     * How would we handle phase? probably by regressing against componenets of an imaginary wave separatedly.
-* implement graphical model outputs in SC
 * truncate fit models to a minimum coeff magnitude (1E-17 is a silly weight for
   an event occurring .001% of the time)
-* rename "feature" functions as used in python and SC implementation to "basis"
-  functions
-* it's weird that bar pos and the filter vectors are related by slightly
-  different time quanta, no? Should I change that? Quantise the entire thing to
-  a cellular grid?
+* rename "feature" functions as used in python and SC implementation to "bases"
+* Change the asymmetry of the cell-based model: regress each row against the previous row;
+* or even against eveything other than itself in the row and the previous rows.
+* but then how do you simulate from such a model? How do you start the new row?
+* You use a model in which you can *optionally* conditionalise on the neighbours. What does this correspond to in the linear case? In the binary?
+* but so you run the test for each tone in the new row and conditionalise on th neighbours
+* you could get this for cheap by fitting an estimator for the tones based on lower tones in this row and all tones in previous row - if you don't mind always arpeggiating up the octave. And fitting 12 models.
+* use formal [feature selection](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool)
 * more generous compound feature search which allows features to appear which
   are *ONLY* interaction terms, despite both parents not being significant
   
-  * ARGH! this is precisely PC-algorithm!
-  
+  * Well, the principled way of finding the maximally broad principled way of doing this is precicely the PC algorithm.
+  * (To think: should i then make a graph of all interaction terms?)
+  * I use the PC-algorithm to find parents of the note sounding thing, then either use that conditional distribution table, or regress against the parent set.
+  * this could be sped up (if supported) by enforcing causal arrow directions between timesteps
+
+* does this mean i should use the model as is? implement graphical model outputs in SC?
 * [hint hdf chunk size](http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays)
 * [trim data the set](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?)
-* use formal [feature selection](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool)
 * Switch to pure python using [liblinear](http://www.csie.ntu.edu.tw/~cjlin/liblinear/)
   
   NB Maybe not. Very slow in liblineaR atm - no nice optimisations for logistic regression or binary factors as in glmnet/R
