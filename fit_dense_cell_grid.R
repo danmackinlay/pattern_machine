@@ -3,7 +3,8 @@ library("MatrixModels")
 library("glmnet")
 library("rhdf5")
 library("pcalg")
-
+library("Rgraphviz")
+  
 source("serialization.R")
 # # crashes with index error; seems to work ATM though
 # library(doMC)
@@ -52,21 +53,18 @@ notes.obsdata$file = as.factor(notes.obsdata$file)
 notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid"),]
 predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dt%dP", p, t)})
 dim(predictorNames)=prod(dim(predictorNames))
-
+nodeNames = c("result", predictorNames)
+nodes = data.matrix(notes.obsdata[,nodeNames])-1 #grr 1-based indexing
 # clip to binary factors
 for (pn in predictorNames) {notes.obsdata[,pn] = factor(pmin(notes.obsdata[,pn],1))}
-notes.obsdata[,"result"] = factor(notes.obsdata[,"result"])
-
-# design matrix; we need the +0 term to eliminate the intercept which will just be added in again later
-notes.f = model.Matrix(
-  as.formula(paste("result ~ (", paste(predictorNames, collapse=" + "), ")^2 +0")),
-  data=notes.obsdata,
-  sparse=T, 
-  #drop.unused.levels=T
+notes.fit.time = system.time( #note this only works for <- assignment!
+  notes.pc <- pc(
+    suffStat=list(dm=nodes, adaptDF = FALSE),
+    indepTest = binCItest, alpha = 0.01, labels=nodeNames, verbose=T
+  )
 )
-#notes.result = notes.f[,"result"]
-notes.result = notes.obsdata[,"result"]
-
+## show estimated CPDAG
+plot(notes.pc, main = "Estimated CPDAG")
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
     x=notes.f,

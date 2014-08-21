@@ -90,12 +90,14 @@ TODO
   an event occurring .001% of the time)
 * rename "feature" functions as used in python and SC implementation to "basis"
   functions
-* make the feature mapping a little less ad-hoc "F1,F2,F4" what is this shit?
 * it's weird that bar pos and the filter vectors are related by slightly
   different time quanta, no? Should I change that? Quantise the entire thing to
   a cellular grid?
 * more generous compound feature search which allows features to appear which
   are *ONLY* interaction terms, despite both parents not being significant
+  
+  * ARGH! this is precisely PC-algorithm!
+  
 * [hint hdf chunk size](http://pytables.github.io/usersguide/optimization.html#informing-pytables-about-expected-number-of-rows-in-tables-or-arrays)
 * [trim data the set](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#how_large_the_training_set_should_be?)
 * use formal [feature selection](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool)
