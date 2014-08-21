@@ -64,14 +64,13 @@ notes.f = model.Matrix(
   sparse=T, 
   #drop.unused.levels=T
 )
-# This does not do what i think; else why would i get colnames like "p6x31:p2x51"?
-notes.result = notes.f[,"result"]
-colnames(notes.f)
+#notes.result = notes.f[,"result"]
+notes.result = notes.obsdata[,"result"]
 
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
-    x=notes.f[,predictorNames],
-    y=notes.f[,"result"],
+    x=notes.f,
+    y=notes.result,
     family="binomial",
     alpha=1,
     #dfmax=200,
