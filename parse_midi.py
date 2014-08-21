@@ -1,18 +1,5 @@
-from music21 import converter, instrument, midi
-from music21.note import Note, NotRest, Rest
-from music21.chord import Chord
-from random import randint, sample
-from math import floor
-import tables
-import warnings
 from config import *
 
-note_event_table_description = {
-    'file': tables.StringCol(50), # factor: which sourcefile
-    'time': tables.FloatCol(), # event time
-    'pitch': tables.UIntCol(), # midi note number for central pitch
-    'eventId': tables.UIntCol(), # working out which event cause this
-}
 
 def get_note_event_table(cache=True):
     if not cache:
@@ -26,8 +13,23 @@ def get_note_event_table(cache=True):
     return tables.open_file(NOTE_EVENT_TABLE_PATH, 'r').get_node('/', 'note_event_meta')
 
 def encode_notes():
+    from music21 import converter, instrument, midi
+    from music21.note import Note, NotRest, Rest
+    from music21.chord import Chord
+    from random import randint, sample
+    from math import floor
+    import tables
+    import warnings
+    
     global event_counter
     event_counter = 0
+    
+    note_event_table_description = {
+        'file': tables.StringCol(50), # factor: which sourcefile
+        'time': tables.FloatCol(), # event time
+        'pitch': tables.UIntCol(), # midi note number for central pitch
+        'eventId': tables.UIntCol(), # working out which event cause this
+    }
 
     def parse_midi_file(base_dir, midi_file):
         """workhorse function
