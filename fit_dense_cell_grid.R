@@ -54,9 +54,9 @@ notes.obsdata = notes.obsdata[notes.obsdata$file %in% c("AmericanBeautyRag.mid")
 predictorNames = outer(0:11,0:8, function(p,t){ sprintf("p%dt%dP", p, t)})
 dim(predictorNames)=prod(dim(predictorNames))
 nodeNames = c("result", predictorNames)
-nodes = data.matrix(notes.obsdata[,nodeNames])-1 #grr 1-based indexing
 # clip to binary factors
-for (pn in predictorNames) {notes.obsdata[,pn] = factor(pmin(notes.obsdata[,pn],1))}
+for (pn in nodeNames) {notes.obsdata[,pn] = factor(pmin(notes.obsdata[,pn],1))}
+nodes = data.matrix(notes.obsdata[,nodeNames])-1#grr 1-based indexing
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.pc <- pc(
     suffStat=list(dm=nodes, adaptDF = FALSE),
@@ -65,6 +65,8 @@ notes.fit.time = system.time( #note this only works for <- assignment!
 )
 ## show estimated CPDAG
 plot(notes.pc, main = "Estimated CPDAG")
+
+
 notes.fit.time = system.time( #note this only works for <- assignment!
   notes.fit <- cv.glmnet(
     x=notes.f,
