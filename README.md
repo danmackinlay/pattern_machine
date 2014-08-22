@@ -11,6 +11,10 @@ This naive markov model still has lots of hairy bits. Questions:
 * or just a most common note?
 * can I somehow condition on more "control" variables?
 * can I use state transitions to estimate "consonance"?
+* can I just offline learn an MDS chord transition thing by some kinda chord similarity metric?
+  * maybe; the optimality criterion will be a little weird; I wish to maximis evenness of point distribution, and number of neighbours. Thismight be a different manifold criterion than MDS. perhaps isotonic?
+  * this would be nice; sparse kernel (as in KDE) vector product; a littel expensive to evaluate. I wonder if I coudl make it into a kernel (as in kernel trick) product?
+  * that would also allow dissonance (negative shoulder) kernels
 
 In fact, this ISN'T a Markov model as it stands; since we only recal the most
 recent occurrence of note, threre is an implicit interaction between notes of
