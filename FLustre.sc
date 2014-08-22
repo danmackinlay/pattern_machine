@@ -1,26 +1,5 @@
 /*
- * TODO:
- *
- * pause unused (analysis) synths
- * record samples live
- * switch to TCP instead of UDP to avoid dropped packets
- * commincate from processing diret to supercollider.
- * spectral improvements
-   * colourise spectral display to indicate chromaticity
-   * detect (and visualise) noisiness vs percussiveness?
-   * check pixel dimensions of the vizualiser app
-   * what does weird with high amplitude bands?
- * web version
- * sound nicer
-   * reverb. C'mon, the kids love reverb.
- * eliminate, or at least document, dependencies
-   * Supercollider: None.
-	 * build a standalone application
-   * I already build a standalone for processing. But it has build dependencies
-	 * oscp5
-	 * syphon
- * shell script to launch this
-	* including detecting location of filepath (or env var?)
+ * Main FLustre app class
  */
 
 FLustre {
