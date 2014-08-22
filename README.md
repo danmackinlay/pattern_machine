@@ -92,8 +92,13 @@ TODO
 * or even against eveything other than itself in the row and the previous rows.
 * but then how do you simulate from such a model? How do you start the new row?
 * You use a model in which you can *optionally* conditionalise on the neighbours. What does this correspond to in the linear case? In the binary?
-* but so you run the test for each tone in the new row and conditionalise on th neighbours
+* but so you run the test for each tone in the new row and conditionalise on the neighbours
 * you could get this for cheap by fitting an estimator for the tones based on lower tones in this row and all tones in previous row - if you don't mind always arpeggiating up the octave. And fitting 12 models.
+  * more generally *sigh* maybe you could fit a different 12 models; the 12 contingent on how many other notes there are in this row already (there would only be enough data for the first 5, max.) You would fit, e.g. the 2 note model on all 2-note rows, plus all 2-note subsets fo 3 notes rows, to capture the likelihood of stopping after that many notes
+  * you could also infer over all possible row histories, which woudl lead to a combinatorial explosion
+  * or ordered histories
+  * or random histories
+  * might stil bea ble to get harmonicity detecion with the regressing-on-lower-notes thing, but always shifting the modulus? No, that would always ignore some information.
 * use formal [feature selection](http://www.csie.ntu.edu.tw/~cjlin/libsvmtools/#feature_selection_tool)
 * more generous compound feature search which allows features to appear which
   are *ONLY* interaction terms, despite both parents not being significant
