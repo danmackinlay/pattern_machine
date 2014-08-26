@@ -22,12 +22,13 @@ TODO: bassier samples
 s=Dan.serverboot(prox:\local, device:\builtin);
 s=Dan.serverboot(prox:\local, device:\rme);
 (
-var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state;
+var state;
 state = ();
 fork {
-	SynthDef.new(\decijules,
-	{|in,
-		out,
+	~state = state.make({
+	~testsamplepath = PS.scsamplepath +/+ "NS-wind-chimes-002-denoise-edit.wav";
+	SynthDef.new(\decijules, {|inbus,
+		outbus,
 		trajrate=1,
 		len=0.3,
 		phase=3,
@@ -41,50 +42,48 @@ fork {
 		inenv = EnvGen.kr(Env.asr(attackTime: attack, releaseTime:release, curve:\sine), gate:gate);
 		outenv = EnvGen.kr(Env.linen(attack, len, release,curve:\sine), gate:gate, doneAction:2);
 		sig=In.ar(inbus)*inenv;
-		sig=AllpassL.ar(sig, maxdelaytime: 3, delaytime:deltime, decaytime: deldecay);
+		//sig=AllpassL.ar(sig, maxdelaytime: 3, delaytime:deltime, decaytime: deldecay);
 		sig=Pan2.ar(sig, traj, level: outenv);
 		Out.ar(outbus, sig);
 	}).add;
-	ingroup = Group.new(s, \addToHead);
-	//inbus = Bus.newFrom(s.inputBus,0,1);
-	inbus = Bus.audio(s,1);
-	outbus = Bus.new(\audio, 0, 2, s);
-	testbuf = Buffer.read(s, testsample);
+	~ingroup = Group.new(s, \addToHead);
+	~inbus = Bus.newFrom(s.inputBus,0,1);
+	//~inbus = Bus.audio(s,1);
+	~outbus = Bus.new(\audio, 0, 2, s);
+	~testbuf = Buffer.read(s, ~testsamplepath);
 	s.sync;
-	~testbuf = testbuf;
 	~testsound = (
 		instrument: \playbuf__1,
-		out: inbus,
-		bufnum: testbuf,
-		group: ingroup,
+		out: ~inbus,
+		bufnum: ~testbuf,
+		group: ~ingroup,
 		sendGate: false,//won't loop if not told
 	).play;
-	voxgroup = Group.new(s, \addToTail);
+	~voxgroup = Group.new(s, \addToHead);
+	~fxgroup = Group.new(s, \addToTail);
 	s.sync;
-	fxgroup = Group.new(s, \addToTail);
-	s.sync;
-	postgroup = Group.new(s, \addToTail);
+	~postgroup = Group.new(s, \addToTail);
 	s.sync;
 	~revLeft = (
-		instrument: \mutatingreverb,
-		group: fxgroup,
-		out: Bus.newFrom(outbus,0,1)
+		instrument: \ps_mutatingreverb_4__1x1,
+		group: ~fxgroup,
+		out: Bus.newFrom(~outbus,0,1)
 	).play;
 	~revRight = (
-		instrument: \mutatingreverb,
-		group: fxgroup,
-		out: Bus.newFrom(outbus,1,1)
+		instrument: \ps_mutatingreverb_4__1x1,
+		group: ~fxgroup,
+		out: Bus.newFrom(~outbus,1,1)
 	).play;
 	~limiter = (
 		instrument: \limi__2,
-		group: postgroup,
-		out:outbus,
+		group: ~postgroup,
+		out: ~outbus,
 	).play;
-	p = Pbind(
+	~p = Pbind(
 		\instrument, \decijules,
-		\inbus, inbus,
-		\outbus, outbus,
-		\group, voxgroup,
+		\inbus, ~inbus,
+		\outbus, ~outbus,
+		\group, ~voxgroup,
 		\sustain, Pwhite(1.0,3.0,inf),//input gate
 		\len, Pwhite(2.0,10.0), //output gate
 		\attack, Pwhite(0.01,0.1,inf),
@@ -96,15 +95,10 @@ fork {
 		\deldecay, (Pkey(\release) + Pkey(\len))*2,
 
 	).collect(_.postln);
-	{s.makeGui;}.defer;
-	state.putAll((
-		outbus: outbus,
-		inbus: inbus,
-		voxgroup: voxgroup,
-	));
-	~state = state;
+	});
 };
 )
-~state
-p.play;
+~state.p.play;
+~state.testbuf;
 (pitch: 5, group: ~state.voxgroup, out:~state.outbus).play;
+{s.makeGui;}.defer;
