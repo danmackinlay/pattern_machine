@@ -66,7 +66,7 @@ SynthDef(\fakeDiffusion,{
 }).add;
 
 state = ();
-testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
+testsample = PS.samplepath +/+ "SupercolliderAuxiliary" +/+ "NS-wind-chimes-002-denoise-edit.wav";
 {s.makeGui;}.defer;
 fork {
 	ingroup = Group.new(s, \addToHead);

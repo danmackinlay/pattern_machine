@@ -57,24 +57,24 @@ state = ~state ?? (
 	\meanBuf: 1,
 	\ratios: [1,1.5,4/3,3/4,1/2,7/8],
 	\sampPaths: [
-		"NS wind chimes 002-denoise-edit.aiff",
+		"NS-wind-chimes-002-denoise-edit.wav",
 		"Lead Vocal.aiff",
 		"Stevie Wonder - For Your Love (Acapella).aiff",
 		"133_bigbowl2-edit.wav",
 		"21646_madjad_Indonesian_Thum_Loop_2_.wav"
-	].collect(~zamples +/+ "SupercolliderAuxiliary" +/+ _),
+	].collect(PS.scsamplepath +/+ _),
 );
 ~state = state;
 state[\clock] = TempoClock.new(120.0/60.0);
 CmdPeriod.doOnce { state.clock.stop };
-this.executeFile(~pmscripts +/+ "kueh_synths.scd").value(s);
+this.executeFile(PS.scriptpath +/+ "kueh_synths.scd").value(s);
 state.clock.schedAbs(0, {state.clock.beatsPerBar = state.beatsPerBar;});
 linperturb = {|center, dev, lo=0, hi=1|
 	(dev.asFloat.rand2 + center).max(lo).min(hi);
 };
 
 fork {
-	this.executeFile(~pmscripts +/+ "kuehmidi.scd").value(~state);
+	this.executeFile(PS.scriptpath +/+ "kuehmidi.scd").value(~state);
 	state.sampBufs = Buffer.allocConsecutive(
 		state.sampPaths.size,
 		s, s.sampleRate * state.sampLen, 1);
@@ -200,7 +200,7 @@ fork {
 			spawner.wait(state[\timeStep]);
 		});
 	}).play(state.clock, quant: #[4,0,0.0]);
-	this.executeFile(~pmscripts +/+ "kueh_midi.scd").value(state);
+	this.executeFile(PS.scriptpath +/+ "kueh_midi.scd").value(state);
 };
 )
 

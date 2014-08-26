@@ -24,7 +24,7 @@ s.waitForBoot({
 		"animal/alice bees2.wav",
 		"animal/swan view squawks-denoise.wav",
 		"animal/driftingchirps.MP3.aiff",
-	]).collect(~zamples +/+ _);
+	]).collect(PS.samplepath +/+ _);
 	~buffers = ~fileNames.collect(Buffer.read(s, _, 0));
 	~log = FileLogger.global;
 	~log.reject(\controlling);

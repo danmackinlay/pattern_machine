@@ -24,9 +24,9 @@
 	));
 
 	//sample loading
-	this.executeFile(~pmscripts +/+ "curli_samples.scd").value(state, ~sczamples);
+	this.executeFile(PS.scriptpath +/+ "curli_samples.scd").value(state, ~sczamples);
 	//synth loading
-	this.executeFile(~pmscripts +/+ "curli_synths.scd").value(state);
+	this.executeFile(PS.scriptpath +/+ "curli_synths.scd").value(state);
 	s.sync;
 
 	//UI interaction stuff
@@ -41,12 +41,12 @@
 	state.paramUpdater = paramUpdater;
 	state.mididefs = mididefs;
 
-	this.executeFile(~pmscripts +/+ "curli_wii.scd").value(state);
+	this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
 	//to disable:
 	//OSCdef(\wii).free;
 	CmdPeriod.doOnce { OSCdef(\wii).free };
 
-	this.executeFile(~pmscripts +/+ "curli_midi.scd").value(state ).do(state.mididefs.add(_));
+	this.executeFile(PS.scriptpath +/+ "curli_midi.scd").value(state ).do(state.mididefs.add(_));
 	CmdPeriod.doOnce { mididefs.do(MIDIdef(_).free) };
 
 	//basic overall mixer setup

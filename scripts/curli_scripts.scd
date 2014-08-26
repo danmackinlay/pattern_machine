@@ -28,7 +28,7 @@ Server.default=s=~serverboot.(prox:\local, device:\builtin);
 var state = ();
 ~state=state;
 fork {
-	this.executeFile(~pmscripts +/+ "curli_setup.scd").value(state);
+	this.executeFile(PS.scriptpath +/+ "curli_setup.scd").value(state);
 	state.putAll((
 		voices: Array.fill(4, List.new),
 		voicestates: Array.fill(4, nil),
@@ -54,7 +54,7 @@ fork {
 	state[\voicestates][i] = localstate;
 	state.voices[i].add(
 		this.executeFile(
-			~pmscripts +/+ "curli_inst.scd"
+			PS.scriptpath +/+ "curli_inst.scd"
 		).value(
 			localstate,
 			i

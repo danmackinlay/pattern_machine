@@ -125,7 +125,7 @@ VicsekGrid {
 	play {|server, target, bus, addAction=\addToTail, samplePath, amp=1.0|
 		//this really should be wrapped in a generic other class
 		myBuffers = List.new;
-		samplePath.isNil.if({samplePath=~zamples++"cockatoo island/textures/"});
+		samplePath.isNil.if({samplePath= PS.samplepath +/+ "cockatoo island/textures/"});
 
 		Task({
 			myServer = server ?? Server.default;
