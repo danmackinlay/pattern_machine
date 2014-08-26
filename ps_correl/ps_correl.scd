@@ -1,7 +1,7 @@
 /*
  * Messing around trying to find a low-dimensional feature vector that represents harmonicity
  */
-s=~serverboot.(prox:\local, device:\builtin);
+s=Dan.serverboot(prox:\local, device:\builtin);
 
 s.dumpOSC(1);
 OSCdef.trace(true);

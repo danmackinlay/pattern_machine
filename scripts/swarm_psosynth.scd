@@ -1,8 +1,8 @@
 //initialisation
-Server.default = s = ~serverboot.(\internal, \motu);
-Server.default = s = ~serverboot.(\internal, \builtin);
-Server.default = s = ~serverboot.(\local, \motu);
-Server.default = s = ~serverboot.(\local, \builtin);
+Server.default = s = Dan.serverboot(\internal, \motu);
+Server.default = s = Dan.serverboot(\internal, \builtin);
+Server.default = s = Dan.serverboot(\local, \motu);
+Server.default = s = Dan.serverboot(\local, \builtin);
 StartUp.run;
 ~control.setAll(\buffer, ~buffers[1]);
 ~control.setAll(\buffer, ~buffers[4]);

@@ -5,10 +5,10 @@ ServerTreeGui.makeWindow(s);
 ////////////
 
 //initialisation
-Server.default = s = ~serverboot.(\local, \motu);
-Server.default = s = ~serverboot.(\local, \builtin);
-Server.default = s = ~serverboot.(\internal, \motu);
-Server.default = s = ~serverboot.(\internal, \builtin);
+Server.default = s = Dan.serverboot(\local, \motu);
+Server.default = s = Dan.serverboot(\local, \builtin);
+Server.default = s = Dan.serverboot(\internal, \motu);
+Server.default = s = Dan.serverboot(\internal, \builtin);
 StartUp.run;
 (
 fork {
@@ -126,10 +126,10 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
 
 //initialisation
-Server.default = s = ~serverboot.(\local, \motu);
-Server.default = s = ~serverboot.(\local, \builtin);
-Server.default = s = ~serverboot.(\internal, \motu);
-Server.default = s = ~serverboot.(\internal, \builtin);
+Server.default = s = Dan.serverboot(\local, \motu);
+Server.default = s = Dan.serverboot(\local, \builtin);
+Server.default = s = Dan.serverboot(\internal, \motu);
+Server.default = s = Dan.serverboot(\internal, \builtin);
 StartUp.run;
 (
 fork {
@@ -251,7 +251,7 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 //////////////////////////////////////////////////////////////
 
 //Check sanity on DSP-based comparers
-Server.default = s = ~serverboot.(\internal, \builtin);
+Server.default = s = Dan.serverboot(\internal, \builtin);
 StartUp.run;
 (
 fork {
@@ -308,8 +308,8 @@ fork {
 )
 (
 //How the listening controller works, nuts-and-bolts
-//Server.default = s = ~serverboot.(\local, \builtin);
-Server.default = s = ~serverboot.(\internal, \builtin);
+//Server.default = s = Dan.serverboot(\local, \builtin);
+Server.default = s = Dan.serverboot(\internal, \builtin);
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSListenSynthController.new(numChannels:1, fitnessPollRate:1, leakCoef:0.5, maxPop:40);
 ~control.play(s, outbus: ~globalOuts);
@@ -327,7 +327,7 @@ Server.default = s = ~serverboot.(\internal, \builtin);
 ~control.free;
 )
 //ultra-simple debugging synths.
-Server.default = s = ~serverboot.(\internal, \builtin);
+Server.default = s = Dan.serverboot(\internal, \builtin);
 (
 fork {
 	~globalOuts = Bus.audio(s, 1);
@@ -384,7 +384,7 @@ s.queryAllNodes;
 ~island.free;
 )
 //simpler again. Sanity check individual fitness thingies.
-Server.default = s = ~serverboot.(\internal, \builtin);
+Server.default = s = Dan.serverboot(\internal, \builtin);
 (
 fork {
 	~observedBus = Bus.audio(s, 1);

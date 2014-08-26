@@ -1,5 +1,5 @@
-s=~serverboot.(prox:\local, device:\builtin);
-s=~serverboot.(prox:\local, device:\rme);
+s=Dan.serverboot(prox:\local, device:\builtin);
+s=Dan.serverboot(prox:\local, device:\rme);
 s.makeGui;
 
 //TODO: duck compressor input.

@@ -19,13 +19,11 @@ TODO: delayscape
 TODO: bassier samples
 */
 
-s=~serverboot.(prox:\local, device:\builtin);
-s=~serverboot.(prox:\local, device:\rme);
-~state = 'foo';
+s=Dan.serverboot(prox:\local, device:\builtin);
+s=Dan.serverboot(prox:\local, device:\rme);
 (
 var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state;
 state = ();
-testsample = ~zamples +/+ "SupercolliderAuxiliary" +/+ "NS wind chimes 002-denoise-edit.aiff";
 fork {
 	SynthDef.new(\decijules,
 	{|in,

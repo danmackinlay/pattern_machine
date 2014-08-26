@@ -1,6 +1,6 @@
-Server.default = s = ~serverboot.(\local, \internal);
-//Server.default = s = ~serverboot.(\local, \motu);
-//Server.default = s = ~serverboot.(\internal, \motu);
+Server.default = s = Dan.serverboot(\local, \internal);
+//Server.default = s = Dan.serverboot(\local, \motu);
+//Server.default = s = Dan.serverboot(\internal, \motu);
 
 ~wheremyfuckingipadis = NetAddr("192.168.0.7", NetAddr.langPort)
 ~localfuckingosculator = NetAddr("localhost", 7668)

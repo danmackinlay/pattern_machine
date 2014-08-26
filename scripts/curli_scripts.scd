@@ -22,8 +22,8 @@ TODO: (priority order)
 * stateful algorithm to navigate through with wiimote
 * MIDI slider velocity
 */
-//Server.default=s=~serverboot.(prox:\local, device:\rme);
-Server.default=s=~serverboot.(prox:\local, device:\builtin);
+//Server.default=s=Dan.serverboot(prox:\local, device:\rme);
+Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 (
 var state = ();
 ~state=state;

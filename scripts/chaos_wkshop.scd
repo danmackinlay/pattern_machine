@@ -1,4 +1,4 @@
-Server.default=s=~serverboot.(prox:\local, device:\builtin);
+Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 ~state=nil;
 (
 var state = ~state ?? {()};
