@@ -58,7 +58,10 @@ PSUtilitySynthDefs {
 		SynthDef(\soundin__1, {|outbus=0, in=0|
 			Out.ar(outbus, SoundIn.ar(in));
 		}).add;
-		//play a recording or teh mic; I dot his often enough for it to deserve a synthdef.
+		SynthDef(\ps_playfile_2, { |bufnum, out, loop=0|
+			Out.ar(out, DiskIn.ar(2, bufnum, loop: loop));
+		}).add;
+		//play a recording or the mic; I do this often enough for it to deserve a synthdef.
 		SynthDef.new(\playbuf_soundin__1,
 			{|outbus=0,
 				in=0,
