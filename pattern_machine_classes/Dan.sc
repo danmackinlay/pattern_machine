@@ -60,7 +60,7 @@ Dan {
 	/*
 	 * This little guy pans a sawtooth across an arbitrary array of channels for speaker alignment/level
 	 * checking
-	~panchantest.(bus: Bus.newFrom(s.outputBus,0,3), numChans:4);
+	Dan.panchantest.(bus: Bus.newFrom(s.outputBus,0,3), numChans:4);
 	 */
 	*panchantest {|bus, numChans, freq=100, rate=1|
 		^{Out.ar(bus, PanAz.ar(numChans, in: Saw.ar(freq, mul:0.5), pos: LFSaw.kr(rate)*2))}.play;
