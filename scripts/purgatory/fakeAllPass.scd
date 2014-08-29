@@ -77,7 +77,7 @@ fork {
 	s.sync;
 	~testbuf = testbuf;
 	~testsound = (
-		instrument: \playbuf__1,
+		instrument: \playbuf__1x2,
 		out: inbus,
 		bufnum: testbuf,
 		group: ingroup,
@@ -115,7 +115,7 @@ fork {
 		target: fxgroup,
 	);
 	~limiter = (
-		instrument: \limi__2,
+		instrument: \limi__2x2,
 		group: postgroup,
 		out:outbus,
 	).play;

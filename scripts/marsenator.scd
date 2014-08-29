@@ -53,7 +53,7 @@ fork {
 	~testbuf = Buffer.read(s, ~testsamplepath);
 	s.sync;
 	~testsound = (
-		instrument: \playbuf__1,
+		instrument: \playbuf__1x2,
 		out: ~inbus,
 		bufnum: ~testbuf,
 		group: ~ingroup,
@@ -75,7 +75,7 @@ fork {
 		out: Bus.newFrom(~outbus,1,1)
 	).play;
 	~limiter = (
-		instrument: \limi__2,
+		instrument: \limi__2x2,
 		group: ~postgroup,
 		out: ~outbus,
 	).play;

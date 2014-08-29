@@ -7,7 +7,7 @@ PSReverbSynthDefs {
 	*loadSynthDefs {
 		//Reverb unit with bonus dry sidemix
 		this.loadMutator;
-		SynthDef(\ps_freeverbside__2_2, {
+		SynthDef(\ps_freeverbside__2x2, {
 			|outbus=0, wet=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
 			var signal;
 			signal = In.ar(outbus, 2);
@@ -34,7 +34,7 @@ PSReverbSynthDefs {
 			);
 		}).add;
 		//Reverb unit with bonus dry sidemix
-		SynthDef(\ps_gverbside__2_2, {
+		SynthDef(\ps_gverbside__2x2, {
 			|outbus=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
 			var drysig, wetsig;
 			drysig = In.ar(outbus, 2);
@@ -54,7 +54,7 @@ PSReverbSynthDefs {
 				XFade2.ar(drysig,wetsig,wet.linlin(0,1,-1,1)) + (In.ar(sidebus, 2)*sidebusAmp);
 			);
 		}).add;
-		SynthDef(\ps_gverb__2_2, {
+		SynthDef(\ps_gverb__2x2, {
 			|outbus=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, index=0|
 			var drysig, wetsig;
 			drysig = In.ar(outbus, 2);

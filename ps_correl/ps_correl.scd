@@ -154,7 +154,7 @@ fork {
 			state[\anal]=vals;
 		}, '/transect'
 	);
-	soundSource = Synth.new(\playbuf__1, [\bufnum, inBuf, \outbus, soundAnalBus], s, \addToHead);
+	soundSource = Synth.new(\playbuf__1x2, [\bufnum, inBuf, \outbus, soundAnalBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [
 		\inbus, soundAnalBus, \outbus,
 		transectBus,

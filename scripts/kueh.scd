@@ -103,7 +103,7 @@ fork {
 	//3 successive reverbs
 	3.do({|i|
 		state.fxSynths.add(
-			Synth.new(\ps_gverbside__2_2, [
+			Synth.new(\ps_gverbside__2x2, [
 				\outbus, Bus.newFrom(state.sideBus, 6, 2),
 				\sidebus, Bus.newFrom(state.sideBus, 4-(i*2), 2),
 				\room, 0.1,

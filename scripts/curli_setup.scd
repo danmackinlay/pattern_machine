@@ -67,7 +67,7 @@
 
 	//In case I don't want to sing:
 	sourcesound = (
-		instrument: \playbuf_soundin__1,
+		instrument: \playbuf_soundin__1x1,
 		in: 0,
 		outbus: inbus,
 		bufnum: sourcebuf,
@@ -81,7 +81,7 @@
 	s.sync;
 
 	limiter = (
-	 	instrument: \limi__2,
+	 	instrument: \limi__2x2,
 	 	group: postgroup,
 	 	outbus: outbus,
 	).play;

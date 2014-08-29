@@ -95,7 +95,7 @@ fork {state.make({
 	s.sync;
 	~testsound = Synth.head(
 		s,
-		\playbuf__1, [
+		\playbuf__1x2, [
 			\outbus, ~outbus.subBus(0,1),
 			\bufnum, ~testbuf
 		]

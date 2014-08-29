@@ -36,7 +36,7 @@
 		s.sync;
 
 		//channel fx
-		reverb = outchannel.playfx(\ps_gverb__2_2, [
+		reverb = outchannel.playfx(\ps_gverb__2x2, [
 				\index, 1,
 				\wet, 0.2,
 				\damping, 0.4,
