@@ -39,18 +39,18 @@ fork {state.make({
 					active = phasor.abs <= 1;
 					env = CentredApprox.sqrtHalfCos(phasor.clip2(1));
 					// env.poll(1,\env, env);
-					// TRand.kr(delayLo, delayHi, trig: active).poll(1, \del, phase);
-					// (TRand.kr(gainLo, gainHi, trig: active)*env).poll(1, \gain, phase);
+					// TExpRand.kr(delayLo, delayHi, trig: active).poll(1, \del, phase);
+					// (TExpRand.kr(gainLo, gainHi, trig: active)*env).poll(1, \gain, phase);
 					DoubleNestedAllpassN.ar(chan,
 						maxdelay1: 0.5,
-						delay1: TRand.kr(delayLo, delayHi, trig: active),
-						gain1: TRand.kr(gainLo, gainHi, trig: active)*env,
+						delay1: TExpRand.kr(delayLo, delayHi, trig: active),
+						gain1: TExpRand.kr(gainLo, gainHi, trig: active)*env,
 						maxdelay2: 0.5,
-						delay2: TRand.kr(delayLo, delayHi, trig: active),
-						gain2: TRand.kr(gainLo, gainHi, trig: active)*env,
+						delay2: TExpRand.kr(delayLo, delayHi, trig: active),
+						gain2: TExpRand.kr(gainLo, gainHi, trig: active)*env,
 						maxdelay3: 0.5,
-						delay3: TRand.kr(delayLo, delayHi, trig: active),
-						gain3: TRand.kr(gainLo, gainHi, trig: active)*env,
+						delay3: TExpRand.kr(delayLo, delayHi, trig: active),
+						gain3: TExpRand.kr(gainLo, gainHi, trig: active)*env,
 						mul: env*masterenv, add: 0);
 					//SynthDef.wrap(mixgraph, prependArgs:[grainsig, inidx])
 				});
