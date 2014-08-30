@@ -91,5 +91,13 @@ PSUtilitySynthDefs {
 		SynthDef(\rec_soundin__1, {|bufnum=0, in=0|
 			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;
+
+		//ChannelMixer test thingy
+		//a = voicechannels[0].play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, voiceschannels[0].inbus.index]);
+		SynthDef.new(\pinkfilt, {
+			arg outbus=0,	// outbus is the standard name used by MixerChannel
+			freq, rq;
+			Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
+		}).add;
 	}
 }

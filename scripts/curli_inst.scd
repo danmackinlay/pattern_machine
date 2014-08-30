@@ -21,7 +21,7 @@
 
 		//delay/loop input
 		loopsynth = inchannel.play((
-			instrument: \ps_buf_delay_loop__1_1,
+			instrument: \ps_buf_delay_loop__1x1,
 			outbus: ~inbus,
 			bufnum: loopbuf,
 			group: ~ingroup,
@@ -48,7 +48,7 @@
 		s.sync;
 
 		pat = Pbind(
-			\instrument, \ps_buf_delay_play__1_2,
+			\instrument, \ps_buf_delay_play__1x2,
 			\bartime, Pseg(
 				[0,state[\bardelta]],
 				state[\bardelta], \lin, inf),

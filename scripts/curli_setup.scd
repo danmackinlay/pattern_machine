@@ -58,8 +58,10 @@
 		// 	"choir/bulgur-legend.wav",
 		// ],
 	));
-	~samples = samples;//synth loading
-	this.executeFile(PS.scriptpath +/+ "curli_synths.scd").value(state);
+	~samples = samples;
+	CmdPeriod.doOnce { samples.free };
+
+	//this.executeFile(PS.scriptpath +/+ "curli_synths.scd").value(state);
 	s.sync;
 
 	//UI interaction stuff
