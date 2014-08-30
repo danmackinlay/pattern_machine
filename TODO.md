@@ -6,7 +6,7 @@
   * "sinusoidal modelling"
     * http://eprints.nuim.ie/2337/1/JG_SIMPL.pdf
     * http://simplsound.sourceforge.net/
-  * wavlets on the spectrum:
+  * wavelets
     * http://docs.scipy.org/doc/scipy/reference/generated/scipy.signal.find_peaks_cwt.html
     * http://bioinformatics.oxfordjournals.org/content/22/17/2059.long
     * http://basic.northwestern.edu/publications/peakdetection/
@@ -15,14 +15,13 @@
 * Generalise reverb to Gerzon m-dimensional allpass 
   * https://en.wikipedia.org/wiki/Unitary_operator
   * https://ccrma.stanford.edu/~jos/pasp/Gerzon_Nested_MIMO_Allpass.html
-* create an allpass that handles crossfades of params gracefully
+* Less suspicious nested allpass than DoubleNestedAllpass
   * transcription for FAUST’s eﬀect.lib: J.O.Smith, for description and analysis, see
   * https://ccrma.stanford.edu/~jos/Reverb/Reverb_4up.pdf¸
   * https://ccrma.stanford.edu/~jos/pasp/FDN_Reverberators_Faust.html¸
   * http://rev-plugins.sourcearchive.com/lines/0.3.1/¸see
   * http://www.uni-weimar.de/medien/wiki/images/Schlemmer_reverb.pdf
   * http://chiselapp.com/user/jcage/repository/rdk/doc/www/www/revdev.html
-* change multichannel naming convention to match ddw - something like __1x2
 * film soundtrack thing
   * sudden hits
   * chord selection
@@ -32,7 +31,7 @@
     * stable attactors, with friction
     * hamiltonians, orbits?
 * control RME mixer from supercollider
-* you can constrain a synth genome for evolution by only effecting downstream oscs. both  f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
+* you can constrain a synth genome for evolution by only effecting downstream oscs. both f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
   * Gaussian correlation
   * Student-t correlation
@@ -42,14 +41,17 @@
   * physical models as input
   * random sparse physical models as input
   * When does random physics produce partial order?
-* rhythms
-  * randomizer/quantizer clock?
-  * hawkes process
+  * annealing/Gibbs distribution style process
+  * Der/Zahedi/Bertschinger/Ay-style information sensorimotor loop
 * interface
   * https://github.com/triss/duplex-nexus-osc
+  * Lemur
+* rhythms
+  * hawkes process
+  * circular sequencer
 * sync oscillator system
   * continuous Kuramoto, possibly on a graph
-  * or Strogatz/Perkel/Haken-style pulse-synch, possibly on a graph
+  * or Strogatz/Perkel/Haken-style pulse-sync, possibly on a graph
   * exotic other
   * call it "phase sync"
   * http://www.scholarpedia.org/article/Synchronization
@@ -65,21 +67,18 @@
   * Faust plugin to define Faust modules for numpy (already exists in octave version)
   * remixer where grains scrub the buffer at different rates but each mutes itself according to its dissonance
   * pure server-side CFDG
-  * analyse metal percussion for distribution of frequencies
-  * circular sequencer
-  * zahedi-style information sensorimotor loop
-  * auto sub maximising bassline thing, octavising osciallators until they are all in the right bandwidth
+  * pure server-side pso flocking algorithm
+  * pure server-side particle filter
+  * auto sub maximising bassline thing, octavising oscillators until they are all in the right bandwidth
   * "futurising delay" - does JUST LESS than 1 bar
-  * angklung attack-opriented granular synth
+  * angklung attack-oriented granular synth
   * marsenator that marsenates samples
   * notestream app, streaming chords in different patterns to different midi channels
   * polyrhythm as highlighting different cycles within a rhythmn cascade
-  * implement a pure server-side pso or particle filter flocking algorithm
   * granular flanger with nice tuning options
   * automatic synth-tracking eye-candy for grammarthing
-  * particle filter tracking models
   * (phrase) phrase sampler
   * microproducer effect synths
-  * 2d effects crossfade buss, maybe with a well-like dropp it in doppler thing. sountoirs of lfos are revealed over time
+  * 2d effects crossfade bus, maybe with a well-like dropp it in doppler thing. sountoirs of lfos are revealed over time
   * 3D effect scape through which we drop sound grains that rewrite and recolour themslves.
   * learn the inverse mapping from sound to synth parameters by hearing and comparing resynthesised version with delayed or recorded version, enveloped appropriately.
