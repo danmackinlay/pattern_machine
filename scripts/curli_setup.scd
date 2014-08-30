@@ -10,6 +10,7 @@
 	var tempo, beatTime, clock;
 	var mididefs;
 	var metaparamMap, paramUpdater;
+	var samples;
 
 	tempo = 80.0;
 	beatTime = 60.0/tempo;
@@ -24,8 +25,40 @@
 	));
 
 	//sample loading
-	this.executeFile(PS.scriptpath +/+ "curli_samples.scd").value(state, ~sczamples);
-	//synth loading
+	samples = PSSamples.new(basePath: PS.scsamplepath);
+	samples.initFromDict((
+		siren: [
+			"22370__druidus__Civil_Defence_Siren.wav",
+			"24347__fonogeno__Police_sirens-short.wav",
+			"30476__LG__Dutch_air_raid_warning_02.wav",
+			"43807__daveincamas__WW2AirplaneFlyover.wav",
+		],
+		people: [
+			"actors-laughing.wav",
+			"tortureguy-3.wav",
+			"actors-siren.wav",
+			"actors-tuning.wav",
+		],
+		desolation: [
+			"varese_on_a_lathe.wav",
+			"whistling-wind.wav",
+			"seagull-walk.wav",
+			"10334_batchku_burning_iceberg.aiff",
+		],
+		tuneful: [
+			"Unknown_Lead_Vocal.wav",
+			"NS-wind-chimes-002-denoise-edit.wav",
+			"CONCERTOFORCLARINETP2-solo.wav",
+			"uc-ezchord.wav",
+		],
+		// choral: [
+		// 	"choir/namgyalmonastery-chanthighlight.wav",
+		// 	"choir/magnificat-build.wav",
+		// 	"choir/huunhuurtu-legend.wav",
+		// 	"choir/bulgur-legend.wav",
+		// ],
+	));
+	~samples = samples;//synth loading
 	this.executeFile(PS.scriptpath +/+ "curli_synths.scd").value(state);
 	s.sync;
 
