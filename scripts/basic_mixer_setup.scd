@@ -3,7 +3,8 @@
 	~tempo = ~tempo ? 80.0;
 	~beatTime = 60.0/~tempo;
 	~clock = ~clock ?? {TempoClock.default.tempo_(~tempo/60.0);};
-	~nchannelstrips = ~nchannelstrips ? 4;
+	~ninstchannelstrips = ~ninstchannelstrips ? 4;
+	~ninputchannelstrips = ~ninputchannelstrips ? 2;
 	~server = ~server ? Server.default;
 	//basic overall mixer setup
 	~extinbus = Bus.newFrom(~server.inputBus,0,1);
@@ -17,13 +18,15 @@
 		~defaultSourcebuf = 0
 	});
 	~masterchannel = MixerChannel.new(\master, ~server, 2, 2, outbus: ~outbus);
-	~channelstrips = ~nchannelstrips.collect({|i|
-		MixerChannel.new(\channel ++ i, ~server, 2, 2, outbus: ~outbus)
+	~instchannelstrips = ~ninstchannelstrips.collect({|i|
+		MixerChannel.new(\channel ++ i, ~server, 2, 2, outbus: ~masterchannel)
 	});
-	~inputchannel = MixerChannel.new(\input, ~server, 2, 2, outbus: ~channelstrips[0]);
+	~inputchannelstrips = ~ninputchannelstrips.collect({|i|
+		MixerChannel.new(\input ++ i, ~server, 2, 2, outbus: ~instchannelstrips[0])
+	});
 	~mixingboard = MixingBoard.new("parkingsun", nil,
-		~channelstrips,
-		~inputchannel,
+		~inputchannelstrips ++
+		~instchannelstrips ++
 		~masterchannel);
 	CmdPeriod.doOnce({ ~mixingboard.free }.inEnvir);
 	
