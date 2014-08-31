@@ -54,20 +54,18 @@ PSSamples {
 		basePath.notNil.if({fullpath = basePath +/+ path});
 		ind = ind ?? {bufPtr = bufPtr+1};
 		sampleBufKeys[key] = sublist.add(ind);
-		//[\loadin, key, ind, path].postln;
 		buf = sampleBufArray[ind];
-		buf.readChannel(path, channels: Array.series(chans));
-		//sampsetbufdict[key]=(sampsetbufdict[key] ?? {Array.new}).add(buf);
+		buf.readChannel(fullpath, channels: Array.series(chans));
 		^ind;
 	}
 	at {|ind|
 		^sampleBufArray[ind];
 	}
 	key {|key, ind|
-		^sampleBufKeys[key].wrapAt(ind);
+		^sampleBufArray[sampleBufKeys[key].wrapAt(ind)];
 	}
 	keyChoose {|key, ind|
-		^sampleBufKeys[key].choose;
+		^sampleBufArray[sampleBufKeys[key].choose];
 	}
 	free {
 		sampleBufArray.free;
