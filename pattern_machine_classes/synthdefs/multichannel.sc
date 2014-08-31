@@ -48,8 +48,8 @@ PSMCCore {
 		^this.synthName(numChannels);
 	}
 	*makeSynthDef {|numChannels|
-		^SynthDef.new(this.synthName(numChannels), { |inbus=0, outbus=0, in=0, out=0|
-			Out.ar(outbus+out, In.ar(inbus+in, numChannels));
+		^SynthDef.new(this.synthName(numChannels), { |inbus, outbus=0|
+			Out.ar(outbus, In.ar(inbus, numChannels));
 		});
 	}
 }
@@ -60,8 +60,8 @@ PSMCMix : PSMCCore {
 	classvar <nameBase = "mix";
 
 	*makeSynthDef {|numChannels|
-		^SynthDef.new(this.synthName(numChannels), { |inbus=0, outbus=0, in=0, out=0|
-			Out.ar(outbus+out, Mix.new(In.ar(inbus+in, numChannels)));
+		^SynthDef.new(this.synthName(numChannels), { |inbus, outbus=0|
+			Out.ar(outbus, Mix.new(In.ar(inbus, numChannels)));
 		});
 	}
 }
