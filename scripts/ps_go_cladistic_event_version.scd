@@ -43,9 +43,9 @@ ps.putOp(\tripleSpeed, Pop(\stretch, Affine1(3)));
 ps.putOp(\truncToBar, Pcomp(Pfindur(4, _)));
 ps.putOp(\slice, Pcomp(Pcutdur(0, {4.rand}, _)));
 ps.putAtom(\amen_break, ~amen_break);
-ps.putAtom(\hat, Pobind(\midinote, ~pm.closed_hi_hat, \dur, 1/2));
-ps.putAtom(\onebeatrest, PoRest(1));
-ps.putAtom(\onebarrest, PoRest(4));
+ps.putAtom(\hat, P1bind(\midinote, ~pm.closed_hi_hat, \dur, 1/2));
+ps.putAtom(\onebeatrest, P1Rest(1));
+ps.putAtom(\onebarrest, P1Rest(4));
 ps.putRule(\timetransform,
 	PSChoice(
 		2, [\doubleSpeed],
@@ -120,8 +120,8 @@ ps.putOp(\tripleSpeed, Pop(\stretch, Affine1(3)));
 ps.putOp(\truncToBar, Pcomp(Pfindur(4, _)));
 ps.putOp(\slice, Pcomp(Pcutdur(0, {4.rand}, _)));
 ps.putAtom(\amen_break, ~rise);
-ps.putAtom(\onebeatrest, PoRest(1));
-ps.putAtom(\onebarrest, PoRest(4));
+ps.putAtom(\onebeatrest, P1Rest(1));
+ps.putAtom(\onebarrest, P1Rest(4));
 ps.putRule(\timetransform,
 	PSChoice(
 		2, [\doubleSpeed],

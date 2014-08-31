@@ -2,7 +2,7 @@ TestProductionSystem : PSTestPattern {
 	test_long_rules {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, P1bind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, \halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 3, "Op/Atom association: correct number of steps");
@@ -13,7 +13,7 @@ TestProductionSystem : PSTestPattern {
 	test_op_atom_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, P1bind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, \halfSpeed, \bar, \bar, \halfSpeed, \halfSpeed, \bar);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 3, "Op/Atom association: correct number of steps");
@@ -28,7 +28,7 @@ TestProductionSystem : PSTestPattern {
 		//This buys us the ability to have rules at are only operators,
 		// but at the expense of having trailing operators applied in weird contexts 
 		ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2))) ;
-		ps.putAtom(\note, Pobind(\note, 1, \dur, 1)) ;
+		ps.putAtom(\note, P1bind(\note, 1, \dur, 1)) ;
 		ps.putRule(\op, \halfSpeed);
 		ps.putRule(\atom, \note);
 		ps.putRule(\root, \op, \atom, \op, \op, \atom);
@@ -40,7 +40,7 @@ TestProductionSystem : PSTestPattern {
 	test_rule_rule_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2)));
-		ps.putAtom(\note, Pobind(\note, 1, \dur, 1));
+		ps.putAtom(\note, P1bind(\note, 1, \dur, 1));
 		ps.putRule(\part1, \halfSpeed, \note, \halfSpeed);
 		ps.putRule(\part2, \note, \halfSpeed, \note);
 		ps.putRule(\root, \part1, \part2);
@@ -53,7 +53,7 @@ TestProductionSystem : PSTestPattern {
 	test_rule_op_atom_association {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pop(\stretch, Affine1(2))) ;
-		ps.putAtom(\note, Pobind(\note, 1, \dur, 1)) ;
+		ps.putAtom(\note, P1bind(\note, 1, \dur, 1)) ;
 		ps.putRule(\op, \halfSpeed);
 		ps.putRule(\root, \op, \note, \op, \op, \note);
 		steps = this.class.expressPattern(ps.root);
@@ -64,7 +64,7 @@ TestProductionSystem : PSTestPattern {
 	test_parens {
 		var steps, ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, P1bind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, 
 			\halfSpeed, PSParen(\bar, \bar), \halfSpeed, \halfSpeed, PSParen(\bar), \bar);
 		steps = this.class.expressPattern(ps);
@@ -76,7 +76,7 @@ TestProductionSystem : PSTestPattern {
 	}
 	test_stars_extend {
 		var steps, ps = PSProductionSystem.new;
-		ps.putAtom(\one, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\one, P1bind(\note, 1, \delta, 1)) ;
 		ps.putRule(\root, PSStarN(4, \one));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Kleene starred atoms: correct number of steps");
@@ -88,7 +88,7 @@ TestProductionSystem : PSTestPattern {
 	test_star_association {
 		var steps, ps = PSProductionSystem.new;
 		ps.putOp(\starop, Pop(\note, Affine1(1,1)));
-		ps.putAtom(\note, Pobind(\note, 1, \delta, 1));
+		ps.putAtom(\note, P1bind(\note, 1, \delta, 1));
 		ps.putRule(\root, PSStarN(2, \starop), \note, \note);
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 2, "Kleene starred ops: correct number of steps");
@@ -99,7 +99,7 @@ TestProductionSystem : PSTestPattern {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, Pbind(\delta, Pkey(\delta) * 2)) ;
-		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, P1bind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
 		this.assertEquals(steps.size, 2, "Arbitrary symbols in asPattern: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Arbitrary symbols in asPattern");
@@ -113,7 +113,7 @@ TestProductionSystem : PSTestPattern {
 		ps.putRule(\changeSpeed, PSChoice(1, [\half, \note], 1, [\third, \note]));
 		ps.putOp(\half, Pop(\stretch, Affine1(2)));
 		ps.putOp(\third, Pop(\stretch, Affine1(3)));
-		ps.putAtom(\note, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\note, P1bind(\note, 1, \delta, 1)) ;
 		20.do({
 			this.class.expressPattern(ps.asPattern([\changeSpeed])).do({|step|
 				deltasfound.add(step[\stretch])
@@ -126,7 +126,7 @@ TestProductionSystem : PSTestPattern {
 		ps = PSProductionSystem.new;
 		ps.putRule(\changeSpeed, PSChoice(1, [\half], 1, [\half]));
 		ps.putOp(\half, Pop(\stretch, Affine1(2)));
-		ps.putAtom(\note, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\note, P1bind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\changeSpeed, \note]));
 		this.assertEquals(steps.size, 1, "PSChoice expands in current context: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'stretch': 2), "PSChoice expands in current context");
@@ -134,10 +134,10 @@ TestProductionSystem : PSTestPattern {
 	test_branching {
 		var steps, ps, firstpair, lastpair;
 		ps = PSProductionSystem.new(NullLogger.new);
-		ps.putAtom(\one, Pobind(\note, 1, \delta, 1)) ;
-		ps.putAtom(\two, Pobind(\note, 2, \delta, 1)) ;
-		ps.putAtom(\three, Pobind(\note, 3, \delta, 1)) ;
-		ps.putAtom(\four, Pobind(\note, 4, \delta, 1)) ;
+		ps.putAtom(\one, P1bind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\two, P1bind(\note, 2, \delta, 1)) ;
+		ps.putAtom(\three, P1bind(\note, 3, \delta, 1)) ;
+		ps.putAtom(\four, P1bind(\note, 4, \delta, 1)) ;
 		ps.putRule(\root, PSBranch([\one, \three], [\two, \four]));
 		steps = this.class.expressPattern(ps);
 		this.assertEquals(steps.size, 4, "Branching: correct number of steps");
@@ -152,7 +152,7 @@ TestProductionSystem : PSTestPattern {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
 		ps.putOp(\halfSpeed, {Pbind(\delta, Pkey(\delta) * 2)}) ;
-		ps.putAtom(\bar, Pobind(\note, 1, \delta, 1)) ;
+		ps.putAtom(\bar, P1bind(\note, 1, \delta, 1)) ;
 		steps = this.class.expressPattern(ps.asPattern([\halfSpeed, \bar, \bar]));
 		this.assertEquals(steps.size, 2, "Callable terminals: correct number of steps");
 		this.assertAContainsB(steps[0], ('note': 1, 'delta': 2), "Callable terminals");
@@ -161,7 +161,7 @@ TestProductionSystem : PSTestPattern {
 	test_callable_tokens_in_rules {
 		var steps, ps;
 		ps = PSProductionSystem.new(NullLogger.new);
-		ps.putAtom(\note, Pobind(\note, 1, \delta, 1));
+		ps.putAtom(\note, P1bind(\note, 1, \delta, 1));
 		ps.putRule(\root, \note, {\note}, \note);
 		steps = this.class.expressPattern(ps.root);
 		this.assertEquals(steps.size, 3, "Callable tokens: correct number of steps");

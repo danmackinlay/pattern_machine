@@ -31,8 +31,8 @@ ps.putOp(\h3on4, POp(\harmonic, Affine1(3/4)));
 ps.putOp(\rotateRight, POp(\pan, (_+0.25).wrap(-1,1)));
 ps.putOp(\rotateLeft, POp(\pan, (_-0.25).wrap(-1,1)));
 
-ps.putAtom(\note, Pobind(\note, 0, \harmonic, 1, \legato, 2, \dur, 1, \pan, 0));
-ps.putAtom(\onebeatrest, PoRest(1));
+ps.putAtom(\note, P1bind(\note, 0, \harmonic, 1, \legato, 2, \dur, 1, \pan, 0));
+ps.putAtom(\onebeatrest, P1Rest(1));
 
 ps.putRule(\ornament,
 	PSChoice(

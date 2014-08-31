@@ -11,7 +11,7 @@ PSwrand {
 		^Pwrand.new(expressions, weights, repeats);
 	}
 }
-Pobind {
+P1bind {
 	//P-one-bind embeds the arguments as a single event in the stream ONCE
 	//(events embed perpetually per default.)
 	//note events with better defaults, or an event subclass,
@@ -21,9 +21,9 @@ Pobind {
 		^Pfin(1, Pbind(*pairs))
 	}
 }
-PoRest {
+P1Rest {
 	//P-one-Rest embeds the arguments as a single event in the stream ONCE
-	//see Pobind for disclaimers.
+	//see P1bind for disclaimers.
 	*new { arg dur;
 		^Pfin(1, Rest(dur))
 	}

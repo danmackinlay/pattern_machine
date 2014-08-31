@@ -52,8 +52,8 @@ ps.putAtom(\surdorhythm1,
 //see also
 //http://www.artdrum.com/RHYTHMS_SAMBA_FOR_KIDS.htm
 //http://www.littledrum.co.uk/batucada.htm
-ps.putAtom(\note, Pobind(\note, 0, \harmonic, 1, \legato, 2, \dur, 1, \pan, 0));
-ps.putAtom(\onebeatrest, PoRest(1));
+ps.putAtom(\note, P1bind(\note, 0, \harmonic, 1, \legato, 2, \dur, 1, \pan, 0));
+ps.putAtom(\onebeatrest, P1Rest(1));
 
 ps.putRule(\bar,
 	PSBranch(
