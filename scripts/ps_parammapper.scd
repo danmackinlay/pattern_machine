@@ -39,7 +39,6 @@ OSCdef.new(\wiiminus, {
 }, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce { OSCdef(\wiiminus).free };
 
-
 t.addMIDICCUpdater(0, 5, 0);
 t.addMIDICCUpdater(0, 6, 1);
 t.addMIDICCUpdater(0, 7, 2);

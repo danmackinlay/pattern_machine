@@ -1,6 +1,8 @@
-//TODO: this should probably handle initing with some kind of semaphore thing to be graceful about forked threads and unbooted servers.
-//TODO: handle a class library of sample sets that I use a lot
-
+/*
+TODO: this should probably handle initing with some kind of semaphore thing to be graceful about forked threads and unbooted servers.
+TODO: handle a class library of sample sets that I use a lot
+TODO: put fade-outs in sound files
+ */
 PSSamples {
 	var <n;
 	var <dur;

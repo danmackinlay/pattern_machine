@@ -3,10 +3,8 @@ Curlicue
 
 TODO: (priority order)
 * FUCK THIS HORRIBLE CONCURRENCY HELL
-  * Can I do it with PDef etc?
-* structure setup per-channel? i.e. move some curli_setup into curli_inst
-  * accordingly maintain a list of params that each channel wants controlled
-* MIDI/wii triggering for:
+* decent Lemur template
+* OSC triggering for:
   * loop re-ordering
   * gestures
 * audio-input-driven effects
@@ -16,12 +14,17 @@ TODO: (priority order)
 * get rid of clicks by
   * restrict sample looping to first 30 seconds, OR
   * soundfile-length-sensitive sound playing OR
-  * put fade-outs in sound files
-* toggle feedback lights on midi keyboard
+  * just edit the fucking files
 * level meter
+  * bareback, through "http://doc.sccode.org/Classes/LevelIndicator.html"
+  * or listen on buses using Ndef, then JIT mixers
 * stateful algorithm to navigate through with wiimote
 * MIDI slider velocity
 */
+(
+~state = (a:1);
+~str =Pbind(\delta, PContext(~state, \a)).trace.play;
+)
 //Server.default=s=Dan.serverboot(prox:\local, device:\rme);
 Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 (
