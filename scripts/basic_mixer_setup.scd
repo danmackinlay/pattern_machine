@@ -28,7 +28,10 @@
 	~instchannelstrips = ~ninstchannelstrips.collect({|i|
 		var ch = MixerChannel.new(\channel ++ i, ~server, 1, 2, outbus: ~masterchannel);
 		//~inputchannelstrips.wrapAt(i).postcs;
-		~inputchannelstrips.wrapAt(i).newPostSend(ch,1);
+		//Force execution order
+		~inputchannelstrips.do({|inp|
+			ch.receivesSignalFrom(inp);
+		});
 		ch;
 	});
 	~mixingboard = MixingBoard.new("parkingsun", nil,
