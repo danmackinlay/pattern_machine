@@ -2,7 +2,6 @@
 Curlicue
 
 TODO: (priority order)
-* FUCK THIS HORRIBLE CONCURRENCY HELL
 * decent Lemur template
 * OSC triggering for:
   * loop re-ordering
@@ -16,19 +15,20 @@ TODO: (priority order)
   * soundfile-length-sensitive sound playing OR
   * just edit the fucking files
 * level meter
-  * bareback, through "http://doc.sccode.org/Classes/LevelIndicator.html"
   * or listen on buses using Ndef, then JIT mixers
 * stateful algorithm to navigate through with wiimote
-* MIDI slider velocity
 */
 Server.default=s=Dan.serverboot(prox:\local, device:\rme);
 Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
+
+~state.mixingboard.free
+MixerChannel.freeAll;
+
 (
 var state = ();
 ~state=state;
 fork {state.make({
 	~server = s;
-	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -77,8 +77,8 @@ fork {state.make({
 	));
 	CmdPeriod.doOnce({ ~samples.free });
 	s.sync;
-	~voices = Array.fill(4, List.new);
-	~voicestates = Array.fill(4, nil);
+	//~voices = Array.fill(4, List.new);
+	//~voicestates = Array.fill(4, nil);
 	~nextVoice = 0;
 	~bardelta= 4;
 	~seed = 1128;
@@ -93,6 +93,7 @@ fork {state.make({
 	~quant = 1/4;
 	~strength = 1;
 	~controls = List.new;
+	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
 })};
 )
 (
@@ -122,14 +123,25 @@ loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 ~state.voicestates[3][\trans]=[1,4/3,2];
 
 ~state.metaparams;
-~state.sourcesound.set(\bufnum,~state.samples.key(\tuneful,0));
-~state.sourcesound.set(\bufnum,~state.samples.key(\siren,0));
-~state.sourcesound.set(\bufnum,~state.samples.key(\desolation,0));
-~state.sourcesound.set(\bufnum,~state.samples.key(\choral,0));
-~state.sourcesound.set(\bufnum,~state.samples.key(\people,0));
+~state.sourcesounds[0].set(\bufnum,~state.samples.key(\tuneful,0));
+~state.sourcesounds[0].set(\bufnum,~state.samples.key(\siren,0));
+~state.sourcesounds[0].set(\bufnum,~state.samples.key(\desolation,0));
+~state.sourcesounds[0].set(\bufnum,~state.samples.key(\choral,0));
+~state.sourcesounds[0].set(\bufnum,~state.samples.key(\people,0));
+~state.samples.at(0);
+~state.samples.key(\people,0);
 
-~state.sourcesound.set(\livefade, 0);
-~state.sourcesound.set(\livefade, 1);
+~state.sourcesounds[0].set(\livefade, 0);
+~state.sourcesounds[0].set(\livefade, 1);
 ~state.mixingboard.free;
 
-~state.samples.basePath;
+
+	~state.sourcesounds = ~state.inputchannelstrips.collect({|strip| strip.play((
+		instrument: \playbuf_soundin__1x1,
+		//clocktempo: PContext(state, \tempo),
+		in: ~extinbus,
+		bufnum: ~defaultSourcebuf,
+		livefade: 0.0,
+		loop: 1,
+		sendGate: false,//persist
+	))});

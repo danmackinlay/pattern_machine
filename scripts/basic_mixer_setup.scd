@@ -1,9 +1,12 @@
 // core setup script; will only return if invoked in a forked thread
 //TODO use BusDict to tame MixerChannel business
 {|state| {state.make({
-	~tempo = ~tempo ? 80.0;
-	~beatTime = 60.0/~tempo;
-	~clock = ~clock ?? {TempoClock.default.tempo_(~tempo/60.0);};
+	~bpm = ~bpm ? 80.0;
+	~tempo = 60.0/~bpm;
+	~clock = ~clock ? TempoClock.default;
+	(~clock.tempo != ~tempo).if({
+		~clock.tempo_(~tempo);
+	});
 	~ninputchannelstrips = ~ninputchannelstrips ? 2;
 	~ninstchannelstrips = ~ninstchannelstrips ? 4;
 	~server = ~server ? Server.default;
@@ -41,15 +44,15 @@
 	CmdPeriod.doOnce({ ~mixingboard.free });
 
 	//In case I don't want to sing:
-	~sourcesound = ~inputchannel.play((
+	~sourcesounds = ~inputchannelstrips.collect({|strip| strip.play((
 		instrument: \playbuf_soundin__1x1,
-		tempo: PContext(state, \tempo),
+		//clocktempo: PContext(state, \tempo),
 		in: ~extinbus,
 		bufnum: ~defaultSourcebuf,
 		livefade: 0.0,
 		loop: 1,
 		sendGate: false,//persist
-	));
+	))});
 	CmdPeriod.doOnce({ ~sourcesound.free });
 
 	~limiter = ~masterchannel.playfx((

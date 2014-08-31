@@ -1,4 +1,8 @@
-* patch Mixerchannel to include level meters
+* patch MixerChannel to be very simple
+  * without automation, dependency management, playing methods, resumption etc
+  * with gui and fader
+  * with level meter http://doc.sccode.org/Classes/LevelIndicator.html
+* MIDI slider velocity
 * mine metal percussion for peak distribution
   * overview: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
   * "MTT" method
