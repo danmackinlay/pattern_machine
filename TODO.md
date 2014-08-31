@@ -1,3 +1,4 @@
+* patch Mixerchannel to include level meters
 * mine metal percussion for peak distribution
   * overview: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
   * "MTT" method

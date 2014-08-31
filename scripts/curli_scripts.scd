@@ -21,34 +21,79 @@ TODO: (priority order)
 * stateful algorithm to navigate through with wiimote
 * MIDI slider velocity
 */
-(
-~state = (a:1);
-~str =Pbind(\delta, PContext(~state, \a)).trace.play;
-)
 //Server.default=s=Dan.serverboot(prox:\local, device:\rme);
 Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 (
 var state = ();
 ~state=state;
-fork {
-	this.executeFile(PS.scriptpath +/+ "curli_setup.scd").value(state);
-	state.putAll((
-		voices: Array.fill(4, List.new),
-		voicestates: Array.fill(4, nil),
-		nextVoice: 0,
-		bardelta: 4,
-		seed: 1128,
-		reseed: true,
-		looping: 0,
-		pan: 0.0,
-		chaos: 0,
-		trans: [1],
-		lambda:2,
-		quant:1/4,
-		strength: 1,
-		controls: List.new;
+fork {state.make({
+	~server = s;
+	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
+
+	//UI interaction stuff
+	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
+	// {metaparamMap.plot;}.defer;
+	// CmdPeriod.doOnce({ ~metaparamMap.free }.inEnvir);
+	// ~paramUpdater = PSParamForwarder(metaparamMap, 0.05);
+	// CmdPeriod.doOnce({ ~paramUpdater.free }.inEnvir);
+	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
+	// //to disable:
+	// 
+	// CmdPeriod.doOnce({ OSCdef(\wii).free }.inEnvir);
+
+	//sample loading
+	~samples = PSSamples.new(basePath: PS.scsamplepath);
+	~samples.initFromDict((
+		siren: [
+			"22370__druidus__Civil_Defence_Siren.wav",
+			"24347__fonogeno__Police_sirens-short.wav",
+			"30476__LG__Dutch_air_raid_warning_02.wav",
+			"43807__daveincamas__WW2AirplaneFlyover.wav",
+		],
+		people: [
+			"actors-laughing.wav",
+			"tortureguy-3.wav",
+			"actors-siren.wav",
+			"actors-tuning.wav",
+		],
+		desolation: [
+			"varese_on_a_lathe.wav",
+			"whistling-wind.wav",
+			"seagull-walk.wav",
+			"10334_batchku_burning_iceberg.aiff",
+		],
+		tuneful: [
+			"Unknown_Lead_Vocal.wav",
+			"NS-wind-chimes-002-denoise-edit.wav",
+			"CONCERTOFORCLARINETP2-solo.wav",
+			"uc-ezchord.wav",
+		],
+		// choral: [
+		// 	"choir/namgyalmonastery-chanthighlight.wav",
+		// 	"choir/magnificat-build.wav",
+		// 	"choir/huunhuurtu-legend.wav",
+		// 	"choir/bulgur-legend.wav",
+		// ],
 	));
-}
+	CmdPeriod.doOnce({ ~samples.free }.inEnvir);
+	s.sync;
+	~voices = Array.fill(4, List.new);
+	~voicestates = Array.fill(4, nil);
+	~nextVoice = 0;
+	~bardelta= 4;
+	~seed = 1128;
+	~density = 1;
+	~chaos = 0;
+	~reseed = true;
+	~looping = 0;
+	~pan = 0.0;
+	~chaos = 0;
+	~trans = [1];
+	~lambda = 2;
+	~quant = 1/4;
+	~strength = 1;
+	~controls = List.new;
+})};
 )
 (
 var localstate, state = ~state, i = state.nextVoice;

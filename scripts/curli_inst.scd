@@ -4,17 +4,17 @@
 
 		// delay/loop action action
 		loopbuf = Buffer.alloc(s, s.sampleRate * 10.0, 1);
-		CmdPeriod.doOnce { loopbuf.free };
+		CmdPeriod.doOnce({ loopbuf.free }.inEnvir);
 		loopphasebus = Bus.control(s, 1);
-		CmdPeriod.doOnce { loopphasebus.free };
+		CmdPeriod.doOnce({ loopphasebus.free }.inEnvir);
 		parambus = Bus.control(s, 1);
-		CmdPeriod.doOnce { parambus.free };
+		CmdPeriod.doOnce({ parambus.free }.inEnvir);
 		outchannel = MixerChannel.new("outvox" ++ i.asString, s, 2, 2, outbus: ~masterchannel);
 		//is this one necessary?
-		CmdPeriod.doOnce { outchannel.free };
+		CmdPeriod.doOnce({ outchannel.free }.inEnvir);
 		inchannel = MixerChannel.new("invox" ++ i.asString, s, 2, 2, outbus: outchannel);
 		//is this one necessary?
-		CmdPeriod.doOnce { outchannel.free };
+		CmdPeriod.doOnce({ outchannel.free }.inEnvir);
 		s.sync;
 		~mixingboard.add(inchannel);
 		~mixingboard.add(outchannel);
@@ -31,7 +31,7 @@
 			addAction: \addToTail,
 			sendGate: false,//persist
 		));
-		CmdPeriod.doOnce { loopsynth.free };
+		CmdPeriod.doOnce({ loopsynth.free }.inEnvir);
 
 		s.sync;
 
@@ -43,7 +43,7 @@
 				\revtime, 0.8,
 				\roomsize, 170,
 		]);
-		CmdPeriod.doOnce { reverb.free };
+		CmdPeriod.doOnce({ reverb.free }.inEnvir);
 
 		s.sync;
 
