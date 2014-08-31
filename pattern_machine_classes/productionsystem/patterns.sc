@@ -29,6 +29,20 @@ PoRest {
 	}
 }
 
+PContext : Pattern {
+	/* Looks up a key in an external state collection
+	(
+		~state = (a:1);
+		~str =Pbind(\delta, PContext(~state, \a)).trace.play;
+	)
+	*/
+	var <>state; 
+	var <>key; // Func is evaluated for each next state
+	*new { arg state, key;
+		^super.newCopyArgs(state, key)
 	}
+	storeArgs { ^[state, key] }
+	asStream {
+		^FuncStream.new({state.at(key)})
 	}
-}}
+}
