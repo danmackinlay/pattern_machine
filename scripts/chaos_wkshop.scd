@@ -25,7 +25,7 @@ fork {
 	~quantstrength = 0.0;
 	~samppath = topEnvironment.at(\sczamples) +/+ "CONCERTOFORCLARINETP2-solo.wav";
 	~buf = Buffer.alloc(s, 44100*60, 1);
-	CmdPeriod.doOnce({ ~buf.free }.inEnvir);
+	CmdPeriod.doOnce({ ~buf.free });
 	s.sync;
 	~buf.readChannel(~samppath, channels:[0]);
 

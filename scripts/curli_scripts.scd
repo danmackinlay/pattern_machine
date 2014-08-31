@@ -33,13 +33,13 @@ fork {state.make({
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
 	// {metaparamMap.plot;}.defer;
-	// CmdPeriod.doOnce({ ~metaparamMap.free }.inEnvir);
+	// CmdPeriod.doOnce({ ~metaparamMap.free });
 	// ~paramUpdater = PSParamForwarder(metaparamMap, 0.05);
-	// CmdPeriod.doOnce({ ~paramUpdater.free }.inEnvir);
+	// CmdPeriod.doOnce({ ~paramUpdater.free });
 	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
 	// //to disable:
 	//
-	// CmdPeriod.doOnce({ OSCdef(\wii).free }.inEnvir);
+	// CmdPeriod.doOnce({ OSCdef(\wii).free });
 
 	//sample loading
 	~samples = PSSamples.new(basePath: PS.scsamplepath);
@@ -75,7 +75,7 @@ fork {state.make({
 		// 	"choir/bulgur-legend.wav",
 		// ],
 	));
-	CmdPeriod.doOnce({ ~samples.free }.inEnvir);
+	CmdPeriod.doOnce({ ~samples.free });
 	s.sync;
 	~voices = Array.fill(4, List.new);
 	~voicestates = Array.fill(4, nil);

@@ -10,9 +10,9 @@
 	//basic overall mixer setup
 	~extinbus = Bus.newFrom(~server.inputBus,0,1);
 	~inbus = Bus.audio(~server, ~ninputchannelstrips);
-	CmdPeriod.doOnce({ ~inbus.free }.inEnvir);
+	CmdPeriod.doOnce({ ~inbus.free });
 	~outbus = Bus.new(\audio, 0, 2, ~server);
-	CmdPeriod.doOnce({ ~outbus.free }.inEnvir);
+	CmdPeriod.doOnce({ ~outbus.free });
 	s.sync;
 	~samples.notNil.if({
 		~defaultSourcebuf = ~samples.at(0)
@@ -38,7 +38,7 @@
 		~inputchannelstrips ++
 		~instchannelstrips ++
 		~masterchannel);
-	CmdPeriod.doOnce({ ~mixingboard.free }.inEnvir);
+	CmdPeriod.doOnce({ ~mixingboard.free });
 
 	//In case I don't want to sing:
 	~sourcesound = ~inputchannel.play((
@@ -50,12 +50,12 @@
 		loop: 1,
 		sendGate: false,//persist
 	));
-	CmdPeriod.doOnce({ ~sourcesound.free }.inEnvir);
+	CmdPeriod.doOnce({ ~sourcesound.free });
 
 	~limiter = ~masterchannel.playfx((
 		instrument: \limi__2x2,
 	));
-	CmdPeriod.doOnce({ ~limiter.free }.inEnvir);
+	CmdPeriod.doOnce({ ~limiter.free });
 	s.sync;
 
 	state;
