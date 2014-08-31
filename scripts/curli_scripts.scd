@@ -21,7 +21,7 @@ TODO: (priority order)
 * stateful algorithm to navigate through with wiimote
 * MIDI slider velocity
 */
-//Server.default=s=Dan.serverboot(prox:\local, device:\rme);
+Server.default=s=Dan.serverboot(prox:\local, device:\rme);
 Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 (
 var state = ();
@@ -38,7 +38,7 @@ fork {state.make({
 	// CmdPeriod.doOnce({ ~paramUpdater.free }.inEnvir);
 	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
 	// //to disable:
-	// 
+	//
 	// CmdPeriod.doOnce({ OSCdef(\wii).free }.inEnvir);
 
 	//sample loading
@@ -111,10 +111,7 @@ fork {
 	state[\nextVoice] = i + 1;
 };
 )
-~state[\voicestates][0].stream.postcs;
-//worka
-~state[\voicestates][1].pat.play;
-//not works
+
 (
 var loc = ~state[\voicestates][~state[\nextVoice]-1];
 loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
@@ -124,25 +121,15 @@ loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 ~state.voicestates[2][\trans]=[1,2];
 ~state.voicestates[3][\trans]=[1,4/3,2];
 
-~killList.value(~state.voices[0]);
-~killList.value(~state.voices[1]);
-~killList.value(~state.voices[2]);
-~killList.value(~state.voices[3]);
-
-~killAll.value;
-
 ~state.metaparams;
-~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\tuneful][0]);
-~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\siren][0]);
-~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\desolation][0]);
-~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\choral][0]);
-~state.sourcesound.set(\bufnum,~state.sampsetbufdict[\people][0]);
+~state.sourcesound.set(\bufnum,~state.samples.key(\tuneful,0));
+~state.sourcesound.set(\bufnum,~state.samples.key(\siren,0));
+~state.sourcesound.set(\bufnum,~state.samples.key(\desolation,0));
+~state.sourcesound.set(\bufnum,~state.samples.key(\choral,0));
+~state.sourcesound.set(\bufnum,~state.samples.key(\people,0));
 
 ~state.sourcesound.set(\livefade, 0);
 ~state.sourcesound.set(\livefade, 1);
 ~state.mixingboard.free;
 
-~state.sampsetpaths;
-~state.sampsetbufdict;
-~state.sampsetbufarray;
-
+~state.samples.basePath;
