@@ -18,14 +18,21 @@ TODO: (priority order)
   * or listen on buses using Ndef, then JIT mixers
 * stateful algorithm to navigate through with wiimote
 */
-Server.default=s=Dan.serverboot(prox:\local, device:\rme);
-Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
+
+//~server = Dan.serverboot(prox:\local, device:\rme);
+//~server = Dan.serverboot(prox:\local, device:\motu);
+~server = Dan.serverboot(prox:\local, device:\builtin);
 
 (
 var state = ();
 ~state=state;
-fork {state.make({
-	~server = s;
+state.server = ~server ?? {
+	//Dan.serverboot(prox:\local, device:\rme);
+	//Dan.serverboot(prox:\local, device:\motu);
+	Dan.serverboot(prox:\local, device:\builtin);
+};
+
+state.server.doWhenBooted({state.make({
 	~ninputs = 1;
 	~ninsts = 4;
 
@@ -92,7 +99,7 @@ fork {state.make({
 	// //to disable:
 	//
 	// CmdPeriod.doOnce({ OSCdef(\wii).free });
-})};
+})});
 )
 (
 ~spy = (
