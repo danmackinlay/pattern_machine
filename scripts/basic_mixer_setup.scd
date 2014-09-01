@@ -37,11 +37,15 @@
 		});
 		ch;
 	});
-	~mixingboard = MixingBoard.new("parkingsun", nil,
-		~inputchannelstrips ++
+	~basicchannels = ~inputchannelstrips ++
 		~instchannelstrips ++
-		~masterchannel);
-	CmdPeriod.doOnce({ state.mixingboard.free });
+		~masterchannel;
+	~mixingboard = MixingBoard.new("parkingsun", nil, ~basicchannels);
+	CmdPeriod.doOnce({{
+		~state.mixingboard.mixers.do({|mixergui| {mixergui.free(true)}.try(_.postcs) ;});
+		//state.basicchannels.do({|mchan| {mchan.free}.try(_.postcs);});
+		state.mixingboard.free;
+	}.defer});
 
 	//In case I don't want to sing:
 	~sourcesounds = ~inputchannelstrips.collect({|strip| strip.play((

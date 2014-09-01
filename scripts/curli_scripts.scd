@@ -23,7 +23,6 @@ Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 
 ~state.mixingboard.free
 MixerChannel.freeAll;
-
 (
 var state = ();
 ~state=state;
@@ -129,8 +128,9 @@ loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\choral,0));
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\people,0));
 ~state.samples.at(0);
-~state.samples.key(\people,0);
-
+~state.samples.key(\siren,0);
+s.cachedBufferAt(0);
+Buffer.new
 ~state.sourcesounds[0].set(\livefade, 0);
 ~state.sourcesounds[0].set(\livefade, 1);
 ~state.mixingboard.free;
