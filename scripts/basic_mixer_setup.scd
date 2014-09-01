@@ -35,8 +35,10 @@
 	~server.sync;
 
 	~inbuses = ~ninputs.collect({|i| ~inbus.subBus(i, 1)});
-	~instbuses = ~ninsts.collect({|i| ~instbus.subBus(i*2, 2)});
-	~parambuses = ~nparams.collect({|i| ~parambus.subBus(i, 1)});
+	//~instbuses = ~ninsts.collect({|i| ~instbus.subBus(i*2, 2)});
+	//~parambuses = ~nparams.collect({|i| ~parambus.subBus(i, 1)});
+	~instbusallocator = BusAllocator.new(~instbus, 2);
+	~parambusallocator = BusAllocator.new(~parambus);
 
 	s.sync;
 	~samples.notNil.if({
