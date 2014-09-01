@@ -1,5 +1,4 @@
 // core setup script; will only return if invoked in a forked thread
-//TODO use BusDict to tame MixerChannel business
 {|state| {state.make({
 	~bpm = ~bpm ? 80.0;
 	~tempo = 60.0/~bpm;
@@ -7,57 +6,72 @@
 	(~clock.tempo != ~tempo).if({
 		~clock.tempo_(~tempo);
 	});
-	~ninputchannelstrips = ~ninputchannelstrips ? 2;
-	~ninstchannelstrips = ~ninstchannelstrips ? 4;
+	~ninputs = ~ninputs ? 1;
+	~ninsts = ~ninsts ? 4;
 	~server = ~server ? Server.default;
-	//basic overall mixer setup
+	~maingroup = Group.new(~server,addAction:\addToHead);
+	CmdPeriod.doOnce({ state.maingroup.free });
+
+	s.sync;
+	~inputgroup = Group.new(~maingroup, addAction:\addToHead);
+	~instgroup = Group.new(~maingroup, addAction:\addToTail);
+
 	~extinbus = Bus.newFrom(~server.inputBus,0,1);
-	~inbus = Bus.audio(~server, ~ninputchannelstrips);
-	CmdPeriod.doOnce({ ~inbus.free });
-	~outbus = Bus.new(\audio, 0, 2, ~server);
-	CmdPeriod.doOnce({ state.out.free });
+	~masteroutbus = Bus.new(\audio, 0, 2, ~server);
+
+	~inbus = Bus.audio(~server, ~ninputs);
+	CmdPeriod.doOnce({ state.inbus.free });
+
+	~instbus = Bus.audio(~server, ~ninsts * 2);
+	CmdPeriod.doOnce({ state.instbus.free });
+
+	~server.sync;
+
+	~inbuses = ~ninputs.collect({|i| ~inbus.subBus(i, 1)});
+	~instbuses = ~ninsts.collect({|i| ~instbus.subBus(i*2, 2)});
+
 	s.sync;
 	~samples.notNil.if({
 		~defaultSourcebuf = ~samples.at(0)
 	}, {
 		~defaultSourcebuf = 0
 	});
-	~masterchannel = MixerChannel.new(\master, ~server, 2, 2, out: ~outbus);
-	~inputchannelstrips = ~ninputchannelstrips.collect({|i|
-		var ch = MixerChannel.new(\input ++ i, ~server, 1, 2, out: ~inbus.subBus(i,1));
-		ch;
-	});
-	//Weird that I need to send a 2-channel send - I think sends only join at the FX bus?
-	~instchannelstrips = ~ninstchannelstrips.collect({|i|
-		var ch = MixerChannel.new(\channel ++ i, ~server, 1, 2, out: ~masterchannel);
-		//~inputchannelstrips.wrapAt(i).postcs;
-		//Force execution order
-		~inputchannelstrips.do({|inp|
-			ch.receivesSignalFrom(inp);
-		});
-		ch;
-	});
-	~mixingboard = MixingBoard.new("parkingsun", nil,
-		~inputchannelstrips ++
-		~instchannelstrips ++
-		~masterchannel);
-	CmdPeriod.doOnce({ state.mixingboard.free });
+
+	~inputgain = (
+		instrument: \limi__1x1,
+		pregain: 10.dbamp, //BOOOM
+		out: ~extinbus,
+		group: ~inputgroup,
+		server: ~server,
+		addAction: \addToHead,
+		sendGate: false,//persist
+	).play;
+	CmdPeriod.doOnce({ state.inputgain.do({|synth| synth.free}) });
 
 	//In case I don't want to sing:
-	~sourcesounds = ~inputchannelstrips.collect({|strip| strip.play((
+	~sourcesounds = ~instbuses.collect({|bus| (
 		instrument: \playbuf_soundin__1x1,
 		//clocktempo: PContext(state, \tempo),
 		in: ~extinbus,
+		out: bus,
+		group: ~inputgroup,
+		server: ~server,
+		addAction: \addToTail,
 		bufnum: ~defaultSourcebuf,
 		livefade: 0.0,
 		loop: 1,
 		sendGate: false,//persist
-	))});
-	CmdPeriod.doOnce({ state.sourcesound.free });
+	).play;});
+	CmdPeriod.doOnce({ state.sourcesounds.do({|synth| synth.free}) });
 
-	~limiter = ~masterchannel.playfx((
+	~limiter = (
 		instrument: \limi__2x2,
-	));
+		out: ~masteroutbus,
+		group: ~outputgroup,
+		server: ~server,
+		addAction: \addToTail,
+		sendGate: false,//persist
+	).play;
 	CmdPeriod.doOnce({ state.limiter.free });
 	s.sync;
 

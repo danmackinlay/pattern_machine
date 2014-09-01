@@ -21,14 +21,13 @@ TODO: (priority order)
 Server.default=s=Dan.serverboot(prox:\local, device:\rme);
 Server.default=s=Dan.serverboot(prox:\local, device:\builtin);
 
-~state.mixingboard.free
-MixerChannel.freeAll;
-
 (
 var state = ();
 ~state=state;
 fork {state.make({
 	~server = s;
+	~ninputs = 1;
+	~ninsts = 4;
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -133,15 +132,3 @@ loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 
 ~state.sourcesounds[0].set(\livefade, 0);
 ~state.sourcesounds[0].set(\livefade, 1);
-~state.mixingboard.free;
-
-
-	~state.sourcesounds = ~state.inputchannelstrips.collect({|strip| strip.play((
-		instrument: \playbuf_soundin__1x1,
-		//clocktempo: PContext(state, \tempo),
-		in: ~extinbus,
-		bufnum: ~defaultSourcebuf,
-		livefade: 0.0,
-		loop: 1,
-		sendGate: false,//persist
-	))});
