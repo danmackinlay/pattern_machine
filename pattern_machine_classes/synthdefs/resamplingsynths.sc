@@ -110,7 +110,7 @@ PSResamplingSynthDefs {
 					levelScale: (ringtime/deltime).sqrt //normalises power *rate*
 				);
 				env = EnvGen.kr(
-					Env.cutoff(
+					Env.linen(
 						sustainTime:deltime,
 						releaseTime:ringtime
 					), gate:1, doneAction:2
@@ -136,7 +136,7 @@ PSResamplingSynthDefs {
 					levelScale: (ringtime/deltime).sqrt //normalises power *rate*
 				);
 				env = EnvGen.kr(
-					Env.cutoff(
+					Env.linen(
 						sustainTime:deltime,
 						releaseTime:ringtime
 					), gate:1, doneAction:2
