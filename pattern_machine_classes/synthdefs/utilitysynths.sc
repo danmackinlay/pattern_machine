@@ -5,13 +5,13 @@ PSUtilitySynthDefs {
 		});
 	}
 	*loadSynthDefs {
-		SynthDef.new(\limi__1x1, {|out=0, cutoff=30, pregain=1|
+		SynthDef.new(\limi__1x1, {|out=0, i_cutoff=30, pregain=1|
 			ReplaceOut.ar(
 				out,
 				Limiter.ar(
 					HPF.ar(
 						in: In.ar(out, 1),
-						freq: cutoff,
+						freq: i_cutoff,
 						mul: pregain
 					),
 					1,
@@ -19,13 +19,13 @@ PSUtilitySynthDefs {
 				)
 			)
 		}).add;
-		SynthDef.new(\limi__2x2, {|out=0, cutoff=30, pregain=1|
+		SynthDef.new(\limi__2x2, {|out=0, i_cutoff=30, pregain=1|
 			ReplaceOut.ar(
 				out,
 				Limiter.ar(
 					HPF.ar(
 						in: In.ar(out, 2),
-						freq: cutoff,
+						freq: i_cutoff,
 						mul: pregain
 					),
 					1,
