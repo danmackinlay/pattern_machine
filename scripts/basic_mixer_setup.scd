@@ -9,6 +9,8 @@
 	});
 	~ninputs = ~ninputs ? 1;
 	~ninsts = ~ninsts ? 4;
+	~nparams = ~nparams ? 32;
+
 	~server = ~server ? Server.default;
 	~maingroup = Group.new(~server,addAction:\addToHead);
 	CmdPeriod.doOnce({ state.maingroup.free });
@@ -16,20 +18,25 @@
 	s.sync;
 	~inputgroup = Group.new(~maingroup, addAction:\addToHead);
 	~instgroup = Group.new(~maingroup, addAction:\addToTail);
+	s.sync;
+	~mastergroup = Group.new(~maingroup, addAction:\addToTail);
 
 	~extinbus = Bus.newFrom(~server.inputBus,0,~ninputs);
 	~masteroutbus = Bus.new(\audio, 0, 2, ~server);
-
 	~inbus = Bus.audio(~server, ~ninputs);
 	CmdPeriod.doOnce({ state.inbus.free });
 
 	~instbus = Bus.audio(~server, ~ninsts * 2);
 	CmdPeriod.doOnce({ state.instbus.free });
 
+	~parambus = Bus.control(~server, ~nparams);
+	CmdPeriod.doOnce({ state.parambus.free });
+
 	~server.sync;
 
 	~inbuses = ~ninputs.collect({|i| ~inbus.subBus(i, 1)});
 	~instbuses = ~ninsts.collect({|i| ~instbus.subBus(i*2, 2)});
+	~parambuses = ~nparams.collect({|i| ~parambus.subBus(i, 1)});
 
 	s.sync;
 	~samples.notNil.if({
@@ -68,12 +75,23 @@
 	~limiter = (
 		instrument: \limi__2x2,
 		out: ~masteroutbus,
-		group: ~outputgroup,
+		group: ~mastergroup,
 		server: ~server,
 		addAction: \addToTail,
 		sendGate: false,//persist
 	).play;
 	CmdPeriod.doOnce({ state.limiter.free });
+
+	~listeners = ~instbuses.collect({|bus| (
+		instrument: \jack__2,
+		in: bus,
+		out: ~masteroutbus,
+		group: ~mastergroup,
+		server: ~server,
+		addAction: \addToHead,
+		sendGate: false,//persist
+	).play;});
+
 	s.sync;
 
 	state;
