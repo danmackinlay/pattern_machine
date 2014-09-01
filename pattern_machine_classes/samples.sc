@@ -68,7 +68,7 @@ PSSamples {
 		^sampleBufArray[sampleBufKeys[key].choose];
 	}
 	free {
-		sampleBufArray.free;
+		sampleBufArray.do({|buf| buf.free});
 		inited=false;
 	}
 }
