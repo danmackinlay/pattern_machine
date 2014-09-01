@@ -75,7 +75,7 @@ fork {state.make({
 		// 	"choir/bulgur-legend.wav",
 		// ],
 	));
-	CmdPeriod.doOnce({ ~samples.free });
+	CmdPeriod.doOnce({ state.samples.free });
 	s.sync;
 	//~voices = Array.fill(4, List.new);
 	//~voicestates = Array.fill(4, nil);

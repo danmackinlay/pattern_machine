@@ -15,7 +15,7 @@
 	~inbus = Bus.audio(~server, ~ninputchannelstrips);
 	CmdPeriod.doOnce({ ~inbus.free });
 	~outbus = Bus.new(\audio, 0, 2, ~server);
-	CmdPeriod.doOnce({ ~outbus.free });
+	CmdPeriod.doOnce({ state.outbus.free });
 	s.sync;
 	~samples.notNil.if({
 		~defaultSourcebuf = ~samples.at(0)
@@ -41,7 +41,7 @@
 		~inputchannelstrips ++
 		~instchannelstrips ++
 		~masterchannel);
-	CmdPeriod.doOnce({ ~mixingboard.free });
+	CmdPeriod.doOnce({ state.mixingboard.free });
 
 	//In case I don't want to sing:
 	~sourcesounds = ~inputchannelstrips.collect({|strip| strip.play((
@@ -53,12 +53,12 @@
 		loop: 1,
 		sendGate: false,//persist
 	))});
-	CmdPeriod.doOnce({ ~sourcesound.free });
+	CmdPeriod.doOnce({ state.sourcesound.free });
 
 	~limiter = ~masterchannel.playfx((
 		instrument: \limi__2x2,
 	));
-	CmdPeriod.doOnce({ ~limiter.free });
+	CmdPeriod.doOnce({ state.limiter.free });
 	s.sync;
 
 	state;
