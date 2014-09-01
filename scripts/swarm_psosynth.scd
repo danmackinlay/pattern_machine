@@ -40,7 +40,7 @@ s.waitForBoot({
 	s.sync;
 	/*~targetPattern = Pbind(
 		\instrument, \ps_reson_saw,
-		\outbus, ~targetbus,
+		\out, ~targetbus,
 		//\ffreq, 800,
 		\ffreq, Prand([1/6, 1/4, 1,3, 1/2, 2/3, 3/4, 1], inf)*500,
 		\amp, 0.1,
@@ -58,7 +58,7 @@ s.waitForBoot({
 	/*******************/
 	//limiter, to avoid little accidents
 	~limi = Synth.after(~phenogroup, \limi__2x2,
-		[\outbus, ~swarmOut,
+		[\out, ~swarmOut,
 		\pregain, population.sqrt.reciprocal*8,
 		\cutoff, 40]);
 	{
@@ -97,7 +97,7 @@ s.waitForBoot({
 	//~control.listenSynthDef = \ps_judge_cepstral_distance__1_1;
 	//~control.listenSynthDef = \ps_judge_mfcc_distance__1_1;
 	~control.listenSynthDef = \ps_judge_mfcc_distance_amp__2_1;
-	~control.play(~phenogroup, outbus: ~swarmOut, targetbus: ~targetbus);
+	~control.play(~phenogroup, out: ~swarmOut, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
 

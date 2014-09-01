@@ -6,10 +6,10 @@ PSInfestSynths {
 	}
 	*loadSynthDefs{
 		SynthDef(\ps_infest_poly_host, {
-			|inbus, i_sndbuffer, phaseout|
+			|in, i_sndbuffer, phaseout|
 			//have a stab at recording some stuff
 			RecordBuf.ar(
-				inputArray: In.ar(inbus),
+				inputArray: In.ar(in),
 				bufnum: i_sndbuffer,
 				run:1,
 				loop:0,
@@ -17,7 +17,7 @@ PSInfestSynths {
 			);
 		}).add;
 		SynthDef(\ps_infest_poly_parasite, {
-			|outbus, gate=1,
+			|out, gate=1,
 			i_sndbuffer,
 			phase=0,
 			windowSize=0.1,
@@ -41,10 +41,10 @@ PSInfestSynths {
 				windowRandRatio: windowRandRatio,
 				mul: env
 			);
-			Out.ar(outbus, monosig);
+			Out.ar(out, monosig);
 		}).add;
 		SynthDef(\ps_infest_poly_parasite_lfo, {
-			|outbus, gate=1,
+			|out, gate=1,
 			i_sndbuffer,
 			phase=0,
 			windowSize=0.1,
@@ -85,7 +85,7 @@ PSInfestSynths {
 				windowRandRatio: windowRandRatio,
 				mul: env * (1+ (lfoam * lfo))
 			);
-			Out.ar(outbus, monosig);
+			Out.ar(out, monosig);
 		}).add;
 	}
 }

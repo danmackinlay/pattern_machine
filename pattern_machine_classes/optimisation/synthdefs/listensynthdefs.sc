@@ -19,7 +19,7 @@ PSBasicListenSynths {
 	*loadSynthDefs {
 		// This judge is one of the simplest I can think of (for demo purposes)
 		// - evaluates closeness of pitch to a reference value (800 Hz).
-		SynthDef.new(\ps_listen_eight_hundred, { |observedbus, outbus, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
+		SynthDef.new(\ps_listen_eight_hundred, { |observedbus, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 			var testsig, comparison, integral, freq, hasFreq, logtargetpitch, realleakcoef;
 			logtargetpitch = i_targetpitch.log;
 			testsig = LeakDC.ar(Mix.new(In.ar(observedbus, 1)));
@@ -39,10 +39,10 @@ PSBasicListenSynths {
 
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, realleakcoef));
 
-			Out.kr(outbus, integral);
+			Out.kr(out, integral);
 		}).add;
 		SynthDef.new(\ps_conv_eight_hundred,
-			{ |observedbus, outbus, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
+			{ |observedbus, out, active=1, t_reset=0, i_leakcoef=1.0, i_targetpitch=800|
 				var testsig, comparison, integral, realleakcoef;
 				testsig = LeakDC.ar(Mix.new(In.ar(observedbus, 1)));
 				comparison = (
@@ -67,10 +67,10 @@ PSBasicListenSynths {
 				comparison = comparison / ControlRate.ir;
 				realleakcoef = (i_leakcoef.log/ControlRate.ir).exp;
 				integral = Integrator.kr(comparison * active, if(t_reset>0, 0, realleakcoef));
-				Out.kr(outbus, integral);
+				Out.kr(out, integral);
 			}
 		).add;
-		SynthDef.new(\ps_judge_targetpitch, { |observedbus, outbus=0, active=0, t_reset=0, targetpitch=660|
+		SynthDef.new(\ps_judge_targetpitch, { |observedbus, out=0, active=0, t_reset=0, targetpitch=660|
 			var testsig, comparison, integral, freq, hasFreq;
 
 			testsig = LeakDC.ar(In.ar(observedbus, 1));
@@ -86,12 +86,12 @@ PSBasicListenSynths {
 			// Default coefficient of 1.0 = no leak. When t_reset briefly hits nonzero, the integrator drains.
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 
-			Out.kr(outbus, integral);
+			Out.kr(out, integral);
 		}).add;
 
 		// This judge aims for the fundamental pitch to vary as much as possible.
 		// You may find that this tends towards white noise or similar...
-		SynthDef.new(\ps_judge_movingpitch, { |observedbus, outbus=0, active=0, t_reset=0|
+		SynthDef.new(\ps_judge_movingpitch, { |observedbus, out=0, active=0, t_reset=0|
 			var testsig, comparison, integral, freq, hasFreq;
 
 			testsig = LeakDC.ar(In.ar(observedbus, 1));
@@ -111,12 +111,12 @@ PSBasicListenSynths {
 			// Default coefficient of 1.0 = no leak. When t_reset briefly hits nonzero, the integrator drains.
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 
-			Out.kr(outbus, integral);
+			Out.kr(out, integral);
 		}).add;
 
 		// Match a specific not-quite-trivial amplitude envelope
 		// Env.new([0.001, 1, 0.3, 0.8, 0.001],[0.2,0.3,0.1,0.4],'welch').test.plot
-		SynthDef.new(\ps_judge_ampenv, { |observedbus, outbus=0, active=0, t_reset=0|
+		SynthDef.new(\ps_judge_ampenv, { |observedbus, out=0, active=0, t_reset=0|
 			var testsig, comparison, integral, env;
 
 			testsig = LeakDC.ar(In.ar(observedbus, 1));
@@ -131,7 +131,7 @@ PSBasicListenSynths {
 			// Default coefficient of 1.0 = no leak. When t_reset briefly hits nonzero, the integrator drains.
 			integral = Integrator.kr(comparison * active, if(t_reset>0, 0, 1));
 
-			Out.kr(outbus, integral);
+			Out.kr(out, integral);
 		}).add;
 	}
 }

@@ -30,7 +30,7 @@ fork {
 	~buf.readChannel(~samppath, channels:[0]);
 
 	SynthDef.new(\ps_buf_play__1x1, {
-		arg	outbus=0,
+		arg	out=0,
 		bufnum,
 		amp=1, gate=1,
 		attack=0.01, decay=0.1, sustain=1.0, release=0.1,
@@ -53,7 +53,7 @@ fork {
 				rate: BufRateScale.kr(bufnum),
 				startPos: BufSampleRate.kr(bufnum)*offset,
 		)* env;
-		Out.ar(outbus, sig);
+		Out.ar(out, sig);
 	}).add;
 	~pat = Pbind(
 		\instrument, \ps_buf_play__1x1,

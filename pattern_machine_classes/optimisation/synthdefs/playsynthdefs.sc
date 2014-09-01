@@ -15,7 +15,7 @@ PSBasicPlaySynths {
 		// create an altered, lagged version
 		var laggedName = (name ++ \_lagged).asSymbol;
 		SynthDef.new(laggedName, {
-			|outbus=0, gate=1, t_reset=0, lagtime=0.1, ... synthArgs|
+			|out=0, gate=1, t_reset=0, lagtime=0.1, ... synthArgs|
 			synthArgs = VarLag(synthArgs, lagTime: lagtime);
 			SynthDef.wrap(func, prependArgs: synthArgs);
 		}).add;
@@ -24,32 +24,32 @@ PSBasicPlaySynths {
 	*loadSynthDefs{
 		synthArgMaps = ();
 		// Really simple SynthDef to play a buffer when triggered
-		SynthDef.new(\ps_just_playbuf, {|bufnum, outbus=0, t_trig=0|
-			Out.ar(outbus, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
+		SynthDef.new(\ps_just_playbuf, {|bufnum, out=0, t_trig=0|
+			Out.ar(out, /* SinOsc.ar(440,0,0.1) + */ PlayBuf.ar(1, bufnum, BufRateScale.kr(bufnum), t_trig));
 		});
 		synthArgMaps[\ps_just_playbuf] = ();
 		SynthDef.new(
 			\ps_dc,
-			{ |outbus=0, gate=1, amp=1.0|
-				Out.ar(outbus, DC.ar(amp));
+			{ |out=0, gate=1, amp=1.0|
+				Out.ar(out, DC.ar(amp));
 			}
 		).add;
 		synthArgMaps[\ps_dc] = (\amp: \unipolar.asSpec);
 		SynthDef.new(
 			\ps_sine,
-			{ |outbus=0, gate=1, t_reset=0, pitch=800, amp=1.0|
+			{ |out=0, gate=1, t_reset=0, pitch=800, amp=1.0|
 				var env, time = 1;
 				env = EnvGen.kr(
 					Env.asr(time/2, 1, time/2, 'linear'),
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, SinOsc.ar(pitch, mul: env*amp));
+				Out.ar(out, SinOsc.ar(pitch, mul: env*amp));
 			}
 		).add;
 		SynthDef.new(
 			\ps_reson_saw,
-			{ |outbus=0, gate=1, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0|
+			{ |out=0, gate=1, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0|
 				var env;
 				var time = 1;
 				env = EnvGen.kr(
@@ -57,7 +57,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, Resonz.ar(
+				Out.ar(out, Resonz.ar(
 					Saw.ar(pitch, env),
 					ffreq,	 //cutoff
 					rq			 //inverse bandwidth
@@ -72,7 +72,7 @@ PSBasicPlaySynths {
 		);
 		SynthDef.new(
 			\ps_reson_saw_lagged,
-			{ |outbus=0, gate=1, t_reset=0, lagtime=0.1, pitch=800, ffreq=500, rq=0.5, amp=1.0|
+			{ |out=0, gate=1, t_reset=0, lagtime=0.1, pitch=800, ffreq=500, rq=0.5, amp=1.0|
 				var env;
 				var time = 1;
 				pitch = Lag.kr(pitch, lagtime);
@@ -84,7 +84,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, Resonz.ar(
+				Out.ar(out, Resonz.ar(
 					Saw.ar(pitch, env),
 					ffreq,//cutoff
 					rq		//inverse bandwidth
@@ -100,7 +100,7 @@ PSBasicPlaySynths {
 
 		SynthDef.new(
 			\ps_reson_saw_2pan,
-			{ |outbus=0, gate=1, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, pan=0|
+			{ |out=0, gate=1, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, pan=0|
 				var env;
 				var time = 1;
 				env = EnvGen.kr(
@@ -108,7 +108,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, Pan2.ar(
+				Out.ar(out, Pan2.ar(
 					Resonz.ar(
 						Saw.ar(pitch, env),
 						ffreq,	//cutoff
@@ -119,7 +119,7 @@ PSBasicPlaySynths {
 		).add;
 		SynthDef.new(
 			\ps_sample_grain,
-			{ |outbus=0, gate=1, t_reset=0,
+			{ |out=0, gate=1, t_reset=0,
 					buffer, pitch=1, ffreq=500,
 					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5|
@@ -130,7 +130,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, Resonz.ar(
+				Out.ar(out, Resonz.ar(
 					Warp1.ar(
 						bufnum: buffer,
 						freqScale: pitch,
@@ -154,7 +154,7 @@ PSBasicPlaySynths {
 		);
 		SynthDef.new(
 			\ps_sample_grain_lagged,
-			{ |outbus=0, gate=1, t_reset=0,
+			{ |out=0, gate=1, t_reset=0,
 					buffer, pitch=1, ffreq=500,
 					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5, lagtime=0.1|
@@ -171,7 +171,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, Resonz.ar(
+				Out.ar(out, Resonz.ar(
 					Warp1.ar(
 						bufnum: buffer,
 						freqScale: pitch,
@@ -197,7 +197,7 @@ PSBasicPlaySynths {
 		);
 		SynthDef.new(
 			\ps_sample_grain_lagged_pan2,
-			{ |outbus=0, gate=1, t_reset=0,
+			{ |out=0, gate=1, t_reset=0,
 					buffer, pitch=1, ffreq=500,
 					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5,
@@ -215,7 +215,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus,
+				Out.ar(out,
 					Pan2.ar(
 						Resonz.ar(
 							Warp1.ar(
@@ -247,7 +247,7 @@ PSBasicPlaySynths {
 
 		SynthDef.new(
 			\ps_sample_grain_lfo_lagged,
-			{ |outbus=0, gate=1, t_reset=0,
+			{ |out=0, gate=1, t_reset=0,
 					buffer, pitch=1, ffreq=500,
 					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5,
@@ -269,7 +269,7 @@ PSBasicPlaySynths {
 					gate: gate,
 					doneAction: 2
 				);
-				Out.ar(outbus, Resonz.ar(
+				Out.ar(out, Resonz.ar(
 					Warp1.ar(
 						bufnum: buffer,
 						freqScale: pitch,
@@ -297,7 +297,7 @@ PSBasicPlaySynths {
 		);
 		SynthDef.new(
 			\ps_sample_grain_lfo_comb_lagged,
-			{ |outbus=0, gate=1, t_reset=0,
+			{ |out=0, gate=1, t_reset=0,
 					buffer, pitch=1, ffreq=500,
 					rq=0.5, amp=1.0, pointer=0.5,
 					windowSize=0.1, windowRandRatio=0.5,
@@ -333,7 +333,7 @@ PSBasicPlaySynths {
 					ffreq,	 //cutoff
 					rq		 //inverse bandwidth
 				);
-				Out.ar(outbus, basicsignal*env);
+				Out.ar(out, basicsignal*env);
 			}
 		).add;
 		synthArgMaps[\ps_sample_grain_lfo_comb_lagged] = (

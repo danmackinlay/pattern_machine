@@ -21,7 +21,7 @@ s.makeGui;
 // forming a melody out of grainclouds by raw copula
 // Control mappings for all intersting params
 (
-Synth.new(\rec__1, [\inbus, 0, \bufnum, ~state.sampBufs[3]],s);
+Synth.new(\rec__1, [\in, 0, \bufnum, ~state.sampBufs[3]],s);
 ~state.sampBufs[0].plot;
 ~state.sampBufs[0].play;
 ~state.sampBufs.do({|buf,ind|
@@ -84,10 +84,10 @@ fork {
 	state.sampBufs.do({|buf,ind|
 		[\loadin, buf,ind,state.sampPaths[ind]].postln;
 		buf.readChannel(state.sampPaths[ind], channels:[0])});
-	state.outBus = Bus.new(\audio,0,2,s);
+	state.out = Bus.new(\audio,0,2,s);
 	state.sideBus = Bus.alloc(\audio,s,8);
 	state.sourceGroup = Group.new(s,'addToHead');
-	CmdPeriod.doOnce { state.outBus.free };
+	CmdPeriod.doOnce { state.out.free };
 	CmdPeriod.doOnce { state.sideBus.free };
 	CmdPeriod.doOnce { state.sourceGroup.free };
 	s.sync;
@@ -104,7 +104,7 @@ fork {
 	3.do({|i|
 		state.fxSynths.add(
 			Synth.new(\ps_gverbside__2x2, [
-				\outbus, Bus.newFrom(state.sideBus, 6, 2),
+				\out, Bus.newFrom(state.sideBus, 6, 2),
 				\sidebus, Bus.newFrom(state.sideBus, 4-(i*2), 2),
 				\room, 0.1,
 				\damping, 0.6,
@@ -117,8 +117,8 @@ fork {
 	});
 	// CmdPeriod.doOnce { state.fxSynths.do({|i| i.free;}) };
 	state.jackSynth=Synth.new(\jack__2, [
-		\outbus, state.outBus,
-		\inbus, Bus.newFrom(state.sideBus, 6, 2)
+		\out, state.out,
+		\in, Bus.newFrom(state.sideBus, 6, 2)
 		], state.fxMasterGroup, 'addToTail');
 	// CmdPeriod.doOnce { state.jackSynth.free};
 	//basic info
@@ -127,7 +127,7 @@ fork {
 		\instrument, \snip__8,
 		\hasGate, false,
 		\buf, state.sampBufs[0],
-		\outbus, state.sideBus,
+		\out, state.sideBus,
 		\group, state.sourceGroup,
 	);
 	//defaults to mess with. Break out into alternatives?

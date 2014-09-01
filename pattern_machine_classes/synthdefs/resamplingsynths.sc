@@ -16,7 +16,7 @@ PSResamplingSynthDefs {
 	*loadSynthDefs {
 		//Looping delay - sample and hold, e.g. a bar.
 		SynthDef.new(\ps_buf_delay_loop__1x1, {
-			arg outbus=0,
+			arg out=0,
 			deltime=1.0,
 			bufnum, wet=0, fadetime=0.2,
 			phasebus=1000; //NB: DO set the phase out if you don't want bleed.
@@ -24,7 +24,7 @@ PSResamplingSynthDefs {
 			wet = VarLag.kr(
 				in: wet.linlin(0.0,1.0,-1.0,1.0),
 				time: fadetime, warp: \linear);
-			in = In.ar(outbus,1);
+			in = In.ar(out,1);
 			delayed = LocalIn.ar(1);
 			outmix = XFade2.ar(in, delayed, wet);
 			inmix = XFade2.ar(in, delayed, wet.neg);
@@ -37,12 +37,12 @@ PSResamplingSynthDefs {
 				interp:1, //no decay, at the expense of time drift
 			);
 			LocalOut.ar(partdelayed);
-			ReplaceOut.ar(outbus, outmix);
+			ReplaceOut.ar(out, outmix);
 		}).add;
 		
 		//Delay grain - plays snippets of the past
 		SynthDef.new(\ps_buf_delay_simple_play__1x2, {
-			arg outbus=0,
+			arg out=0,
 			bufnum,
 			deltime=1.0,
 			pan=0, amp=1, gate=1,
@@ -66,12 +66,12 @@ PSResamplingSynthDefs {
 				interp: 1, //linear
 				mul: env
 			);
-			Out.ar(outbus, Pan2.ar(sig, pan));
+			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
 
 		//Delay grain - plays snippets of the past, with bending
 		SynthDef.new(\ps_buf_delay_play__1x2, {
-			arg outbus=0,
+			arg out=0,
 			bufnum,
 			deltime=1.0,
 			rate=1.0, modulate=0, modlag=0.5,
@@ -99,13 +99,13 @@ PSResamplingSynthDefs {
 				interp: 4, //cubic
 				mul: env
 			);
-			Out.ar(outbus, Pan2.ar(sig, pan));
+			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
 		
 		SynthDef.new(\ps_echette__1x2,
-			{|inbus=0, outbus=0, deltime=0.1, ringtime=1, amp=1, pan=0|
+			{|in=0, out=0, deltime=0.1, ringtime=1, amp=1, pan=0|
 				var env, sig;
-				sig = In.ar(inbus, 1) * EnvGen.kr(
+				sig = In.ar(in, 1) * EnvGen.kr(
 					Env.sine(dur:deltime),
 					levelScale: (ringtime/deltime).sqrt //normalises power *rate*
 				);
@@ -121,17 +121,17 @@ PSResamplingSynthDefs {
 					maxdelaytime: 0.5,
 					mul: env);
 				sig = Pan2.ar(sig, pos:pan);
-				Out.ar(outbus, sig);
+				Out.ar(out, sig);
 				}, [\ir, \ir, \ir, \ir, \ir, \ir]
 		).add;
 		SynthDef.new(\ps_echette_colored__1x2,
-			{|inbus=0, outbus=0, deltime=0.1, ringtime=1, amp=1, freq=440, color=0.5, pan=0|
+			{|in=0, out=0, deltime=0.1, ringtime=1, amp=1, freq=440, color=0.5, pan=0|
 				var env, sig, combdelaytime, combdecaytime, coloramp, invpowerest;
 				combdelaytime = freq.reciprocal;
 				combdecaytime = this.decayTimeFromMag(color, combdelaytime);
 				coloramp = color.squared;
 				invpowerest = (coloramp-1)/coloramp;
-				sig = In.ar(inbus, 1) * EnvGen.kr(
+				sig = In.ar(in, 1) * EnvGen.kr(
 					Env.sine(dur:deltime),
 					levelScale: (ringtime/deltime).sqrt //normalises power *rate*
 				);
@@ -152,7 +152,7 @@ PSResamplingSynthDefs {
 					mul: invpowerest*env,
 				);
 				sig = Pan2.ar(sig, pos:pan);
-				Out.ar(outbus, sig);
+				Out.ar(out, sig);
 				}, [\ir, \ir, \ir, \ir, \ir, \ir, \ir, \ir]
 		).add;
 		

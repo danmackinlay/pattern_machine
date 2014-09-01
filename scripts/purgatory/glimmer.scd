@@ -15,7 +15,7 @@ var maxVoices = 23;
 //input is assumed to be stereo
 
 SynthDef.new(\glimmergrains,
-	{|inbus, outbus,
+	{|in, out,
 		trigRate=1,
 		duty=0.5,
 		ringTime=0.1, wideness=1,
@@ -25,7 +25,7 @@ SynthDef.new(\glimmergrains,
 		intensity=1.0,
 		feedbackGain = 0.0, feedbackMinLen=0.1,feedbackMaxLen=0.5|
 		var in, trigRamp, voices, mixedIn, outChannels, feedback, freqEst, feedbackDepth, delayed, prenormOut;
-		in = In.ar(inbus, 2);
+		in = In.ar(in, 2);
 		delayed = LocalIn.ar(2);
 		feedbackDepth = feedbackMaxLen-feedbackMinLen;
 		mixedIn = Mix.new(in+(delayed*feedbackGain));
@@ -77,22 +77,22 @@ SynthDef.new(\glimmergrains,
 		),1,0.01);
 		//Amplitude.kr(prenormOut).poll(1,\postnorm);
 		LocalOut.ar(outChannels);
-		Out.ar(outbus, outChannels);
+		Out.ar(out, outChannels);
 	}
 ).add;
-SynthDef.new(\findfreq, {|inbus, outbus|
+SynthDef.new(\findfreq, {|in, out|
 	var hasFreq, freq;
 	#freq, hasFreq = Pitch.kr(
 		HPF.ar(HPF.ar(
 			Mix.new(
-				In.ar(inbus, 2)
+				In.ar(in, 2)
 			),
 			freq:100), freq:100
 		),
 		execFreq: ControlRate.ir
 	);
 
-	Out.kr(outbus, Gate.kr(freq, hasFreq).max(10));
+	Out.kr(out, Gate.kr(freq, hasFreq).max(10));
 }).add;
 
 ~filler = {|buf,arr|
@@ -120,8 +120,8 @@ fork {
 	//read hardware in at head of ~voxGroup
 	//s.volume.gui;
 	s.volume.volume= -20;
-	~listener = Synth.head(~fxGroup, \findfreq, [\inbus, ~sourceIns, \outbus, ~freqBus]);
-	~initArgs = [\inbus, ~sourceIns, \outbus, ~globalOuts, \freqBus, ~freqBus, \ratioBuf, ~ratioBuf];
+	~listener = Synth.head(~fxGroup, \findfreq, [\in, ~sourceIns, \out, ~freqBus]);
+	~initArgs = [\in, ~sourceIns, \out, ~globalOuts, \freqBus, ~freqBus, \ratioBuf, ~ratioBuf];
 	~fx = Synth.tail(~fxGroup, \glimmergrains, ~initArgs);
 }
 )

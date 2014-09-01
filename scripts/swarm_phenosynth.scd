@@ -34,8 +34,8 @@ fork {
 	/*******************/
 	~targetbus = Bus.new(\audio, 1, 1, s);
 	s.sync;
-	~target = Synth.new(\ps_reson_saw, [\outbus, ~targetbus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-	//~target = Synth.new(\ps_sine, [\outbus, ~targetbus, \gate, 1, \amp, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
+	~target = Synth.new(\ps_reson_saw, [\out, ~targetbus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+	//~target = Synth.new(\ps_sine, [\out, ~targetbus, \gate, 1, \amp, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 	~spy=SpyBus.new.play(~target, ~targetbus);
 	//~target.set(\pitch, 500);
 	s.sync;
@@ -62,7 +62,7 @@ fork {
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	//~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.leakCoef;
-	~control.play(~phenogroup, outbus: ~globalOuts, targetbus: ~targetbus);
+	~control.play(~phenogroup, out: ~globalOuts, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
@@ -79,7 +79,7 @@ fork {
 //experiment
 s.queryAllNodes;
 ~island.controller;
-~control.outbus;
+~control.out;
 ~control.playBusses;
 ~control.fitnessBusses;
 ~control.all.keys.asArray[0];
@@ -154,8 +154,8 @@ fork {
 	/*******************/
 	~targetbus = Bus.new(\audio, 1, 1, s);
 	s.sync;
-	~target = Synth.new(\ps_reson_saw, [\outbus, ~targetbus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
-	//~target = Synth.new(\ps_sine, [\outbus, ~targetbus, \gate, 1, \amp, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
+	~target = Synth.new(\ps_reson_saw, [\out, ~targetbus, \gate, 1, \ffreq, 800, \amp, 1, \pitch, 500, \rq, 0.2], target: ~phenogroup, addAction:\addToHead);
+	//~target = Synth.new(\ps_sine, [\out, ~targetbus, \gate, 1, \amp, 1, \pitch, 500], target: ~phenogroup, addAction:\addToHead);
 	~spy=SpyBus.new.play(~target, ~targetbus);
 	//~target.set(\pitch, 500);
 	s.sync;
@@ -178,7 +178,7 @@ fork {
 	//~control.listenSynthDef = \ps_judge_cepstral_distance;
 	~control.listenSynthDef = \ps_judge_mfcc_distance;
 	~control.leakCoef;
-	~control.play(~phenogroup, outbus: ~globalOuts, targetbus: ~targetbus);
+	~control.play(~phenogroup, out: ~globalOuts, targetbus: ~targetbus);
 	s.sync;
 	1.wait;
 	//now set up the "island" that will control their evolution
@@ -195,7 +195,7 @@ fork {
 //experiment
 s.queryAllNodes;
 ~island.controller;
-~control.outbus;
+~control.out;
 ~control.playBusses;
 ~control.fitnessBusses;
 ~control.all.keys.asArray[0];
@@ -266,14 +266,14 @@ fork {
 	~outgroup = Group.after(~voxgroup);
 	s.sync;
 	0.1.wait;
-	~template = Synth.new(\ps_reson_saw, [\outbus, ~targetbus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5], target: ~voxgroup);
-	~candidate = Synth.new(\ps_reson_saw, [\outbus, ~observedBus, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \amp, 0.5], target: ~voxgroup);
-	//~comparer = Synth.new(\ps_judge_fft_narrow_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0], target: ~outgroup);
-	~comparer = Synth.new(\ps_judge_fft_wide_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_convolution_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_convolution_distance_norm, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
-	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \outbus, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	~template = Synth.new(\ps_reson_saw, [\out, ~targetbus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5], target: ~voxgroup);
+	~candidate = Synth.new(\ps_reson_saw, [\out, ~observedBus, \gate, 1, \pitch, 800, \ffreq, 1000, \rq, 0.5, \amp, 0.5], target: ~voxgroup);
+	//~comparer = Synth.new(\ps_judge_fft_narrow_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
+	~comparer = Synth.new(\ps_judge_fft_wide_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \out, ~matchOut, \i_leak, 0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_convolution_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_convolution_distance_norm, [\observedbus, ~observedBus, \targetbus, ~targetbus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_mfcc_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
+	//~comparer = Synth.new(\ps_judge_cepstral_distance, [\observedbus, ~observedBus, \targetbus, ~targetbus, \out, ~matchOut, \i_leak, 0.0], target: ~outgroup);
 
 	Routine.new({
 		while( true, {~matchOut.get(_.postln);
@@ -312,7 +312,7 @@ fork {
 Server.default = s = Dan.serverboot(\internal, \builtin);
 ~globalOuts = Bus.new(\audio, 0, 2);
 ~control = PSListenSynthController.new(numChannels:1, fitnessPollRate:1, leakCoef:0.5, maxPop:40);
-~control.play(s, outbus: ~globalOuts);
+~control.play(s, out: ~globalOuts);
 //~ind = PSSynthDefPhenotype.newRandom(4);
 //~control.playIndividual(~ind);
 //~control.freeIndividual(~ind);
@@ -346,7 +346,7 @@ fork {
 	~control = PSCompareSynthController.new(numChannels:1, log:~log, fitnessPollRate:1, leakCoef:0.0, maxPop:60);
 	~control.listenSynthDef = \ps_judge_return_observed;
 	~control.leakCoef;
-	~control.play(~phenogroup, outbus: ~globalOuts, targetbus: nil);
+	~control.play(~phenogroup, out: ~globalOuts, targetbus: nil);
 	s.sync;
 	~factory = PSSynthDefPhenotypeFactory.new(synthDef:\ps_dc, synthArgMap:(\amp: \unipolar.asSpec));
 	//now set up the "island" that will control their evolution
@@ -362,7 +362,7 @@ fork {
 s.getQueryTree;
 s.queryAllNodes;
 ~island.controller;
-~control.outbus;
+~control.out;
 ~control.playBusses;
 ~control.playBusses.get;
 ~control.fitnessBusses;
@@ -391,9 +391,9 @@ fork {
 	~dummyBus = Bus.audio(s, 1);
 	~fitnessBus = Bus.control(s, 1);
 	s.sync;
-	~observed = Synth.new(\ps_dc, [\amp, 0.63, \outbus, ~observedBus, \gate, 1], target: s);
+	~observed = Synth.new(\ps_dc, [\amp, 0.63, \out, ~observedBus, \gate, 1], target: s);
 	s.sync;
-	~comparer = Synth.new(\ps_judge_return_observed, [\observedbus, ~observedBus, \targetbus, ~dummyBus, \outbus, ~fitnessBus, \active, 1, \t_reset, 0, \i_leak, 0.0], target:~observed, addAction:\addAfter);
+	~comparer = Synth.new(\ps_judge_return_observed, [\observedbus, ~observedBus, \targetbus, ~dummyBus, \out, ~fitnessBus, \active, 1, \t_reset, 0, \i_leak, 0.0], target:~observed, addAction:\addAfter);
 	s.sync;
 	~fitnessBus.get;
 };

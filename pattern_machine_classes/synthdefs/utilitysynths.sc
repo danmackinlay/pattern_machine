@@ -5,12 +5,12 @@ PSUtilitySynthDefs {
 		});
 	}
 	*loadSynthDefs {
-		SynthDef.new(\limi__1, {|outbus=0, cutoff=30, pregain=1|
+		SynthDef.new(\limi__1, {|out=0, cutoff=30, pregain=1|
 			ReplaceOut.ar(
-				outbus,
+				out,
 				Limiter.ar(
 					HPF.ar(
-						in: In.ar(outbus, 1),
+						in: In.ar(out, 1),
 						freq: cutoff,
 						mul: pregain
 					),
@@ -19,12 +19,12 @@ PSUtilitySynthDefs {
 				)
 			)
 		}).add;
-		SynthDef.new(\limi__2x2, {|outbus=0, cutoff=30, pregain=1|
+		SynthDef.new(\limi__2x2, {|out=0, cutoff=30, pregain=1|
 			ReplaceOut.ar(
-				outbus,
+				out,
 				Limiter.ar(
 					HPF.ar(
-						in: In.ar(outbus, 2),
+						in: In.ar(out, 2),
 						freq: cutoff,
 						mul: pregain
 					),
@@ -34,7 +34,7 @@ PSUtilitySynthDefs {
 			)
 		}).add;
 		SynthDef.new(\playbuf__1,
-			{|outbus=0,
+			{|out=0,
 				bufnum,
 				loop=1,
 				gate=1,
@@ -53,14 +53,14 @@ PSUtilitySynthDefs {
 				gate: gate,
 				doneAction: 2
 			);
-			Out.ar(outbus, sig*env);
+			Out.ar(out, sig*env);
 		}).add;
-		SynthDef(\soundin__1x1, {|outbus=0, in=0|
-			Out.ar(outbus, SoundIn.ar(in));
+		SynthDef(\soundin__1x1, {|out=0, in=0|
+			Out.ar(out, SoundIn.ar(in));
 		}).add;
 		//play a recording or the mic; I do this often enough for it to deserve a synthdef.
 		SynthDef.new(\playbuf_soundin__1x1,
-			{|outbus=0,
+			{|out=0,
 				in=0,
 				bufnum,
 				loop=1,
@@ -86,18 +86,18 @@ PSUtilitySynthDefs {
 				gate: gate,
 				doneAction: 2
 			);
-			Out.ar(outbus, sig*env);
+			Out.ar(out, sig*env);
 		}).add;
 		SynthDef(\rec_soundin__1, {|bufnum=0, in=0|
 			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;
 
 		//ChannelMixer test thingy
-		//a = voicechannels[0].play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, voiceschannels[0].inbus.index]);
+		//a = voicechannels[0].play(\pinkfilt, [\freq, 2000, \rq, 0.02, \out, voiceschannels[0].in.index]);
 		SynthDef.new(\pinkfilt, {
-			arg outbus=0,	// outbus is the standard name used by MixerChannel
+			arg out=0,	// out is the standard name used by MixerChannel
 			freq, rq;
-			Out.ar(outbus, RLPF.ar(PinkNoise.ar, freq, rq));
+			Out.ar(out, RLPF.ar(PinkNoise.ar, freq, rq));
 		}).add;
 	}
 }

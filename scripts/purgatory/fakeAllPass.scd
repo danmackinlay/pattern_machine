@@ -9,7 +9,7 @@ s=Dan.serverboot(prox:\local, device:\builtin);
 s=Dan.serverboot(prox:\local, device:\rme);
 ~state = 'foo';
 (
-var inbus, outbus, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr;
+var in, out, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr;
 nBpBandsTotal=nBpBandsPerOctave*nOctaves+1;
 
 bwr = nBpBandsTotal.reciprocal;
@@ -43,7 +43,7 @@ SynthDef(\fakeDiffusion,{
 		maxdelaytime: 2.0,
 		delaytime: macrodeltimes
 	);
-	sig = In.ar(outbus);
+	sig = In.ar(out);
 	LocalOut.ar(
 		XFade2.ar(
 			BPF.ar(sig,allBpFreqs,bwr),
@@ -52,7 +52,7 @@ SynthDef(\fakeDiffusion,{
 		)
 	);
 	//Amplitude.kr(fbins).ampdb.poll(1,\amp);
-	ReplaceOut.ar(outbus, XFade2.ar(
+	ReplaceOut.ar(out, XFade2.ar(
 		sig,
 		Mix(
 			AllpassC.ar(
@@ -70,15 +70,15 @@ testsample = PS.samplepath +/+ "SupercolliderAuxiliary" +/+ "NS-wind-chimes-002-
 {s.makeGui;}.defer;
 fork {
 	ingroup = Group.new(s, \addToHead);
-	//inbus = Bus.newFrom(s.inputBus,0,1);
-	inbus = Bus.audio(s,1);
-	outbus = Bus.new(\audio, 0, 2, s);
+	//in = Bus.newFrom(s.inputBus,0,1);
+	in = Bus.audio(s,1);
+	out = Bus.new(\audio, 0, 2, s);
 	testbuf = Buffer.read(s, testsample);
 	s.sync;
 	~testbuf = testbuf;
 	~testsound = (
 		instrument: \playbuf__1x2,
-		out: inbus,
+		out: in,
 		bufnum: testbuf,
 		group: ingroup,
 		sendGate: false,//won't loop if not told
@@ -92,16 +92,16 @@ fork {
 	/*~fakeDiffusionL = (
 		instrument: \fakeDiffusion,
 		group: fxgroup,
-		out: Bus.newFrom(outbus,0,1)
+		out: Bus.newFrom(out,0,1)
 	).play;
 	~fakeDiffusionR = (
 		instrument: \fakeDiffusion,
 		group: fxgroup,
-		out: Bus.newFrom(outbus,1,1)
+		out: Bus.newFrom(out,1,1)
 	).play;*/
 	~fakeDiffusionL = Synth(
 		\fakeDiffusion, [
-			\outbus, Bus.newFrom(outbus,0,1),
+			\out, Bus.newFrom(out,0,1),
 			\macrodecoherence, 0.5,
 			\inxfade, 0.7,
 		],
@@ -109,7 +109,7 @@ fork {
 	);
 	~fakeDiffusionR = Synth(
 		\fakeDiffusion, [
-			\outbus, Bus.newFrom(outbus,1,1),
+			\out, Bus.newFrom(out,1,1),
 			\macrodecoherence, 0.5,
 		],
 		target: fxgroup,
@@ -117,11 +117,11 @@ fork {
 	~limiter = (
 		instrument: \limi__2x2,
 		group: postgroup,
-		out:outbus,
+		out:out,
 	).play;
 	state.putAll((
-		outbus: outbus,
-		inbus: inbus,
+		out: out,
+		in: in,
 		ingroup: ingroup,
 		voxgroup: voxgroup,
 		fxgroup: fxgroup,
@@ -130,12 +130,12 @@ fork {
 	~pat = Pbind(
 		\note, Pseq([0,3,7,12],inf),
 		\group, ~state.voxgroup,
-		\outbus, ~state.outbus,
+		\out, ~state.out,
 		\dur, 1).play;
 	~state = state;
 };
 )
-(pitch: 5, group: ~state.voxgroup, out:~state.outbus).play;
+(pitch: 5, group: ~state.voxgroup, out:~state.out).play;
 ~fakeDiffusionL.set(\lag, 1);
 ~fakeDiffusionL.set(\lag, 0.1);
 ~fakeDiffusionL.set(\lag, 0);

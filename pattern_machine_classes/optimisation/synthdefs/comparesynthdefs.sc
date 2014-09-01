@@ -26,7 +26,7 @@ PSBasicCompareSynths {
 			channame = "%__%_%".format(name,obsChan,targetChan);
 
 			SynthDef.new(channame, {
-				|observedbus, targetbus=0, outbus=0, active=1, t_reset=0, i_leak=0.5|
+				|observedbus, targetbus=0, out=0, active=1, t_reset=0, i_leak=0.5|
 				var observedsig, targetsig, comparison, integral;
 
 				targetsig  = Mix.new(In.ar(targetbus, targetChan));
@@ -49,7 +49,7 @@ PSBasicCompareSynths {
 				*/
 				integral = Integrator.kr(comparison * active * (1-i_leak), if(t_reset>0, 0, i_leak));
 
-				Out.kr(outbus, integral);
+				Out.kr(out, integral);
 			}).add;
 		});});
 	}

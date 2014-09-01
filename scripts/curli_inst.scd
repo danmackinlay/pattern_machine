@@ -9,10 +9,10 @@
 		CmdPeriod.doOnce({ loopphasebus.free });
 		parambus = Bus.control(s, 1);
 		CmdPeriod.doOnce({ parambus.free });
-		outchannel = MixerChannel.new("outvox" ++ i.asString, s, 2, 2, outbus: ~masterchannel);
+		outchannel = MixerChannel.new("outvox" ++ i.asString, s, 2, 2, out: ~masterchannel);
 		//is this one necessary?
 		CmdPeriod.doOnce({ outchannel.free });
-		inchannel = MixerChannel.new("invox" ++ i.asString, s, 2, 2, outbus: outchannel);
+		inchannel = MixerChannel.new("invox" ++ i.asString, s, 2, 2, out: outchannel);
 		//is this one necessary?
 		CmdPeriod.doOnce({ outchannel.free });
 		s.sync;
@@ -22,7 +22,7 @@
 		//delay/loop input
 		loopsynth = inchannel.play((
 			instrument: \ps_buf_delay_loop__1x1,
-			outbus: ~inbus,
+			out: ~inbus,
 			bufnum: loopbuf,
 			group: ~ingroup,
 			wet: 0,

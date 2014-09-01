@@ -46,7 +46,7 @@ makeCLI = {|settings|
 ~makeCLI = makeCLI;
 
 SynthDef.new(\transect12__1, {
-	|inbus=0,
+	|in=0,
 	basef=440.0,
 	cutoff=80.0,
 	idx=1,
@@ -55,7 +55,7 @@ SynthDef.new(\transect12__1, {
 	var delTimes, delFreqs, sig, inamp, corrs, lowpassF;
 	delFreqs = Array.geom(12,basef,2**(1.0/12.0));
 	delTimes = delFreqs.reciprocal;
-	sig = LeakDC.ar(In.ar(inbus,1));
+	sig = LeakDC.ar(In.ar(in,1));
 	inamp = A2K.kr(
 		OpLPF.ar(
 			sig.squared,
@@ -78,7 +78,7 @@ SynthDef.new(\transect12__1, {
 		corrs,
 		idx);
 }).add;
-SynthDef.new(\concat__1_1, {|outbus,
+SynthDef.new(\concat__1_1, {|out,
 	bufnum,
 	time=0,
 	playrate=1,
@@ -115,7 +115,7 @@ SynthDef.new(\concat__1_1, {|outbus,
 		mul: pregain,
 	);
 	*/
-	Out.ar(outbus, sig*amp);
+	Out.ar(out, sig*amp);
 }).add;
 
 state.putAll((
@@ -154,14 +154,14 @@ fork {
 			state[\anal]=vals;
 		}, '/transect'
 	);
-	soundSource = Synth.new(\playbuf__1x2, [\bufnum, inBuf, \outbus, soundAnalBus], s, \addToHead);
+	soundSource = Synth.new(\playbuf__1x2, [\bufnum, inBuf, \out, soundAnalBus], s, \addToHead);
 	analNode=Synth.new(\transect12__1, [
-		\inbus, soundAnalBus, \outbus,
+		\in, soundAnalBus, \out,
 		transectBus,
 		\pollrate, 160.0
 	], s, \addToTail);
 	concatNode=Synth.new(\concat__1_1, [
-		\outbus, 1,
+		\out, 1,
 		\bufnum, conBuf,
 		\time, transectBus.subBus(0,1).asMap,
 		\jitter, 0.0,

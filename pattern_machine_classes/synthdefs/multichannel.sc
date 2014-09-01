@@ -4,17 +4,17 @@
 (
 //multichannelising tests
 SynthDef.new(\testoffsets, {|outs| Out.ar(outs, DC.ar(2.pow((0..3))))}).add;
-SynthDef.new(\sumins, {|ins, outbus| Out.kr(outbus, A2K.kr(Mix.new(In.ar(ins))))}).add;
+SynthDef.new(\sumins, {|ins, out| Out.kr(out, A2K.kr(Mix.new(In.ar(ins))))}).add;
 ~mctestouts = Bus.audio(s, 4);
 ~mcrezout = Bus.control(s, 1);
 ~mcplaygroup = Group.head(s);
 ~mclistengroup = Group.after(~mcplaygroup);
 ~mcplaysynth = Synth.new(\testoffsets, [\outs, ~mctestouts], ~mcplaygroup);
-~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \outbus, ~mcrezout], ~mclistengroup);
+~mclistensynth = Synth.new(\sumins, [\ins, ~mctestouts, \out, ~mcrezout], ~mclistengroup);
 ~mcrezout.get(_.postln);
 (1..17).do({|numChannels|
 	SynthDef.new('jack__' ++ numChannels.asString, { |in, out|
-	Out.ar(outbus, In.ar(inbus, numChannels));
+	Out.ar(out, In.ar(in, numChannels));
 	}).add;
 });
 PSSynthDefPhenotype.map
@@ -48,8 +48,8 @@ PSMCCore {
 		^this.synthName(numChannels);
 	}
 	*makeSynthDef {|numChannels|
-		^SynthDef.new(this.synthName(numChannels), { |inbus, outbus=0|
-			Out.ar(outbus, In.ar(inbus, numChannels));
+		^SynthDef.new(this.synthName(numChannels), { |in, out=0|
+			Out.ar(out, In.ar(in, numChannels));
 		});
 	}
 }
@@ -60,8 +60,8 @@ PSMCMix : PSMCCore {
 	classvar <nameBase = "mix";
 
 	*makeSynthDef {|numChannels|
-		^SynthDef.new(this.synthName(numChannels), { |inbus, outbus=0|
-			Out.ar(outbus, Mix.new(In.ar(inbus, numChannels)));
+		^SynthDef.new(this.synthName(numChannels), { |in, out=0|
+			Out.ar(out, Mix.new(In.ar(in, numChannels)));
 		});
 	}
 }

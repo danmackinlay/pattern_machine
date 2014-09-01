@@ -8,9 +8,9 @@ PSReverbSynthDefs {
 		//Reverb unit with bonus dry sidemix
 		this.loadMutator;
 		SynthDef(\ps_freeverbside__2x2, {
-			|outbus=0, wet=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
+			|out=0, wet=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
 			var signal;
-			signal = In.ar(outbus, 2);
+			signal = In.ar(out, 2);
 			signal = FreeVerb2.ar(
 				signal[0],
 				signal[1],
@@ -29,15 +29,15 @@ PSReverbSynthDefs {
 				decaytime:0.051),
 				coef: 0.5, mul: 1.5);
 			signal = signal + (In.ar(sidebus, 2)*sidebusAmp);
-			ReplaceOut.ar(outbus,
+			ReplaceOut.ar(out,
 				signal
 			);
 		}).add;
 		//Reverb unit with bonus dry sidemix
 		SynthDef(\ps_gverbside__2x2, {
-			|outbus=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
+			|out=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, sidebus=0, sidebusAmp=1, index=0|
 			var drysig, wetsig;
-			drysig = In.ar(outbus, 2);
+			drysig = In.ar(out, 2);
 			wetsig = drysig.collect({|chan|
 				GVerb.ar(
 					chan,
@@ -50,14 +50,14 @@ PSReverbSynthDefs {
 					earlyreflevel:earlyreflevel,
 				)[0]; //thow out a channel
 			})*amp;
-			ReplaceOut.ar(outbus,
+			ReplaceOut.ar(out,
 				XFade2.ar(drysig,wetsig,wet.linlin(0,1,-1,1)) + (In.ar(sidebus, 2)*sidebusAmp);
 			);
 		}).add;
 		SynthDef(\ps_gverb__2x2, {
-			|outbus=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, index=0|
+			|out=0, wet=1, roomsize=200, damping=0.4, amp=1.0, revtime=3, taillevel=1.0, earlyreflevel=0.5, index=0|
 			var drysig, wetsig;
-			drysig = In.ar(outbus, 2);
+			drysig = In.ar(out, 2);
 			wetsig = drysig.collect({|chan|
 				GVerb.ar(
 					chan,
@@ -71,7 +71,7 @@ PSReverbSynthDefs {
 					mul: amp,
 				)[0]; //thow out a channel
 			})*amp;
-			ReplaceOut.ar(outbus,
+			ReplaceOut.ar(out,
 				XFade2.ar(drysig,wetsig,wet.linlin(0,1,-1,1))
 			);
 		}).add;

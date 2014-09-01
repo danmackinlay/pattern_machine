@@ -61,7 +61,7 @@ fork {
 				loop:0
 			);
 			IndexInBetween.kr(~rec, in: 0.5);
-		}.play(target: s, outbus:~indexbus);
+		}.play(target: s, out:~indexbus);
 		s.sync;
 		~tester.set(\t_trig, 1);
 		s.sync;

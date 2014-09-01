@@ -42,14 +42,14 @@ Log differences?
 		leak = (leak**(ControlRate.ir.reciprocal));
 		//replace me with a straight 1-pole:
 		Integrator.kr(FFTDiffMags.kr(targetfftchain, obsfftchain) * (1-leak),  leak);
-	}.play(target:s, addAction: \addToTail, outbus: matchOut);
+	}.play(target:s, addAction: \addToTail, out: matchOut);
 
 	s.volume.volume = -20;
 
 	examplesynthdef = SynthDef.new(
 		\fft_dist_test_synth,
-		{ |outbus=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, delay=0.0|
-			Out.ar(outbus,
+		{ |out=0, gate=0, t_reset=0, pitch=800, ffreq=500, rq=0.5, amp=1.0, delay=0.0|
+			Out.ar(out,
 				DelayN.ar(
 					Resonz.ar(
 						Saw.ar(pitch, amp),
@@ -66,13 +66,13 @@ Log differences?
 
 	template = Synth.new(
 		\fft_dist_test_synth,
-		[\outbus, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0],
+		[\out, targetBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0],
 		target: s,
 		addAction: \addToHead
 	);
 	candidate = Synth.new(
 		\fft_dist_test_synth,
-		[\outbus, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0.0321207],
+		[\out, observedBus, \gate, 1, \pitch, 400, \ffreq, 600, \rq, 0.3, \amp, 0.5, \delay, 0.0321207],
 		target: s,
 		addAction: \addToHead
 	);

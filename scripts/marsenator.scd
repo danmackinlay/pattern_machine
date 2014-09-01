@@ -27,8 +27,8 @@ state = ();
 fork {
 	~state = state.make({
 	~testsamplepath = PS.scsamplepath +/+ "NS-wind-chimes-002-denoise-edit.wav";
-	SynthDef.new(\decijules, {|inbus,
-		outbus,
+	SynthDef.new(\decijules, {|in,
+		out,
 		trajrate=1,
 		len=0.3,
 		phase=3,
@@ -41,10 +41,10 @@ fork {
 		traj = LFTri.kr(trajrate, iphase: phase);
 		inenv = EnvGen.kr(Env.asr(attackTime: attack, releaseTime:release, curve:\sine), gate:gate);
 		outenv = EnvGen.kr(Env.linen(attack, len, release,curve:\sine), gate:gate, doneAction:2);
-		sig=In.ar(inbus)*inenv;
+		sig=In.ar(in)*inenv;
 		//sig=AllpassL.ar(sig, maxdelaytime: 3, delaytime:deltime, decaytime: deldecay);
 		sig=Pan2.ar(sig, traj, level: outenv);
-		Out.ar(outbus, sig);
+		Out.ar(out, sig);
 	}).add;
 	~ingroup = Group.new(s, \addToHead);
 	~inbus = Bus.newFrom(s.inputBus,0,1);
@@ -81,8 +81,8 @@ fork {
 	).play;
 	~p = Pbind(
 		\instrument, \decijules,
-		\inbus, ~inbus,
-		\outbus, ~outbus,
+		\in, ~inbus,
+		\out, ~outbus,
 		\group, ~voxgroup,
 		\sustain, Pwhite(1.0,3.0,inf),//input gate
 		\len, Pwhite(2.0,10.0), //output gate
@@ -100,5 +100,5 @@ fork {
 )
 ~state.p.play;
 ~state.testbuf;
-(pitch: 5, group: ~state.voxgroup, out:~state.outbus).play;
+(pitch: 5, group: ~state.voxgroup, out:~state.out).play;
 {s.makeGui;}.defer;

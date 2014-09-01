@@ -15,21 +15,21 @@
 	~inbus = Bus.audio(~server, ~ninputchannelstrips);
 	CmdPeriod.doOnce({ ~inbus.free });
 	~outbus = Bus.new(\audio, 0, 2, ~server);
-	CmdPeriod.doOnce({ state.outbus.free });
+	CmdPeriod.doOnce({ state.out.free });
 	s.sync;
 	~samples.notNil.if({
 		~defaultSourcebuf = ~samples.at(0)
 	}, {
 		~defaultSourcebuf = 0
 	});
-	~masterchannel = MixerChannel.new(\master, ~server, 2, 2, outbus: ~outbus);
+	~masterchannel = MixerChannel.new(\master, ~server, 2, 2, out: ~outbus);
 	~inputchannelstrips = ~ninputchannelstrips.collect({|i|
-		var ch = MixerChannel.new(\input ++ i, ~server, 1, 2, outbus: ~inbus.subBus(i,1));
+		var ch = MixerChannel.new(\input ++ i, ~server, 1, 2, out: ~inbus.subBus(i,1));
 		ch;
 	});
 	//Weird that I need to send a 2-channel send - I think sends only join at the FX bus?
 	~instchannelstrips = ~ninstchannelstrips.collect({|i|
-		var ch = MixerChannel.new(\channel ++ i, ~server, 1, 2, outbus: ~masterchannel);
+		var ch = MixerChannel.new(\channel ++ i, ~server, 1, 2, out: ~masterchannel);
 		//~inputchannelstrips.wrapAt(i).postcs;
 		//Force execution order
 		~inputchannelstrips.do({|inp|

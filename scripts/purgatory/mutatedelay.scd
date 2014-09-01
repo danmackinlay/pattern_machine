@@ -39,7 +39,7 @@ fork {state.make({
 	~testsound = Synth.head(
 		s,
 		\playbuf__1x2, [
-			\outbus, ~outbus.subBus(0,1),
+			\out, ~outbus.subBus(0,1),
 			\bufnum, ~testbuf
 		]
 	);

@@ -23,7 +23,7 @@ PSInfestManager {
 	makeHostSynth {}
 	makeParasiteSynth {|buf|
 		^Synth.new(parasiteSynthdef,
-			[\outbus, outs, \gate, 1, \i_sndbuffer, buf],
+			[\out, outs, \gate, 1, \i_sndbuffer, buf],
 			addAction:\addToTail,
 			target:group);
 	}

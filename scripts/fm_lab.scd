@@ -8,7 +8,7 @@ Check out sccode rand-n-step for array of synths examples
 (
 fork {
 	SynthDef.new(\basic_fm,
-		{|outbus=0,
+		{|out=0,
 			gate=0,
 			freq=440,
 			modFreqRatio=2,
@@ -21,14 +21,14 @@ fork {
 				phase: fModAmp*modulator,
 				mul: (1-aModAmp) + (aModAmp*modulator*0.5)
 			);
-			Out.ar(outbus,
+			Out.ar(out,
 				carrier
 			);
 		}, rates:[0.5, 0.05,0.05,0.05]
 	).add;
 	s.sync;
 	~fmguy = Synth(\basic_fm, [
-		\outbus, 0,
+		\out, 0,
 		\freq, 440,
 		\modFreqRatio, 2,
 		\fModAmp, 0,
@@ -47,7 +47,7 @@ fork {
 ~fmguy.set(\aModAmp, 0);
 ~fmguy.set(\aModAmp, 0.1);
 ~fmguy.set(\aModAmp, 2);
-~fmguy.get(\outbus, _.postln);
+~fmguy.get(\out, _.postln);
 )
 /* TODO:
 Envelope.
@@ -58,12 +58,12 @@ Panning.
 (
 fork {
 	SynthDef(\pitch_track, {
-		|inbus, ampBus, freqBus, delay=0|
+		|in, ampBus, freqBus, delay=0|
 		var certainty, freq;
-		inbus = In.ar(inbus);
-		#freq, certainty = Tartini.kr(inbus);
+		in = In.ar(in);
+		#freq, certainty = Tartini.kr(in);
 		Out.kr(ampBus, DelayN.kr(
-			Amplitude.kr(inbus),
+			Amplitude.kr(in),
 			maxdelaytime: 5,
 			delaytime: delay)
 		);
@@ -74,18 +74,18 @@ fork {
 		);
 	}).add;
 	SynthDef(\mouseX, {
-		|outbus, minval=0, maxval=1|
-		Out.kr(outbus, MouseX.kr(
+		|out, minval=0, maxval=1|
+		Out.kr(out, MouseX.kr(
 			minval: minval, maxval: maxval));
 	}).add;
 	SynthDef(\mouseY, {
-		|outbus, minval=0, maxval=1|
-		Out.kr(outbus, MouseY.kr(
+		|out, minval=0, maxval=1|
+		Out.kr(out, MouseY.kr(
 			minval: minval, maxval: maxval));
 	}).add;
 	SynthDef(\audioIn, {
-		|outbus|
-		Out.ar(outbus, SoundIn.ar(0));
+		|out|
+		Out.ar(out, SoundIn.ar(0));
 	}).add;
 	s.sync;
 	~inputBus=Bus.audio(s, 1);
@@ -95,20 +95,20 @@ fork {
 	~ampBus=Bus.control(s, 1);
 	s.sync;
 	~audioinguy = Synth(\audioIn, [
-		\outbus, ~inputBus
+		\out, ~inputBus
 	], s, addAction: \addToHead);
 	s.sync;
 	~pitchguy = Synth(\pitch_track, [
-		\inbus, ~inputBus,
+		\in, ~inputBus,
 		\ampBus, ~ampBus,
 		\freqBus, ~freqBus,
 		\delay, 2
 	], ~audioinguy, addAction: \addAfter);
 	~mousexguy = Synth(\mouseX, [
-		\outbus, ~mouseXBus
+		\out, ~mouseXBus
 	], s, addAction: \addToHead);
 	~mouseyguy = Synth(\mouseY, [
-		\outbus, ~mouseYBus
+		\out, ~mouseYBus
 	], s, addAction: \addToHead);
 }
 )
