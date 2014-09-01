@@ -16,12 +16,18 @@ Allocator {
 		next.notNil.if({
 			//should I throw an exception in this case?
 			toFree.add(next);
+		}, {
+			//throw exception?
 		});
 		^next;
 	}
 	dealloc {|i|
-		toAlloc.add(i);
-		toFree.remove(i);
+		toFree.findMatch(i).notNil.if({
+			toFree.remove(i);
+			toAlloc.add(i);
+		}, {
+			//throw exception?
+		});
 	}
 	printOn { arg stream;
 		stream << this.class.asString <<"(nResources:" << nResources.asString << ", available:" << toAlloc.asString << ")";
