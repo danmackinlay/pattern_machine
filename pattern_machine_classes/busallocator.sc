@@ -36,27 +36,35 @@ Allocator {
 
 BusAllocator : Allocator {
 	/*Manage a list of multichannel buses using a FIFO*/
-	var <nChans;
-	var <server;
-	var <busArray;
+	var <>numChannels;
+	var <>server;
+	var <>busArray;
 
-	play {|serverOrBusArray, numChannels, busRate=\audio|
-		nChans = numChannels;
+	*new {|serverOrBusArray, numChannels=1, busRate=\audio, nResources=16|
+		var server, busArray;
+		//[serverOrBusArray, numChannels, busRate, nResources].postcs;
 		serverOrBusArray.isKindOf(Server).if({
 			server = serverOrBusArray;
-			busArray = Bus.alloc(rate: busRate, server: server, numChannels: nResources*nChans);
+			busArray = Bus.alloc(
+				rate: busRate,
+				server: server,
+				numChannels: nResources*numChannels);
 		}, {
 			server = serverOrBusArray.server;
 			busArray = serverOrBusArray;
+			nResources = busArray.numChannels/numChannels;
 		});
+		//[serverOrBusArray, numChannels, busRate, nResources].postcs;
+		
+		^super.new(nResources).numChannels_(numChannels).server_(server).busArray_(busArray);
 	}
 	free {
 		busArray.free;
 	}
 	alloc {
-		^Bus.newFrom(busArray, offset: super.alloc, numChannels: nChans);
+		^Bus.newFrom(busArray, offset: (super.alloc)*numChannels, numChannels: numChannels);
 	}
 	dealloc {|i|
-		super.dealloc((i.index-busArray.index)/nChans);
+		super.dealloc((i.index-busArray.index)/numChannels);
 	}
 }
