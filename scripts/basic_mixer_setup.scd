@@ -1,4 +1,5 @@
-// core setup script; will only return if invoked in a forked thread
+// My most common mixing setup
+// will only return if invoked in a forked thread
 {|state| {state.make({
 	~bpm = ~bpm ? 80.0;
 	~tempo = 60.0/~bpm;
@@ -16,7 +17,7 @@
 	~inputgroup = Group.new(~maingroup, addAction:\addToHead);
 	~instgroup = Group.new(~maingroup, addAction:\addToTail);
 
-	~extinbus = Bus.newFrom(~server.inputBus,0,1);
+	~extinbus = Bus.newFrom(~server.inputBus,0,~ninputs);
 	~masteroutbus = Bus.new(\audio, 0, 2, ~server);
 
 	~inbus = Bus.audio(~server, ~ninputs);
@@ -49,10 +50,10 @@
 	CmdPeriod.doOnce({ state.inputgain.do({|synth| synth.free}) });
 
 	//In case I don't want to sing:
-	~sourcesounds = ~instbuses.collect({|bus| (
-		instrument: \playbuf_soundin__1x1,
-		//clocktempo: PContext(state, \tempo),
-		in: ~extinbus,
+	~sourcesounds = ~inbuses.collect({|bus, i| (
+		instrument: \bufrd_or_live__1x1,
+		looptime: 8.0/~tempo, //2 bars
+		in: ~extinbus.subBus(i,1),
 		out: bus,
 		group: ~inputgroup,
 		server: ~server,
@@ -62,7 +63,7 @@
 		loop: 1,
 		sendGate: false,//persist
 	).play;});
-	CmdPeriod.doOnce({ state.sourcesounds.do({|synth| synth.free}) });
+	CmdPeriod.doOnce({ state.sourcesound.do({|synth| synth.free}) });
 
 	~limiter = (
 		instrument: \limi__2x2,

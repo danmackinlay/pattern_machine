@@ -58,12 +58,13 @@ PSUtilitySynthDefs {
 		SynthDef(\soundin__1x1, {|out=0, in=0|
 			Out.ar(out, SoundIn.ar(in));
 		}).add;
-		//play a recording or the mic; I do this often enough for it to deserve a synthdef.
-		SynthDef.new(\playbuf_soundin__1x1,
+		//play a recording or the mic, looped either way;
+		//I do this often enough for it to deserve a synthdef.
+		SynthDef.new(\playbuf_or_live__1x1,
 			{|out=0,
 				in=0,
 				bufnum,
-				loop=1,
+				loop=1.0,
 				gate=1,
 				rate=1,
 				livefade=0.0,
@@ -79,7 +80,7 @@ PSUtilitySynthDefs {
 			livefade = VarLag.kr(
 				in: livefade.linlin(0.0,1.0,-1.0,1.0),
 				time: fadetime, warp: \linear);
-			sig = XFade2.ar(sig, SoundIn.ar(in), livefade);
+			sig = XFade2.ar(sig, In.ar(in), livefade);
 			env = EnvGen.kr(
 				Env.asr(attackTime:0.05, releaseTime:0.05, curve: \sine),
 				levelScale: 1,
@@ -87,6 +88,48 @@ PSUtilitySynthDefs {
 				doneAction: 2
 			);
 			Out.ar(out, sig*env);
+		}).add;
+		//a version which plays live input or looped buffer in sync to clock;
+		//this could also be declicked
+		//todo: loop audio as well
+		SynthDef.new(\bufrd_or_live__1x1,
+			{|out=0,
+				in=0,
+				bufnum,
+				gate=1,
+				rate=1,
+				trig=1,
+				livefade=0.0,
+				looptime=5.0,
+				loop=1.0,  //who knows what this does?
+				fadetime=0.2|
+			var env, sig, phase;
+			phase = Phasor.ar(
+					trig: 1, //trig,
+					rate: BufRateScale.kr(bufnum) * rate,
+					start: 0,
+					end: BufSampleRate.kr(bufnum) * looptime);
+			//phase.poll(2, 'ph');
+			sig = BufRd.ar(
+				numChannels: 1,
+				bufnum: bufnum,
+				phase: phase,
+				loop: loop, //what the shit does this do?
+				interpolation: 1);
+			livefade = VarLag.kr(
+				in: livefade.linlin(0.0,1.0,-1.0,1.0),
+				time: fadetime, warp: \linear);
+			sig = XFade2.ar(sig, In.ar(in), livefade);
+			env = EnvGen.kr(
+				Env.asr(attackTime:0.05, releaseTime:0.05, curve: \sine),
+				levelScale: 1,
+				gate: gate,
+				doneAction: 2
+			);
+			Out.ar(out, sig*env);
+		}).add;
+		SynthDef(\rec_or_live__1, {|bufnum=0, in=0|
+			RecordBuf.ar(In.ar(in),bufnum:bufnum, loop:0, doneAction:2);
 		}).add;
 		SynthDef(\rec_soundin__1, {|bufnum=0, in=0|
 			RecordBuf.ar(SoundIn.ar(in),bufnum:bufnum, loop:0, doneAction:2);

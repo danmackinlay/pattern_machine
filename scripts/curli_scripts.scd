@@ -29,19 +29,8 @@ fork {state.make({
 	~ninputs = 1;
 	~ninsts = 4;
 
-	//UI interaction stuff
-	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
-	// {metaparamMap.plot;}.defer;
-	// CmdPeriod.doOnce({ ~metaparamMap.free });
-	// ~paramUpdater = PSParamForwarder(metaparamMap, 0.05);
-	// CmdPeriod.doOnce({ ~paramUpdater.free });
-	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
-	// //to disable:
-	//
-	// CmdPeriod.doOnce({ OSCdef(\wii).free });
-
 	//sample loading
-	~samples = PSSamples.new(basePath: PS.scsamplepath);
+	~samples = PSSamples.new(basePath: PS.scsamplepath, dur:20);
 	~samples.initFromDict((
 		siren: [
 			"22370__druidus__Civil_Defence_Siren.wav",
@@ -76,8 +65,8 @@ fork {state.make({
 	));
 	CmdPeriod.doOnce({ state.samples.free });
 	s.sync;
-	//~voices = Array.fill(4, List.new);
-	//~voicestates = Array.fill(4, nil);
+	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
+
 	~nextVoice = 0;
 	~bardelta= 4;
 	~seed = 1128;
@@ -92,9 +81,33 @@ fork {state.make({
 	~quant = 1/4;
 	~strength = 1;
 	~controls = List.new;
-	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
+
+	//UI interaction stuff
+	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
+	// {metaparamMap.plot;}.defer;
+	// CmdPeriod.doOnce({ ~metaparamMap.free });
+	// ~paramUpdater = PSParamForwarder(metaparamMap, 0.05);
+	// CmdPeriod.doOnce({ ~paramUpdater.free });
+	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
+	// //to disable:
+	//
+	// CmdPeriod.doOnce({ OSCdef(\wii).free });
 })};
 )
+(
+~spy = (
+	instrument: \jack__1,
+	in: ~state.inbuses[0],
+	out: ~state.masteroutbus.subBus(0,1),
+	group: ~state.outputgroup,
+	server: ~state.server,
+	addAction: \addToTail,
+	sendGate: false,//persist
+).play;
+)
+~state.sourcesounds[0].set(\looptime, 8);
+~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
+
 (
 var localstate, state = ~state, i = state.nextVoice;
 fork {
@@ -132,3 +145,6 @@ loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 
 ~state.sourcesounds[0].set(\livefade, 0);
 ~state.sourcesounds[0].set(\livefade, 1);
+
+(\a: 5).gui;
+~state.limiter.gui;

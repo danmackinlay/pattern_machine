@@ -20,7 +20,7 @@ PSSamples {
 	}
 	init {
 		inited.if({this.free});
-		durSamples = server.sampleRate;
+		durSamples = server.sampleRate * dur;
 		sampleBufKeys = IdentityDictionary.new;
 		bufPtr = -1;
 		{
