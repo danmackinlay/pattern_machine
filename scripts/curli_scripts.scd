@@ -74,7 +74,6 @@ state.server.doWhenBooted({state.make({
 	s.sync;
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
 
-	~nextVoice = 0;
 	~bardelta= 4;
 	~seed = 1128;
 	~density = 1;
@@ -88,6 +87,8 @@ state.server.doWhenBooted({state.make({
 	~quant = 1/4;
 	~strength = 1;
 	~controls = List.new;
+	~nextVoice = 0;
+	~voiceStates = List.fill(4, nil);
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -102,6 +103,21 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
+//Uh oh, make doesn't work for parents
+var localstate, state = ~state, i = ~state.nextVoice;
+fork {
+	localstate = Event.new(n:60, proto: state).make({
+		//~inbus = ~inbuses[0];
+		~outbus = ~instbuses[i];
+	});
+	//state.voiceStates.add(localstate);
+	//state.nextVoice = i + 1;
+	//this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
+};
+)
+
+
+(
 ~spy = (
 	instrument: \jack__1,
 	in: ~state.inbuses[0],
@@ -112,26 +128,15 @@ state.server.doWhenBooted({state.make({
 	sendGate: false,//persist
 ).play;
 )
+~spy.free;
+
 ~state.sourcesounds[0].set(\looptime, 8);
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 
-(
-var localstate, state = ~state, i = state.nextVoice;
-fork {
-	localstate = Event.new(n:60, proto: state);
-	state[\voicestates][i] = localstate;
-	state.voices[i].add(
-		this.executeFile(
-			PS.scriptpath +/+ "curli_inst.scd"
-		).value(
-			localstate,
-			i
-		)
-	);
-	state[\nextVoice] = i + 1;
-};
-)
-
+b=~state.instbusallocator.alloc;
+~state.instbusallocator.nResources
+~state.instbusallocator.busArray
+b=BusAllocator.new(~state.instbuses);
 (
 var loc = ~state[\voicestates][~state[\nextVoice]-1];
 loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
@@ -155,3 +160,4 @@ loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
 
 (\a: 5).gui;
 ~state.limiter.gui;
+~state.sourcesounds[0]
