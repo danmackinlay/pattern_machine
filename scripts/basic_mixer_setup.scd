@@ -3,6 +3,7 @@
 {|state| {state.make({
 	~bpm = ~bpm ? 80.0;
 	~tempo = 60.0/~bpm;
+	~beatTime = ~tempo.reciprocal;
 	~clock = ~clock ? TempoClock.default;
 	(~clock.tempo != ~tempo).if({
 		~clock.tempo_(~tempo);

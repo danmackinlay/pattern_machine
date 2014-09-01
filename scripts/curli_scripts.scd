@@ -103,19 +103,19 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
-//Uh oh, make doesn't work for parents
 var localstate, state = ~state, i = ~state.nextVoice;
 fork {
-	localstate = Event.new(n:60, proto: state).make({
-		//~inbus = ~inbuses[0];
-		~outbus = ~instbuses[i];
+	localstate = Event.new(n:60, proto: state);
+	localstate.make({
+		~inbus = state.inbuses[0];
+		~outbus = state.instbusallocator.alloc;
 	});
-	//state.voiceStates.add(localstate);
-	//state.nextVoice = i + 1;
-	//this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
+	state.voiceStates.add(localstate);
+	state.nextVoice = i + 1;
+	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
 };
 )
-
+~state.inbuses[0];
 
 (
 ~spy = (
