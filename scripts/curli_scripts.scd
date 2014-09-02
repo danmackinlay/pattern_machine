@@ -4,17 +4,21 @@ Curlicue
 TODO: (priority order)
 * decent Lemur template
 * OSC triggering for:
-  * gestures
-  * main input looping
-  * voice looping
-  * voice delay scaling
-  * voice density
-  * chaos
-  * reseeding
-  * seed value
-  * tempo overall
-* attack and decay
-* granular choir
+  * overall
+    * main input looping
+    * gestures
+    * seed value
+    * tempo overall
+    * attack and decay
+  * per voice
+    * reseeding
+    * looping
+    * delay scaling
+    * offset
+    * density
+    * level
+    * reverb mix
+    * chaos
 * tap sync
 * enveloped gestures
 * get rid of clicks by
@@ -23,7 +27,8 @@ TODO: (priority order)
   * just edit the fucking files
 * level meter
   * or listen on buses using Ndef, then JIT mixers
-* stateful algorithm to navigate through with wiimote
+* master gain
+* channel synth (limi, gain, level reporting, perhaps EQ?)
 */
 
 //~server = Dan.serverboot(prox:\local, device:\rme);
@@ -93,6 +98,8 @@ state.server.doWhenBooted({state.make({
 	~quant = 1/4;
 	~strength = 1;
 	~controls = List.new;
+	~attack = 0.1;
+	~release = 0.3;
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -108,13 +115,6 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
-~state.bpm
-~state.bpm=120;
-~state.updateTempo.();
-~state.tempo;
-)
-
-(
 var localstate, state = ~state, i = ~state.nextVoice;
 fork {
 	localstate = Event.new(n:60, proto: state);
@@ -126,6 +126,15 @@ fork {
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
 };
 )
+(
+~state.bpm;
+~state.bpm=120;
+~state.updateTempo.();
+~state.tempo;
+~state.attack=0.1;
+)
+
+
 ~state.reseed=true;
 ~state.loop=true;
 (
@@ -141,7 +150,6 @@ fork {
 )
 ~spy.free;
 
-~state.sourcesounds[0].set(\looptime, 8);
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 
 ~state.voicestates[0][\trans]=[1/4,1,4/3];

@@ -58,6 +58,8 @@
 			\group, ~headGroup,
 			\addAction, \addToTail,
 			\server, ~server,
+			\attack, PContext(state, \attack, 0.1),
+			\release, PContext(state, \release, 0.3),
 			\bartime, Pseg(
 				[0,state[\loopBeats]],
 				state[\loopBeats], \lin, inf),

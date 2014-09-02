@@ -12,7 +12,7 @@
 	//propagates tempo variables into vraious derivatives and synth
 	state.updateTempo={|self|
 		\updatetempo.postln;
-		self.postln;
+		//self.postln;
 		self.bpm = self.bpm ? 80.0;
 		self.tempo = 60.0/self.bpm;
 		self.beatTime = self.tempo.reciprocal;
