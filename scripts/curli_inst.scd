@@ -9,8 +9,8 @@
 		~delscale = state.delscale ? 1.0;
 		~amp = state.amp ? 0.5;
 		~pan = state.pan ? 0.0;
-		~density = state.density ? 1.0;
-		~intensity = state.intensity ? 1.0;
+		~density = state.density ? 1.0; //rate of impacts
+		~intensity = state.intensity ? 1.0; //expected polyphony
 		~stationarity = state.stationarity ? 1.0;
 
 		state.voiceStates[i]=(state);
@@ -82,13 +82,10 @@
 			\pan, PContext(state, \pan, 0.0),
 			\rate, Prand(state[\trans], inf),
 			\modulate, ~modbus.asMap,
+			\sendGate, true
 		).postcs.trace(prefix: \outer);
-		~pat = Pquantize(~pat,
-			quant: PContext(state, \amp, 0.5),
-			debug: true); //.trace;
-
 		// least troublesome way of reseeding is Pspawner
-		~spawnstream = Pspawner({|spawner|
+		~stream = Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat;
 				//Pindex? or Pfsm?
@@ -103,7 +100,12 @@
 				);
 				spawner.wait(state[\loopBeats]);
 			});
-		}).play(clock: ~clock);
+		});
+		~pat = Pquantize(~pat,
+			quant: PContext(state, \quant, 0.5),
+			strength: PContext(state, \strength, 1.0),
+			debug: true); //.trace;
+		~stream = ~pat.play(clock: ~clock);
 		~updateTempo={|self|
 			\subupdatetempo.postln;
 			self.bpm = self.bpm ? 80.0;
