@@ -4,9 +4,16 @@ Curlicue
 TODO: (priority order)
 * decent Lemur template
 * OSC triggering for:
-  * loop re-ordering
   * gestures
-* audio-input-driven effects
+  * main input looping
+  * voice looping
+  * voice delay scaling
+  * voice density
+  * chaos
+  * reseeding
+  * seed value
+  * tempo overall
+* attack and decay
 * granular choir
 * tap sync
 * enveloped gestures
@@ -22,7 +29,6 @@ TODO: (priority order)
 //~server = Dan.serverboot(prox:\local, device:\rme);
 //~server = Dan.serverboot(prox:\local, device:\motu);
 ~server = Dan.serverboot(prox:\local, device:\builtin);
-
 (
 var state = ();
 ~state=state;
@@ -36,9 +42,9 @@ state.server = ~server ?? {
 state.server.doWhenBooted({state.make({
 	~ninputs = 1;
 	~ninsts = 4;
-
+	~sampleDur = 60;
 	//sample loading
-	~samples = PSSamples.new(basePath: PS.scsamplepath, dur:20);
+	~samples = PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur);
 	~samples.initFromDict((
 		siren: [
 			"22370__druidus__Civil_Defence_Siren.wav",
@@ -75,7 +81,6 @@ state.server.doWhenBooted({state.make({
 	s.sync;
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
 
-	~bardelta= 4;
 	~seed = 1128;
 	~density = 1;
 	~chaos = 0;
@@ -88,8 +93,6 @@ state.server.doWhenBooted({state.make({
 	~quant = 1/4;
 	~strength = 1;
 	~controls = List.new;
-	~nextVoice = 0;
-	~voiceStates = List.fill(~ninsts, nil);
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -101,8 +104,16 @@ state.server.doWhenBooted({state.make({
 	// //to disable:
 	//
 	// CmdPeriod.doOnce({ OSCdef(\wii).free });
+
 })});
 )
+(
+~state.bpm
+~state.bpm=120;
+~state.updateTempo.();
+~state.tempo;
+)
+
 (
 var localstate, state = ~state, i = ~state.nextVoice;
 fork {
