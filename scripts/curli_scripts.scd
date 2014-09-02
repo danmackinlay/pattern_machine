@@ -43,33 +43,33 @@ state.server.doWhenBooted({state.make({
 		siren: [
 			"22370__druidus__Civil_Defence_Siren.wav",
 			"24347__fonogeno__Police_sirens-short.wav",
-			"30476__LG__Dutch_air_raid_warning_02.wav",
+			//"30476__LG__Dutch_air_raid_warning_02.wav",
 			"43807__daveincamas__WW2AirplaneFlyover.wav",
 		],
 		people: [
 			"actors-laughing.wav",
-			"tortureguy-3.wav",
+			//"tortureguy-3.wav",
 			"actors-siren.wav",
 			"actors-tuning.wav",
 		],
 		desolation: [
 			"varese_on_a_lathe.wav",
-			"whistling-wind.wav",
-			"seagull-walk.wav",
+			//"whistling-wind.wav",
+			//"seagull-walk.wav",
 			"10334_batchku_burning_iceberg.aiff",
 		],
 		tuneful: [
 			"Unknown_Lead_Vocal.wav",
 			"NS-wind-chimes-002-denoise-edit.wav",
 			"CONCERTOFORCLARINETP2-solo.wav",
-			"uc-ezchord.wav",
+			//"uc-ezchord.wav",
 		],
-		// choral: [
-		// 	"choir/namgyalmonastery-chanthighlight.wav",
-		// 	"choir/magnificat-build.wav",
-		// 	"choir/huunhuurtu-legend.wav",
-		// 	"choir/bulgur-legend.wav",
-		// ],
+		choral: [
+			"angelite_legend_mmm.aif",
+			"huunhuurtu_angelite_legend_build.wav",
+			"namgyal.aif",
+			"paert-Magnificat-climax.aif",
+		],
 	));
 	CmdPeriod.doOnce({ state.samples.free });
 	s.sync;
@@ -89,7 +89,7 @@ state.server.doWhenBooted({state.make({
 	~strength = 1;
 	~controls = List.new;
 	~nextVoice = 0;
-	~voiceStates = List.fill(4, nil);
+	~voiceStates = List.fill(~ninsts, nil);
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -111,12 +111,12 @@ fork {
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
 	});
-	state.voiceStates.add(localstate);
 	state.nextVoice = i + 1;
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
 };
 )
-
+~state.reseed=true;
+~state.loop=true;
 (
 ~spy = (
 	instrument: \jack__1,
@@ -133,14 +133,6 @@ fork {
 ~state.sourcesounds[0].set(\looptime, 8);
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 
-b=~state.instbusallocator.alloc;
-~state.instbusallocator.nResources
-~state.instbusallocator.busArray
-b=BusAllocator.new(~state.instbuses);
-(
-var loc = ~state[\voicestates][~state[\nextVoice]-1];
-loc.outchannel.play(loc.pat, (clock: loc.clock)).postcs;
-)
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.voicestates[1][\trans]=[1/4,1];
 ~state.voicestates[2][\trans]=[1,2];
