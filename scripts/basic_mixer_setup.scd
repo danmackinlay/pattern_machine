@@ -1,16 +1,36 @@
 // My most common mixing setup
 // will only return if invoked in a forked thread
 {|state| {state.make({
-	~bpm = ~bpm ? 80.0;
-	~tempo = 60.0/~bpm;
-	~beatTime = ~tempo.reciprocal;
-	~loopBeats = ~loopBeats ? 8.0;
-	~loopTime = ~beatTime * loopBeats;
+	~ninputs = ~ninputs ? 1;
+	~ninsts = ~ninsts ? 4;
+	~sampleDur = ~sampleDur ? 60;
+	~nextVoice = 0;
+	~voiceStates = List.fill(~ninsts, nil);
+
 	~offset = ~offset ? 0.0;
 	~clock = ~clock ? TempoClock.default;
-	(~clock.tempo != ~tempo).if({
-		~clock.tempo_(~tempo);
-	});
+	//propagates tempo variables into vraious derivatives and synth
+	state.updateTempo={|self|
+		\updatetempo.postln;
+		self.postln;
+		self.bpm = self.bpm ? 80.0;
+		self.tempo = 60.0/self.bpm;
+		self.beatTime = self.tempo.reciprocal;
+		self.loopBeats = self.loopBeats ? 8.0;
+		self.loopTime = self.beatTime * self.loopBeats;
+		(self.clock.tempo != self.tempo).if({
+			self.clock.tempo_(self.tempo);
+		});
+		self.sourcesounds.notNil.if({
+			self.sourcesounds.do({|synth|
+				synth.set(\looptime, self.loopTime);
+			});
+		});
+		self.voiceStates.do({|voicestate|
+			voicestate.notNil.if({ voicestate.updateTempo.()});
+		});
+	};
+	state.updateTempo.();
 	~ninputs = ~ninputs ? 1;
 	~ninsts = ~ninsts ? 4;
 	~nparams = ~nparams ? 32;

@@ -6,6 +6,7 @@
 	state.make({
 		// delay/loop action
 		~i=i;
+		~delscale = state.delscale ? 1.0;
 		state.voiceStates[i]=(state);
 		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
 		~sampleDur = state.sampleDur ? 30;
@@ -58,8 +59,8 @@
 			\addAction, \addToTail,
 			\server, ~server,
 			\bartime, Pseg(
-				[0,state[\bardelta]],
-				state[\bardelta], \lin, inf),
+				[0,state[\loopBeats]],
+				state[\loopBeats], \lin, inf),
 			\bufnum, ~loopbuf,
 			\phasebus, ~loopphasebus,
 			\dur, Prand([0,1/2,3/2], inf)*Pfunc({state[\density]?1}),
@@ -67,12 +68,11 @@
 			\deltime, (
 				(Prand([0,1/2,3/4,2/3], inf) +
 					Pkey(\bartime)
-				).wrap(0, state[\bardelta]) *
+				).wrap(0, state[\loopBeats]) *
 				state.beatTime),
 			\amp, 1,
 			\pan, Pfunc({state[\pan]}),
 			\rate, Prand(state[\trans], inf),
-			\sustain, Prand([1,1/2], inf),
 			\modulate, ~modbus.asMap,
 		).postcs.trace(prefix: \outer);
 		~pat = Pquantize(~pat,
@@ -89,14 +89,22 @@
 				});
 				spawner.par(
 					pattern: Pfindur(
-						dur: state[\bardelta],
+						dur: state[\loopBeats],
 						pattern: pat), //.postcs.trace(prefix: \inner),
 					delta: 0,
 				);
-				spawner.wait(state[\bardelta]);
+				spawner.wait(state[\loopBeats]);
 			});
 		}).play(clock: ~clock);
-
+		~updateTempo={|self|
+			\subupdatetempo.postln;
+			self.bpm = self.bpm ? 80.0;
+			self.tempo = 60.0/self.bpm;
+			self.beatTime = self.tempo.reciprocal;
+			self.loopBeats = self.loopBeats ? 8.0;
+			self.loopTime = self.beatTime * self.loopBeats;
+			self.loopsynth.set(\deltime, self.loopTime);
+		};
 		/*
 		~paramUpdater.addUpdater({|val|
 			~parambus.set(val.linlin(0.0,1.0,0.0, 2.0));
