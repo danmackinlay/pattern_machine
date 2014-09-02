@@ -38,11 +38,11 @@ PContext : Pattern {
 	*/
 	var <>state; 
 	var <>key; // Func is evaluated for each next state
-	*new { arg state, key;
-		^super.newCopyArgs(state, key)
+	*new { arg state, key, default;
+		^super.newCopyArgs(state, key, default)
 	}
-	storeArgs { ^[state, key] }
+	storeArgs { ^[state, key, default] }
 	asStream {
-		^FuncStream.new({state.at(key)})
+		^FuncStream.new({state.at(key) ? default})
 	}
 }
