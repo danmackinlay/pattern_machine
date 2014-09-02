@@ -1,6 +1,12 @@
+//This should totally be a class; I use it often enough.
+
 {|state, i|
 	state.make({
 		// delay/loop action
+		~i=i;
+		state.voiceStates[i]=(state);
+		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
+
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * 30.0, 1);
 		~modbus = ~parambusallocator.alloc;
 		CmdPeriod.doOnce({ state.loopbuf.free });
@@ -70,18 +76,14 @@
 		~pat = Pquantize(~pat,
 			quant: Pfunc({state.quant}),
 			debug: true); //.trace;
-		~stream =  ~pat.play(
-			clock: ~clock,
-		);
 
-		/* //How the Pspawner version works
-		Pspawner({|spawner|
+		//How the Pspawner version works
+		~spawnstream = Pspawner({|spawner|
 			inf.do({|i|
-				var newSeed, pat, beatTime;
+				var newSeed, pat;
 				//Pindex? or Pfsm?
-				~pat = //BLAH
 				state[\reseed].if({
-					pat = Pseed(state[\seed], pat);
+					pat = Pseed(state[\seed], ~pat);
 				});
 				spawner.par(
 					pattern: Pfindur(
@@ -91,8 +93,9 @@
 				);
 				spawner.wait(state[\bardelta]);
 			});
-		}));
-		*/
+		}).play(clock: ~clock);
+
+		/*
 		~paramUpdater.addUpdater({|val|
 			~parambus.set(val.linlin(0.0,1.0,0.0, 2.0));
 		});
@@ -100,5 +103,6 @@
 			//[\val,val].postln;
 			~pan = val.linlin(0.0,1.0,-0.8, 0.8);
 		});
+		*/
 	});
 }
