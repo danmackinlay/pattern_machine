@@ -78,8 +78,8 @@
 					Pkey(\bartime)
 				).wrap(0, state[\loopBeats]) *
 				state.beatTime),
-			\amp, 1,
-			\pan, Pfunc({state[\pan]}),
+			\amp, PContext(state, \amp, 0.5),
+			\pan, PContext(state, \pan, 0.0),
 			\rate, Prand(state[\trans], inf),
 			\modulate, ~modbus.asMap,
 		).postcs.trace(prefix: \outer);
