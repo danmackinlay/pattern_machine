@@ -36,8 +36,9 @@ PContext : Pattern {
 		~str =Pbind(\delta, PContext(~state, \a)).trace.play;
 	)
 	*/
-	var <>state; 
-	var <>key; // Func is evaluated for each next state
+	var <>state; //what to look up in
+	var <>key; //which key to look up
+	var <>default; //fallback to...
 	*new { arg state, key, default;
 		^super.newCopyArgs(state, key, default)
 	}
