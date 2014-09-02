@@ -1,4 +1,6 @@
 //This should totally be a class; I use it often enough.
+//TODO: buffer offset base and range
+//TODO: variable barlength (including pspawner counter)
 
 {|state, i|
 	state.make({
@@ -6,8 +8,8 @@
 		~i=i;
 		state.voiceStates[i]=(state);
 		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
-
-		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * 30.0, 1);
+		~sampleDur = state.sampleDur ? 30;
+		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
 		~modbus = ~parambusallocator.alloc;
 		CmdPeriod.doOnce({ state.loopbuf.free });
 		~loopphasebus = Bus.control(~server, 1);
@@ -22,7 +24,7 @@
 			out: ~inbus,
 			bufnum: ~loopbuf,
 			wet: 0,
-			deltime: ~beatTime*4,
+			deltime: ~loopTime,
 			phasebus: ~loopphasebus,
 			group: ~headGroup,
 			addAction: \addToHead,
@@ -77,7 +79,7 @@
 			quant: Pfunc({state.quant}),
 			debug: true); //.trace;
 
-		//How the Pspawner version works
+		// least troublesome way of reseeding is Pspawner
 		~spawnstream = Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat;

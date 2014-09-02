@@ -101,14 +101,17 @@ PSUtilitySynthDefs {
 				trig=1,
 				livefade=0.0,
 				looptime=5.0,
-				loop=1.0,  //who knows what this does?
+				offset=0.0,
+				loop=1.0, //who knows what this does?
 				fadetime=0.2|
-			var env, sig, phase;
+			var env, sig, phase, sampoffset;
+			sampoffset = BufSampleRate.kr(bufnum) * offset;
 			phase = Phasor.ar(
 					trig: 1, //trig,
 					rate: BufRateScale.kr(bufnum) * rate,
 					start: 0,
 					end: BufSampleRate.kr(bufnum) * looptime);
+			phase = phase + sampoffset;
 			//phase.poll(2, 'ph');
 			sig = BufRd.ar(
 				numChannels: 1,

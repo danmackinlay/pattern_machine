@@ -4,6 +4,9 @@
 	~bpm = ~bpm ? 80.0;
 	~tempo = 60.0/~bpm;
 	~beatTime = ~tempo.reciprocal;
+	~loopBeats = ~loopBeats ? 8.0;
+	~loopTime = ~beatTime * loopBeats;
+	~offset = ~offset ? 0.0;
 	~clock = ~clock ? TempoClock.default;
 	(~clock.tempo != ~tempo).if({
 		~clock.tempo_(~tempo);
@@ -62,7 +65,8 @@
 	//In case I don't want to sing:
 	~sourcesounds = ~inbuses.collect({|bus, i| (
 		instrument: \bufrd_or_live__1x1,
-		looptime: 8.0/~tempo, //2 bars
+		looptime: ~loopTime,
+		offset: ~offset,
 		in: ~extinbus.subBus(i,1),
 		out: bus,
 		group: ~inputgroup,
