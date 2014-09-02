@@ -1,24 +1,27 @@
 {|state, i|
 	state.make({
 		// delay/loop action
-		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * 10.0, 1);
-		~parambus = ~parambusallocator.alloc;
+		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * 30.0, 1);
+		~modbus = ~parambusallocator.alloc;
 		CmdPeriod.doOnce({ state.loopbuf.free });
 		~loopphasebus = Bus.control(~server, 1);
 		CmdPeriod.doOnce({ state.loopphasebus.free });
+		//looks tidier in debug to use groups instead of synths
+		~headGroup = Group.head(~instgroup);
+		~tailGroup = Group.tail(~instgroup);
 		s.sync;
 		//delay/loop input
 		~loopsynth = (
 			instrument: \ps_deltapwr_loop__1x1,
 			out: ~inbus,
 			bufnum: ~loopbuf,
-			group: ~instgroup,
 			wet: 0,
 			deltime: ~beatTime*4,
 			phasebus: ~loopphasebus,
+			group: ~headGroup,
 			addAction: \addToHead,
 			sendGate: false,//persist
-		).play(clock: ~clock);
+		).play;
 		CmdPeriod.doOnce({ state.loopsynth.free });
 
 		s.sync;
@@ -26,7 +29,7 @@
 		//channel fx
 		~reverb = (
 			instrument: \ps_gverb__2x2,
-			group: ~instgroup,
+			group: ~tailGroup,
 			server: ~server,
 			addAction: \addToTail,
 			sendGate: false,//persist
@@ -36,15 +39,15 @@
 			damping: 0.4,
 			revtime: 0.8,
 			roomsize: 170,
-		).play(clock: ~clock);
+		).play;
 		CmdPeriod.doOnce({ state.reverb.free });
 
 		s.sync;
 
 		~pat = Pbind(
 			\instrument, \ps_deltaprd_play__1x2,
-			\group, ~loopsynth,
-			\addAction, \addAfter,
+			\group, ~headGroup,
+			\addAction, \addToTail,
 			\server, ~server,
 			\bartime, Pseg(
 				[0,state[\bardelta]],
@@ -62,7 +65,7 @@
 			\pan, Pfunc({state[\pan]}),
 			\rate, Prand(state[\trans], inf),
 			\sustain, Prand([1,1/2], inf),
-			\modulate, ~parambus.asMap,
+			\modulate, ~modbus.asMap,
 		).postcs.trace(prefix: \outer);
 		~pat = Pquantize(~pat,
 			quant: Pfunc({state.quant}),

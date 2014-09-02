@@ -31,6 +31,7 @@ state.server = ~server ?? {
 	//Dan.serverboot(prox:\local, device:\motu);
 	Dan.serverboot(prox:\local, device:\builtin);
 };
+~server = state.server;
 
 state.server.doWhenBooted({state.make({
 	~ninputs = 1;
@@ -115,7 +116,6 @@ fork {
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
 };
 )
-~state.inbuses[0];
 
 (
 ~spy = (
