@@ -9,7 +9,7 @@
 		s.sync;
 		//delay/loop input
 		~loopsynth = (
-			instrument: \ps_buf_delay_loop__1x1,
+			instrument: \ps_deltapwr_loop__1x1,
 			out: ~inbus,
 			bufnum: ~loopbuf,
 			group: ~instgroup,
@@ -42,7 +42,7 @@
 		s.sync;
 
 		~pat = Pbind(
-			\instrument, \ps_buf_delay_play__1x2,
+			\instrument, \ps_deltaprd_play__1x2,
 			\group, ~loopsynth,
 			\addAction, \addAfter,
 			\server, ~server,
