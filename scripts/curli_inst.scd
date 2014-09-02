@@ -7,6 +7,12 @@
 		// delay/loop action
 		~i=i;
 		~delscale = state.delscale ? 1.0;
+		~amp = state.amp ? 0.5;
+		~pan = state.pan ? 0.0;
+		~density = state.density ? 1.0;
+		~intensity = state.intensity ? 1.0;
+		~stationarity = state.stationarity ? 1.0;
+
 		state.voiceStates[i]=(state);
 		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
 		~sampleDur = state.sampleDur ? 30;
@@ -52,7 +58,7 @@
 		CmdPeriod.doOnce({ state.reverb.free });
 
 		s.sync;
-
+		//NB output not specified! that's why it's playing to master.
 		~pat = Pbind(
 			\instrument, \ps_deltaprd_play__1x2,
 			\group, ~headGroup,

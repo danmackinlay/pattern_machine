@@ -15,11 +15,14 @@ TODO: (priority order)
     * looping
     * delay scaling
     * offset
+    * quantization
+    * strength
     * density
     * level
     * reverb mix
     * chaos
 * tap sync
+* follow write head more closely in delay
 * enveloped gestures
 * get rid of clicks by
   * restrict sample looping to first 30 seconds, OR
