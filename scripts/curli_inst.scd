@@ -71,7 +71,7 @@
 				state[\loopBeats], \lin, inf),
 			\bufnum, ~loopbuf,
 			\phasebus, ~loopphasebus,
-			\dur, Prand([0,1/2,3/2], inf)*Pfunc({state[\density]?1}),
+			\dur, Prand([0,1/2,3/2], inf)*PContext(state, \density, 1.0),
 			\delta, Prand([0,1/2], inf)*(1+Pfunc({state[\chaos].rand2;})), //or PexpR(Pfunc({state.lambda})),
 			\deltime, (
 				(Prand([0,1/2,3/4,2/3], inf) +
@@ -84,7 +84,7 @@
 			\modulate, ~modbus.asMap,
 		).postcs.trace(prefix: \outer);
 		~pat = Pquantize(~pat,
-			quant: Pfunc({state.quant}),
+			quant: PContext(state, \amp, 0.5),
 			debug: true); //.trace;
 
 		// least troublesome way of reseeding is Pspawner
