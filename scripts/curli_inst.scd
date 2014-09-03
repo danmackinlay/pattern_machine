@@ -12,6 +12,8 @@
 		~density = state.density ? 1.0; //rate of impacts
 		~intensity = state.intensity ? 1.0; //expected polyphony
 		~stationarity = state.stationarity ? 1.0;
+		~chaos = state.chaos ? 1.0;
+
 
 		state.voiceStates[i]=(state);
 		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
@@ -59,7 +61,8 @@
 
 		s.sync;
 		//NB output not specified! that's why it's playing to master.
-		~pat = Pbind(
+		//cannot also be called ~pat or recursive reference manages to happen somehow.
+		~basepat = Pbind(
 			\instrument, \ps_deltaprd_play__1x2,
 			\group, ~headGroup,
 			\addAction, \addToTail,
@@ -72,7 +75,7 @@
 			\bufnum, ~loopbuf,
 			\phasebus, ~loopphasebus,
 			\dur, Prand([0,1/2,3/2], inf)*PContext(state, \density, 1.0),
-			\delta, Prand([0,1/2], inf)*(1+Pfunc({state[\chaos].rand2;})), //or PexpR(Pfunc({state.lambda})),
+			\delta, Prand([1/4,1/2], inf)*(1+Pfunc({state[\chaos].rand2;})), //or PexpR(Pfunc({state.lambda})),
 			\deltime, (
 				(Prand([0,1/2,3/4,2/3], inf) +
 					Pkey(\bartime)
@@ -83,28 +86,31 @@
 			\rate, Prand(state[\trans], inf),
 			\modulate, ~modbus.asMap,
 			\sendGate, true
-		).postcs.trace(prefix: \outer);
+		);
 		// least troublesome way of reseeding is Pspawner
-		~stream = Pspawner({|spawner|
+		~pat = Pspawner({|spawner|
 			inf.do({|i|
 				var newSeed, pat;
 				//Pindex? or Pfsm?
+				pat = ~basepat;
 				state[\reseed].if({
-					pat = Pseed(state[\seed], ~pat);
+					pat = Pseed(state[\seed], ~basepat);
 				});
-				spawner.par(
-					pattern: Pfindur(
+				spawner.seq(
+					Pfindur(
 						dur: state[\loopBeats],
 						pattern: pat), //.postcs.trace(prefix: \inner),
-					delta: 0,
+					//delta: 0,
 				);
-				spawner.wait(state[\loopBeats]);
+				//spawner.wait(state[\loopBeats]);
 			});
-		});
+		}).postcs.trace(prefix: \inner);
+		/*
 		~pat = Pquantize(~pat,
 			quant: PContext(state, \quant, 0.5),
 			strength: PContext(state, \strength, 1.0),
-			debug: true); //.trace;
+			debug: true).postcs.trace(prefix: \outer); //.trace;
+		*/
 		~stream = ~pat.play(clock: ~clock);
 		~updateTempo={|self|
 			\subupdatetempo.postln;
