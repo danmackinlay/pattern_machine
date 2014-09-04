@@ -2,6 +2,7 @@
 synths that do delay, echo, grain stuff.
 
 TODO: bufRd versions of the DelTapRd synths.
+TODO: Trig1 cutoff on gate to prevent dangling synths
 */
 PSBufDelaySynthDefs {
 	*initClass{
@@ -42,7 +43,7 @@ PSBufDelaySynthDefs {
 			bufnum,
 			deltime=1.0,
 			pan=0, amp=1, gate=1,
-			attack=0.01, decay=0.1, sustain=1.0, release=0.5,
+			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf,
 			phasebus=1000; //set the phasebus or it no work
 
 			var sig, env;
@@ -50,9 +51,9 @@ PSBufDelaySynthDefs {
 				Env.adsr(
 					attackTime: attack,
 					decayTime: decay,
-					sustainLevel: sustain,
+					sustainLevel: sustainLevel,
 					releaseTime: release),
-				gate: gate,
+				gate: gate * Trig1.kr(gate, maxDur),
 				levelScale:amp,
 				doneAction: 2);
 			sig = DelTapRd.ar(
@@ -72,7 +73,7 @@ PSBufDelaySynthDefs {
 			deltime=1.0,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
-			attack=0.01, decay=0.1, sustain=1.0, release=0.5,
+			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf,
 			phasebus=1000; //set the phasebus or it no work
 
 			var sig, env;
@@ -80,9 +81,9 @@ PSBufDelaySynthDefs {
 				Env.adsr(
 					attackTime: attack,
 					decayTime: decay,
-					sustainLevel: sustain,
+					sustainLevel: sustainLevel,
 					releaseTime: release),
-				gate: gate,
+				gate: gate * Trig1.kr(gate, maxDur),
 				levelScale:amp,
 				doneAction: 2);
 			deltime = deltime + ((1-rate)*Sweep.ar(gate, 1));
@@ -104,16 +105,16 @@ PSBufDelaySynthDefs {
 			deltime=0.0,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
-			attack=0.01, decay=0.1, sustain=1.0, release=0.5;
+			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
 			
 			var sig, env;
 			env = EnvGen.kr(
 				Env.adsr(
 					attackTime: attack,
 					decayTime: decay,
-					sustainLevel: sustain,
+					sustainLevel: sustainLevel,
 					releaseTime: release),
-				gate: gate,
+				gate: gate * Trig1.kr(gate, maxDur),
 				levelScale:amp,
 				doneAction: 2);
 			deltime = deltime + ((1-rate) * Sweep.ar(gate, 1));

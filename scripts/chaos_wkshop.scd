@@ -33,7 +33,7 @@ fork {
 		arg	out=0,
 		bufnum,
 		amp=1, gate=1,
-		attack=0.01, decay=0.1, sustain=1.0, release=0.1,
+		attack=0.01, decay=0.1, sustainLevel=1.0, release=0.1,
 		offset=0;
 
 		var sig, env;
@@ -41,7 +41,7 @@ fork {
 			Env.adsr(
 				attackTime: attack,
 				decayTime: decay,
-				sustainLevel: sustain,
+				sustainLevel: sustainLevel,
 				releaseTime: release),
 			gate: gate,
 			levelScale:amp,

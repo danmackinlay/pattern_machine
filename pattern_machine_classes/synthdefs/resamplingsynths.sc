@@ -1,5 +1,5 @@
 /*
-synths that do delay, echo, grain stuff.
+delay/echo grains
 */
 PSResamplingSynthDefs {
 	classvar log001;

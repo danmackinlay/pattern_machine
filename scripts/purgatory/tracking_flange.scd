@@ -12,9 +12,9 @@ fork {
 	//s = Server.internal;
 	s = Server.local;
 
-	SynthDef.new(\sawgrain, { |out=0, freq = 440, amp = 0.2, sustain = 1, headroom=400, rq=0.1|
+	SynthDef.new(\sawgrain, { |out=0, freq = 440, amp = 0.2, sustainLevel = 1, headroom=400, rq=0.1|
 		var	sig, env;
-		env = EnvGen.kr(Env.perc(0.01, sustain), doneAction: 2);
+		env = EnvGen.kr(Env.perc(0.01, sustainLevel), doneAction: 2);
 		sig = RLPF.ar(Saw.ar(freq, amp), freq + (env * headroom), rq) * env;
 		Out.ar(out, sig ! 2);	// sig ! 2 is the same as [sig, sig]
 
