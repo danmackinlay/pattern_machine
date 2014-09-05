@@ -1,7 +1,8 @@
 //This should totally be a class; I use it often enough.
 //TODO: buffer offset base and range
 //TODO: variable barlength (including pspawner counter)
-//TODO: switch from Event type Note to Grain, and avoid ahving to think about it
+//TODO: switch from Event type Note to Grain, and avoid having to think about it
+//TODO: markovity
 {|state, i|
 	state.make({
 		// delay/loop action
@@ -61,7 +62,7 @@
 		s.sync;
 		//NB output not specified! that's why it's playing to master.
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
-		~basepat = Pbind(*[
+		~basepat = (
 			type: \note,
 			instrument: \ps_deltaprd_play__1x2,
 			group: ~headGroup,
@@ -71,46 +72,28 @@
 			sendGate: true,
 			phasebus: ~loopphasebus,
 			bufnum: ~loopbuf,
-		]);
+		);
 		// least troublesome way of reseeding is Pspawner
 		~pat = Pspawner({|spawner|
 			var bartime=0.0;
 			inf.do({|i|
 				//Pevent?
-				var pat = ~basepat <> Pbind(*[
-					attack: PContext(state, \attack, 0.1),
-					release: PContext(state, \release, 0.3),
-					bartime: Pseg(
-						[0,state[\loopBeats]],
-						state[\loopBeats], \lin, inf),
-					dur: Prand([0,1/2,3/2], inf)*PContext(state, \density, 1.0),
-					delta: Prand([1/4,1/2], inf)*(1 +
-						 Pfunc({state[\chaos].rand2;})), //or PexpR(Pfunc({state.lambda})),
-					deltime: (
-						(Prand([0,1/2,3/4,2/3], inf) +
-							Pkey(\bartime)
-						).wrap(0, state[\loopBeats]) *
-						state.beatTime),
-					amp: PContext(state, \amp, 0.5),
-					pan: PContext(state, \pan, 0.0),
-					rate: Prand(state[\trans], inf),
-				]);
-				//Pindex? or Pfsm?
-				spawner.seq(
-					Pfindur(
-						dur: state[\loopBeats],
-						pattern: pat), //.postcs.trace(prefix: \inner),
-					//delta: 0,
-				);
-				//spawner.wait(state[\loopBeats]);
-			});
-		}).postcs.trace(prefix: \inner);
-		/*
-		~pat = Pquantize(~pat,
-			quant: PContext(state, \quant, 0.5),
-			strength: PContext(state, \strength, 1.0),
-			debug: true).postcs.trace(prefix: \outer); //.trace;
-		*/
+				var evt, pat;
+				evt = ~basepat.copy.putAll((
+					attack: state.attack ? 1.0,
+					release: state.release ? 0.3,
+					bartime: bartime,
+					dur: [0,1/2,3/2].choose * (state.density ? 1.0),
+					delta: [1/4,1/2].choose *(1 + state.chaos.rand2), //or exp?
+					deltime: (([0,1/2,3/4,2/3].choose + bartime) % state.loopBeats) * state.beatTime,
+					amp: state.amp ? 0.5,
+					pan: state.pan ? 0.0,
+					rate: 1,
+				));
+				spawner.seq(Pevent(evt).postcs.trace(prefix: \deepinner));
+				bartime = bartime % state.loopBeats;
+			}).postcs.trace(prefix: \inner);
+		});
 		~stream = ~pat.play(clock: ~clock);
 		~updateTempo={|self|
 			\subupdatetempo.postln;
