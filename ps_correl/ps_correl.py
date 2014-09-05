@@ -48,7 +48,7 @@ http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1
 http://cnx.org/content/m11657/latest/
 http://mechatronics.ece.usu.edu/yqchen/dd/index.html
 http://cnx.org/content/m15490/latest/
-See also Välimäki'st thesis: http://users.spa.aalto.fi/vpv/publications/vesa_phd.html
+See also Vaelimaeki'st thesis: http://users.spa.aalto.fi/vpv/publications/vesa_phd.html
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from ps_correl_analyze import sf_anal

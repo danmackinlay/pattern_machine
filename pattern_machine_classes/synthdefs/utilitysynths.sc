@@ -55,6 +55,29 @@ PSUtilitySynthDefs {
 			);
 			Out.ar(out, sig*env);
 		}).add;
+		SynthDef.new(\playbuf__1x2,
+			{|out=0,
+				bufnum,
+				loop=1,
+				gate=1,
+				rate=1,
+				pan=0|
+			var env,sig;
+			sig = PlayBuf.ar(
+				numChannels:1,
+				bufnum:bufnum,
+				rate: rate*BufRateScale.kr(bufnum),
+				trigger: gate,
+				loop: loop,
+			);
+			env = EnvGen.kr(
+				Env.asr(attackTime:0.05, releaseTime:0.05, curve: \sine),
+				levelScale: 1,
+				gate: gate,
+				doneAction: 2
+			);
+			Out.ar(out, Pan2.ar(sig*env, pan));
+		}).add;
 		SynthDef(\soundin__1x1, {|out=0, in=0|
 			Out.ar(out, SoundIn.ar(in));
 		}).add;
