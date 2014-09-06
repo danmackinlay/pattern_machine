@@ -7,14 +7,6 @@
 	state.make({
 		// delay/loop action
 		~i=i;
-		~delscale = state.delscale ? 1.0;
-		~amp = state.amp ? 0.5;
-		~pan = state.pan ? 0.0;
-		~density = state.density ? 1.0; //rate of impacts
-		~intensity = state.intensity ? 1.0; //expected polyphony
-		~stationarity = state.stationarity ? 1.0;
-		~chaos = state.chaos ? 1.0;
-
 		state.voiceStates[i]=(state);
 		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
 		~sampleDur = state.sampleDur ? 30;
@@ -62,7 +54,7 @@
 		s.sync;
 		//NB output not specified! that's why it's playing to master.
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
-		~basepat = (
+		~baseevt = (
 			type: \note,
 			instrument: \ps_deltaprd_play__1x2,
 			group: ~headGroup,
@@ -75,24 +67,64 @@
 		);
 		// least troublesome way of reseeding is Pspawner
 		~pat = Pspawner({|spawner|
-			var bartime=0.0;
+			var actualTime=0.0;
+			var intendedTime=0.0;
 			inf.do({|i|
 				//Pevent?
 				var evt, pat;
-				evt = ~basepat.copy.putAll((
+				var intendedNextTime=0.0;
+				var quantizedNextTime=0.0;
+				var actualNextTime=0.0;
+				var intendedNextDelta;
+				var actualNextDelta;
+
+				//Basic event construction:
+				evt = ~baseevt.copy.putAll((
 					attack: state.attack ? 1.0,
 					release: state.release ? 0.3,
-					bartime: bartime,
-					dur: [0,1/2,3/2].choose * (state.density ? 1.0),
-					delta: [1/4,1/2].choose *(1 + state.chaos.rand2), //or exp?
-					deltime: (([0,1/2,3/4,2/3].choose + bartime) % state.loopBeats) * state.beatTime,
+					bartime: intendedTime,
+					sustain: 1.0.rand.log.neg/(state.density)*(state.intensity),
+					delta: 1.0.rand.log.neg/(state.density),
+					deltime: (
+						([0,1/2,3/4,2/3].choose + (
+							intendedTime*(state.stationarity? 0.0)
+						)) % state.loopBeats) * state.beatTime,
 					amp: state.amp ? 0.5,
 					pan: state.pan ? 0.0,
 					rate: 1,
 				));
-				spawner.seq(Pevent(evt).postcs.trace(prefix: \deepinner));
-				bartime = bartime % state.loopBeats;
-			}).postcs.trace(prefix: \inner);
+				//"================1================".postln;
+				//evt.postcs;
+				//"================2================".postln;
+				intendedNextDelta = evt.delta;
+				// Quantisation logic, adapted from timing.sc
+				intendedNextTime = intendedNextDelta + intendedTime;
+				quantizedNextTime = intendedNextTime.round(state.quant
+					).max(actualTime);
+				actualNextTime = ((state.strength.neg + 1) * intendedNextTime) +
+					(state.strength*quantizedNextTime);
+				actualNextDelta = actualNextTime - actualTime;
+				evt[\delta] = actualNextDelta;
+
+				//actually sequence it.
+				pat = Pevent(evt);
+				state.debugPat.asBoolean.if({
+					[intendedNextTime, intendedNextDelta, actualTime, intendedNextTime, quantizedNextTime, actualNextTime, actualNextDelta].postln;
+					pat = pat.trace(prefix: \deepinner)
+				});
+				spawner.seq(pat);
+
+				// track that sequencing
+				(actualTime >= (state.loopBeats)).if({thisThread.randSeed_(state.seed)});
+				actualTime = actualNextTime;
+				intendedTime = intendedNextTime;
+
+				// ignore tolerance for the minute
+				//((time.round(localbarlen)-time).abs<tol).if ({time=0});
+				// The below logic won't quite work; we need to decrement both counters by the same amount
+				//actualTime = actualTime % localbarlen;
+				//intendedTime = intendedTime % localbarlen;
+			});
 		});
 		~stream = ~pat.play(clock: ~clock);
 		~updateTempo={|self|

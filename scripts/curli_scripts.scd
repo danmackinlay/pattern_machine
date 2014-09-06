@@ -21,6 +21,7 @@ TODO: (priority order)
     * level
     * reverb mix
     * chaos
+    * transposition
 * tap sync
 * follow write head more closely in delay
 * enveloped gestures
@@ -90,19 +91,20 @@ state.server.doWhenBooted({state.make({
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
 
 	~seed = 1128;
-	~density = 1;
-	~chaos = 0;
+	~density = 1.0; //rate of impacts
+	~intensity = 1.0; //expected polyphony
+	~chaos = 0.0;
 	~reseed = true;
 	~looping = 0;
+	~amp = 0.5;
 	~pan = 0.0;
-	~chaos = 0;
 	~trans = [1];
-	~lambda = 2;
 	~quant = 1/4;
 	~strength = 1;
 	~controls = List.new;
 	~attack = 0.1;
 	~release = 0.3;
+	~stationarity = 1.0;
 
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
@@ -124,6 +126,7 @@ fork {
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
+		~debugPat = false;
 	});
 	state.nextVoice = i + 1;
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
