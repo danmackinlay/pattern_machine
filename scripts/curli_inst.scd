@@ -117,16 +117,12 @@
 				evt[\delta] = actualNextDelta;
 
 				//actually sequence it.
-				pat = Pevent(evt);
-				state.debugPat.asBoolean.if({
+				pat = Pfin(1, Pevent(evt));
+				state.debugSpawn.asBoolean.if({
 					[intendedNextTime, intendedNextDelta, actualTime, intendedNextTime, quantizedNextTime, actualNextTime, actualNextDelta].postln;
 					pat = pat.trace(prefix: \deepinner)
 				});
 				spawner.seq(pat);
-				state.debugSpawn3.asBoolean.if({
-					[intendedNextTime, intendedNextDelta, actualTime, intendedNextTime, quantizedNextTime, actualNextTime, actualNextDelta].postln;
-					pat = pat.trace(prefix: \deepinner)
-				});
 				// track that sequencing
 				(actualTime >= (state.loopBeats)).if({thisThread.randSeed_(state.seed)});
 				actualTime = actualNextTime;

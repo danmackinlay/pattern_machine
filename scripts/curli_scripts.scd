@@ -105,7 +105,7 @@ state.server.doWhenBooted({state.make({
 	~attack = 0.1;
 	~release = 0.3;
 	~stationarity = 1.0;
-
+	~debugSpawn = false;
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
 	// {metaparamMap.plot;}.defer;
@@ -116,7 +116,6 @@ state.server.doWhenBooted({state.make({
 	// //to disable:
 	//
 	// CmdPeriod.doOnce({ OSCdef(\wii).free });
-
 })});
 )
 (
