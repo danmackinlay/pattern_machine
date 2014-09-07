@@ -40,7 +40,7 @@
 			instrument: \ps_gverb__2x2,
 			group: ~tailGroup,
 			server: ~server,
-			addAction: \addToTail,
+			addAction: \addToHead,
 			sendGate: false,//persist
 			out: ~outbus,
 			index: 1,
@@ -50,9 +50,18 @@
 			roomsize: 170,
 		).play;
 		CmdPeriod.doOnce({ state.reverb.free });
+		//channel fx
+		~jack = (
+			instrument: \jack__2,
+			group: ~tailGroup,
+			server: ~server,
+			addAction: \addToTail,
+			sendGate: false,//persist
+			in: ~outbus,
+			out: state.masteroutbus,
+		).play;
+		CmdPeriod.doOnce({ state.jack.free });
 
-		s.sync;
-		//NB output not specified! that's why it's playing to master.
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
 			type: \note,
@@ -62,6 +71,7 @@
 			server: ~server,
 			modulate: ~modbus.asMap,
 			sendGate: true,
+			out: ~outbus,
 			phasebus: ~loopphasebus,
 			bufnum: ~loopbuf,
 		);
@@ -113,7 +123,10 @@
 					pat = pat.trace(prefix: \deepinner)
 				});
 				spawner.seq(pat);
-
+				state.debugSpawn3.asBoolean.if({
+					[intendedNextTime, intendedNextDelta, actualTime, intendedNextTime, quantizedNextTime, actualNextTime, actualNextDelta].postln;
+					pat = pat.trace(prefix: \deepinner)
+				});
 				// track that sequencing
 				(actualTime >= (state.loopBeats)).if({thisThread.randSeed_(state.seed)});
 				actualTime = actualNextTime;
