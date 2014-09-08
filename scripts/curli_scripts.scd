@@ -140,7 +140,7 @@ fork {
 ~state.attack=0.1;
 )
 
-
+~state.reseed
 ~state.reseed=true;
 ~state.loop=true;
 (

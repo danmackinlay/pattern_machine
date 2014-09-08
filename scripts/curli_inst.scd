@@ -142,14 +142,14 @@
 					thisThread.randSeed_(state.seed);
 				});
 				state.reseed.postln;
-				[\overshoot, overshoot].postcs;
 				// TODO: round to 0 if close enough
-				overshoot = actualTime.div(~loopBeats) * ~loopBeats;
+				overshoot = (actualTime/~loopBeats).floor * ~loopBeats;
+				[\overshoot, overshoot].postcs;
 				state.debugSpawn.asBoolean.if({
 					[intendedTime, intendedNextTime, intendedNextDelta, quantizedNextTime, actualTime, actualNextTime, actualNextDelta, overshoot].postln;
 				});
-				actualTime = actualTime - overshoot;
-				intendedTime = intendedTime - overshoot;
+				actualTime = actualNextTime - overshoot;
+				intendedTime = intendedNextTime - overshoot;
 			});
 		});
 		~stream = ~pat.play(clock: ~clock);
