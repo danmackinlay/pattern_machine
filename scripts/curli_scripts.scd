@@ -96,16 +96,17 @@ state.server.doWhenBooted({state.make({
 	~chaos = 0.0;
 	~reseed = true;
 	~looping = 0;
+	~bpm = 140;
 	~amp = 0.5;
 	~pan = 0.0;
 	~trans = [1];
 	~quant = 1/4;
-	~strength = 1;
+	~strength = 1.0;
 	~controls = List.new;
 	~attack = 0.1;
 	~release = 0.3;
 	~stationarity = 1.0;
-	~debugSpawn = false;
+	~debugSpawn = true;
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
 	// {metaparamMap.plot;}.defer;
@@ -168,6 +169,12 @@ fork {
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\desolation,0));
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\choral,0));
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\people,0));
+~state.loop=1;
+~state.stationarity=0;
+~state.reseed=1;
+~state.intensity=3;
+~state.density=5.reciprocal;
+
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
 
