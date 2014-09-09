@@ -136,15 +136,16 @@
 					//pat = pat.trace(prefix: \deepinner)
 				});
 				spawner.seq(pat);
-				// track that sequencing
-				(actualNextTime>=(state.loopBeats)).and(state.reseed).if({
-					"reeeeeeeseeeeeed".postln;
+				// reseed on time. > instead of >= to be graceful about 0-length notes.
+				(actualNextTime>(state.loopBeats)).and(state.reseed).if({
+					state.debugSpawn.asBoolean.if({
+						["reeeeeeeseeeeeed", actualNextTime].postln;
+					});
 					thisThread.randSeed_(state.seed);
 				});
-				state.reseed.postln;
 				// TODO: round to 0 if close enough
 				overshoot = (actualTime/~loopBeats).floor * ~loopBeats;
-				[\overshoot, overshoot].postcs;
+				//[\overshoot, overshoot].postcs;
 				state.debugSpawn.asBoolean.if({
 					[intendedTime, intendedNextTime, intendedNextDelta, quantizedNextTime, actualTime, actualNextTime, actualNextDelta, overshoot].postln;
 				});

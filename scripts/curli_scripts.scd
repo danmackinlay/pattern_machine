@@ -89,6 +89,8 @@ state.server.doWhenBooted({state.make({
 	CmdPeriod.doOnce({ state.samples.free });
 	s.sync;
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
+	s.sync;
+	~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
 
 	~seed = 1128;
 	~density = 1.0; //rate of impacts
@@ -126,7 +128,7 @@ fork {
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
-		~debugPat = false;
+		~debugSpawn = true;
 	});
 	state.nextVoice = i + 1;
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
@@ -142,7 +144,15 @@ fork {
 
 ~state.reseed
 ~state.reseed=true;
-~state.loop=true;
+~state.loopsynth.set(\loop,1);
+~state.stationarity=0;
+~state.reseed=1;
+~state.intensity=3;
+~state.density=5.reciprocal;
+~state.density=5;
+~state.intensity=4;
+~state.density=4;
+
 (
 ~spy = (
 	instrument: \jack__1,
@@ -169,11 +179,7 @@ fork {
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\desolation,0));
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\choral,0));
 ~state.sourcesounds[0].set(\bufnum,~state.samples.key(\people,0));
-~state.loop=1;
-~state.stationarity=0;
-~state.reseed=1;
-~state.intensity=3;
-~state.density=5.reciprocal;
+
 
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
