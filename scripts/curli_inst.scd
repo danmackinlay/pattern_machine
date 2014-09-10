@@ -19,6 +19,7 @@
 			self.loopBeats = self.loopBeats ? 8.0;
 			self.loopTime = self.beatDur * self.loopBeats;
 			self.loopsynth.set(\deltime, self.loopTime);
+			self.clock.tempo=self.tempo;
 		};
 		state.updateTempo.();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);

@@ -1,8 +1,11 @@
 /*
 Curlicue
 
-TODO: (priority order)
+TODO:
 * decent Lemur template
+* fix double reseed problem
+* counts in seconds, not beats
+* doesn't reseed
 * OSC triggering for:
   * overall
     * main input looping
@@ -11,10 +14,10 @@ TODO: (priority order)
     * tempo overall
     * attack and decay
   * per voice
+    * offset
     * reseeding
     * looping
     * delay scaling
-    * offset
     * quantization
     * strength
     * density
@@ -135,18 +138,20 @@ fork {
 };
 )
 (
+~state.voiceStates[0].reseed=true;
+~state.voiceStates[0].loopsynth.set(\loop,1);
+~state.voiceStates[0].loopsynth.set(\loop,0);
+~state.voiceStates[0].debugSpawn=false;
+~state.voiceStates[0].stationarity=0;
+
 ~state.bpm;
 ~state.bpm=120;
 ~state.updateTempo.();
 ~state.tempo;
 ~state.attack=0.1;
-)
-
 ~state.reseed
 ~state.reseed=true;
-~state.loopsynth.set(\loop,1);
 ~state.stationarity=0;
-~state.reseed=1;
 ~state.intensity=3;
 ~state.density=5.reciprocal;
 ~state.density=5;
