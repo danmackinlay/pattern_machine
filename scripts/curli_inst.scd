@@ -130,31 +130,36 @@
 				// evt.postcs;
 				// "================2================".postln;
 				intendedNextDelta = evt.delta;
-				// Quantisation logic, adapted from timing.sc
 				intendedNextTime = intendedNextDelta + intendedTime;
 
 				// finnicky loop logic
-				// TODO: round to 0 if close enough
 				overshoot = (intendedNextTime/~loopBeats).floor * ~loopBeats;
 				(overshoot>0.0).if({
 					//should this be w/ intended time instead? or no difference?
 					(state.loopseed).if({
 						state.debugSpawn.asBoolean.if({
-							["reeeeeeeseeeeeed", state.seed, intendedNextTime, intendedFirstBeat, overshoot + intendedFirstBeat].postln;
+							["reeeeeeeseeeeeed1", state.seed, intendedNextTime, intendedFirstBeat, overshoot + intendedFirstBeat].postln;
 						});
 						intendedNextTime = overshoot + intendedFirstBeat;
+						intendedNextDelta = intendedNextTime - intendedTime;
+						state.debugSpawn.asBoolean.if({
+							["reeeeeeeseeeeeed2", state.seed, intendedNextTime, intendedNextDelta].postln;
+						});
 					}, {
 						intendedFirstBeat = intendedNextTime - overshoot;
 						thisThread.randSeed_(state.seed);
 					});
 				});
 
-				quantizedNextTime = intendedNextTime.round(state.quant
-					).max(actualTime);
+				// Quantisation logic, adapted from timing.sc
+				// TODO: round to 0 if close enough
+				quantizedNextTime = intendedNextTime.round(state.quant);
 				actualNextTime = ((state.strength.neg + 1) * intendedNextTime) +
 					(state.strength*quantizedNextTime);
-				actualNextDelta = actualNextTime - actualTime;
-				evt[\delta] = actualNextDelta;
+				//max ensures that we don't go backwards, % that we skip no bars
+				actualNextDelta = (actualNextTime - actualTime) % state.quant;
+				actualNextTime = actualTime + actualNextDelta;
+				evt[\delta] = actualNextDelta % ~loopBeats;
 
 				state.debugSpawn.asBoolean.if({
 					[
@@ -177,8 +182,8 @@
 				});
 				spawner.seq(pat);
 
-				actualTime = actualNextTime - overshoot;
-				intendedTime = intendedNextTime - overshoot;
+				actualTime = actualNextTime % ~loopBeats;
+				intendedTime = intendedNextTime % ~loopBeats;
 			});
 		});
 		~stream = ~pat.play(clock: ~clock);

@@ -131,6 +131,7 @@ fork {
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
+		~loopBeats = 4;
 		~debugSpawn = true;
 	});
 	state.nextVoice = i + 1;
@@ -139,6 +140,7 @@ fork {
 )
 (
 ~state.voiceStates[0].loop(true);
+~state.voiceStates[0].loop(false);
 ~state.voiceStates[0].debugSpawn=false;
 ~state.voiceStates[0].stationarity=0;
 
