@@ -99,7 +99,7 @@ state.server.doWhenBooted({state.make({
 	~density = 1.0; //rate of impacts
 	~intensity = 1.0; //expected polyphony
 	~chaos = 0.0;
-	~reseed = true;
+	~loopseed = true;
 	~looping = 0;
 	~bpm = 140;
 	~amp = 0.5;
@@ -138,9 +138,7 @@ fork {
 };
 )
 (
-~state.voiceStates[0].reseed=true;
-~state.voiceStates[0].loopsynth.set(\loop,1);
-~state.voiceStates[0].loopsynth.set(\loop,0);
+~state.voiceStates[0].loop(true);
 ~state.voiceStates[0].debugSpawn=false;
 ~state.voiceStates[0].stationarity=0;
 
@@ -149,8 +147,6 @@ fork {
 ~state.updateTempo.();
 ~state.tempo;
 ~state.attack=0.1;
-~state.reseed
-~state.reseed=true;
 ~state.stationarity=0;
 ~state.intensity=3;
 ~state.density=5.reciprocal;

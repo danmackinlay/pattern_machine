@@ -5,9 +5,7 @@
 //TODO: markovity
 {|state, i|
 	state.make({
-		// delay/loop action
 		~i=i;
-
 		state.voiceStates[i]=(state);
 		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
 		~sampleDur = state.sampleDur ? 30;
@@ -20,6 +18,12 @@
 			self.loopTime = self.beatDur * self.loopBeats;
 			self.loopsynth.set(\deltime, self.loopTime);
 			self.clock.tempo=self.tempo;
+		};
+		~loop={|self, loopseed|
+			\loop.postln;
+			loopseed = loopseed.asBoolean;
+			self.loopseed = loopseed;
+			self.loopsynth.set(\loop,loopseed);
 		};
 		state.updateTempo.();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
@@ -92,6 +96,10 @@
 		~pat = Pspawner({|spawner|
 			var actualTime=0.0;
 			var intendedTime=0.0;
+			//For looping
+			var intendedFirstBeat = 0.0;
+			var candidateIntendedFirstBeat = 0.0;
+
 			inf.do({|i|
 				//Pevent?
 				var evt, pat;
@@ -124,6 +132,23 @@
 				intendedNextDelta = evt.delta;
 				// Quantisation logic, adapted from timing.sc
 				intendedNextTime = intendedNextDelta + intendedTime;
+
+				// finnicky loop logic
+				// TODO: round to 0 if close enough
+				overshoot = (intendedNextTime/~loopBeats).floor * ~loopBeats;
+				(overshoot>0.0).if({
+					//should this be w/ intended time instead? or no difference?
+					(state.loopseed).if({
+						state.debugSpawn.asBoolean.if({
+							["reeeeeeeseeeeeed", state.seed, intendedNextTime, intendedFirstBeat, overshoot + intendedFirstBeat].postln;
+						});
+						intendedNextTime = overshoot + intendedFirstBeat;
+					}, {
+						intendedFirstBeat = intendedNextTime - overshoot;
+						thisThread.randSeed_(state.seed);
+					});
+				});
+
 				quantizedNextTime = intendedNextTime.round(state.quant
 					).max(actualTime);
 				actualNextTime = ((state.strength.neg + 1) * intendedNextTime) +
@@ -131,25 +156,27 @@
 				actualNextDelta = actualNextTime - actualTime;
 				evt[\delta] = actualNextDelta;
 
+				state.debugSpawn.asBoolean.if({
+					[
+						\intendedTime, intendedTime,
+						\intendedNextTime, intendedNextTime,
+						\intendedNextDelta, intendedNextDelta,
+						\quantizedNextTime, quantizedNextTime,
+						\actualTime, actualTime,
+						\actualNextTime, actualNextTime,
+						\actualNextDelta, actualNextDelta,
+						\intendedFirstBeat, intendedFirstBeat,
+						\overshoot, overshoot
+					].postln;
+				});
+
 				//actually sequence it.
 				pat = Pfin(1, Pevent(evt));
 				state.debugSpawn.asBoolean.if({
 					//pat = pat.trace(prefix: \deepinner)
 				});
 				spawner.seq(pat);
-				// reseed on time. > instead of >= to be graceful about 0-length notes.
-				(actualNextTime>(state.loopBeats)).and(state.reseed).if({
-					state.debugSpawn.asBoolean.if({
-						["reeeeeeeseeeeeed", actualNextTime].postln;
-					});
-					thisThread.randSeed_(state.seed);
-				});
-				// TODO: round to 0 if close enough
-				overshoot = (actualTime/~loopBeats).floor * ~loopBeats;
-				//[\overshoot, overshoot].postcs;
-				state.debugSpawn.asBoolean.if({
-					[intendedTime, intendedNextTime, intendedNextDelta, quantizedNextTime, actualTime, actualNextTime, actualNextDelta, overshoot].postln;
-				});
+
 				actualTime = actualNextTime - overshoot;
 				intendedTime = intendedNextTime - overshoot;
 			});
