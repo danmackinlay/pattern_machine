@@ -13,6 +13,7 @@
 			\subupdatetempo.postln;
 			self.bpm = self.bpm ? 80.0;
 			self.tempo = 60.0/self.bpm;
+			self.quantum = self.quantum ? (1/4);
 			self.beatDur = self.tempo.reciprocal;
 			self.loopBeats = self.loopBeats ? 8.0;
 			self.loopTime = self.beatDur * self.loopBeats;
@@ -96,6 +97,7 @@
 		~pat = Pspawner({|spawner|
 			var actualTime=0.0;
 			var intendedTime=0.0;
+			var weightedNextTime;
 			//For looping
 			var intendedFirstBeat = 0.0;
 			var candidateIntendedFirstBeat = 0.0;
@@ -113,17 +115,17 @@
 				// [~stationarity, ~density, ~intensity, ~loopBeats, ~beatDur].postcs;
 				//Basic event construction:
 				evt = ~baseevt.copy.putAll((
-					attack: state.attack ? 1.0,
-					release: state.release ? 0.3,
+					attack: ~attack ? 1.0,
+					release: ~release ? 0.3,
 					bartime: intendedTime,
-					sustain: 1.0.rand.log.neg/(state.density)*(state.intensity),
-					delta: 1.0.rand.log.neg/(state.density),
+					sustain: 1.0.rand.log.neg/(~density)*(~intensity),
+					delta: 1.0.rand.log.neg/(~density),
 					deltime: (
 						([0,1/2,3/4,2/3].choose + (
-							intendedTime*(state.stationarity? 0.0)
-						)) % state.loopBeats) * state.beatDur,
-					amp: state.amp ? 0.5,
-					pan: state.pan ? 0.0,
+							intendedTime*(~stationarity ? 0.0)
+					)) % (~loopBeats)) * (~beatDur),
+					amp: ~amp ? 0.5,
+					pan: ~pan ? 0.0,
 					rate: 1,
 				));
 				// "================1================".postln;
@@ -131,59 +133,106 @@
 				// "================2================".postln;
 				intendedNextDelta = evt.delta;
 				intendedNextTime = intendedNextDelta + intendedTime;
-
+				~debugSpawn.asBoolean.if({
+					[
+						\BBBB,
+						\quantum, ~quantum,
+						\loopBeats, ~loopBeats,
+						\intendedTime, intendedTime,
+						\intendedNextTime, intendedNextTime,
+						\intendedNextDelta, intendedNextDelta,
+						\intendedFirstBeat, intendedFirstBeat,
+					].postln;
+				});
 				// finnicky loop logic
 				overshoot = (intendedNextTime/~loopBeats).floor * ~loopBeats;
 				(overshoot>0.0).if({
 					//should this be w/ intended time instead? or no difference?
-					(state.loopseed).if({
-						state.debugSpawn.asBoolean.if({
-							["reeeeeeeseeeeeed1", state.seed, intendedNextTime, intendedFirstBeat, overshoot + intendedFirstBeat].postln;
+					(~loopseed).if({
+						~debugSpawn.asBoolean.if({
+							["reeeeeeeseeeeeed1",
+								\intendedNextTime,
+								intendedNextTime,
+								\intendedFirstBeat,
+								intendedFirstBeat,
+								\intendedNextTime2,
+								overshoot + intendedFirstBeat].postln;
 						});
 						intendedNextTime = overshoot + intendedFirstBeat;
 						intendedNextDelta = intendedNextTime - intendedTime;
-						state.debugSpawn.asBoolean.if({
-							["reeeeeeeseeeeeed2", state.seed, intendedNextTime, intendedNextDelta].postln;
+						~debugSpawn.asBoolean.if({
+							["reeeeeeeseeeeeed2",
+								\intendedNextTime,
+								intendedNextTime,
+								\intendedNextDelta,
+								intendedNextDelta].postln;
 						});
 					}, {
 						intendedFirstBeat = intendedNextTime - overshoot;
 						thisThread.randSeed_(state.seed);
+						intendedFirstBeat = intendedNextTime % ~loopBeats;
 					});
 				});
 
+				~debugSpawn.asBoolean.if({
+					[
+						\CCCC,
+						\quantum, ~quantum,
+						\loopBeats, ~loopBeats,
+						\intendedTime, intendedTime,
+						\intendedNextTime, intendedNextTime,
+						\intendedNextDelta, intendedNextDelta,
+						\overshoot, overshoot,
+					].postln;
+				});
 				// Quantisation logic, adapted from timing.sc
 				// TODO: round to 0 if close enough
-				quantizedNextTime = intendedNextTime.round(state.quant);
-				actualNextTime = ((state.strength.neg + 1) * intendedNextTime) +
-					(state.strength*quantizedNextTime);
-				//max ensures that we don't go backwards, % that we skip no bars
-				actualNextDelta = (actualNextTime - actualTime) % state.quant;
+				quantizedNextTime = intendedNextTime.roundUp(~quantum);
+				weightedNextTime = ((~strength.neg + 1) * intendedNextTime) +
+					(~strength * quantizedNextTime);
+				actualNextDelta = (weightedNextTime - actualTime);
 				actualNextTime = actualTime + actualNextDelta;
-				evt[\delta] = actualNextDelta % ~loopBeats;
+				evt[\delta] = actualNextDelta % (~loopBeats); //break up v. long beats
 
-				state.debugSpawn.asBoolean.if({
+				~debugSpawn.asBoolean.if({
 					[
+						\DDDD,
+						\quantum, ~quantum,
+						\loopBeats, ~loopBeats,
 						\intendedTime, intendedTime,
 						\intendedNextTime, intendedNextTime,
 						\intendedNextDelta, intendedNextDelta,
 						\quantizedNextTime, quantizedNextTime,
+						\weightedNextTime, weightedNextTime,
 						\actualTime, actualTime,
 						\actualNextTime, actualNextTime,
 						\actualNextDelta, actualNextDelta,
 						\intendedFirstBeat, intendedFirstBeat,
-						\overshoot, overshoot
 					].postln;
 				});
 
 				//actually sequence it.
 				pat = Pfin(1, Pevent(evt));
-				state.debugSpawn.asBoolean.if({
+				~debugSpawn.asBoolean.if({
 					//pat = pat.trace(prefix: \deepinner)
 				});
 				spawner.seq(pat);
+				//wrap around bar end
+				actualTime = actualNextTime % (~loopBeats);
+				intendedTime = intendedNextTime % (~loopBeats);
 
-				actualTime = actualNextTime % ~loopBeats;
-				intendedTime = intendedNextTime % ~loopBeats;
+				~debugSpawn.asBoolean.if({
+					[
+						\EEEE,
+						\quantum, ~quantum,
+						\loopBeats, ~loopBeats,
+						\intendedTime, intendedTime,
+						\intendedNextTime, intendedNextTime,
+						\actualTime, actualTime,
+						\actualNextTime, actualNextTime,
+					].postln;
+				});
+
 			});
 		});
 		~stream = ~pat.play(clock: ~clock);

@@ -105,7 +105,7 @@ state.server.doWhenBooted({state.make({
 	~amp = 0.5;
 	~pan = 0.0;
 	~trans = [1];
-	~quant = 1/4;
+	~quantum = 1/4;
 	~strength = 1.0;
 	~controls = List.new;
 	~attack = 0.1;
