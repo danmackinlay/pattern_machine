@@ -20,13 +20,14 @@
 			self.loopsynth.set(\deltime, self.loopTime);
 			self.clock.tempo=self.tempo;
 		};
-		~loop={|self, loopseed|
-			\loop.postln;
+		~loopin={|self, loopseed|
+			[\loop, loopseed].postln;
 			loopseed = loopseed.asBoolean;
 			self.loopseed = loopseed;
-			self.loopsynth.set(\loop,loopseed);
+			self.loopsynth.set(\loop, loopseed);
+			self.loopseed;
 		};
-		state.updateTempo.();
+		state.updateTempo();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
 		~modbus = ~parambusallocator.alloc;
 		CmdPeriod.doOnce({ state.loopbuf.free });
@@ -138,6 +139,7 @@
 						\BBBB,
 						\quantum, ~quantum,
 						\loopBeats, ~loopBeats,
+						\loopseed, ~loopseed,
 						\intendedTime, intendedTime,
 						\intendedNextTime, intendedNextTime,
 						\intendedNextDelta, intendedNextDelta,
@@ -170,6 +172,16 @@
 						thisThread.randSeed_(~seed);
 					}, {
 						intendedFirstBeat = intendedNextTime % ~loopBeats;
+						~debugSpawn.asBoolean.if({
+							["nooooreeeeeeeseeeeeed",
+								\intendedNextTime,
+								intendedNextTime,
+								\loopBeats,
+								~loopBeats,
+								\intendedFirstBeat,
+								intendedFirstBeat].postln;
+						});
+
 					});
 				});
 				~debugSpawn.asBoolean.if({
@@ -185,6 +197,7 @@
 				});
 				// Quantisation logic, adapted from timing.sc
 				// TODO: round to 0 if close enough
+				// TODO: switch back to round instead of roundup, or we dont' get notes on the downbeat in the first bar.
 				quantizedNextTime = intendedNextTime.roundUp(~quantum);
 				weightedNextTime = ((~strength.neg + 1) * intendedNextTime) +
 					(~strength * quantizedNextTime);

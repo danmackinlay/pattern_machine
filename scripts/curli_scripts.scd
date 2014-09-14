@@ -127,7 +127,7 @@ state.server.doWhenBooted({state.make({
 (
 var localstate, state = ~state, i = ~state.nextVoice;
 fork {
-	localstate = Event.new(n:60, proto: state);
+	localstate = Event.new(n:60, proto: state, know: true);
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
@@ -139,8 +139,8 @@ fork {
 };
 )
 (
-~state.voiceStates[0].loop(true);
-~state.voiceStates[0].loop(false);
+~state.voiceStates[0].loopin(0);
+~state.voiceStates[0].loopin(1);
 ~state.voiceStates[0].debugSpawn=false;
 ~state.voiceStates[0].stationarity=0;
 
