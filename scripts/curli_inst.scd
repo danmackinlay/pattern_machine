@@ -167,13 +167,11 @@
 								\intendedNextDelta,
 								intendedNextDelta].postln;
 						});
+						thisThread.randSeed_(~seed);
 					}, {
-						intendedFirstBeat = intendedNextTime - overshoot;
-						thisThread.randSeed_(state.seed);
 						intendedFirstBeat = intendedNextTime % ~loopBeats;
 					});
 				});
-
 				~debugSpawn.asBoolean.if({
 					[
 						\CCCC,
@@ -191,8 +189,14 @@
 				weightedNextTime = ((~strength.neg + 1) * intendedNextTime) +
 					(~strength * quantizedNextTime);
 				actualNextDelta = (weightedNextTime - actualTime);
+				[\CCCC2,\actualNextDelta,actualNextDelta, \quantum, ~quantum, \strength, ~strength].postln;
+				// % ensures that we skip no bars and we don't go backwards; shouldn't be needed
+				(actualNextDelta < 0).if({actualNextDelta = actualNextDelta % (~quantum)});
+				//[\CCCC3,\actualNextDelta,actualNextDelta].postln;
 				actualNextTime = actualTime + actualNextDelta;
+				[\CCCC4,\actualNextTime,actualNextTime].postln;
 				evt[\delta] = actualNextDelta % (~loopBeats); //break up v. long beats
+				[\CCCC5,\evtdelta,evt[\delta]].postln;
 
 				~debugSpawn.asBoolean.if({
 					[
