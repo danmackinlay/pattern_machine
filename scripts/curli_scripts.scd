@@ -132,7 +132,7 @@ fork {
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
 		~loopBeats = 4;
-		~debugSpawn = true;
+		~debugSpawn = false;
 	});
 	state.nextVoice = i + 1;
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
