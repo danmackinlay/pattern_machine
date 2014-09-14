@@ -143,6 +143,7 @@ fork {
 ~state.voiceStates[0].loopin(1);
 ~state.voiceStates[0].debugSpawn=false;
 ~state.voiceStates[0].stationarity=0;
+~state.voiceStates[0].cleanup();
 
 ~state.bpm;
 ~state.bpm=120;
@@ -155,19 +156,6 @@ fork {
 ~state.density=5;
 ~state.intensity=4;
 ~state.density=4;
-
-(
-~spy = (
-	instrument: \jack__1,
-	in: ~state.inbuses[0],
-	out: ~state.masteroutbus.subBus(0,1),
-	group: ~state.outputgroup,
-	server: ~state.server,
-	addAction: \addToTail,
-	sendGate: false,//persist
-).play;
-)
-~spy.free;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 
@@ -192,4 +180,17 @@ fork {
 
 (\a: 5).gui;
 ~state.limiter.gui;
-~state.sourcesounds[0]
+~state.sourcesounds[0];
+
+(
+~spy = (
+	instrument: \jack__1,
+	in: ~state.inbuses[0],
+	out: ~state.masteroutbus.subBus(0,1),
+	group: ~state.outputgroup,
+	server: ~state.server,
+	addAction: \addToTail,
+	sendGate: false,//persist
+).play;
+)
+~spy.free;

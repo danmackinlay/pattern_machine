@@ -7,7 +7,6 @@
 	state.make({
 		~i=i;
 		state.voiceStates[i]=(state);
-		CmdPeriod.doOnce({ state.voiceStates[i]=nil });
 		~sampleDur = state.sampleDur ? 30;
 		~updateTempo={|self|
 			\subupdatetempo.postln;
@@ -27,12 +26,30 @@
 			self.loopsynth.set(\loop, loopseed);
 			self.loopseed;
 		};
+		~cleanup={|self|
+			var nextitem, ct = self.cleanupList.size;
+			//[\precleaning, ct].postln;
+			{self.cleanupList.isEmpty.not}.while({
+				nextitem = self.cleanupList.pop;
+				ct = ct-1;
+				{
+					//[\cleaning, self.i, ct].postln;
+					nextitem.value;
+				}.try(_.postcs);
+			});
+		};
+		~cleanupList = List.new;
+		CmdPeriod.doOnce({ state.cleanup();});
+		//can't do this one until the list exists; has to be first if at all
+		//~cleanupList.add({ state.voiceStates[i]=nil });
+
+
 		state.updateTempo();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
 		~modbus = ~parambusallocator.alloc;
-		CmdPeriod.doOnce({ state.loopbuf.free });
+		~cleanupList.add({ state.loopbuf.free });
 		~loopphasebus = Bus.control(~server, 1);
-		CmdPeriod.doOnce({ state.loopphasebus.free });
+		~cleanupList.add({ state.loopphasebus.free });
 		//looks tidier in debug to use groups instead of synths
 		~headGroup = Group.head(~instgroup);
 		~tailGroup = Group.tail(~instgroup);
@@ -50,7 +67,7 @@
 			addAction: \addToHead,
 			sendGate: false,//persist
 		).play;
-		CmdPeriod.doOnce({ state.loopsynth.free });
+		~cleanupList.add({ state.loopsynth.free });
 
 		s.sync;
 
@@ -68,7 +85,7 @@
 			revtime: 0.8,
 			roomsize: 170,
 		).play;
-		CmdPeriod.doOnce({ state.reverb.free });
+		~cleanupList.add({ state.reverb.free });
 		//channel fx
 		~jack = (
 			instrument: \jack__2,
@@ -79,7 +96,7 @@
 			in: ~outbus,
 			out: state.masteroutbus,
 		).play;
-		CmdPeriod.doOnce({ state.jack.free });
+		~cleanupList.add({ state.jack.free });
 
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
@@ -253,6 +270,8 @@
 			});
 		});
 		~stream = ~pat.play(clock: ~clock);
+		~cleanupList.add({ state.stream.free });
+
 		/*
 		~paramUpdater.addUpdater({|val|
 			~parambus.set(val.linlin(0.0,1.0,0.0, 2.0));
