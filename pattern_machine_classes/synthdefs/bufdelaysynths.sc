@@ -1,8 +1,8 @@
 /*
 synths that do delay, echo, grain stuff.
 
-TODO: bufRd versions of the DelTapRd synths.
 TODO: Trig1 cutoff on gate to prevent dangling synths
+TODO: gated versions of ps_bufwr_phased__1x1
 */
 PSBufDelaySynthDefs {
 	*initClass{
@@ -11,7 +11,35 @@ PSBufDelaySynthDefs {
 		});
 	}
 	*loadSynthDefs {
-		//Looping delay - sample and hold, e.g. a bar.
+		//write to delay only when triggered is on.
+		//needs audio-rate phase
+		//TODO: handle position with Phasor and rate-zeroing
+		SynthDef.new(\ps_bufwr_phased_1x1, {
+			arg in=0,
+			trig=1.0,
+			bufnum,
+			fadetime=0.0,
+			phasebus;
+			var gate, env, bufSamps, bufLength, sampCount;
+			bufSamps = BufFrames.kr(bufnum);
+			bufLength = bufSamps* SampleDur.ir;
+			in = In.ar(in,1);
+			env = EnvGen.kr(
+				env: Env.linen(
+					attackTime: fadetime,
+					sustainTime: (bufLength-(2*fadetime)),
+					releaseTime: fadetime,
+					curve: \sine),
+				gate: trig);
+			gate = (env>0);
+			sampCount = Phasor.ar(
+				trig: gate,
+				rate: 1,
+				start: 0,
+				end: bufSamps);
+			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
+			Out.ar(phasebus, sampCount*SampleDur.ir);
+		}).add;
 		SynthDef.new(\ps_deltapwr_loop__1x1, {
 			arg out=0,
 			deltime=1.0,
@@ -36,7 +64,7 @@ PSBufDelaySynthDefs {
 			LocalOut.ar(partdelayed);
 			ReplaceOut.ar(out, outmix);
 		}).add;
-		
+
 		//Delay grain - plays snippets of the past
 		SynthDef.new(\ps_deltaprd_simple_play__1x2, {
 			arg out=0,
@@ -99,14 +127,14 @@ PSBufDelaySynthDefs {
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
 		//Delay grain - plays snippets of a (static) buffer, with bending
-		SynthDef.new(\ps_bufrd_play__1x2, {
+		SynthDef.new(\ps_bufrd__1x2, {
 			arg out=0,
 			bufnum,
 			deltime=0.0,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
 			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
-			
+
 			var sig, env;
 			env = EnvGen.kr(
 				Env.adsr(
@@ -128,6 +156,40 @@ PSBufDelaySynthDefs {
 				startPos: BufSampleRate.kr(bufnum)*deltime,
 				loop: 1, //Is this actually loop TIME?
 				doneAction: 0,
+			) * env;
+			Out.ar(out, Pan2.ar(sig, pan));
+		}).add;
+		SynthDef.new(\ps_bufrd_phased__1x2, {
+			arg out=0,
+			bufnum,
+			basedeltime=0.0,
+			phasebus,
+			rate=1.0, modulate=0, modlag=0.5,
+			pan=0, amp=1, gate=1,
+			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
+
+			var sig, env, basePhase, phase, deltime, clippedGate;
+			clippedGate = gate * Trig1.kr(gate, maxDur);
+			env = EnvGen.kr(
+				Env.adsr(
+					attackTime: attack,
+					decayTime: decay,
+					sustainLevel: sustainLevel,
+					releaseTime: release),
+				gate: clippedGate,
+				levelScale:amp,
+				doneAction: 2);
+			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
+			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
+			basePhase = Latch.kr(In.ar(phasebus), clippedGate);
+			//is the following wrap  right for the last sample in the buffer?
+			phase = (basePhase-deltime).wrap(0, BufDur.kr(bufnum)-SampleDur.ir);
+			sig = BufRd.ar(
+				numChannels:1,
+				bufnum:bufnum,
+				phase: phase,
+				trigger: gate,
+				loop: 1, // Is this actually loop TIME? or interpolation?
 			) * env;
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
