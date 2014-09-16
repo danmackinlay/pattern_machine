@@ -145,7 +145,7 @@ PSBufDelaySynthDefs {
 				gate: gate * Trig1.kr(gate, maxDur),
 				levelScale:amp,
 				doneAction: 2);
-			deltime = deltime + ((1-rate) * Sweep.ar(gate, 1));
+			//deltime = deltime + ((1-rate) * Sweep.ar(gate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
 			deltime = Clip.ar(deltime, 0, BufDur.kr(bufnum));
 			sig = PlayBuf.ar(
