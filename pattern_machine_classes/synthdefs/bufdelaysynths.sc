@@ -26,7 +26,7 @@ PSBufDelaySynthDefs {
 			bufLength = bufSamps* SampleDur.ir;
 			in = In.ar(in,1);
 			env = EnvGen.kr(
-				env: Env.linen(
+				Env.linen(
 					attackTime: fadetime,
 					sustainTime: (bufLength-(2*fadetime)),
 					releaseTime: fadetime,
@@ -189,7 +189,6 @@ PSBufDelaySynthDefs {
 				numChannels:1,
 				bufnum:bufnum,
 				phase: phase*SampleRate.ir,
-				trigger: gate,
 				loop: 1, // Is this actually loop TIME? or interpolation?
 			) * env;
 			Out.ar(out, Pan2.ar(sig, pan));
