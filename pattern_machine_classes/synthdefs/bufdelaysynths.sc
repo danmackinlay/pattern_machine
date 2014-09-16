@@ -169,7 +169,7 @@ PSBufDelaySynthDefs {
 			pan=0, amp=1, gate=1,
 			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
 
-			var sig, env, basePhase, phase, deltime, clippedGate;
+			var sig, env, baseTime, phase, deltime, clippedGate;
 			clippedGate = gate * Trig1.kr(gate, maxDur);
 			env = EnvGen.kr(
 				Env.adsr(
@@ -182,13 +182,13 @@ PSBufDelaySynthDefs {
 				doneAction: 2);
 			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-			basePhase = Latch.kr(In.ar(phasebus), clippedGate);
-			//is the following wrap  right for the last sample in the buffer?
-			phase = (basePhase-deltime).wrap(0, BufDur.kr(bufnum)-SampleDur.ir);
+			baseTime = Latch.kr(In.ar(phasebus), clippedGate);
+			//is the following wrap right for the last sample in the buffer?
+			phase = ((baseTime-deltime)).wrap(0, BufDur.kr(bufnum)-SampleDur.ir);
 			sig = BufRd.ar(
 				numChannels:1,
 				bufnum:bufnum,
-				phase: phase,
+				phase: phase*SampleRate.ir,
 				trigger: gate,
 				loop: 1, // Is this actually loop TIME? or interpolation?
 			) * env;
