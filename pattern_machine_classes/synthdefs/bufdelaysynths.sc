@@ -1,8 +1,9 @@
 /*
 synths that do delay, echo, grain stuff.
 
-TODO: Trig1 cutoff on gate to prevent dangling synths
 TODO: gated versions of ps_bufwr_phased__1x1
+TODO: rate argument is funky in \ps_deltaprd_simple_play__1x2 - uses BufRd and Playbuf conventions
+
 */
 PSBufDelaySynthDefs {
 	*initClass{
@@ -154,7 +155,7 @@ PSBufDelaySynthDefs {
 				rate: BufRateScale.kr(bufnum) * rate,
 				trigger: gate,
 				startPos: BufSampleRate.kr(bufnum)*deltime,
-				loop: 1, //Is this actually loop TIME?
+				loop: 1,
 				doneAction: 0,
 			) * env;
 			Out.ar(out, Pan2.ar(sig, pan));
