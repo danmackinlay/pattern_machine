@@ -5,7 +5,6 @@ TODO:
 * decent Lemur template
 * fix double reseed problem
 * counts in seconds, not beats
-* doesn't reseed
 * OSC triggering for:
   * overall
     * main input looping
@@ -15,6 +14,7 @@ TODO:
     * attack and decay
   * per voice
     * offset
+    * jump size
     * reseeding
     * looping
     * delay scaling
@@ -27,13 +27,10 @@ TODO:
     * transposition
 * tap sync
 * follow write head more closely in delay
+* stationarity doesn't work
 * enveloped gestures
 * get rid of clicks by
-  * restrict sample looping to first 30 seconds, OR
   * soundfile-length-sensitive sound playing OR
-  * just edit the fucking files
-* level meter
-  * or listen on buses using Ndef, then JIT mixers
 * master gain
 * channel synth (limi, gain, level reporting, perhaps EQ?)
 */
@@ -143,6 +140,7 @@ fork {
 ~state.voiceStates[0].loopin(1);
 ~state.voiceStates[0].debugSpawn=false;
 ~state.voiceStates[0].stationarity=0;
+~state.voiceStates[0].stationarity=1.0;
 ~state.voiceStates[0].cleanup();
 
 ~state.bpm;
@@ -158,6 +156,7 @@ fork {
 ~state.density=4;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
+~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
 
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.voicestates[1][\trans]=[1/4,1];

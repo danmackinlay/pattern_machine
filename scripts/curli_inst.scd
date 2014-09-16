@@ -140,7 +140,7 @@
 					delta: 1.0.rand.log.neg/(~density),
 					deltime: (
 						([0,1/2,3/4,2/3].choose + (
-							intendedTime*(~stationarity ? 0.0)
+							intendedTime*(~stationarity.neg)
 					)) % (~loopBeats)) * (~beatDur),
 					amp: ~amp ? 0.5,
 					pan: ~pan ? 0.0,
