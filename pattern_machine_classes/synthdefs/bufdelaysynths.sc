@@ -17,6 +17,7 @@ PSBufDelaySynthDefs {
 		//write to delay only when triggered is on.
 		//needs control-rate phase, which means one-block jitter. Wevs.
 		//TODO: handle position with Phasor and rate-zeroing
+		//TODO: crossfade version using RecordBuf
 		SynthDef.new(\ps_bufwr_phased_1x1, {
 			arg in=0,
 			trig=1.0,
@@ -45,6 +46,35 @@ PSBufDelaySynthDefs {
 			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
 		SynthDef.new(\ps_bufrd_phased__1x2, {
+		//This one could crossfade. doesn't work yetthough'
+		SynthDef.new(\ps_recordbuf_phased_1x1, {
+			arg in=0,
+			trig=1.0,
+			bufnum,
+			fadetime=0.0,
+			phasebus;
+			var gate, env, bufSamps, bufLength, sampCount;
+			bufSamps = BufFrames.kr(bufnum);
+			bufLength = bufSamps* SampleDur.ir;
+			in = In.ar(in,1);
+			env = EnvGen.kr(
+				Env.linen(
+					attackTime: fadetime,
+					sustainTime: (bufLength-(2*fadetime)),
+					releaseTime: fadetime,
+					curve: \sine),
+				gate: trig,
+				doneAction: 2);
+			gate = (env>0);
+			sampCount = Phasor.ar(
+				trig: gate,
+				rate: 1,
+				start: 0,
+				end: bufSamps);
+			//Arguments here ballsed up:
+			RecordBuf.ar(in, bufnum: bufnum, phase: sampCount);
+			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
+		}).add;
 			arg out=0,
 			bufnum,
 			basedeltime=0.0,
