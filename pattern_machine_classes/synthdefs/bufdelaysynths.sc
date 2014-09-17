@@ -2,7 +2,6 @@
 synths that do delay, echo, grain stuff.
 
 TODO: gated versions of ps_bufwr_phased__1x1
-TODO: rate argument is funky in \ps_deltaprd_simple_play__1x2 - uses BufRd and Playbuf conventions
 
 */
 PSBufDelaySynthDefs {
@@ -12,6 +11,9 @@ PSBufDelaySynthDefs {
 		});
 	}
 	*loadSynthDefs {
+		//
+		//Delay-Ugen-free delays, using buffers
+		//
 		//write to delay only when triggered is on.
 		//needs audio-rate phase
 		//TODO: handle position with Phasor and rate-zeroing
@@ -41,6 +43,45 @@ PSBufDelaySynthDefs {
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
 			Out.ar(phasebus, sampCount*SampleDur.ir);
 		}).add;
+		SynthDef.new(\ps_bufrd_phased__1x2, {
+			arg out=0,
+			bufnum,
+			basedeltime=0.0,
+			phasebus,
+			rate=1.0, modulate=0, modlag=0.5,
+			pan=0, amp=1, gate=1,
+			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
+
+			var sig, env, baseTime, phase, deltime, clippedGate;
+			clippedGate = gate * Trig1.kr(gate, maxDur);
+			env = EnvGen.kr(
+				Env.adsr(
+					attackTime: attack,
+					decayTime: decay,
+					sustainLevel: sustainLevel,
+					releaseTime: release),
+				gate: clippedGate,
+				levelScale:amp,
+				doneAction: 2);
+			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
+			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
+			baseTime = Latch.kr(In.ar(phasebus), clippedGate);
+			//is the following wrap right for the last sample in the buffer?
+			phase = ((baseTime-deltime)).wrap(0,
+				BufDur.kr(bufnum)-SampleDur.ir);
+			sig = BufRd.ar(
+				numChannels:1,
+				bufnum:bufnum,
+				phase: phase*SampleRate.ir,
+				loop: 1, // Is this actually loop TIME? or interpolation?
+			) * env;
+			Out.ar(out, Pan2.ar(sig, pan));
+		}).add;
+		//
+		// DelTap-style delays, using buffers
+		//
+		// need control-rate phase bus
+		// record
 		SynthDef.new(\ps_deltapwr_loop__1x1, {
 			arg out=0,
 			deltime=1.0,
@@ -125,72 +166,6 @@ PSBufDelaySynthDefs {
 				interp: 4, //cubic
 				mul: env
 			);
-			Out.ar(out, Pan2.ar(sig, pan));
-		}).add;
-		//Delay grain - plays snippets of a (static) buffer, with bending
-		SynthDef.new(\ps_bufrd__1x2, {
-			arg out=0,
-			bufnum,
-			deltime=0.0,
-			rate=1.0, modulate=0, modlag=0.5,
-			pan=0, amp=1, gate=1,
-			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
-
-			var sig, env;
-			env = EnvGen.kr(
-				Env.adsr(
-					attackTime: attack,
-					decayTime: decay,
-					sustainLevel: sustainLevel,
-					releaseTime: release),
-				gate: gate * Trig1.kr(gate, maxDur),
-				levelScale:amp,
-				doneAction: 2);
-			//deltime = deltime + ((1-rate) * Sweep.ar(gate, 1));
-			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-			deltime = Clip.ar(deltime, 0, BufDur.kr(bufnum));
-			sig = PlayBuf.ar(
-				numChannels:1,
-				bufnum:bufnum,
-				rate: BufRateScale.kr(bufnum) * rate,
-				trigger: gate,
-				startPos: BufSampleRate.kr(bufnum)*deltime,
-				loop: 1,
-				doneAction: 0,
-			) * env;
-			Out.ar(out, Pan2.ar(sig, pan));
-		}).add;
-		SynthDef.new(\ps_bufrd_phased__1x2, {
-			arg out=0,
-			bufnum,
-			basedeltime=0.0,
-			phasebus,
-			rate=1.0, modulate=0, modlag=0.5,
-			pan=0, amp=1, gate=1,
-			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
-
-			var sig, env, baseTime, phase, deltime, clippedGate;
-			clippedGate = gate * Trig1.kr(gate, maxDur);
-			env = EnvGen.kr(
-				Env.adsr(
-					attackTime: attack,
-					decayTime: decay,
-					sustainLevel: sustainLevel,
-					releaseTime: release),
-				gate: clippedGate,
-				levelScale:amp,
-				doneAction: 2);
-			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
-			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-			baseTime = Latch.kr(In.ar(phasebus), clippedGate);
-			//is the following wrap right for the last sample in the buffer?
-			phase = ((baseTime-deltime)).wrap(0, BufDur.kr(bufnum)-SampleDur.ir);
-			sig = BufRd.ar(
-				numChannels:1,
-				bufnum:bufnum,
-				phase: phase*SampleRate.ir,
-				loop: 1, // Is this actually loop TIME? or interpolation?
-			) * env;
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
 	}
