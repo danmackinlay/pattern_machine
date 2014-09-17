@@ -7,7 +7,7 @@ state.server = Dan.serverboot(prox:\local, device:\builtin);
 var state = ~state;
 state.server.doWhenBooted {~state.make({
 	~buf = Buffer.alloc(~server, 441000);
-	~loopphasebus = Bus.audio(~server, 1);
+	~loopphasebus = Bus.control(~server, 1);
 	~server.sync;
 	~buf.readChannel(PS.scsamplepath +/+ "actors-siren.wav");
 	~clock=TempoClock.default;

@@ -15,7 +15,7 @@ PSBufDelaySynthDefs {
 		//Delay-Ugen-free delays, using buffers
 		//
 		//write to delay only when triggered is on.
-		//needs audio-rate phase
+		//needs control-rate phase, which means one-block jitter. Wevs.
 		//TODO: handle position with Phasor and rate-zeroing
 		SynthDef.new(\ps_bufwr_phased_1x1, {
 			arg in=0,
@@ -42,7 +42,7 @@ PSBufDelaySynthDefs {
 				start: 0,
 				end: bufSamps);
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
-			Out.ar(phasebus, (sampCount*SampleDur.ir));
+			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
 		SynthDef.new(\ps_bufrd_phased__1x2, {
 			arg out=0,
@@ -71,7 +71,7 @@ PSBufDelaySynthDefs {
 			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
 			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur);
-			baseTime = Latch.kr(In.ar(phasebus), clippedGate);
+			baseTime = Latch.kr(In.kr(phasebus), clippedGate);
 			//is the following wrap right for the last sample in the buffer?
 			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
 			sig = BufRd.ar(
