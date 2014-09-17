@@ -23,7 +23,7 @@ state.server.doWhenBooted {~state.make({
 		\instrument, \ps_bufrd_phased__1x2,
 		\out, 0,
 		\bufnum, ~buf,
-		\basedeltime, 0.0,
+		\basedeltime, 0.5,
 		\phasebus, ~loopphasebus,
 		\rate, 1.0,
 		\modulate, 0,
@@ -36,8 +36,11 @@ state.server.doWhenBooted {~state.make({
 		\sustainLevel, 1.0,
 		\release, 0.5,
 		\maxDur, inf,
-		\dur, Pn(1, inf),
+		\dur, Pn(10, inf),
 		\addAction, \addToTail,
+		\voxnum, Pseries,
+		\attack, 1,
+		\decay, 1,
 	).trace.play(~clock);
 });};
 )

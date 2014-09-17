@@ -33,15 +33,16 @@ PSBufDelaySynthDefs {
 					sustainTime: (bufLength-(2*fadetime)),
 					releaseTime: fadetime,
 					curve: \sine),
-				gate: trig);
+				gate: trig,
+				doneAction: 2);
 			gate = (env>0);
 			sampCount = Phasor.ar(
 				trig: gate,
 				rate: 1,
 				start: 0,
-				end: bufSamps);
+				end: bufSamps).poll(3,\wrsampcount);
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
-			Out.ar(phasebus, sampCount*SampleDur.ir);
+			Out.ar(phasebus, (sampCount*SampleDur.ir).poll(3,\wrtimecount));
 		}).add;
 		SynthDef.new(\ps_bufrd_phased__1x2, {
 			arg out=0,
@@ -50,10 +51,14 @@ PSBufDelaySynthDefs {
 			phasebus,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
-			attack=0.01, decay=0.1, sustainLevel=1.0, release=0.5, maxDur=inf;
+			voxnum=0,
+			interp=4,
+			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, maxDur=inf;
 
-			var sig, env, baseTime, phase, deltime, clippedGate;
-			clippedGate = gate * Trig1.kr(gate, maxDur);
+			var sig, env, baseTime, readTime, deltime, clippedGate, ramp, bufDur;
+
+			clippedGate = gate * Trig1.kr(gate, maxDur).poll(3, \gatey);
+			bufDur = BufDur.kr(bufnum)-SampleDur.ir;
 			env = EnvGen.kr(
 				Env.adsr(
 					attackTime: attack,
@@ -62,17 +67,18 @@ PSBufDelaySynthDefs {
 					releaseTime: release),
 				gate: clippedGate,
 				levelScale:amp,
-				doneAction: 2);
+				doneAction: 2).poll(3, \env, voxnum);
 			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-			baseTime = Latch.kr(In.ar(phasebus), clippedGate);
+			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur).poll(3, \ramp, voxnum);
+			baseTime = Latch.kr(In.ar(phasebus), clippedGate).poll(0.1, \baseTime, voxnum);
 			//is the following wrap right for the last sample in the buffer?
-			phase = ((baseTime-deltime)).wrap(0,
-				BufDur.kr(bufnum)-SampleDur.ir);
+			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur).poll(3, \readTime, voxnum);
 			sig = BufRd.ar(
 				numChannels:1,
-				bufnum:bufnum,
-				phase: phase*SampleRate.ir,
+				bufnum: bufnum,
+				phase: readTime*SampleRate.ir,
+				interpolation: interp,
 				loop: 1, // Is this actually loop TIME? or interpolation?
 			) * env;
 			Out.ar(out, Pan2.ar(sig, pan));
