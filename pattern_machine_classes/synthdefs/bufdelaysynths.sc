@@ -40,9 +40,9 @@ PSBufDelaySynthDefs {
 				trig: gate,
 				rate: 1,
 				start: 0,
-				end: bufSamps).poll(3,\wrsampcount);
+				end: bufSamps);
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
-			Out.ar(phasebus, (sampCount*SampleDur.ir).poll(3,\wrtimecount));
+			Out.ar(phasebus, (sampCount*SampleDur.ir));
 		}).add;
 		SynthDef.new(\ps_bufrd_phased__1x2, {
 			arg out=0,
@@ -57,7 +57,7 @@ PSBufDelaySynthDefs {
 
 			var sig, env, baseTime, readTime, deltime, clippedGate, ramp, bufDur;
 
-			clippedGate = gate * Trig1.kr(gate, maxDur).poll(3, \gatey);
+			clippedGate = gate * Trig1.kr(gate, maxDur);
 			bufDur = BufDur.kr(bufnum)-SampleDur.ir;
 			env = EnvGen.kr(
 				Env.adsr(
@@ -67,13 +67,13 @@ PSBufDelaySynthDefs {
 					releaseTime: release),
 				gate: clippedGate,
 				levelScale:amp,
-				doneAction: 2).poll(3, \env, voxnum);
+				doneAction: 2);
 			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur).poll(3, \ramp, voxnum);
-			baseTime = Latch.kr(In.ar(phasebus), clippedGate).poll(0.1, \baseTime, voxnum);
+			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur);
+			baseTime = Latch.kr(In.ar(phasebus), clippedGate);
 			//is the following wrap right for the last sample in the buffer?
-			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur).poll(3, \readTime, voxnum);
+			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
 			sig = BufRd.ar(
 				numChannels:1,
 				bufnum: bufnum,
