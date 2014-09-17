@@ -45,8 +45,7 @@ PSBufDelaySynthDefs {
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
 			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
-		SynthDef.new(\ps_bufrd_phased__1x2, {
-		//This one could crossfade. doesn't work yetthough'
+		//This one could crossfade. doesn't work yet though
 		SynthDef.new(\ps_recordbuf_phased_1x1, {
 			arg in=0,
 			trig=1.0,
@@ -75,6 +74,7 @@ PSBufDelaySynthDefs {
 			RecordBuf.ar(in, bufnum: bufnum, phase: sampCount);
 			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
+		SynthDef.new(\ps_bufrd_phased_mod__1x2, {
 			arg out=0,
 			bufnum,
 			basedeltime=0.0,
@@ -144,7 +144,7 @@ PSBufDelaySynthDefs {
 		}).add;
 
 		//Delay grain - plays snippets of the past
-		SynthDef.new(\ps_deltaprd_simple_play__1x2, {
+		SynthDef.new(\ps_deltaprd_play__1x2, {
 			arg out=0,
 			bufnum,
 			deltime=1.0,
@@ -173,7 +173,7 @@ PSBufDelaySynthDefs {
 		}).add;
 
 		//Delay grain - plays snippets of the past, with bending
-		SynthDef.new(\ps_deltaprd_play__1x2, {
+		SynthDef.new(\ps_deltaprd_play_mod__1x2, {
 			arg out=0,
 			bufnum,
 			deltime=1.0,

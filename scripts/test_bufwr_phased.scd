@@ -20,7 +20,7 @@ state.server.doWhenBooted {~state.make({
 		\addAction, \head,
 	]);
 	~parasite = Pbind(
-		\instrument, \ps_bufrd_phased__1x2,
+		\instrument, \ps_bufrd_phased_mod__1x2,
 		\out, 0,
 		\bufnum, ~buf,
 		\basedeltime, 0.5,

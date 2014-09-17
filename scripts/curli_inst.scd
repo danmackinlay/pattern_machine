@@ -101,7 +101,7 @@
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
 			type: \note,
-			instrument: \ps_deltaprd_play__1x2,
+			instrument: \ps_deltaprd_play_mod__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,
