@@ -20,7 +20,6 @@ TODO:
       * tap sync?
     * gestures?
   * per voice
-    * offset
     * overall "weirdness" param to control with trivial mapping
     * stationarity
     * minijump sizes
@@ -31,7 +30,6 @@ TODO:
     * strength
     * density
     * intensity
-    * modulation
     * level
     * pan
     * reverb mix
@@ -39,8 +37,9 @@ TODO:
     * reverb mix?
     * loop beats?
     * transposition
-    * reverb mix?
     * envelope "attackiness"?
+    * modulation
+    * reverb mix?
 * get rid of clicks by
   * soundfile-length-sensitive sound playing
   * shifting record pointer
@@ -119,7 +118,6 @@ state.server.doWhenBooted({state.make({
 		// * minijump sizes
 		~delquantum = 1/4;
 		~deloffsets = [0,1,3,5];
-
 		// * overall "weirdness" param to control with trivial mapping
 		~delscale = 0.0;
 		// * stationarity
@@ -136,21 +134,21 @@ state.server.doWhenBooted({state.make({
 		~density = 1.0; //rate of impacts
 		// * intensity
 		~intensity = 1.0; //expected polyphony
-		// * modulation
 		// * level (db might be nicer)
-		~amp = 0.5;
+		~db = -6;
 		// * pan
 		~pan = 0.0;
 		// * transposition
 		~trans = [1];
-
-		// * reverb mix?
 		// * loop beats?
 		~loopBeats = 4;
-
 		// * envelope "attackiness"?
 		~attack = 0.1;
 		~release = 0.3;
+		~decay = 0.1;
+		~sustainLevel = 0.5;
+		// * modulation
+		// * reverb mix?
 	});
 
 	//UI interaction stuff

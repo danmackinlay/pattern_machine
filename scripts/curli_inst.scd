@@ -133,9 +133,11 @@
 				// [~stationarity, ~density, ~intensity, ~loopBeats, ~beatDur].postcs;
 				//Basic event construction:
 				evt = ~baseevt.copy.putAll((
-					attack: ~attack ? 1.0,
-					release: ~release ? 0.3,
-					amp: ~amp,
+					attack: ~attack,
+					decay: ~decay,
+					sustainLevel: ~sustainLevel,
+					release: ~release,
+					db: ~db,
 					pan: ~pan,
 					rate: 1,
 				));
