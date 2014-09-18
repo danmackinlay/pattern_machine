@@ -109,23 +109,6 @@ state.server.doWhenBooted({state.make({
 	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
 	{state.sourcesounds[0].set(\bufnum,state.samples.key(\choral,0))}.defer(1);
 
-	~seed = 1128;
-	~density = 1.0; //rate of impacts
-	~intensity = 1.0; //expected polyphony
-	~chaos = 0.0;
-	~loopseed = true;
-	~looping = 0;
-	~bpm = 140;
-	~amp = 0.5;
-	~pan = 0.0;
-	~trans = [1];
-	~quantum = 1/4;
-	~strength = 1.0;
-	~controls = List.new;
-	~attack = 0.1;
-	~release = 0.3;
-	~stationarity = 1.0;
-	~debugSpawn = true;
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
 	// {metaparamMap.plot;}.defer;
@@ -145,10 +128,46 @@ fork {
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
-		~loopBeats = 4;
-		~debugSpawn = false;
+		~controls = List.new;
+		~bpm = 140; ///wtf? clock is set globally
+		~debugSpawn = true;
+		// * record
+		// * minijump sizes
 		~delscale = 1/4;
 		~beatoffsets = [0,1,3,5];
+		// * overall "weirdness" param to control with trivial mapping
+		~chaos = 0.0;
+		// * stationarity
+		~stationarity = 1.0;
+		// * seed value
+		~seed = 1;
+		// * looping
+		~loopseed = true;
+		// * quantization
+		~quantum = 1/4;
+		// * strength
+		~strength = 1.0;
+
+		// * density
+		~density = 1.0; //rate of impacts
+		// * intensity
+		~intensity = 1.0; //expected polyphony
+		// * modulation
+		// * level (db might be nicer)
+		~amp = 0.5;
+		// * pan
+		~pan = 0.0;
+
+		// * transposition
+		~trans = [1];
+
+		// * reverb mix?
+		// * loop beats?
+		~loopBeats = 4;
+
+		// * envelope "attackiness"?
+		~attack = 0.1;
+		~release = 0.3;
 	});
 	state.nextVoice = i + 1;
 	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);

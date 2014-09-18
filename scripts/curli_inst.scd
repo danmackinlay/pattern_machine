@@ -135,15 +135,16 @@
 				evt = ~baseevt.copy.putAll((
 					attack: ~attack ? 1.0,
 					release: ~release ? 0.3,
-					bartime: intendedTime,
-					sustain: 1.0.rand.log.neg/(~density)*(~intensity),
-					delta: 1.0.rand.log.neg/(~density),
-					deltime: 0,
-					amp: ~amp ? 0.5,
-					pan: ~pan ? 0.0,
+					amp: ~amp,
+					pan: ~pan,
 					rate: 1,
 				));
-				intendedNextDelta = evt.delta;
+				intendedNextDelta = (1.0.rand.log.neg/(~density)).min(30);
+				evt[\delta] = intendedNextDelta;
+				evt[\sustain] = (
+					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+				).min(30);
+
 				intendedNextTime = intendedNextDelta + intendedTime;
 				~debugSpawn.asBoolean.if({
 					[
@@ -210,7 +211,7 @@
 				// TODO: round to 0 if close enough
 				// TODO: switch back to round instead of roundup, or we dont' get notes on the downbeat in the first bar.
 				quantizedNextTime = intendedNextTime.roundUp(~quantum);
-				weightedNextTime = ((~strength.neg + 1) * intendedNextTime) +
+				weightedNextTime = ((1 - ~strength) * intendedNextTime) +
 					(~strength * quantizedNextTime);
 				actualNextDelta = (weightedNextTime - actualTime);
 				~debugSpawn.asBoolean.if({
