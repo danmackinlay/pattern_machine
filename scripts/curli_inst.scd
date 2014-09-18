@@ -43,8 +43,9 @@
 
 		state.updateTempo();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
-		~modbus = ~parambusallocator.alloc;
 		~cleanupList.add({ state.loopbuf.free });
+		~modbus = Bus.control(~server,1);
+		~cleanupList.add({ state.modbus.free });
 		~loopphasebus = Bus.control(~server, 1);
 		~cleanupList.add({ state.loopphasebus.free });
 		//looks tidier in debug to use groups instead of synths

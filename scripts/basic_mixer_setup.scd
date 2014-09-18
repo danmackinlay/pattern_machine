@@ -53,16 +53,13 @@
 	~instbus = Bus.audio(~server, ~ninsts * 2);
 	CmdPeriod.doOnce({ state.instbus.free });
 
-	~parambus = Bus.control(~server, ~nparams);
-	CmdPeriod.doOnce({ state.parambus.free });
+	//~parambus = Bus.control(~server, ~nparams);
+	//CmdPeriod.doOnce({ state.parambus.free });
 
 	~server.sync;
 
 	~inbuses = ~ninputs.collect({|i| ~inbus.subBus(i, 1)});
-	//~instbuses = ~ninsts.collect({|i| ~instbus.subBus(i*2, 2)});
-	//~parambuses = ~nparams.collect({|i| ~parambus.subBus(i, 1)});
 	~instbusallocator = BusAllocator.new(~instbus, 2);
-	~parambusallocator = BusAllocator.new(~parambus);
 
 	s.sync;
 	~samples.notNil.if({

@@ -5,7 +5,6 @@ TODO:
 * stop loop mode explosions
 * controller map
 * tidier sample source selector
-* remove bus allocator nonsense
 * transpose fn
 * empty record buffer at start
 * buffer emptying command
