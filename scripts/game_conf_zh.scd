@@ -8,7 +8,9 @@
   * pitch bend
 */
 (
-m = PSMetaParamMap.new(inDims:3, outDims:16);
+var state = ();
+~state = state;
+~state.m = m = PSMetaParamMap.new(inDims:6, outDims:16);
 m.plot;
 MIDIClient.init;
 MIDIClient.destinations;
@@ -23,6 +25,16 @@ OSCdef.new(\wiipry, {
 	m.set(2, yaw, 0.0, 1.0);
 	}, "/wii/1/accel/pry", srcID: nil, recvPort:8332);
 // Have to set up disposal logic when using custom port or sclang implodes
+CmdPeriod.doOnce({ OSCdef(\wiipry).free });
+OSCdef.new(\wiinunchukpry, {
+	arg msg, time, addr, ports;
+	var dummy, pitch, roll, yaw, accel;
+	# dummy, pitch, roll, yaw, accel = msg;
+	//[\pitchrollyawaccel,pitch, roll, yaw, accel].postln;
+	m.set(3, pitch, 0.0, 1.0);
+	m.set(4, roll, 0.0, 1.0);
+	m.set(5, yaw, 0.0, 1.0);
+	}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiipry).free });
 OSCdef.new(\wiiplus, {
 	arg msg, time, addr, ports;
