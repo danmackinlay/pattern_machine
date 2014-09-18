@@ -80,7 +80,9 @@
 		addAction: \addToHead,
 		sendGate: false,//persist
 	).play;
-	CmdPeriod.doOnce({ state.inputgain.free) });
+	// not needed; synths are autofreed already
+	// also, gives a weird error, dunno why.
+	// CmdPeriod.doOnce({ state.inputgain.free });
 
 	//In case I don't want to sing:
 	~sourcesounds = ~inbuses.collect({|bus, i| (
