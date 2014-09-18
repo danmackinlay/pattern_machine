@@ -81,7 +81,7 @@ PSBufDelaySynthDefs {
 		SynthDef.new(\ps_bufrd_phased_mod__1x2, {
 			arg out=0,
 			bufnum,
-			basedeltime=0.0,
+			deltime=0.0,
 			phasebus,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
@@ -89,7 +89,7 @@ PSBufDelaySynthDefs {
 			interp=4,
 			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, maxDur=inf;
 
-			var sig, env, baseTime, readTime, deltime, clippedGate, ramp, bufDur;
+			var sig, env, baseTime, readTime, clippedGate, ramp, bufDur;
 
 			clippedGate = gate * Trig1.kr(gate, maxDur);
 			bufDur = BufDur.kr(bufnum)-SampleDur.ir;
@@ -102,7 +102,7 @@ PSBufDelaySynthDefs {
 				gate: clippedGate,
 				levelScale:amp,
 				doneAction: 2);
-			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
+			deltime = deltime + ((1-rate) * Sweep.ar(clippedGate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
 			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur);
 			baseTime = Latch.kr(In.kr(phasebus), clippedGate);
