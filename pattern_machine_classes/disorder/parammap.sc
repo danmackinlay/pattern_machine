@@ -11,6 +11,7 @@ TODO: multiple set to avoid too many triggers
 TODO: allow metaparammap to also allocate a param # automagically
 TODO: make sure outputs are full range
 TODO: plot values
+TODO: make optional index param the LAST param
 */
 
 // Linear-congruential-like PRVG, that is, a pseudo-random vector generator.

@@ -1,11 +1,12 @@
 /*
 * TODO:
 * Find MIDI mapping for
-* Mod wheel (CC0)
-* foot controller (CC4)
+  * Mod wheel (CC0)
+  * foot controller (CC4)
   * aftertouch
   * off vel
   * pitch bend
+* allow access to raw inputs as outputs with soloing etc
 */
 (
 m = PSMetaParamMap.new(inDims:3, outDims:10);
