@@ -47,6 +47,7 @@ PSBufDelaySynthDefs {
 			ReplaceOut.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
 		//This one could crossfade. doesn't work yet though
+		/*
 		SynthDef.new(\ps_recordbuf_phased_1x1, {
 			arg in=0,
 			gate=1.0,
@@ -76,6 +77,7 @@ PSBufDelaySynthDefs {
 			RecordBuf.ar(in, bufnum: bufnum, phase: sampCount);
 			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
+		*/
 		SynthDef.new(\ps_bufrd_phased_mod__1x2, {
 			arg out=0,
 			bufnum,
