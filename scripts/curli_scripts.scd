@@ -12,7 +12,6 @@ TODO:
 * tidy up shared usage of global clock.
 * OSC triggering for:
   * overall
-    * main input looping
     * gestures
     * live in
     * sample source
@@ -112,14 +111,16 @@ state.server.doWhenBooted({state.make({
 	//cannot fall back to parent for these; local controls might be installed
 	~modelvoice = Event.make({
 		~bpm = 140; ///wtf? clock is set globally
-		~debugSpawn = true;
+		~debugSpawn = false;
 
 		// * record
 		// * minijump sizes
-		~delquantum = 1/4;
-		~deloffsets = [0,1,3,5];
+		~delquantumset = [1/4, 1/2, 1];
+		~delquantumvar = 0.5;
+		~deljumpset = [0,1,3,5];
+		~deljumpvar = 0.5;
 		// * overall "weirdness" param to control with trivial mapping
-		~delscale = 0.0;
+		~delscale = 0.5;
 		// * stationarity
 		~stationarity = 1.0;
 		// * seed value
@@ -127,7 +128,8 @@ state.server.doWhenBooted({state.make({
 		// * looping
 		~loopseed = true;
 		// * quantization
-		~quantum = 1/4;
+		~quantumset = [1/8, 1/4, 1/3, 1/2, 2/3, 1, 2, 4];
+		~quantumparam = 0.5;
 		// * strength
 		~strength = 1.0;
 		// * density
@@ -139,18 +141,18 @@ state.server.doWhenBooted({state.make({
 		// * pan
 		~pan = 0.0;
 		// * transposition
-		~trans = [1];
-		// * loop beats?
-		~loopBeats = 4;
+		~transset = [1, 3/2, 1/2, 2/3, 5/4 ];
+		~transvar = 0.5;
 		// * envelope "attackiness"?
 		~attack = 0.1;
 		~release = 0.3;
 		~decay = 0.1;
 		~sustainLevel = 0.5;
 		// * modulation
+		// * loop beats?
+		~loopBeats = 4;
 		// * reverb mix?
 	});
-
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
 	// {metaparamMap.plot;}.defer;
@@ -190,7 +192,6 @@ fork {
 ~state.voiceStates[0].stationarity=0;
 ~state.voiceStates[0].stationarity=1.0;
 ~state.voiceStates[0].cleanup();
-~state.voiceStates[0].rec();
 ~state.voiceStates[0].loopbuf.plot;
 ~state.bpm;
 ~state.bpm=120;

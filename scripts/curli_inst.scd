@@ -131,6 +131,9 @@
 				var overshoot;
 				// [state.stationarity, state.density, state.intensity, state.loopBeats,  state.beatDur].postcs;
 				// [~stationarity, ~density, ~intensity, ~loopBeats, ~beatDur].postcs;
+				// choose quantisation for this iteration:
+				~quantum = ~quantumset.unif(~quantumparam);
+
 				//Basic event construction:
 				evt = ~baseevt.copy.putAll((
 					attack: ~attack,
@@ -209,7 +212,9 @@
 						\overshoot, overshoot,
 					].postln;
 				});
+				//
 				// Quantisation logic, adapted from timing.sc
+				//
 				// TODO: round to 0 if close enough
 				// TODO: switch back to round instead of roundup, or we dont' get notes on the downbeat in the first bar.
 				quantizedNextTime = intendedNextTime.roundUp(~quantum);
@@ -222,16 +227,27 @@
 				(actualNextDelta < 0).if({actualNextDelta = actualNextDelta % (~quantum)});
 				actualNextTime = actualTime + actualNextDelta;
 				evt[\delta] = actualNextDelta % (~loopBeats); //break up v. long beats
-				//estimate a fruitful delay time
-				nextDelTime = actualNextTime*(~stationarity);
+				//
+				// Delay logic
+				//
+				// convert delay in beats to boring old seconds
+				nextDelTime = actualNextTime*(~stationarity)/(~beatDur);
 				[\deltimeA, nextDelTime].postln;
-				//optional offset
-				nextDelTime = nextDelTime + (((~beatoffsets ? [0,1,2,3]).choose) * (~beatDur)*(~delquantum ? 1));
+				// offset using random list lookup
+				nextDelTime = nextDelTime + (
+					(~delquantumset.unif(~delquantumvar.asFloat.rand)) *
+					(~deljumpset.unif(~deljumpvar.asFloat.rand)) *
+					(~delscale) * (~beatDur));
 				[\deltimeB, nextDelTime].postln;
 				//don't wrap to sane values; the synth does this anyway
 				//nextDelTime = nextDelTime % (~loopBeats*~beatDur);
 				//[\deltimeC, nextDelTime].postln;
 				evt[\deltime] = nextDelTime;
+				//
+				// tuning logic
+				//
+				evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
+				[\rate, evt[\rate]].postln;
 
 				~debugSpawn.asBoolean.if({
 					[
