@@ -8,6 +8,9 @@ TODO:
 * empty record buffer at start
 * polyphony
 * interesting param map
+* interesting rhythmn somehow
+* smart accent
+* random volume
 * decent Lemur template
 * tidy up shared usage of global clock.
 * OSC triggering for:
@@ -116,37 +119,37 @@ state.server.doWhenBooted({state.make({
 		// * record
 		// * minijump sizes
 		~delquantumset = [1/4, 1/2, 1];
-		~delquantumvar = 0.5;
+		~delquantumvar = 0.5; // MODULATE ME
 		~deljumpset = [0,1,3,5];
-		~deljumpvar = 0.5;
+		~deljumpvar = 0.5; // MODULATE ME
 		// * overall "weirdness" param to control with trivial mapping
-		~delscale = 0.5;
+		~delscale = 0.5; // MODULATE ME
 		// * stationarity
-		~stationarity = 1.0;
+		~stationarity = 1.0; // MODULATE ME
 		// * seed value
 		~seed = 1;
 		// * looping
 		~loopseed = true;
 		// * quantization
 		~quantumset = [1/8, 1/4, 1/3, 1/2, 2/3, 1, 2, 4];
-		~quantumparam = 0.5;
+		~quantumparam = 0.5;  // MODULATE ME
 		// * strength
-		~strength = 1.0;
+		~strength = 1.0;  // MODULATE ME
 		// * density
-		~density = 1.0; //rate of impacts
+		~density = 8.0;  // MODULATE ME
 		// * intensity
-		~intensity = 1.0; //expected polyphony
+		~intensity = 2.0;  // MODULATE ME
 		// * level (db might be nicer)
-		~db = -6;
+		~db = -6;  // MODULATE ME
 		// * pan
-		~pan = 0.0;
+		~pan = 0.0;  // MODULATE ME
 		// * transposition
 		~transset = [1, 3/2, 1/2, 2/3, 5/4 ];
-		~transvar = 0.5;
+		~transvar = 0.5;  // MODULATE ME
 		// * envelope "attackiness"?
-		~attack = 0.1;
-		~release = 0.3;
-		~decay = 0.1;
+		~attack = 0.05;
+		~release = 0.4;
+		~decay = 0.3;
 		~sustainLevel = 0.5;
 		// * modulation
 		// * loop beats?
