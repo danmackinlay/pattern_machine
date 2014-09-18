@@ -224,7 +224,7 @@
 				nextDelTime = actualNextTime*(~stationarity);
 				[\deltimeA, nextDelTime].postln;
 				//optional offset
-				nextDelTime = nextDelTime + (((~beatoffsets ? [0,1,2,3]).choose) * (~beatDur)*(~delscale ? 1));
+				nextDelTime = nextDelTime + (((~beatoffsets ? [0,1,2,3]).choose) * (~beatDur)*(~delquantum ? 1));
 				[\deltimeB, nextDelTime].postln;
 				//don't wrap to sane values; the synth does this anyway
 				//nextDelTime = nextDelTime % (~loopBeats*~beatDur);

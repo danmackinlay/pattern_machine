@@ -131,12 +131,14 @@ fork {
 		~controls = List.new;
 		~bpm = 140; ///wtf? clock is set globally
 		~debugSpawn = true;
+
 		// * record
 		// * minijump sizes
-		~delscale = 1/4;
-		~beatoffsets = [0,1,3,5];
+		~delquantum = 1/4;
+		~deloffsets = [0,1,3,5];
+
 		// * overall "weirdness" param to control with trivial mapping
-		~chaos = 0.0;
+		~delscale = 0.0;
 		// * stationarity
 		~stationarity = 1.0;
 		// * seed value
@@ -147,7 +149,6 @@ fork {
 		~quantum = 1/4;
 		// * strength
 		~strength = 1.0;
-
 		// * density
 		~density = 1.0; //rate of impacts
 		// * intensity
@@ -157,7 +158,6 @@ fork {
 		~amp = 0.5;
 		// * pan
 		~pan = 0.0;
-
 		// * transposition
 		~trans = [1];
 
