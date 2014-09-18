@@ -44,7 +44,7 @@ PSBufDelaySynthDefs {
 				start: 0,
 				end: bufSamps);
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
-			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
+			ReplaceOut.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
 		//This one could crossfade. doesn't work yet though
 		SynthDef.new(\ps_recordbuf_phased_1x1, {
@@ -134,7 +134,7 @@ PSBufDelaySynthDefs {
 			outmix = XFade2.ar(in, delayed, wet);
 			inmix = XFade2.ar(in, delayed, wet.neg);
 			phase = DelTapWr.ar(bufnum, outmix);
-			Out.kr(phasebus, phase);
+			ReplaceOut.kr(phasebus, phase);
 			partdelayed = DelTapRd.ar(
 				buffer:bufnum,
 				phase: phase,
