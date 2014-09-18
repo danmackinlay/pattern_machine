@@ -70,7 +70,7 @@
 
 	~inputgain = (
 		instrument: \limi__1x1,
-		pregain: 10.dbamp, //BOOOM
+		pregain: (-6).dbamp,
 		out: ~extinbus,
 		group: ~inputgroup,
 		server: ~server,
