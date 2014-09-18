@@ -4,6 +4,7 @@ Curlicue
 TODO:
 * stop loop mode explosions (fixed? can't reproduce)
 * tidier sample source selector
+* fix lower bound on quantized notes
 * transpose, jump etc fn (scaled list selector)
 * empty record buffer at start
 * polyphony
@@ -146,7 +147,7 @@ state.server.doWhenBooted({state.make({
 		// * transposition
 		~transset = [1, 3/2, 1/2, 2/3, 5/4 ];
 		~transvar = 0.5;  // MODULATE ME
-		// * envelope "attackiness"?
+		// * envelope "attackiness"
 		~attack = 0.05;
 		~release = 0.4;
 		~decay = 0.3;
@@ -196,6 +197,7 @@ fork {
 ~state.voiceStates[0].stationarity=1.0;
 ~state.voiceStates[0].cleanup();
 ~state.voiceStates[0].loopbuf.plot;
+~state.voiceStates[0].density=20;
 ~state.bpm;
 ~state.bpm=120;
 ~state.updateTempo.();

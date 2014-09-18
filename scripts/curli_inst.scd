@@ -144,11 +144,14 @@
 					pan: ~pan,
 					rate: 1,
 				));
-				intendedNextDelta = (1.0.rand.log.neg/(~density)).min(30);
+				intendedNextDelta = (1.0.rand.log.neg/(~density)).clip(0.0, 30);
+				[\intendedNextDelta, intendedNextDelta].postln;
+
 				evt[\delta] = intendedNextDelta;
 				evt[\sustain] = (
 					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
-				).min(30);
+				).clip(0.01, 30);
+				[\sustain, evt[\sustain]].postln;
 
 				intendedNextTime = intendedNextDelta + intendedTime;
 				~debugSpawn.asBoolean.if({
@@ -216,7 +219,7 @@
 				// Quantisation logic, adapted from timing.sc
 				//
 				// TODO: round to 0 if close enough
-				// TODO: switch back to round instead of roundup, or we dont' get notes on the downbeat in the first bar.
+				// TODO: switch back to round instead of roundup, or we don't get notes on the downbeat in the first bar.
 				quantizedNextTime = intendedNextTime.roundUp(~quantum);
 				weightedNextTime = ((1 - ~strength) * intendedNextTime) +
 					(~strength * quantizedNextTime);
@@ -226,7 +229,9 @@
 				// % ensures that we skip no bars and we don't go backwards; shouldn't be needed
 				(actualNextDelta < 0).if({actualNextDelta = actualNextDelta % (~quantum)});
 				actualNextTime = actualTime + actualNextDelta;
-				evt[\delta] = actualNextDelta % (~loopBeats); //break up v. long beats
+				evt[\delta] = actualNextDelta % (~loopBeats); // % breaks up v. long beats
+				[\actualNextDelta, actualNextDelta].postln;
+
 				//
 				// Delay logic
 				//
