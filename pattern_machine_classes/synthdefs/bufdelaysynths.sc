@@ -20,11 +20,11 @@ PSBufDelaySynthDefs {
 		//TODO: crossfade version using RecordBuf
 		SynthDef.new(\ps_bufwr_phased_1x1, {
 			arg in=0,
-			trig=1.0,
+			gate=1.0,
 			bufnum,
 			fadetime=0.0,
 			phasebus;
-			var gate, env, bufSamps, bufLength, sampCount;
+			var env, bufSamps, bufLength, sampCount;
 			bufSamps = BufFrames.kr(bufnum);
 			bufLength = bufSamps* SampleDur.ir;
 			in = In.ar(in,1);
@@ -34,8 +34,9 @@ PSBufDelaySynthDefs {
 					sustainTime: (bufLength-(2*fadetime)),
 					releaseTime: fadetime,
 					curve: \sine),
-				gate: trig,
+				gate: gate,
 				doneAction: 2);
+			//redefine gate to include tail
 			gate = (env>0);
 			sampCount = Phasor.ar(
 				trig: gate,
@@ -48,11 +49,11 @@ PSBufDelaySynthDefs {
 		//This one could crossfade. doesn't work yet though
 		SynthDef.new(\ps_recordbuf_phased_1x1, {
 			arg in=0,
-			trig=1.0,
+			gate=1.0,
 			bufnum,
 			fadetime=0.0,
 			phasebus;
-			var gate, env, bufSamps, bufLength, sampCount;
+			var env, bufSamps, bufLength, sampCount;
 			bufSamps = BufFrames.kr(bufnum);
 			bufLength = bufSamps* SampleDur.ir;
 			in = In.ar(in,1);
@@ -62,8 +63,9 @@ PSBufDelaySynthDefs {
 					sustainTime: (bufLength-(2*fadetime)),
 					releaseTime: fadetime,
 					curve: \sine),
-				gate: trig,
+				gate: gate,
 				doneAction: 2);
+			//redfeine gate to include tail
 			gate = (env>0);
 			sampCount = Phasor.ar(
 				trig: gate,
