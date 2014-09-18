@@ -9,7 +9,7 @@
 
 	~offset = ~offset ? 0.0;
 	~clock = ~clock ? TempoClock.default;
-	//propagates tempo variables into vraious derivatives and synth
+	//propagates tempo variables into various derivatives and synths
 	state.updateTempo={|self|
 		\updatetempo.postln;
 		//self.postln;
@@ -80,7 +80,7 @@
 		addAction: \addToHead,
 		sendGate: false,//persist
 	).play;
-	CmdPeriod.doOnce({ state.inputgain.do({|synth| synth.free}) });
+	CmdPeriod.doOnce({ state.inputgain.free) });
 
 	//In case I don't want to sing:
 	~sourcesounds = ~inbuses.collect({|bus, i| (
@@ -97,7 +97,7 @@
 		loop: 1,
 		sendGate: false,//persist
 	).play;});
-	CmdPeriod.doOnce({ state.sourcesound.do({|synth| synth.free}) });
+	CmdPeriod.doOnce({ state.sourcesounds.do({|synth| synth.free}) });
 
 	~limiter = (
 		instrument: \limi__2x2,
