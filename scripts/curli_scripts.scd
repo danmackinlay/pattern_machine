@@ -96,7 +96,9 @@ state.server.doWhenBooted({state.make({
 	s.sync;
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
 	s.sync;
-	~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
+	//sync fails to handle the source setting properly
+	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
+	{state.sourcesounds[0].set(\bufnum,state.samples.key(\choral,0))}.defer(1);
 
 	~seed = 1128;
 	~density = 1.0; //rate of impacts
