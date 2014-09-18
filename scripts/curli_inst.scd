@@ -16,14 +16,12 @@
 			self.beatDur = self.tempo.reciprocal;
 			self.loopBeats = self.loopBeats ? 8.0;
 			self.loopTime = self.beatDur * self.loopBeats;
-			self.loopsynth.set(\deltime, self.loopTime);
 			self.clock.tempo=self.tempo;
 		};
 		~loopin={|self, loopseed|
 			[\loop, loopseed].postln;
 			loopseed = loopseed.asBoolean;
 			self.loopseed = loopseed;
-			self.loopsynth.set(\loop, loopseed);
 			self.loopseed;
 		};
 		~cleanup={|self|
@@ -43,7 +41,6 @@
 		//can't do this one until the list exists; has to be first if at all
 		//~cleanupList.add({ state.voiceStates[i]=nil });
 
-
 		state.updateTempo();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
 		~modbus = ~parambusallocator.alloc;
@@ -55,21 +52,22 @@
 		~tailGroup = Group.tail(~instgroup);
 		s.sync;
 
-		//delay/loop input
-		~loopsynth = (
-			instrument: \ps_deltapwr_loop__1x1,
-			out: ~inbus,
-			bufnum: ~loopbuf,
-			wet: 0,
-			deltime: ~loopTime,
-			phasebus: ~loopphasebus,
-			group: ~headGroup,
-			addAction: \addToHead,
-			sendGate: false,//persist
-		).play;
-		~cleanupList.add({ state.loopsynth.free });
-
-		s.sync;
+		//delay input
+		~rec = {|self, dur|
+			[\rec, \self, self].postcs;
+			[\rec, \dur, dur].postcs;
+			Pfin(1, Pevent((
+				instrument: \ps_bufwr_phased_1x1,
+				in: self.inbus,
+				bufnum: self.loopbuf,
+				phasebus: self.loopphasebus,
+				fadetime: 0.05,
+				group: self.headGroup,
+				addAction: \addToHead,
+				dur: dur ? self.loopTime,
+			//sendGate: false,//persist
+			))).trace.play(~clock);
+		};
 
 		//channel fx
 		~reverb = (
@@ -101,7 +99,7 @@
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
 			type: \note,
-			instrument: \ps_deltaprd_play_mod__1x2,
+			instrument: \ps_bufrd_phased_mod__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,

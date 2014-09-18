@@ -133,16 +133,21 @@ fork {
 	});
 	state.nextVoice = i + 1;
 	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
+	s.sync;
+	~state.voiceStates[0].rec(30);
 };
 )
 (
+b=BusMeters.new(s, ~state.inbuses).start;
+b.gui;
+~state.inbuses[0].makeBusMeter
 ~state.voiceStates[0].loopin(0);
 ~state.voiceStates[0].loopin(1);
 ~state.voiceStates[0].debugSpawn=false;
 ~state.voiceStates[0].stationarity=0;
 ~state.voiceStates[0].stationarity=1.0;
 ~state.voiceStates[0].cleanup();
-
+~state.voiceStates[0].loopbuf.plot;
 ~state.bpm;
 ~state.bpm=120;
 ~state.updateTempo.();
