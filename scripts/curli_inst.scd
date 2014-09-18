@@ -143,9 +143,6 @@
 					pan: ~pan ? 0.0,
 					rate: 1,
 				));
-				// "================1================".postln;
-				// evt.postcs;
-				// "================2================".postln;
 				intendedNextDelta = evt.delta;
 				intendedNextTime = intendedNextDelta + intendedTime;
 				~debugSpawn.asBoolean.if({

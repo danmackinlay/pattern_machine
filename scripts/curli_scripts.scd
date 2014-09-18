@@ -2,43 +2,52 @@
 Curlicue
 
 TODO:
-* stop loop mode explosions
-* controller map
+* stop loop mode explosions (fixed? can't reproduce)
 * tidier sample source selector
-* transpose fn
+* transpose, jump etc fn (scaled list selector)
 * empty record buffer at start
-* buffer emptying command
 * polyphony
 * interesting param map
 * decent Lemur template
+* tidy up shared usage of global clock.
 * OSC triggering for:
   * overall
     * main input looping
     * gestures
-    * seed value
-    * tempo overall
-    * attack and decay
     * live in
+    * sample source
+    * tempo overall
+      * tap sync?
+    * gestures?
   * per voice
     * offset
-    * overall jump size
+    * overall "weirdness" param to control with trivial mapping
+    * stationarity
     * minijump sizes
-    * reseeding
+    * seed value (eventually, ALWAYS reseed and
+      choose whether to stick to latest seed)
     * looping
-    * delay scaling
     * quantization
     * strength
     * density
+    * intensity
+    * modulation
     * level
+    * pan
     * reverb mix
-    * chaos
     * transposition
-* tap sync
-* enveloped gestures
+    * reverb mix?
+    * loop beats?
+    * transposition
+    * reverb mix?
+    * envelope "attackiness"?
 * get rid of clicks by
-  * soundfile-length-sensitive sound playing OR
+  * soundfile-length-sensitive sound playing
+  * shifting record pointer
+* record "past" - loop what JUST HAPPENED
 * master gain
 * channel synth (limi, gain, level reporting, perhaps EQ?)
+* buffer emptying command
 */
 
 //~server = Dan.serverboot(prox:\local, device:\rme);
@@ -150,6 +159,7 @@ fork {
 )
 (
 ~state.voiceStates[0].rec(30);
+~state.voiceStates[0].rec();
 ~state.inbuses[0].makeBusMeter
 ~state.voiceStates[0].loopin(0);
 ~state.voiceStates[0].loopin(1);
