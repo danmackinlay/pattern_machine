@@ -26,8 +26,6 @@ TODO:
     * chaos
     * transposition
 * tap sync
-* follow write head more closely in delay
-* stationarity doesn't work
 * enveloped gestures
 * get rid of clicks by
   * soundfile-length-sensitive sound playing OR
@@ -122,7 +120,7 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
-var localstate, state = ~state, i = ~state.nextVoice;
+var localstate, state = ~state, i = ~state.nextVoice, foo;
 fork {
 	localstate = Event.new(n:60, proto: state, know: true);
 	localstate.make({
@@ -130,11 +128,14 @@ fork {
 		~outbus = state.instbusallocator.alloc;
 		~loopBeats = 4;
 		~debugSpawn = false;
+		~delscale = 1/4;
+		~beatoffsets = [0,1,3,5];
 	});
 	state.nextVoice = i + 1;
-	this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
+	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
+	[\foo, foo].postcs;
 	s.sync;
-	~state.voiceStates[0].rec(30);
+	state.voiceStates[0].rec(30);
 };
 )
 (
@@ -147,6 +148,7 @@ b.gui;
 ~state.voiceStates[0].stationarity=0;
 ~state.voiceStates[0].stationarity=1.0;
 ~state.voiceStates[0].cleanup();
+~state.voiceStates[0].rec();
 ~state.voiceStates[0].loopbuf.plot;
 ~state.bpm;
 ~state.bpm=120;
@@ -162,6 +164,7 @@ b.gui;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
+~state.sourcesounds[0].set(\bufnum,~state.samples.key(\choral,0));
 
 ~state.voicestates[0][\trans]=[1/4,1,4/3];
 ~state.voicestates[1][\trans]=[1/4,1];

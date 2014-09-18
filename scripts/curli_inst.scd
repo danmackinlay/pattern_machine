@@ -54,8 +54,8 @@
 
 		//delay input
 		~rec = {|self, dur|
-			[\rec, \self, self].postcs;
-			[\rec, \dur, dur].postcs;
+			//[\rec, \self, self].postcs;
+			//[\rec, \dur, dur].postcs;
 			Pfin(1, Pevent((
 				instrument: \ps_bufwr_phased_1x1,
 				in: self.inbus,
@@ -126,6 +126,7 @@
 				var actualNextTime=0.0;
 				var intendedNextDelta;
 				var actualNextDelta;
+				var nextDelTime=0.0;
 				var overshoot;
 				// [state.stationarity, state.density, state.intensity, state.loopBeats,  state.beatDur].postcs;
 				// [~stationarity, ~density, ~intensity, ~loopBeats, ~beatDur].postcs;
@@ -136,10 +137,7 @@
 					bartime: intendedTime,
 					sustain: 1.0.rand.log.neg/(~density)*(~intensity),
 					delta: 1.0.rand.log.neg/(~density),
-					deltime: (
-						([0,1/2,3/4,2/3].choose + (
-							intendedTime*(~stationarity.neg)
-					)) % (~loopBeats)) * (~beatDur),
+					deltime: 0,
 					amp: ~amp ? 0.5,
 					pan: ~pan ? 0.0,
 					rate: 1,
@@ -223,6 +221,16 @@
 				(actualNextDelta < 0).if({actualNextDelta = actualNextDelta % (~quantum)});
 				actualNextTime = actualTime + actualNextDelta;
 				evt[\delta] = actualNextDelta % (~loopBeats); //break up v. long beats
+				//estimate a fruitful delay time
+				nextDelTime = actualNextTime*(~stationarity);
+				[\deltimeA, nextDelTime].postln;
+				//optional offset
+				nextDelTime = nextDelTime + (((~beatoffsets ? [0,1,2,3]).choose) * (~beatDur)*(~delscale ? 1));
+				[\deltimeB, nextDelTime].postln;
+				//don't wrap to sane values; the synth does this anyway
+				//nextDelTime = nextDelTime % (~loopBeats*~beatDur);
+				//[\deltimeC, nextDelTime].postln;
+				evt[\deltime] = nextDelTime;
 
 				~debugSpawn.asBoolean.if({
 					[
@@ -240,13 +248,14 @@
 						\actualNextTime, actualNextTime,
 						\actualNextDelta, actualNextDelta,
 						\intendedFirstBeat, intendedFirstBeat,
+						\deltime, nextDelTime,
 					].postln;
 				});
 
 				//actually sequence it.
 				pat = Pfin(1, Pevent(evt));
 				~debugSpawn.asBoolean.if({
-					//pat = pat.trace(prefix: \deepinner)
+					pat = pat.trace(prefix: \deepinner)
 				});
 				spawner.seq(pat);
 				//wrap around bar end
