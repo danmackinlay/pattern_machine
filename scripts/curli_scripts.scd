@@ -109,26 +109,9 @@ state.server.doWhenBooted({state.make({
 	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
 	{state.sourcesounds[0].set(\bufnum,state.samples.key(\choral,0))}.defer(1);
 
-	//UI interaction stuff
-	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
-	// {metaparamMap.plot;}.defer;
-	// CmdPeriod.doOnce({ ~metaparamMap.free });
-	// ~paramUpdater = PSParamForwarder(metaparamMap, 0.05);
-	// CmdPeriod.doOnce({ ~paramUpdater.free });
-	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
-	// //to disable:
-	//
-	// CmdPeriod.doOnce({ OSCdef(\wii).free });
-})});
-)
-(
-var localstate, state = ~state, i = ~state.nextVoice, foo;
-fork {
-	localstate = Event.new(n:60, proto: state, know: true);
-	localstate.make({
-		~inbus = state.inbuses[0];
-		~outbus = state.instbusallocator.alloc;
-		~controls = List.new;
+	//default values for sub voices
+	//cannot fall back to parent for these; local controls might be installed
+	~modelvoice = Event.make({
 		~bpm = 140; ///wtf? clock is set globally
 		~debugSpawn = true;
 
@@ -169,6 +152,29 @@ fork {
 		~attack = 0.1;
 		~release = 0.3;
 	});
+
+	//UI interaction stuff
+	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);
+	// {metaparamMap.plot;}.defer;
+	// CmdPeriod.doOnce({ ~metaparamMap.free });
+	// ~paramUpdater = PSParamForwarder(metaparamMap, 0.05);
+	// CmdPeriod.doOnce({ ~paramUpdater.free });
+	// this.executeFile(PS.scriptpath +/+ "curli_wii.scd").value(state);
+	// //to disable:
+	//
+	// CmdPeriod.doOnce({ OSCdef(\wii).free });
+})});
+)
+(
+var localstate, state = ~state, i = ~state.nextVoice, foo;
+fork {
+	localstate = Event.new(n:60, proto: state, know: true);
+	localstate.putAll(state.modelvoice);
+	localstate.make({
+		~inbus = state.inbuses[0];
+		~outbus = state.instbusallocator.alloc;
+		~controls = List.new;
+	});
 	state.nextVoice = i + 1;
 	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
 	[\foo, foo].postcs;
@@ -177,7 +183,7 @@ fork {
 };
 )
 (
-~state.voiceStates[0].rec(30);
+//~state.voiceStates[0].rec(30);
 ~state.voiceStates[0].rec();
 ~state.inbuses[0].makeBusMeter
 ~state.voiceStates[0].loopin(0);
