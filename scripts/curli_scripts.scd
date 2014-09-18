@@ -2,9 +2,16 @@
 Curlicue
 
 TODO:
+* stop loop mode explosions
+* controller map
+* tidier sample source selector
+* remove bus allocator nonsense
+* transpose fn
+* empty record buffer at start
+* buffer emptying command
+* polyphony
+* interesting param map
 * decent Lemur template
-* fix double reseed problem
-* counts in seconds, not beats
 * OSC triggering for:
   * overall
     * main input looping
@@ -12,9 +19,11 @@ TODO:
     * seed value
     * tempo overall
     * attack and decay
+    * live in
   * per voice
     * offset
-    * jump size
+    * overall jump size
+    * minijump sizes
     * reseeding
     * looping
     * delay scaling
@@ -135,12 +144,11 @@ fork {
 	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
 	[\foo, foo].postcs;
 	s.sync;
-	state.voiceStates[0].rec(30);
+	//state.voiceStates[0].rec(30);
 };
 )
 (
-b=BusMeters.new(s, ~state.inbuses).start;
-b.gui;
+~state.voiceStates[0].rec(30);
 ~state.inbuses[0].makeBusMeter
 ~state.voiceStates[0].loopin(0);
 ~state.voiceStates[0].loopin(1);
