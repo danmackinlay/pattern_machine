@@ -220,7 +220,7 @@
 				//
 				// TODO: round to 0 if close enough
 				// TODO: switch back to round instead of roundup, or we don't get notes on the downbeat in the first bar.
-				quantizedNextTime = intendedNextTime.roundUp(~quantum);
+				quantizedNextTime = intendedNextTime.round(~quantum);
 				weightedNextTime = ((1 - ~strength) * intendedNextTime) +
 					(~strength * quantizedNextTime);
 				actualNextDelta = (weightedNextTime - actualTime);

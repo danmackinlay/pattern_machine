@@ -133,20 +133,20 @@ state.server.doWhenBooted({state.make({
 		~loopseed = true;
 		// * quantization
 		~quantumset = [1/8, 1/4, 1/3, 1/2, 2/3, 1, 2, 4];
-		~quantumparam = 0.5;  // MODULATE ME
+		~quantumparam = 0.0;  // MODULATE ME
 		// * strength
-		~strength = 1.0;  // MODULATE ME
+		~strength = 0.0;  // MODULATE ME
 		// * density
 		~density = 8.0;  // MODULATE ME
 		// * intensity
-		~intensity = 2.0;  // MODULATE ME
+		~intensity = 3.0;  // MODULATE ME
 		// * level (db might be nicer)
 		~db = -6;  // MODULATE ME
 		// * pan
 		~pan = 0.0;  // MODULATE ME
 		// * transposition
 		~transset = [1, 3/2, 1/2, 2/3, 5/4 ];
-		~transvar = 0.5;  // MODULATE ME
+		~transvar = 0.2;  // MODULATE ME
 		// * envelope "attackiness"
 		~attack = 0.05;
 		~release = 0.4;
@@ -198,6 +198,7 @@ fork {
 ~state.voiceStates[0].cleanup();
 ~state.voiceStates[0].loopbuf.plot;
 ~state.voiceStates[0].density=20;
+~state.voiceStates[0].strength=0.0;
 ~state.bpm;
 ~state.bpm=120;
 ~state.updateTempo.();
