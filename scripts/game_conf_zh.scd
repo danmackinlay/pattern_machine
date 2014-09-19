@@ -18,10 +18,9 @@ state.make({
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
 	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims:32);
 	t = PSParamForwarder(m, 0.05, ~mididest);
-	~oscdefs = List.new;
 	// Have to set up disposal logic when using custom port or sclang implodes
+	// nb, this doesn't actually work; all OSCdefs manually collected below work.
 	CmdPeriod.doOnce({
-		state.oscdefs.do({|def| def.free });
 		OSCdef.freeAll;
 	});
 	~m = m;
@@ -84,7 +83,7 @@ state.make({
 	//kill notes
 	CmdPeriod.doOnce({ state.active=false; state.updateintervals();  });
 });
-~s.oscdefs.add(OSCdef.new(\wiipry, {
+OSCdef.new(\wiipry, {
 	arg msg, time, addr, ports;
 	var dummy, pitch, roll, yaw, accel;
 	# dummy, pitch, roll, yaw, accel = msg;
@@ -93,8 +92,10 @@ state.make({
 	state.m.set(1, roll, 0.0, 1.0);
 	state.m.set(2, yaw, 0.0, 1.0);
 	state.m.set(6, accel, 0.0, 1.0);
-}, "/wii/1/accel/pry", srcID: nil, recvPort:8332));
-~s.oscdefs.add(OSCdef.new(\wiinunchukpry, {
+	}, "/wii/1/accel/pry", srcID: nil, recvPort:8332);
+// Have to set up disposal logic when using custom port or sclang implodes
+CmdPeriod.doOnce({ OSCdef(\wiipry).free });
+OSCdef.new(\wiinunchukpry, {
 	arg msg, time, addr, ports;
 	var dummy, pitch, roll, yaw, accel;
 	# dummy, pitch, roll, yaw, accel = msg;
@@ -103,56 +104,65 @@ state.make({
 	state.m.set(4, roll, 0.0, 1.0);
 	state.m.set(5, yaw, 0.0, 1.0);
 	state.m.set(7, accel, 0.0, 1.0);
-	}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332));
-~s.oscdefs.add(OSCdef.new(\wiiplus, {
+	}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiinunchukpry).free });
+OSCdef.new(\wiiplus, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.m.phi_(m.phi + 0.001953125);
-}, "/wii/1/button/Plus", srcID: nil, recvPort:8332, argTemplate:[_==1]));
-~s.oscdefs.add(OSCdef.new(\wiiminus, {
+}, "/wii/1/button/Plus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiiplus).free });
+OSCdef.new(\wiiminus, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.m.phi_(m.phi - 0.001953125);
-}, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]));
-~s.oscdefs.add(OSCdef.new(\wiihome, {
+}, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiiminus).free });
+OSCdef.new(\wiihome, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.active_(state.active.asBoolean.not);
-}, "/wii/1/button/Home", srcID: nil, recvPort:8332, argTemplate:[_==1]));
-~s.oscdefs.add(OSCdef.new(\wiiA, {
+}, "/wii/1/button/Home", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiihome).free });
+OSCdef.new(\wiiA, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.gaindeltas[0] = val.linlin(0.0,1.0,-1.0,1.0);
-}, "/wii/1/button/A", srcID: nil, recvPort:8332));
-~s.oscdefs.add(OSCdef.new(\wiiB, {
+}, "/wii/1/button/A", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiA).free });
+OSCdef.new(\wiiB, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.gaindeltas[1] = val.linlin(0.0,1.0,-1.0,1.0);
-}, "/wii/1/button/B", srcID: nil, recvPort:8332));
-~s.oscdefs.add(OSCdef.new(\wiiC, {
+}, "/wii/1/button/B", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiB).free });
+OSCdef.new(\wiiC, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.gaindeltas[2] = val.linlin(0.0,1.0,-1.0,1.0);
-}, "/wii/1/nunchuk/button/C", srcID: nil, recvPort:8332));
-~s.oscdefs.add(OSCdef.new(\wiiZ, {
+}, "/wii/1/nunchuk/button/C", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiC).free });
+OSCdef.new(\wiiZ, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.gaindeltas[3] = val.linlin(0.0,1.0,-1.0,1.0);
-}, "/wii/1/nunchuk/button/Z", srcID: nil, recvPort:8332));
-~s.oscdefs.add(OSCdef.new(\wiinunchukjoy, {
+}, "/wii/1/nunchuk/button/Z", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiZ).free });
+OSCdef.new(\wiinunchukjoy, {
 	arg msg, time, addr, ports;
 	var dummy, x, y;
 	# dummy, x, y = msg;
 	state.gainratescale = y.linexp(0.0,1.0, 1/8, 16);
 	//[\xy, x, y, state.ratescale].postln;
-	}, "/wii/1/nunchuk/joy", srcID: nil, recvPort:8332));
+	}, "/wii/1/nunchuk/joy", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiinunchukjoy).free });
 
 //direct updaters
 t.addUpdater({|v| state.intP[0]=v}, 0);
