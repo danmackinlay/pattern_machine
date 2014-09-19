@@ -230,6 +230,12 @@ PSParamForwarder {
 	solo {|...args|
 		active = IdentitySet.newFrom(args);
 	}
+	mute {|...args|
+		active = active - IdentitySet.newFrom(args);
+	}
+	muteAll {|...args|
+		active = IdentitySet.new;
+	}
 	// send whatever data down the pipe; mostly useful for MIDI/OSC learn
 	ping {
 		active.do({|i|

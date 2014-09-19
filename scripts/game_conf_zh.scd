@@ -122,6 +122,7 @@ OSCdef.new(\wiihome, {
 	var path, val;
 	# path, val = msg;
 	state.active_(state.active.asBoolean.not);
+	state.active.if({state.t.tutti}, {state.t.muteAll});
 }, "/wii/1/button/Home", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce({ OSCdef(\wiihome).free });
 OSCdef.new(\wiiA, {
