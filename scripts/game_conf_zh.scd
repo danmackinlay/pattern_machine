@@ -16,11 +16,14 @@ MIDIClient.destinations;
 ~s = state;
 state.make({
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
-	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims:30);
+	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims:32);
 	t = PSParamForwarder(m, 0.05, ~mididest);
 	~oscdefs = List.new;
 	// Have to set up disposal logic when using custom port or sclang implodes
-	CmdPeriod.doOnce({ state.oscdefs.do({|def| def.free }) });
+	CmdPeriod.doOnce({
+		state.oscdefs.do({|def| def.free });
+		OSCdef.freeAll;
+	});
 	~m = m;
 	{state.m.plot}.defer;
 	~t = t;
@@ -35,7 +38,7 @@ state.make({
 	~masterset = IdentitySet.new;
 	//~subsets = List.new;
 	~clock = TempoClock.default;
-	~pollint = 0.025;
+	~pollint = 0.03125;
 	//octaves and note subsets?
 	~updateintervals = {
 		var currnote, nextstep, lastnotes, nextnotes;
@@ -147,7 +150,7 @@ state.make({
 	arg msg, time, addr, ports;
 	var dummy, x, y;
 	# dummy, x, y = msg;
-	state.ratescale = y.linexp(0.0,1.0, 1/8, 8);
+	state.gainratescale = y.linexp(0.0,1.0, 1/8, 16);
 	//[\xy, x, y, state.ratescale].postln;
 	}, "/wii/1/nunchuk/joy", srcID: nil, recvPort:8332));
 
@@ -187,13 +190,9 @@ t.addUpdater({|v| }, 29);
 t.addUpdater({|v| }, 30);
 t.addUpdater({|v| }, 31);
 )
-~s.active = false;
-~s.active = true;
+~s.active = ~s.active.asBoolean.not;
 ~s.gaindeltas;
 ~s.gains;
-m.inParams;
-m.outParams;
-m.phi=0.11;
 
 t.solo(0);
 t.solo(1);
@@ -217,8 +216,15 @@ t.solo(18);
 t.solo(19);
 t.solo(20);
 t.solo(21);
+t.solo(22);
+t.solo(23);
+t.solo(24);
+t.solo(25);
+t.solo(26);
+t.solo(27);
+t.solo(28);
+t.solo(29);
+t.solo(30);
+t.solo(31);
 
 t.tutti;
-
-m.next;
-m.phi_(0.4);
