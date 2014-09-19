@@ -121,12 +121,19 @@ PSMetaParamMap {
 		paramDirty = true;
 	}
 	curve {|val|
-		^1/(1+val.neg.exp);
+		//logistic R->(0,1)
+		^(1/(1+val.neg.exp));
+	}
+	spread{|val, factor=1.01|
+		//spread sigmoid ONTO [0,1]
+		^((val-0.5)*factor+0.5).clip(0.0,1.0);
 	}
 	next {
 		paramDirty.if({
 			outParams = combiners.collect({|combiner|
-				this.curve(combiner.value * gain)
+				this.spread(
+					this.curve(combiner.value * gain)
+				)
 			});
 			paramDirty = false;
 		});
@@ -163,10 +170,11 @@ PSSemiOrderlyMetaParamMap : PSMetaParamMap {
 		//[\i, i].postln;
 		(i<inDims).if({
 			var fn, coefs = Array.fill(inDims,0.0);
+			//costmetic coefficient tracking
 			coefs[i] = 3.0; // push through damn sigmoid
 			combinercoefs[i] = coefs;
 			fn = {
-				(this.inParams * coefs).sum;
+				this.inParams[i] * 3.0;
 			};
 			//combinercoefs[i].postcs;
 			^fn;
