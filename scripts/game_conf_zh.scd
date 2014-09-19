@@ -34,23 +34,23 @@ state.make({
 	//octaves and note subsets?
 	~updateintervals = {
 		var currnote, nextstep, lastnotes, nextnotes;
+		nextnotes = IdentitySet.new;
+		lastnotes = state.masterset;
 		state.active.if({
-			lastnotes = state.masterset;
-			nextnotes = IdentitySet.new;
 			currnote = state.basenote;
 			state.intP.do({|p|
 				currnote = currnote + state.intervals.unif(p);
 				nextnotes = nextnotes.add(currnote);
 			});
-			[nextnotes].postln;
-			state.masterset = nextnotes;
-			//start/stop notes
-			(nextnotes-lastnotes).do({|note|
-				state.mididest.noteOn(chan:0, note: note, veloc: 64)
-			});
-			(lastnotes-nextnotes).do({|note|
-				state.mididest.noteOff(chan:0, note: note, veloc: 64)
-			});
+		});
+		[nextnotes].postln;
+		state.masterset = nextnotes;
+		//start/stop notes
+		(nextnotes-lastnotes).do({|note|
+			state.mididest.noteOn(chan:0, note: note, veloc: 64)
+		});
+		(lastnotes-nextnotes).do({|note|
+			state.mididest.noteOff(chan:0, note: note, veloc: 64)
 		});
 	};
 	~watcher = Routine({
@@ -59,6 +59,8 @@ state.make({
 			state.pollint.yield;
 		});
 	}).play(state.clock);
+	//kill notes
+	CmdPeriod.doOnce({ state.active=false; state.updateintervals();  });
 });
 OSCdef.new(\wiipry, {
 	arg msg, time, addr, ports;
@@ -97,6 +99,13 @@ OSCdef.new(\wiiminus, {
 	state.m.phi_(m.phi - 0.001953125);
 }, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce({ OSCdef(\wiiminus).free });
+OSCdef.new(\wiiminus, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.active_(state.active.asBoolean.not);
+}, "/wii/1/button/Home", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiihomr).free });
 
 t.addUpdater({|v| state.intP[0]=v}, 0);
 t.addUpdater({|v| state.intP[1]=v}, 1);
@@ -132,6 +141,8 @@ t.addUpdater({|v| }, 27);
 t.addUpdater({|v| }, 28);
 t.addUpdater({|v| }, 29);
 )
+~s.active = false;
+~s.active = true;
 
 m.inParams;
 m.outParams;
