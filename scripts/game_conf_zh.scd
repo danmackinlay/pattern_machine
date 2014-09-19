@@ -6,6 +6,9 @@
 * stateful MIDI note bucket handling noteoff and transposes
 * gain control
 * accel does something meaningful
+* use cross and joystick, even if only indirectly
+  * maybe for adjustable gain speed
+* individual mute control for increasing complexity
 */
 
 (
@@ -15,14 +18,15 @@ MIDIClient.destinations;
 ~s = state;
 state.make({
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
-	m = PSSemiOrderlyMetaParamMap.new(inDims: 8, outDims:30);
+	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims:30);
 	t = PSParamForwarder(m, 0.05, ~mididest);
 	~m = m;
 	{state.m.plot}.defer;
 	~t = t;
 	~active = true;
-	~gainuprate = 0.1; // scale/s
-	~gaindownrate = 0.1; // scale/s
+	~gainrate = 0.1; // up/down scale/beat
+	~gainratescale = 1.0; // up/down scale/beat
+	~gaindeltas = Array.fill(4, -1.0);
 	~gains = Array.fill(4, 0.0);
 	~basenote = 64;
 	~intervals = [-7, -5, -4, -3, 0, 3, 4, 5, 7];
@@ -43,7 +47,7 @@ state.make({
 				nextnotes = nextnotes.add(currnote);
 			});
 		});
-		[nextnotes].postln;
+		(nextnotes != lastnotes).if({[nextnotes].postln;});
 		state.masterset = nextnotes;
 		//start/stop notes
 		(nextnotes-lastnotes).do({|note|
@@ -53,9 +57,23 @@ state.make({
 			state.mididest.noteOff(chan:0, note: note, veloc: 64)
 		});
 	};
+	~updategains = {
+		state.gains = (state.gains +
+			(state.gaindeltas *
+			state.pollint *
+			state.gainrate *
+			state.gainratescale)
+		).clip(0.0, 1.0);
+		state.m.set(8, state.gains[0], 0.0, 1.0);
+		state.m.set(9, state.gains[1], 0.0, 1.0);
+		state.m.set(10, state.gains[2], 0.0, 1.0);
+		state.m.set(11, state.gains[3], 0.0, 1.0);
+	};
+
 	~watcher = Routine({
 		inf.do({
 			state.updateintervals.();
+			state.updategains.();
 			state.pollint.yield;
 		});
 	}).play(state.clock);
@@ -99,14 +117,51 @@ OSCdef.new(\wiiminus, {
 	state.m.phi_(m.phi - 0.001953125);
 }, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce({ OSCdef(\wiiminus).free });
-OSCdef.new(\wiiminus, {
+OSCdef.new(\wiihome, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
 	state.active_(state.active.asBoolean.not);
 }, "/wii/1/button/Home", srcID: nil, recvPort:8332, argTemplate:[_==1]);
-CmdPeriod.doOnce({ OSCdef(\wiihomr).free });
+CmdPeriod.doOnce({ OSCdef(\wiihome).free });
+OSCdef.new(\wiiA, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.gaindeltas[0] = val.linlin(0.0,1.0,-1.0,1.0);
+}, "/wii/1/button/A", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiA).free });
+OSCdef.new(\wiiB, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.gaindeltas[1] = val.linlin(0.0,1.0,-1.0,1.0);
+}, "/wii/1/button/B", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiB).free });
+OSCdef.new(\wiiC, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.gaindeltas[2] = val.linlin(0.0,1.0,-1.0,1.0);
+}, "/wii/1/nunchuk/button/C", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiC).free });
+OSCdef.new(\wiiZ, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.gaindeltas[3] = val.linlin(0.0,1.0,-1.0,1.0);
+}, "/wii/1/nunchuk/button/Z", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiiZ).free });
+OSCdef.new(\wiinunchukjoy, {
+	arg msg, time, addr, ports;
+	var dummy, x, y;
+	# dummy, x, y = msg;
+	state.ratescale = y.linexp(0.0,1.0, 1/8, 8);
+	//[\xy, x, y, state.ratescale].postln;
+	}, "/wii/1/nunchuk/joy", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiinunchukjoy).free });
 
+//direct updaters
 t.addUpdater({|v| state.intP[0]=v}, 0);
 t.addUpdater({|v| state.intP[1]=v}, 1);
 t.addUpdater({|v| state.intP[2]=v}, 2);
@@ -114,36 +169,38 @@ t.addUpdater({|v| state.intP[3]=v}, 3);
 t.addUpdater({|v| state.intP[4]=v}, 4);
 t.addUpdater({|v|}, 3);
 t.addUpdater({|v|}, 7);
-
 //addMIDICCUpdater {|chan=0, cc=0, i=nil, mididest=nil|
-t.addMIDICCUpdater(0, 5, 6);
-t.addMIDICCUpdater(0, 6, 7);
-t.addMIDICCUpdater(0, 7, 8);
-t.addMIDICCUpdater(0, 8, 9);
-t.addMIDICCUpdater(0, 9, 10);
-t.addMIDICCUpdater(0, 10, 11);
-t.addMIDICCUpdater(0, 11, 12);
-t.addMIDICCUpdater(0, 12, 13);
-t.addMIDICCUpdater(0, 13, 14);
-t.addMIDICCUpdater(0, 14, 15);
-t.addMIDICCUpdater(0, 15, 16);
-t.addMIDICCUpdater(0, 16, 17);
-t.addMIDICCUpdater(0, 17, 18);
-t.addMIDICCUpdater(0, 18, 19);
-t.addMIDICCUpdater(0, 19, 20);
-t.addMIDICCUpdater(0, 20, 21);
-t.addUpdater({|v| }, 22);
-t.addUpdater({|v| }, 23);
+t.addMIDICCUpdater(0, 5, 8);
+t.addMIDICCUpdater(0, 6, 9);
+t.addMIDICCUpdater(0, 7, 10);
+t.addMIDICCUpdater(0, 8, 11);
+
+//compound vals
+t.addMIDICCUpdater(0, 9, 12);
+t.addMIDICCUpdater(0, 10, 13);
+t.addMIDICCUpdater(0, 11, 14);
+t.addMIDICCUpdater(0, 12, 15);
+t.addMIDICCUpdater(0, 13, 16);
+t.addMIDICCUpdater(0, 14, 17);
+t.addMIDICCUpdater(0, 15, 18);
+t.addMIDICCUpdater(0, 16, 19);
+t.addMIDICCUpdater(0, 17, 20);
+t.addMIDICCUpdater(0, 18, 21);
+t.addMIDICCUpdater(0, 19, 22);
+t.addMIDICCUpdater(0, 20, 23);
 t.addUpdater({|v| }, 24);
 t.addUpdater({|v| }, 25);
 t.addUpdater({|v| }, 26);
 t.addUpdater({|v| }, 27);
 t.addUpdater({|v| }, 28);
 t.addUpdater({|v| }, 29);
+t.addUpdater({|v| }, 30);
+t.addUpdater({|v| }, 31);
 )
 ~s.active = false;
 ~s.active = true;
-
+~s.gaindeltas;
+~s.gains;
 m.inParams;
 m.outParams;
 m.phi=0.11;
@@ -175,4 +232,3 @@ t.tutti;
 
 m.next;
 m.phi_(0.4);
-
