@@ -1,7 +1,13 @@
 /*
 * TODO:
 * allow access to raw inputs as outputs with soloing etc
+* note density and velocity from accel
+* emergency midi flush
+* stateful MIDI note bucket handling noteoff and transposes
+* gain control
+* accel does something meaningful
 */
+
 (
 var state = ();
 MIDIClient.init;
@@ -9,59 +15,25 @@ MIDIClient.destinations;
 ~s = state;
 state.make({
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
-	m = PSSemiOrderlyMetaParamMap.new(inDims:6, outDims:30);
+	m = PSSemiOrderlyMetaParamMap.new(inDims: 8, outDims:30);
 	t = PSParamForwarder(m, 0.05, ~mididest);
 	~m = m;
 	{state.m.plot}.defer;
 	~t = t;
 	~active = true;
+	~gainuprate = 0.1; // scale/s
+	~gaindownrate = 0.1; // scale/s
+	~gains = Array.fill(4, 0.0);
 	~basenote = 64;
 	~intervals = [-7, -5, -4, -3, 0, 3, 4, 5, 7];
-	~intP = [0.5, 0.5, 0.5, 0.5];
+	~intP = [0.5, 0.5, 0.5, 0.5, 0.5];
 	~masterset = IdentitySet.new;
 	//~subsets = List.new;
 	~clock = TempoClock.default;
-	~watcher = nil;
+	~pollint = 0.025;
 	//octaves and note subsets?
-});
-OSCdef.new(\wiipry, {
-	arg msg, time, addr, ports;
-	var dummy, pitch, roll, yaw, accel;
-	# dummy, pitch, roll, yaw, accel = msg;
-	//[\pitchrollyawaccel,pitch, roll, yaw, accel].postln;
-	state.m.set(0, pitch, 0.0, 1.0);
-	state.m.set(1, roll, 0.0, 1.0);
-	state.m.set(2, yaw, 0.0, 1.0);
-	}, "/wii/1/accel/pry", srcID: nil, recvPort:8332);
-// Have to set up disposal logic when using custom port or sclang implodes
-CmdPeriod.doOnce({ OSCdef(\wiipry).free });
-OSCdef.new(\wiinunchukpry, {
-	arg msg, time, addr, ports;
-	var dummy, pitch, roll, yaw, accel;
-	# dummy, pitch, roll, yaw, accel = msg;
-	//[\pitchrollyawaccel,pitch, roll, yaw, accel].postln;
-	state.m.set(3, pitch, 0.0, 1.0);
-	state.m.set(4, roll, 0.0, 1.0);
-	state.m.set(5, yaw, 0.0, 1.0);
-	}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332);
-CmdPeriod.doOnce({ OSCdef(\wiinunchukpry).free });
-OSCdef.new(\wiiplus, {
-	arg msg, time, addr, ports;
-	var path, val;
-	# path, val = msg;
-	state.m.phi_(m.phi + 0.001953125);
-}, "/wii/1/button/Plus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
-CmdPeriod.doOnce({ OSCdef(\wiiplus).free });
-OSCdef.new(\wiiminus, {
-	arg msg, time, addr, ports;
-	var path, val;
-	# path, val = msg;
-	state.m.phi_(m.phi - 0.001953125);
-}, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
-CmdPeriod.doOnce({ OSCdef(\wiiminus).free });
-state.watcher = Routine({
-	var currnote, nextstep, lastnotes, nextnotes;
-	inf.do({
+	~updateintervals = {
+		var currnote, nextstep, lastnotes, nextnotes;
 		state.active.if({
 			lastnotes = state.masterset;
 			nextnotes = IdentitySet.new;
@@ -80,16 +52,59 @@ state.watcher = Routine({
 				state.mididest.noteOff(chan:0, note: note, veloc: 64)
 			});
 		});
-		0.125.yield;
-	});
-}).play(state.clock);
+	};
+	~watcher = Routine({
+		inf.do({
+			state.updateintervals.();
+			state.pollint.yield;
+		});
+	}).play(state.clock);
+});
+OSCdef.new(\wiipry, {
+	arg msg, time, addr, ports;
+	var dummy, pitch, roll, yaw, accel;
+	# dummy, pitch, roll, yaw, accel = msg;
+	//[\pitchrollyawaccel,pitch, roll, yaw, accel].postln;
+	state.m.set(0, pitch, 0.0, 1.0);
+	state.m.set(1, roll, 0.0, 1.0);
+	state.m.set(2, yaw, 0.0, 1.0);
+	state.m.set(6, accel, 0.0, 1.0);
+	}, "/wii/1/accel/pry", srcID: nil, recvPort:8332);
+// Have to set up disposal logic when using custom port or sclang implodes
+CmdPeriod.doOnce({ OSCdef(\wiipry).free });
+OSCdef.new(\wiinunchukpry, {
+	arg msg, time, addr, ports;
+	var dummy, pitch, roll, yaw, accel;
+	# dummy, pitch, roll, yaw, accel = msg;
+	//[\pitchrollyawaccel,pitch, roll, yaw, accel].postln;
+	state.m.set(3, pitch, 0.0, 1.0);
+	state.m.set(4, roll, 0.0, 1.0);
+	state.m.set(5, yaw, 0.0, 1.0);
+	state.m.set(7, accel, 0.0, 1.0);
+	}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332);
+CmdPeriod.doOnce({ OSCdef(\wiinunchukpry).free });
+OSCdef.new(\wiiplus, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.m.phi_(m.phi + 0.001953125);
+}, "/wii/1/button/Plus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiiplus).free });
+OSCdef.new(\wiiminus, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.m.phi_(m.phi - 0.001953125);
+}, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiiminus).free });
 
 t.addUpdater({|v| state.intP[0]=v}, 0);
 t.addUpdater({|v| state.intP[1]=v}, 1);
 t.addUpdater({|v| state.intP[2]=v}, 2);
 t.addUpdater({|v| state.intP[3]=v}, 3);
-t.addUpdater({|v|}, 4);
-t.addUpdater({|v|}, 5);
+t.addUpdater({|v| state.intP[4]=v}, 4);
+t.addUpdater({|v|}, 3);
+t.addUpdater({|v|}, 7);
 
 //addMIDICCUpdater {|chan=0, cc=0, i=nil, mididest=nil|
 t.addMIDICCUpdater(0, 5, 6);
