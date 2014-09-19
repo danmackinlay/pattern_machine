@@ -97,6 +97,10 @@ PSMetaParamMap {
 		};
 		^fn;
 	}
+	gain_ {|val|
+		gain = val;
+		this.genCombiners;
+	}
 	phi_ {|val|
 		phi = val;
 		this.genCombiners;

@@ -1,11 +1,8 @@
 /*
 * TODO:
 * allow access to raw inputs as outputs with soloing etc
-* note density and velocity from accel
 * emergency midi flush
 * stateful MIDI note bucket handling noteoff and transposes
-* accel does something meaningful
-* use cross and joystick, even if only indirectly
 * individual mute control for increasing complexity
 */
 
@@ -27,10 +24,10 @@ state.make({
 	{state.m.plot}.defer;
 	~t = t;
 	~active = true;
-	~gainrate = 0.1; // up/down scale/beat
-	~gainratescale = 1.0; // up/down scale/beat
-	~gaindeltas = Array.fill(4, -1.0);
-	~gains = Array.fill(4, 0.0);
+	~levelrate = 0.1; // up/down scale/beat
+	~levelratescale = 1.0; // up/down scale/beat
+	~leveldeltas = Array.fill(4, -1.0);
+	~levels = Array.fill(4, 0.0);
 	~basenote = 64;
 	~intervals = [-7, -5, -4, -3, 0, 3, 4, 5, 7];
 	~intP = [0.5, 0.5, 0.5, 0.5, 0.5];
@@ -61,16 +58,16 @@ state.make({
 		});
 	};
 	~updategains = {
-		state.gains = (state.gains +
-			(state.gaindeltas *
+		state.levels = (state.levels +
+			(state.leveldeltas *
 			state.pollint *
-			state.gainrate *
-			state.gainratescale)
+			state.levelrate *
+			state.levelratescale)
 		).clip(0.0, 1.0);
-		state.m.set(8, state.gains[0], 0.0, 1.0);
-		state.m.set(9, state.gains[1], 0.0, 1.0);
-		state.m.set(10, state.gains[2], 0.0, 1.0);
-		state.m.set(11, state.gains[3], 0.0, 1.0);
+		state.m.set(8, state.levels[0], 0.0, 1.0);
+		state.m.set(9, state.levels[1], 0.0, 1.0);
+		state.m.set(10, state.levels[2], 0.0, 1.0);
+		state.m.set(11, state.levels[3], 0.0, 1.0);
 	};
 
 	~watcher = Routine({
@@ -110,14 +107,14 @@ OSCdef.new(\wiiplus, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
-	state.m.phi_(m.phi + 0.001953125);
+	state.m.phi_(state.m.phi + 0.001953125);
 }, "/wii/1/button/Plus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce({ OSCdef(\wiiplus).free });
 OSCdef.new(\wiiminus, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
-	state.m.phi_(m.phi - 0.001953125);
+	state.m.phi_(state.m.phi - 0.001953125);
 }, "/wii/1/button/Minus", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce({ OSCdef(\wiiminus).free });
 OSCdef.new(\wiihome, {
@@ -131,38 +128,52 @@ OSCdef.new(\wiiA, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
-	state.gaindeltas[0] = val.linlin(0.0,1.0,-1.0,1.0);
+	state.leveldeltas[0] = val.linlin(0.0,1.0,-1.0,1.0);
 }, "/wii/1/button/A", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiiA).free });
 OSCdef.new(\wiiB, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
-	state.gaindeltas[1] = val.linlin(0.0,1.0,-1.0,1.0);
+	state.leveldeltas[1] = val.linlin(0.0,1.0,-1.0,1.0);
 }, "/wii/1/button/B", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiiB).free });
 OSCdef.new(\wiiC, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
-	state.gaindeltas[2] = val.linlin(0.0,1.0,-1.0,1.0);
+	state.leveldeltas[2] = val.linlin(0.0,1.0,-1.0,1.0);
 }, "/wii/1/nunchuk/button/C", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiiC).free });
 OSCdef.new(\wiiZ, {
 	arg msg, time, addr, ports;
 	var path, val;
 	# path, val = msg;
-	state.gaindeltas[3] = val.linlin(0.0,1.0,-1.0,1.0);
+	state.leveldeltas[3] = val.linlin(0.0,1.0,-1.0,1.0);
 }, "/wii/1/nunchuk/button/Z", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiiZ).free });
 OSCdef.new(\wiinunchukjoy, {
 	arg msg, time, addr, ports;
 	var dummy, x, y;
 	# dummy, x, y = msg;
-	state.gainratescale = y.linexp(0.0,1.0, 1/8, 16);
+	state.levelratescale = y.linexp(0.0,1.0, 1/8, 16);
 	//[\xy, x, y, state.ratescale].postln;
 	}, "/wii/1/nunchuk/joy", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiinunchukjoy).free });
+OSCdef.new(\wiiright, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.m.gain_(state.m.gain * 17/16);
+}, "/wii/1/button/Right", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiiright).free });
+OSCdef.new(\wiileft, {
+	arg msg, time, addr, ports;
+	var path, val;
+	# path, val = msg;
+	state.m.gain_(state.m.gain * 16/17);
+}, "/wii/1/button/Left", srcID: nil, recvPort:8332, argTemplate:[_==1]);
+CmdPeriod.doOnce({ OSCdef(\wiileft).free });
 
 //direct updaters
 t.addUpdater({|v| state.intP[0]=v}, 0);
@@ -201,8 +212,8 @@ t.addUpdater({|v| }, 30);
 t.addUpdater({|v| }, 31);
 )
 ~s.active = ~s.active.asBoolean.not;
-~s.gaindeltas;
-~s.gains;
+~s.leveldeltas;
+~s.levels;
 
 t.solo(0);
 t.solo(1);
