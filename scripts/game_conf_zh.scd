@@ -50,7 +50,7 @@ state.make({
 		(nextnotes != lastnotes).if({[nextnotes].postln;});
 		state.masterset = nextnotes;
 		//start/stop notes
-		(nextnotes-lastnotes).do({|note|
+		(nextnotes).do({|note|
 			state.mididest.noteOn(chan:0, note: note, veloc: 127)
 		});
 		(lastnotes-nextnotes).do({|note|
@@ -101,7 +101,7 @@ OSCdef.new(\wiinunchukpry, {
 	state.m.set(4, roll, 0.0, 1.0);
 	state.m.set(5, yaw, 0.0, 1.0);
 	state.m.set(7, accel, 0.0, 1.0);
-	}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332);
+}, "/wii/1/nunchuk/accel/pry", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiinunchukpry).free });
 OSCdef.new(\wiiplus, {
 	arg msg, time, addr, ports;
@@ -157,7 +157,7 @@ OSCdef.new(\wiinunchukjoy, {
 	arg msg, time, addr, ports;
 	var dummy, x, y;
 	# dummy, x, y = msg;
-	state.levelratescale = y.linexp(0.0,1.0, 1/8, 16);
+	state.levelratescale = y.linexp(0.0,1.0, 1/32, 64);
 	//[\xy, x, y, state.ratescale].postln;
 	}, "/wii/1/nunchuk/joy", srcID: nil, recvPort:8332);
 CmdPeriod.doOnce({ OSCdef(\wiinunchukjoy).free });
