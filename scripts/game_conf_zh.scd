@@ -13,10 +13,10 @@ MIDIClient.destinations;
 ~s = state;
 state.make({
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
-	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims:32);
+	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims: 56);
 	t = PSParamForwarder(m, 0.05, ~mididest);
 	// Have to set up disposal logic when using custom port or sclang implodes
-	// nb, this doesn't actually work; all OSCdefs manually collected below work.
+	// nb, this doesn't actually work; only OSCdefs manually collected below work.
 	CmdPeriod.doOnce({
 		OSCdef.freeAll;
 	});
@@ -51,7 +51,7 @@ state.make({
 		state.masterset = nextnotes;
 		//start/stop notes
 		(nextnotes-lastnotes).do({|note|
-			state.mididest.noteOn(chan:0, note: note, veloc: 64)
+			state.mididest.noteOn(chan:0, note: note, veloc: 127)
 		});
 		(lastnotes-nextnotes).do({|note|
 			state.mididest.noteOff(chan:0, note: note, veloc: 64)
@@ -176,77 +176,132 @@ OSCdef.new(\wiileft, {
 }, "/wii/1/button/Left", srcID: nil, recvPort:8332, argTemplate:[_==1]);
 CmdPeriod.doOnce({ OSCdef(\wiileft).free });
 
-//direct updaters
-t.addUpdater({|v| state.intP[0]=v}, 0);
-t.addUpdater({|v| state.intP[1]=v}, 1);
-t.addUpdater({|v| state.intP[2]=v}, 2);
-t.addUpdater({|v| state.intP[3]=v}, 3);
-t.addUpdater({|v| state.intP[4]=v}, 4);
-t.addUpdater({|v|}, 3);
-t.addUpdater({|v|}, 7);
 //addMIDICCUpdater {|chan=0, cc=0, i=nil, mididest=nil|
-t.addMIDICCUpdater(0, 5, 8);
-t.addMIDICCUpdater(0, 6, 9);
-t.addMIDICCUpdater(0, 7, 10);
-t.addMIDICCUpdater(0, 8, 11);
 
-//compound vals
-t.addMIDICCUpdater(0, 9, 12);
-t.addMIDICCUpdater(0, 10, 13);
-t.addMIDICCUpdater(0, 11, 14);
-t.addMIDICCUpdater(0, 12, 15);
-t.addMIDICCUpdater(0, 13, 16);
-t.addMIDICCUpdater(0, 14, 17);
-t.addMIDICCUpdater(0, 15, 18);
-t.addMIDICCUpdater(0, 16, 19);
-t.addMIDICCUpdater(0, 17, 20);
-t.addMIDICCUpdater(0, 18, 21);
-t.addMIDICCUpdater(0, 19, 22);
-t.addMIDICCUpdater(0, 20, 23);
-t.addUpdater({|v| }, 24);
-t.addUpdater({|v| }, 25);
-t.addUpdater({|v| }, 26);
-t.addUpdater({|v| }, 27);
-t.addUpdater({|v| }, 28);
-t.addUpdater({|v| }, 29);
-t.addUpdater({|v| }, 30);
-t.addUpdater({|v| }, 31);
+//direct updaters 1: axial
+t.addUpdater({|v| state.intP[0]=v}, 0); //pitch
+t.addUpdater({|v| state.intP[1]=v}, 1); //pitch
+t.addUpdater({|v| state.intP[2]=v}, 2); //pitch
+t.addUpdater({|v| state.intP[3]=v}, 3); //pitch
+t.addUpdater({|v| state.intP[4]=v}, 4); //pitch
+//t.addUpdater({|v| }, 5); //???
+//direct updaters 2: acceleration
+t.addMIDICCUpdater(0, 6, 6);
+t.addMIDICCUpdater(0, 7, 7);
+//level updaters
+t.addMIDICCUpdater(0, 8, 8);
+t.addMIDICCUpdater(0, 9, 9);
+t.addMIDICCUpdater(0, 10, 10);
+t.addMIDICCUpdater(0, 11, 11);
+//compound updaters
+t.addMIDICCUpdater(0, 12, 12);
+t.addMIDICCUpdater(0, 13, 13);
+t.addMIDICCUpdater(0, 14, 14);
+t.addMIDICCUpdater(0, 15, 15);
+t.addMIDICCUpdater(0, 16, 16);
+t.addMIDICCUpdater(0, 17, 17);
+t.addMIDICCUpdater(0, 18, 18);
+t.addMIDICCUpdater(0, 19, 19);
+t.addMIDICCUpdater(0, 20, 20);
+t.addMIDICCUpdater(0, 21, 21);
+t.addMIDICCUpdater(0, 22, 22);
+t.addMIDICCUpdater(0, 23, 23);
+t.addMIDICCUpdater(0, 24, 24);
+t.addMIDICCUpdater(0, 25, 25);
+t.addMIDICCUpdater(0, 26, 26);
+t.addMIDICCUpdater(0, 27, 27);
+t.addMIDICCUpdater(0, 28, 28);
+t.addMIDICCUpdater(0, 29, 29);
+t.addMIDICCUpdater(0, 30, 30);
+t.addMIDICCUpdater(0, 31, 31);
+t.addMIDICCUpdater(0, 32, 32);
+t.addMIDICCUpdater(0, 33, 33);
+t.addMIDICCUpdater(0, 34, 34);
+t.addMIDICCUpdater(0, 35, 35);
+t.addMIDICCUpdater(0, 36, 36);
+t.addMIDICCUpdater(0, 37, 37);
+t.addMIDICCUpdater(0, 38, 38);
+t.addMIDICCUpdater(0, 39, 39);
+t.addMIDICCUpdater(0, 40, 40);
+t.addMIDICCUpdater(0, 41, 41);
+t.addMIDICCUpdater(0, 42, 42);
+t.addMIDICCUpdater(0, 43, 43);
+t.addMIDICCUpdater(0, 44, 44);
+t.addMIDICCUpdater(0, 45, 45);
+t.addMIDICCUpdater(0, 46, 46);
+t.addMIDICCUpdater(0, 47, 47);
+t.addMIDICCUpdater(0, 48, 48);
+t.addMIDICCUpdater(0, 49, 49);
+t.addMIDICCUpdater(0, 50, 50);
+t.addMIDICCUpdater(0, 51, 51);
+t.addMIDICCUpdater(0, 52, 52);
+t.addMIDICCUpdater(0, 53, 53);
+t.addMIDICCUpdater(0, 54, 54);
+t.addMIDICCUpdater(0, 55, 55);
 )
 ~s.active = ~s.active.asBoolean.not;
 ~s.leveldeltas;
 ~s.levels;
 
-t.solo(0);
-t.solo(1);
-t.solo(2);
-t.solo(3);
-t.solo(4);
-t.solo(5);
-t.solo(6);
-t.solo(7);
-t.solo(8);
-t.solo(9);
-t.solo(10);
-t.solo(11);
-t.solo(12);
-t.solo(13);
-t.solo(14);
-t.solo(15);
-t.solo(16);
-t.solo(17);
-t.solo(18);
-t.solo(19);
-t.solo(20);
-t.solo(21);
-t.solo(22);
-t.solo(23);
-t.solo(24);
-t.solo(25);
-t.solo(26);
-t.solo(27);
-t.solo(28);
-t.solo(29);
-t.solo(30);
-t.solo(31);
+t.muteAll;
+t.soloAndPing(0);
+t.soloAndPing(1);
+t.soloAndPing(2);
+t.soloAndPing(3);
+t.soloAndPing(4);
+t.soloAndPing(5);
+//accel
+t.soloAndPing(6);
+t.soloAndPing(7);
+//levels
+t.soloAndPing(8);
+t.soloAndPing(9);
+t.soloAndPing(10);
+t.soloAndPing(11);
+//other
+t.soloAndPing(12);
+t.soloAndPing(13);
+t.soloAndPing(14);
+t.soloAndPing(15);
+t.soloAndPing(16);
+t.soloAndPing(17);
+t.soloAndPing(18);
+t.soloAndPing(19);
+t.soloAndPing(20);
+t.soloAndPing(21);
+t.soloAndPing(22);
+t.soloAndPing(23);
+t.soloAndPing(24);
+t.soloAndPing(25);
+t.soloAndPing(26);
+t.soloAndPing(27);
+t.soloAndPing(28);
+t.soloAndPing(29);
+t.soloAndPing(30);
+t.soloAndPing(31);
+t.soloAndPing(32);
+t.soloAndPing(33);
+t.soloAndPing(34);
+t.soloAndPing(35);
+t.soloAndPing(36);
+t.soloAndPing(37);
+t.soloAndPing(38);
+t.soloAndPing(39);
+t.soloAndPing(40);
+t.soloAndPing(41);
+t.soloAndPing(42);
+t.soloAndPing(43);
+t.soloAndPing(44);
+t.soloAndPing(45);
+t.soloAndPing(46);
+t.soloAndPing(47);
+t.soloAndPing(48);
+t.soloAndPing(49);
+t.soloAndPing(50);
+t.soloAndPing(51);
+t.soloAndPing(52);
+t.soloAndPing(53);
+t.soloAndPing(54);
+t.soloAndPing(55);
 
 t.tutti;
