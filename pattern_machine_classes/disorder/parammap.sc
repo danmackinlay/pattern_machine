@@ -159,16 +159,21 @@ PSMetaParamMap {
 // As above, but first inDims params are near-identity
 PSSemiOrderlyMetaParamMap : PSMetaParamMap {
 	genCombiner {|i|
+		var out; //debugging var
+		//[\i, i].postln;
 		(i<inDims).if({
-			var fn coefs = Array.fill(inDims,0.0);
-			coefs[i] = 1.2;
+			var fn, coefs = Array.fill(inDims,0.0);
+			coefs[i] = 3.0; // push through damn sigmoid
 			combinercoefs[i] = coefs;
 			fn = {
 				(this.inParams * coefs).sum;
 			};
+			//combinercoefs[i].postcs;
 			^fn;
 		}, {
-			^super.genCombiner(i)
+			out=super.genCombiner(i);
+			//combinercoefs[i].postcs;
+			^out;
 		});
 	}
 }
