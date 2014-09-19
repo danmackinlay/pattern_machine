@@ -42,6 +42,7 @@ PSMetaParamMap {
 	var <astep;
 	var <cbase;
 	var <cstep;
+	var <>spreadfactor;
 	var <combiners;
 	var <prng;
 	var <inParams;
@@ -57,13 +58,15 @@ PSMetaParamMap {
 		abase=3.117111,
 		astep=0.77733,
 		cbase=0.23335,
-		cstep=0.334|
+		cstep=0.334,
+		spreadfactor=1.1|
 		^super.newCopyArgs(
 			inDims,
 			outDims,
 			gain,
 			phi,
-			abase, astep, cbase, cstep
+			abase, astep, cbase, cstep,
+			spreadfactor,
 		).initPSRandomMap;
 	}
 	initPSRandomMap {
@@ -124,9 +127,9 @@ PSMetaParamMap {
 		//logistic R->(0,1)
 		^(1/(1+val.neg.exp));
 	}
-	spread{|val, factor=1.01|
+	spread{|val|
 		//spread sigmoid ONTO [0,1]
-		^((val-0.5)*factor+0.5).clip(0.0,1.0);
+		^((val-0.5)*spreadfactor+0.5).clip(0.0,1.0);
 	}
 	next {
 		paramDirty.if({
@@ -171,10 +174,10 @@ PSSemiOrderlyMetaParamMap : PSMetaParamMap {
 		(i<inDims).if({
 			var fn, coefs = Array.fill(inDims,0.0);
 			//costmetic coefficient tracking
-			coefs[i] = 3.0; // push through damn sigmoid
+			coefs[i] = 4.0; // push through damn sigmoid
 			combinercoefs[i] = coefs;
 			fn = {
-				this.inParams[i] * 3.0;
+				this.inParams[i] * 4.0;
 			};
 			//combinercoefs[i].postcs;
 			^fn;
