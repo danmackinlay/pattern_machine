@@ -13,6 +13,7 @@ TODO:
 * smart accent
 * random volume
 * decent Lemur template
+* use soundflower/jack to make ableton an external mixer
 * tidy up shared usage of global clock.
 * OSC triggering for:
   * overall

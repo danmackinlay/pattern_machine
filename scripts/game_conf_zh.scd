@@ -4,10 +4,8 @@
 * note density and velocity from accel
 * emergency midi flush
 * stateful MIDI note bucket handling noteoff and transposes
-* gain control
 * accel does something meaningful
 * use cross and joystick, even if only indirectly
-  * maybe for adjustable gain speed
 * individual mute control for increasing complexity
 */
 
