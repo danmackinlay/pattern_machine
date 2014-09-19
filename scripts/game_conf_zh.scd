@@ -15,14 +15,15 @@ MIDIClient.init;
 MIDIClient.destinations;
 ~s = state;
 state.make({
+	var oscdefs;//fragile references to OSCdefs
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
 	m = PSSemiOrderlyMetaParamMap.new(inDims: 12, outDims:32);
 	t = PSParamForwarder(m, 0.05, ~mididest);
-	~oscdefs = List.new;
+	~oscdefs = oscdefs = List.new;
 	// Have to set up disposal logic when using custom port or sclang implodes
 	CmdPeriod.doOnce({
-		state.oscdefs.do({|def| def.free });
-		OSCdef.freeAll;
+		oscdefs.do({|def| def.free });
+		OSCdef.freeAll; //doesn't collect fast enough
 	});
 	~m = m;
 	{state.m.plot}.defer;
