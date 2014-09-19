@@ -9,7 +9,7 @@ MIDIClient.destinations;
 ~s = state;
 state.make({
 	~mididest = MIDIOut.newByName("IAC-Driver", "Bus 1");
-	m = PSMetaParamMap.new(inDims:6, outDims:30);
+	m = PSSemiOrderlyMetaParamMap.new(inDims:6, outDims:30);
 	t = PSParamForwarder(m, 0.05, ~mididest);
 	~m = m;
 	{state.m.plot}.defer;

@@ -80,6 +80,7 @@ PSMetaParamMap {
 		this.value;
 	}
 	genCombiner {|i|
+		//generate actual coefs; could be tidier
 		var fn;
 		//Generate coeffs by a Cauchy dist; why not?
 		var coefs = inDims.collect({
@@ -153,6 +154,22 @@ PSMetaParamMap {
 		plotter = nil;
 		plotupdater.free;
 		plotupdater = nil;
+	}
+}
+// As above, but first inDims params are near-identity
+PSSemiOrderlyMetaParamMap : PSMetaParamMap {
+	genCombiner {|i|
+		(i<inDims).if({
+			var fn coefs = Array.fill(inDims,0.0);
+			coefs[i] = 1.2;
+			combinercoefs[i] = coefs;
+			fn = {
+				(this.inParams * coefs).sum;
+			};
+			^fn;
+		}, {
+			^super.genCombiner(i)
+		});
 	}
 }
 PSParamForwarder {
