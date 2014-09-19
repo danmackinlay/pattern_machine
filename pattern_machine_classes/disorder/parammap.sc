@@ -66,7 +66,7 @@ PSMetaParamMap {
 			gain,
 			phi,
 			abase, astep, cbase, cstep,
-			spreadfactor,
+			spreadfactor.asFloat,
 		).initPSRandomMap;
 	}
 	initPSRandomMap {
@@ -91,7 +91,9 @@ PSMetaParamMap {
 		});
 		combinercoefs[i] = coefs;
 		fn = {
-			(this.inParams * coefs).sum;
+			this.spread(
+				this.curve((this.inParams * coefs).sum * gain)
+			);
 		};
 		^fn;
 	}
@@ -133,11 +135,7 @@ PSMetaParamMap {
 	}
 	next {
 		paramDirty.if({
-			outParams = combiners.collect({|combiner|
-				this.spread(
-					this.curve(combiner.value * gain)
-				)
-			});
+			outParams = combiners.collect(_.value);
 			paramDirty = false;
 		});
 		^outParams;
@@ -173,11 +171,11 @@ PSSemiOrderlyMetaParamMap : PSMetaParamMap {
 		//[\i, i].postln;
 		(i<inDims).if({
 			var fn, coefs = Array.fill(inDims,0.0);
-			//costmetic coefficient tracking
-			coefs[i] = 4.0; // push through damn sigmoid
+			//cosmetic coefficient tracking; not really reflective here
+			coefs[i] = 1.0;
 			combinercoefs[i] = coefs;
 			fn = {
-				this.inParams[i] * 4.0;
+				(this.inParams[i]*spreadfactor).linlin(-1.0, 1.0, 0.0, 1.0);
 			};
 			//combinercoefs[i].postcs;
 			^fn;
