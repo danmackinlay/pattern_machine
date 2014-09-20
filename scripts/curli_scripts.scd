@@ -2,6 +2,9 @@
 Curlicue
 
 TODO:
+* Quantise duration
+* echette-style allpass delays (intensity is product of total length and amplitude
+* choose echette length algorithmically too
 * stop loop mode explosions (fixed? can't reproduce)
 * tidier sample source selector
 * fix lower bound on quantized notes
