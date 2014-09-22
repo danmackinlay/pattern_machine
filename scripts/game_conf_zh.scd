@@ -244,6 +244,8 @@ t.addMIDICCUpdater(0, 55, 55);
 ~s.levels;
 
 t.muteAll;
+t.tutti;
+
 t.soloAndPing(0);
 t.soloAndPing(1);
 t.soloAndPing(2);
@@ -304,4 +306,3 @@ t.soloAndPing(53);
 t.soloAndPing(54);
 t.soloAndPing(55);
 
-t.tutti;
