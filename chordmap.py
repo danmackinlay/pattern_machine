@@ -79,3 +79,24 @@ def chord_dist(c1, c2):
         + chord_product(c2, c2)
     )
 
+def chord_product_from_i(ci1, ci2, kernel_fn=rect_kernel):
+    ci1 = int(ci1)
+    ci2 = int(ci2)
+    indices = (ci1, ci2)
+    if not indices in _chord_product_from_i_cache:
+        _chord_product_from_i_cache[indices]  = chord_product(
+            make_chord(chord_notes_from_ind(ci1)),
+            make_chord(chord_notes_from_ind(ci2))
+        )
+    return _chord_product_from_i_cache[indices] 
+_chord_product_from_i_cache = {}
+
+def chord_dist_from_i(ci1, ci2):
+    "construct a chord distance from the chord inner product"
+    print ci1, ci2
+    return sqrt(
+        chord_product_from_i(ci1, ci1)
+        - 2 * chord_product_from_i(ci1, ci2)
+        + chord_product_from_i(ci2, ci2)
+    )
+    
