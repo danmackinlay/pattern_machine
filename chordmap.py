@@ -46,23 +46,9 @@ def binrotate(i, steps=1, lgth=12):
     binrep = binrep[steps:]+binrep[0:steps]
     return int(binrep, base=2)
 
-def kernel_fn(nums, width=0.01):
-    "returns rect kernel product of points [f1, a1, f2, a2]"
-    return (abs(nums[0]-nums[2])<width)*nums[1]*nums[3]
-
 def v_kernel_fn(f1, f2, a1, a2, widths=0.01):
     "returns rect kernel product of points [f1, a1, f2, a2]"
     return (np.abs(f1-f2)<widths)*a1*a2
-
-def note_product(n1, n2):
-    "note-specific cross-product"
-    harm_fs = np.vstack([
-        note_harmonics[n1,:][cross_harm_idx[0]],
-        energies[cross_harm_idx[0]],
-        note_harmonics[n2,:][cross_harm_idx[1]],
-        energies[cross_harm_idx[1]],
-    ])
-    return np.apply_along_axis(kernel_fn, 0, harm_fs).sum()
 
 def chord_notes_from_ind(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
@@ -77,25 +63,6 @@ def make_chord(notes):
         ])
     return _make_chord_cache[notes] 
 _make_chord_cache = {}
-
-def chord_product(c1, c2):
-    idx = cross_p_idx(c1.shape[1], c2.shape[1])
-    harm_fs = np.vstack([
-        c1[:,idx[0]],
-        c2[:,idx[1]]
-    ])
-    if harm_fs.shape[1]>0:
-        return np.apply_along_axis(kernel_fn, 0, harm_fs).sum()
-    else:
-        return 0
-
-def chord_dist(c1, c2):
-    "construct a chord distance from the chord inner product"
-    return sqrt(
-        chord_product(c1, c1)
-        - 2 * chord_product(c1, c2)
-        + chord_product(c2, c2)
-    )
 
 def v_chord_product(c1, c2):
     idx = cross_p_idx(c1.shape[1], c2.shape[1])
@@ -114,32 +81,7 @@ def v_chord_dist(c1, c2):
         - 2 * v_chord_product(c1, c2)
         + v_chord_product(c2, c2)
     )
-
-def chord_product_from_chord_i(ci1, ci2):
-    ci1 = int(ci1)
-    ci2 = int(ci2)
-    indices = tuple(sorted([ci1, ci2]))
-    if not indices in _chord_product_from_chord_i_cache:
-        prod = chord_product(
-            make_chord(chord_notes_from_ind(ci1)),
-            make_chord(chord_notes_from_ind(ci2))
-        )
-        for s in xrange(12):
-            _chord_product_from_chord_i_cache[tuple(sorted([
-                binrotate(ci1,s), binrotate(ci2,2)
-            ]))] = prod
-    return prod
-_chord_product_from_chord_i_cache = {}
-
-def chord_dist_from_chord_i(ci1, ci2):
-    "construct a chord distance from the chord inner product"
-    print ci1, ci2
-    return sqrt(
-        v_chord_product_from_chord_i(ci1, ci1)
-        - 2 * v_chord_product_from_chord_i(ci1, ci2)
-        + v_chord_product_from_chord_i(ci2, ci2)
-    )
-
+    
 def v_chord_product_from_chord_i(ci1, ci2):
     ci1 = int(ci1)
     ci2 = int(ci2)
