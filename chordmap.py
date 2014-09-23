@@ -38,6 +38,13 @@ note_idx = np.arange(12, dtype="uint32")
 harm_idx = np.arange(N_HARMONICS)
 cross_harm_idx = cross_p_idx(N_HARMONICS, N_HARMONICS)
 
+def binrotate(i, steps=1, lgth=12):
+    "convenient to pack note strings to ints for performance"
+    binrep = bin(i)[2:]
+    pad_digits = lgth-len(binrep)
+    binrep = "0"*pad_digits + binrep
+    binrep = binrep[steps:]+binrep[0:steps]
+    return int(binrep, base=2)
 
 def kernel_fn(nums, width=0.01):
     "returns rect kernel product of points [f1, a1, f2, a2]"
@@ -113,11 +120,15 @@ def chord_product_from_chord_i(ci1, ci2):
     ci2 = int(ci2)
     indices = tuple(sorted([ci1, ci2]))
     if not indices in _chord_product_from_chord_i_cache:
-        _chord_product_from_chord_i_cache[indices]  = chord_product(
+        prod = chord_product(
             make_chord(chord_notes_from_ind(ci1)),
             make_chord(chord_notes_from_ind(ci2))
         )
-    return _chord_product_from_chord_i_cache[indices] 
+        for s in xrange(12):
+            _chord_product_from_chord_i_cache[tuple(sorted([
+                binrotate(ci1,s), binrotate(ci2,2)
+            ]))] = prod
+    return prod
 _chord_product_from_chord_i_cache = {}
 
 def chord_dist_from_chord_i(ci1, ci2):
@@ -134,23 +145,30 @@ def v_chord_product_from_chord_i(ci1, ci2):
     ci2 = int(ci2)
     indices = tuple(sorted([ci1, ci2]))
     if not indices in _chord_product_from_chord_i_cache:
-        _v_chord_product_from_chord_i_cache[indices]  = v_chord_product(
+        prod = v_chord_product(
             make_chord(chord_notes_from_ind(ci1)),
             make_chord(chord_notes_from_ind(ci2))
         )
-    return _v_chord_product_from_chord_i_cache[indices] 
+        for s in xrange(12):
+            _v_chord_product_from_chord_i_cache[tuple(sorted([
+                binrotate(ci1,s), binrotate(ci2,s)
+            ]))] = prod 
+    return prod
 _v_chord_product_from_chord_i_cache = {}
 
 def v_chord_dist_from_chord_i(ci1, ci2):
     "construct a chord distance from the chord inner product"
-    print ci1, ci2
+    v_chord_dist_from_chord_i.callct = v_chord_dist_from_chord_i.callct + 1
+    if (v_chord_dist_from_chord_i.callct % 11==0):
+        print ci1, ci2
     return sqrt(
         v_chord_product_from_chord_i(ci1, ci1)
         - 2 * v_chord_product_from_chord_i(ci1, ci2)
         + v_chord_product_from_chord_i(ci2, ci2)
     )
+v_chord_dist_from_chord_i.callct = 0
 
-chord_dists = pdist(
+chord_i_dists_morecached = pdist(
     np.arange(2**12).reshape(2**12,1),
     v_chord_dist_from_chord_i
 )
