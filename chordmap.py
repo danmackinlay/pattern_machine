@@ -61,9 +61,15 @@ def chord_notes_from_ind(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
 
 def make_chord(notes):
-    chord_harm_fs = note_harmonics[notes,:].flatten()
-    chord_harm_energies = np.tile(base_energies, len(notes))
-    return np.vstack([chord_harm_fs, chord_harm_energies])
+    notes = tuple(sorted(notes))
+    if not notes in _make_chord_cache:
+        chord_harm_fs = note_harmonics[notes,:].flatten()
+        chord_harm_energies = np.tile(base_energies, len(notes))
+        _make_chord_cache[notes] = np.vstack([
+            chord_harm_fs, chord_harm_energies
+        ])
+    return _make_chord_cache[notes] 
+_make_chord_cache = {}
 
 def chord_product(c1, c2):
     idx = cross_p_idx(c1.shape[1], c2.shape[1])
