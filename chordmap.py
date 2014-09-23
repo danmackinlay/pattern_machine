@@ -91,16 +91,17 @@ def v_chord_product_from_chord_i(ci1, ci2):
             make_chord(chord_notes_from_ind(ci1)),
             make_chord(chord_notes_from_ind(ci2))
         )
-        for s in xrange(12):
-            next_indices = tuple(sorted([
-                binrotate(ci1,s), binrotate(ci2,s)
-            ]))
-            print "MISS", next_indices, prod
-            _v_chord_product_from_chord_i_cache[next_indices] = prod
+        # for s in xrange(12):
+        #     next_indices = tuple(sorted([
+        #         binrotate(ci1,s), binrotate(ci2,s)
+        #     ]))
+        #     print "MISS", next_indices, prod
+        #     _v_chord_product_from_chord_i_cache[next_indices] = prod
+        _v_chord_product_from_chord_i_cache[indices] = prod
         return prod
     else:
         prod = _v_chord_product_from_chord_i_cache[indices]
-        print "HIT", indices, prod
+        #print "HIT", indices, prod
         return prod
 _v_chord_product_from_chord_i_cache = {}
 
