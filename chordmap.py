@@ -43,6 +43,10 @@ def kernel_fn(nums, width=0.01):
     "returns rect kernel product of points [f1, a1, f2, a2]"
     return (abs(nums[0]-nums[2])<width)*nums[1]*nums[3]
 
+def v_kernel_fn(f1, f2, a1, a2, widths=0.01):
+    "returns rect kernel product of points [f1, a1, f2, a2]"
+    return (np.abs(f1-f2)<widths)*a1*a2
+
 def note_product(n1, n2):
     "note-specific cross-product"
     harm_fs = np.vstack([
@@ -80,10 +84,28 @@ def chord_dist(c1, c2):
         + chord_product(c2, c2)
     )
 
+def v_chord_product(c1, c2):
+    idx = cross_p_idx(c1.shape[1], c2.shape[1])
+    if idx.size==0:
+        return 0.0
+    f1 = c1[0,idx[0]]
+    f2 = c2[0,idx[0]]
+    a1 = c1[1,idx[0]]
+    a2 = c2[1,idx[0]]
+    return v_kernel_fn(f1, f2, a1, a2).sum()
+
+def v_chord_dist(c1, c2):
+    "construct a chord distance from the chord inner product"
+    return sqrt(
+        v_chord_product(c1, c1)
+        - 2 * v_chord_product(c1, c2)
+        + v_chord_product(c2, c2)
+    )
+
 def chord_product_from_chord_i(ci1, ci2):
     ci1 = int(ci1)
     ci2 = int(ci2)
-    indices = (ci1, ci2)
+    indices = tuple(sorted([ci1, ci2]))
     if not indices in _chord_product_from_chord_i_cache:
         _chord_product_from_chord_i_cache[indices]  = chord_product(
             make_chord(chord_notes_from_ind(ci1)),
