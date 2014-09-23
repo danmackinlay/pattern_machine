@@ -118,10 +118,25 @@ def chord_dist_from_chord_i(ci1, ci2):
     "construct a chord distance from the chord inner product"
     print ci1, ci2
     return sqrt(
+def chord_product_from_note(note1, note2):
+    notes1 = tuple([int(n) for n in notes1])
+    notes2 = tuple([int(n) for n in notes2])
+    indices = (notes1, notes2)
+    if not indices in _chord_product_from_notes_cache:
+        _chord_product_from_notes_cache[indices]  = chord_product(
+            chord_dist_from_notes(notes1),
+            chord_dist_from_notes(notes2)
+        )
+    return _chord_product_from_notes_cache[indices] 
+
+_chord_product_from_note_cache = {}
+
+def chord_dist_from_notes(notes1, notes2):
+    "construct a chord distance from the chord inner product"
+    print ci1, ci2
+    return sqrt(
         chord_product_from_chord_i(ci1, ci1)
         - 2 * chord_product_from_chord_i(ci1, ci2)
         + chord_product_from_chord_i(ci2, ci2)
-    )
-
     )
     
