@@ -149,3 +149,8 @@ def v_chord_dist_from_chord_i(ci1, ci2):
         - 2 * v_chord_product_from_chord_i(ci1, ci2)
         + v_chord_product_from_chord_i(ci2, ci2)
     )
+
+chord_dists = pdist(
+    np.arange(2**12).reshape(2**12,1),
+    v_chord_dist_from_chord_i
+)
