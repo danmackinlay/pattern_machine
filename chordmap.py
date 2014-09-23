@@ -89,9 +89,9 @@ def v_chord_product(c1, c2):
     if idx.size==0:
         return 0.0
     f1 = c1[0,idx[0]]
-    f2 = c2[0,idx[0]]
+    f2 = c2[0,idx[1]]
     a1 = c1[1,idx[0]]
-    a2 = c2[1,idx[0]]
+    a2 = c2[1,idx[1]]
     return v_kernel_fn(f1, f2, a1, a2).sum()
 
 def v_chord_dist(c1, c2):
@@ -118,6 +118,43 @@ def chord_dist_from_chord_i(ci1, ci2):
     "construct a chord distance from the chord inner product"
     print ci1, ci2
     return sqrt(
+        v_chord_product_from_chord_i(ci1, ci1)
+        - 2 * v_chord_product_from_chord_i(ci1, ci2)
+        + v_chord_product_from_chord_i(ci2, ci2)
+    )
+
+def v_chord_product_from_chord_i(ci1, ci2):
+    ci1 = int(ci1)
+    ci2 = int(ci2)
+    indices = tuple(sorted([ci1, ci2]))
+    if not indices in _chord_product_from_chord_i_cache:
+        _v_chord_product_from_chord_i_cache[indices]  = v_chord_product(
+            make_chord(chord_notes_from_ind(ci1)),
+            make_chord(chord_notes_from_ind(ci2))
+        )
+    return _v_chord_product_from_chord_i_cache[indices] 
+_v_chord_product_from_chord_i_cache = {}
+
+def v_chord_dist_from_chord_i(ci1, ci2):
+    "construct a chord distance from the chord inner product"
+    print ci1, ci2
+    return sqrt(
+        v_chord_product_from_chord_i(ci1, ci1)
+        - 2 * v_chord_product_from_chord_i(ci1, ci2)
+        + v_chord_product_from_chord_i(ci2, ci2)
+    )
+
+def v_chord_product_from_notes(notes1, notes2):
+    notes1 = tuple([int(n) for n in notes1])
+    notes2 = tuple([int(n) for n in notes2])
+    indices = tuple(sorted([ci1, ci2]))
+    if not indices in _chord_product_from_notes_cache:
+        _chord_product_from_notes_cache[indices]  = chord_product(
+            chord_dist_from_notes(notes1),
+            chord_dist_from_notes(notes2)
+        )
+    return _chord_product_from_notes_cache[indices] 
+
 def chord_product_from_note(note1, note2):
     notes1 = tuple([int(n) for n in notes1])
     notes2 = tuple([int(n) for n in notes2])
