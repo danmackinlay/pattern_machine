@@ -1,6 +1,5 @@
 from config import *
 
-
 def get_note_event_table(cache=True):
     if not cache:
         try:
@@ -32,9 +31,7 @@ def encode_notes():
     }
 
     def parse_midi_file(base_dir, midi_file):
-        """workhorse function
-        does too much, for reasons of efficiency
-        plus the inconvenient os.path.walk API"""
+        """workhorse function"""
         global event_counter
         midi_in_file = os.path.join(base_dir, midi_file)
         file_key = midi_in_file[len(MIDI_BASE_DIR):]
