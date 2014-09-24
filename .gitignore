@@ -44,3 +44,6 @@ nosetests.xml
 .project
 .pydevproject
 .Rproj.user
+
+#caches
+_*.gz

@@ -10,6 +10,9 @@
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
 from math import sqrt
+import tables
+import gzip
+import cPickle as pickle
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.01 # less than this and they are the same note
@@ -91,6 +94,8 @@ def v_chord_product_from_chord_i(ci1, ci2):
             make_chord(chord_notes_from_ind(ci1)),
             make_chord(chord_notes_from_ind(ci2))
         )
+        #python floats pickle smaller for some reason
+        prod = float(prod)
         # for s in xrange(12):
         #     next_indices = tuple(sorted([
         #         binrotate(ci1,s), binrotate(ci2,s)
@@ -117,7 +122,44 @@ def v_chord_dist_from_chord_i(ci1, ci2):
     )
 v_chord_dist_from_chord_i.callct = 0
 
-chord_i_dists_morecached = pdist(
+chords_i_dists = pdist(
     np.arange(2**12).reshape(2**12,1),
     v_chord_dist_from_chord_i
 )
+chords_i_dists_square =squareform(chords_i_dists)
+
+chords_i_products = pdist(
+    np.arange(2**12).reshape(2**12,1),
+    v_chord_product_from_chord_i
+)
+chords_i_products_square =squareform(chords_i_products)
+
+with tables.open_file("dists.h5", 'w') as handle:
+    data_atom_type = tables.Float32Atom()
+    filt=tables.Filters(complevel=5)
+    handle.create_carray("/",'v_dists',
+        atom=data_atom_type, shape=chords_i_dists.shape,
+        title="dists",
+        filters=filt)[:] = chords_i_dists
+    handle.create_carray("/",'v_sq_dists',
+        atom=data_atom_type, shape=chords_i_dists_square.shape,
+        title="sq dists",
+        filters=filt)[:] = chords_i_dists_square
+    handle.create_carray("/",'v_products',
+        atom=data_atom_type, shape=chords_i_products.shape,
+        title="product",
+        filters=filt)[:] = chords_i_products
+    handle.create_carray("/",'v_sq_products',
+        atom=data_atom_type, shape=chords_i_products_square.shape,
+        title="sq products",
+        filters=filt)[:] = chords_i_products_square
+
+#this pickle is incredibly huge; dunno why
+with gzip.open('_chord_map_cache_products.gz', 'wb') as f:
+    pickle.dump(_v_chord_product_from_chord_i_cache, f)
+#this one is tiny
+with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
+    pickle.dump(_make_chord_cache, f)
+
+
+#class sklearn.manifold.MDS(n_components=2, metric=True, n_init=4, max_iter=300, verbose=0, eps=0.001, n_jobs=1, random_state=None, dissimilarity='euclidean')
