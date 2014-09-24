@@ -38,6 +38,11 @@ Dan {
 				//make sure we get spdif ins too
 				options.numInputBusChannels_(20);
 			},
+			\jack, {
+				//TODO find this out when JackRouter is running before accepting
+				options.device = "JackRouter";
+				options.numInputBusChannels_(20);
+			},
 			\builtin, {
 				options.device ="internal";
 			}
