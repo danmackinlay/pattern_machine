@@ -11,7 +11,7 @@ state.server.doWhenBooted {~state.make({
 	~server.sync;
 	~buf.readChannel(PS.scsamplepath +/+ "actors-siren.wav");
 	~clock=TempoClock.default;
-	~host = Synth.new(\ps_bufwr_phased_1x1, [
+	~host = Synth.new(\ps_bufwr_phased__1x1, [
 		\in, ~server.inputBus.subBus(0,1),
 		\trig, 1.0,
 		\bufnum, ~buf,

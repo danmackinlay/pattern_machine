@@ -18,7 +18,7 @@ PSBufDelaySynthDefs {
 		//needs control-rate phase, which means one-block jitter. Wevs.
 		//TODO: handle position with Phasor and rate-zeroing
 		//TODO: crossfade version using RecordBuf
-		SynthDef.new(\ps_bufwr_phased_1x1, {
+		SynthDef.new(\ps_bufwr_phased__1x1, {
 			arg in=0,
 			gate=1.0,
 			bufnum,

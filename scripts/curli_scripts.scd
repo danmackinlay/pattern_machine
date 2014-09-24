@@ -9,8 +9,6 @@ TODO:
 * tidier sample source selector
 * fix lower bound on quantized notes
 * transpose, jump etc fn (scaled list selector)
-* empty record buffer at start
-* polyphony
 * interesting param map
 * interesting rhythmn somehow
 * smart accent
@@ -28,6 +26,7 @@ TODO:
     * gestures?
   * per voice
     * overall "weirdness" param to control with trivial mapping
+    * buffer offset
     * stationarity
     * minijump sizes
     * seed value (eventually, ALWAYS reseed and

@@ -1,5 +1,4 @@
 //This should totally be a class; I use it often enough.
-//TODO: buffer offset base and range
 //TODO: variable barlength (including pspawner counter)
 //TODO: switch from Event type Note to Grain, and avoid having to think about it
 //TODO: markovity
@@ -58,7 +57,7 @@
 			//[\rec, \self, self].postcs;
 			//[\rec, \dur, dur].postcs;
 			Pfin(1, Pevent((
-				instrument: \ps_bufwr_phased_1x1,
+				instrument: \ps_bufwr_phased__1x1,
 				in: self.inbus,
 				bufnum: self.loopbuf,
 				phasebus: self.loopphasebus,
