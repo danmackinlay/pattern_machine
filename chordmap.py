@@ -22,7 +22,7 @@ N_HARMONICS = 16
 KERNEL_WIDTH = 0.01 # less than this and they are the same note
 
 def cross_p_idx(n1, n2):
-    "poor-mans's nditer, written offline when i coulnd't look it up"
+    "poor-mans's nditer, written offline when i couldn't look it up"
     return np.vstack([
         np.tile(np.arange(n1),n2),
         np.repeat(np.arange(n2), n1),
@@ -71,11 +71,13 @@ def make_chord(notes):
         _make_chord_cache[notes] = np.vstack([
             chord_harm_fs, chord_harm_energies
         ])
-    return _make_chord_cache[notes] 
-_make_chord_cache = {}
-if os.path.exists('_chord_map_cache_make_chords.gz'):
-    with gzip.open('_chord_map_cache_make_chords.gz', 'rb') as f:
-        _make_chord_cache = pickle.load(f)
+    return _make_chord_cache[notes]
+if "_make_chord_cache" not in globals():
+    if os.path.exists('_chord_map_cache_make_chords.gz'): 
+        with gzip.open('_chord_map_cache_make_chords.gz', 'rb') as f:
+            _make_chord_cache = pickle.load(f)
+    else:
+        _make_chord_cache = {}
 
 def v_chord_product(c1, c2):
     idx = cross_p_idx(c1.shape[1], c2.shape[1])
@@ -118,10 +120,12 @@ def v_chord_product_from_chord_i(ci1, ci2):
         prod = _v_chord_product_from_chord_i_cache[indices]
         #print "HIT", indices, prod
         return prod
-_v_chord_product_from_chord_i_cache = {}
-if os.path.exists('_chord_map_cache_products.gz'):
-    with gzip.open('_chord_map_cache_products.gz', 'rb') as f:
-        _v_chord_product_from_chord_i_cache = pickle.load(f)
+if "_v_chord_product_from_chord_i_cache" not in globals():
+    if os.path.exists('_chord_map_cache_products.gz'):
+        with gzip.open('_chord_map_cache_products.gz', 'rb') as f:
+            _v_chord_product_from_chord_i_cache = dict(pickle.load(f))
+    else:
+        _make_chord_cache = {}
 
 
 def v_chord_dist_from_chord_i(ci1, ci2):
@@ -183,11 +187,11 @@ if not os.path.exists("dists.h5"):
 if not os.path.exists('_chord_map_cache_products.gz'):
     #this pickle is incredibly huge; dunno why
     with gzip.open('_chord_map_cache_products.gz', 'wb') as f:
-        pickle.dump(_v_chord_product_from_chord_i_cache, f)
-if not os.path.exists('_chord_map_cache_products.gz'):
+        pickle.dump(_v_chord_product_from_chord_i_cache, f, protocol=2)
+if not os.path.exists('_chord_map_cache_make_chords.gz'):
     #this one is tiny
-    with gzip.open('_chord_map_cache_products.gz', 'wb') as f:
-        pickle.dump(_make_chord_cache, f)
+    with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
+        pickle.dump(_make_chord_cache, f, protocol=2)
 
 kpca = KernelPCA(n_components=None, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
 kpca_trans = kpca.fit_transform(chords_i_products_square) #feed the product matric directly in for precomputed case. 
