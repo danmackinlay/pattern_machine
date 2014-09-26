@@ -12,7 +12,7 @@
 # TODO: simple transition graph might work, if it was made regular in some way
 # TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate though
 # TODO: segment on number of notes, either before or after MDS
-# TODO: rotate to be parallel to axis; there are examples on the scikit learn mds of doing thsi with PCS
+# TODO: rotate to be parallel to axis; there are examples on the scikit learn mds of doing this with PCS
 # TODO: colorize base on number of notes
 
 import numpy as np
@@ -210,50 +210,55 @@ if not os.path.exists('_chord_map_cache_make_chords.gz'):
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
-kpca = KernelPCA(n_components=None, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
-kpca_trans = kpca.fit_transform(chords_i_products_square) #feed the product matric directly in for precomputed case. 
+def get_pca(n_dims=None):
+    kpca = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
+    kpca_trans = kpca.fit_transform(chords_i_products_square) #feed the product matric directly in for precomputed case
+    return kpca, kpca_trans
 
-lin_mds = MDS(n_components=3, metric=True, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-lin_mds_trans = lin_mds.fit_transform(chords_i_dists_square)
-#nonlin_mds = MDS(n_components=3, metric=False, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-#lin_mds_trans = nonlin_mds.fit_transform(chords_i_dists_square, init=lin_mds_trans)
+def get_mds(n_dims=3):
+    lin_mds = MDS(n_components=n_dims, metric=True, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+    lin_mds_trans = lin_mds.fit_transform(chords_i_dists_square)
+    #nonlin_mds = MDS(n_components=3, metric=False, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+    #lin_mds_trans = nonlin_mds.fit_transform(chords_i_dists_square, init=lin_mds_trans)
+    return lin_mds, lin_mds_trans
 
 # Colours are tricky; let's start by making a basis that colourises according to position on the cycle of 5ths.
-rgbmap = hsv_to_rgb(np.array([
-    [(i*7%12)/12.0, 1, 1.0/12] for i in xrange(12)
-]).reshape(12,1,3)
+rgbmap = np.array([
+    hsv_to_rgb((i*7%12)/12.0, 1, 1.0/12) for i in xrange(12)
+])
+
 id_rgb = np.array([
     rgbmap[chord_notes_from_ind(i),:].sum(0) for i in xrange(4096)
 ])
-fig = plt.figure(1)
-ax = plt.axes([0., 0., 1., 1.])
-plt.scatter(lin_mds_trans[:, 0], lin_mds_trans[:, 1], s=20, c=id_rgb)
-fig = plt.figure(2)
-ax = plt.axes([0., 0., 1., 1.])
-plt.scatter(lin_mds_trans[:, 1], lin_mds_trans[:, 2], s=20, c=id_rgb)
-fig = plt.figure(3)
-ax = plt.axes([0., 0., 1., 1.])
-plt.scatter(lin_mds_trans[:, 2], lin_mds_trans[:, 3], s=20, c=id_rgb)
-fig = plt.figure(4)
-ax = plt.axes([0., 0., 1., 1.])
-plt.scatter(lin_mds_trans[:, 3], lin_mds_trans[:, 0], s=20, c=id_rgb)
+
+def plot_2d(trans):
+    n_dims = trans.shape[1]
+    for d in n_dims:
+        fig = plt.figure(d)
+        ax = plt.axes([0., 0., 1., 1.])
+        plt.scatter(
+            trans[:, d],
+            trans[:, (d+1) % n_dims],
+        s=20, c=id_rgb)
+    plt.show()
 
 
-similarities = similarities.max() / similarities * 100
-similarities[np.isinf(similarities)] = 0
-
-# Plot the edges
-start_idx, end_idx = np.where(pos)
-#a sequence of (*line0*, *line1*, *line2*), where::
-#            linen = (x0, y0), (x1, y1), ... (xm, ym)
-segments = [[X_true[i, :], X_true[j, :]]
-            for i in range(len(pos)) for j in range(len(pos))]
-values = np.abs(similarities)
-lc = LineCollection(segments,
-                    zorder=0, cmap=plt.cm.hot_r,
-                    norm=plt.Normalize(0, values.max()))
-lc.set_array(similarities.flatten())
-lc.set_linewidths(0.5 * np.ones(len(segments)))
-ax.add_collection(lc)
-
-plt.show()
+def plot_3d(trans):
+    from mpl_toolkits.mplot3d import Axes3D
+    n_dims = trans.shape[1]
+    fig = plt.figure()
+    
+    for x in n_dims-2:
+        ax = plt.add_subplot(110+x, projection='3d')
+        y = (d+1) % n_dims
+        z = (d+2) % n_dims
+        plt.scatter(
+            trans[:, x],
+            trans[:, y],
+            trans[:, z],
+        s=20, c=id_rgb)
+        ax.set_xlabel('{0} ax'.format(x))
+        ax.set_ylabel('{0} ax'.format(y))
+        ax.set_zlabel('{0} ax'.format(z))
+         
+    plt.show()
