@@ -211,4 +211,19 @@ def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
         lin_mds_trans = clf.fit_transform(lin_mds_trans)
     return lin_mds_trans
 
-# lin_mds_3, lin_mds_trans_3 = get_mds(chords_i_dists_square, 3)
+def dump_projection(filename, coords):
+    with tables.open_file(filename, 'w') as handle:
+        data_atom_type = tables.Float32Atom()
+        filt=tables.Filters(complevel=5)
+        handle.create_carray("/",'v_coords',
+            atom=data_atom_type, shape=coords.shape,
+            title="coords",
+            filters=filt)[:] = coords
+
+def load_projection(filename):
+    with tables.open_file(filename, 'r') as handle:
+        coords = handle.get_node("/", 'v_dists').read()
+    return coords
+
+# lin_mds_3 = get_mds(chords_i_dists_square, 3)
+# dump_projection("lin_mds_3.h5", lin_mds_3)
