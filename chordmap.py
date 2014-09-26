@@ -151,9 +151,9 @@ chords_i_products_square = None
 if os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'r') as handle:
         chords_i_dists = handle.get_node("/", 'v_dists').read()
-        chords_i_dists = handle.get_node("/", 'v_sq_dists').read()
-        chords_i_dists = handle.get_node("/", 'v_products').read()
-        chords_i_dists = handle.get_node("/", 'v_sq_products').read()
+        chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
+        chords_i_products = handle.get_node("/", 'v_products').read()
+        chords_i_products_square = handle.get_node("/", 'v_sq_products').read()
 else:
     chords_i_dists = pdist(
         chord_idx,
