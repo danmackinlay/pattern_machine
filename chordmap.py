@@ -6,7 +6,14 @@
 # also could track kernel width per-harmonic; is this principled? "feels" right, but we'll see.
 # Could do a straight nearness search off the distance matrix using ball tree
 # or cast to a basis of notes using a custom kernel
-# need to have this in terms of notes though
+# need to have this in terms of notes, though
+# TODO: weight by actual chord occurence (when do 11 notes play at once? even 6 is pushing it)
+# TODO: toroidal maps
+# TODO: simple transition graph might work, if it was made regular in some way
+# TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate though
+# TODO: segment on number of notes, either before or after MDS
+# TODO: rotate to be parallel to axis; there are examples on the scikit learn mds of doing thsi with PCS
+# TODO: colorize base on number of notes
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -17,6 +24,8 @@ import cPickle as pickle
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA, KernelPCA
 import os.path
+from matplotlib import pyplot as plt
+from colorsys import hsv_to_rgb
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.01 # less than this and they are the same note
@@ -55,12 +64,19 @@ def binrotate(i, steps=1, lgth=12):
     return int(binrep, base=2)
 
 def v_kernel_fn(f1, f2, a1, a2, widths=0.01):
-    "returns rect kernel product of points [f1, a1, f2, a2]"
+    """
+    returns rect kernel product of points [f1, a1, f2, a2]
+    NB this is not actually a cyclic kernel on [1,2], though the difference is small
+    """
     return (np.abs(f1-f2)<widths)*a1*a2
 
 def chord_notes_from_ind(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
 def chord_ind_from_notes(i):
+    return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
+def chord_mask_from_ind(i):
+    return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
+def chord_mask_from_notes(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
 
 def make_chord(notes):
@@ -186,15 +202,58 @@ if not os.path.exists("dists.h5"):
 
 if not os.path.exists('_chord_map_cache_products.gz'):
     #this pickle is incredibly huge; dunno why
+    # should truncate the floats
     with gzip.open('_chord_map_cache_products.gz', 'wb') as f:
         pickle.dump(_v_chord_product_from_chord_i_cache, f, protocol=2)
 if not os.path.exists('_chord_map_cache_make_chords.gz'):
-    #this one is tiny
+    #this one is tiny (probably because repeated floats more compressible)
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
 kpca = KernelPCA(n_components=None, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
 kpca_trans = kpca.fit_transform(chords_i_products_square) #feed the product matric directly in for precomputed case. 
 
-mds = MDS(n_components=3, metric=True, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-mds_trans = mds.fit_transform(chords_i_dists_square)
+lin_mds = MDS(n_components=3, metric=True, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+lin_mds_trans = lin_mds.fit_transform(chords_i_dists_square)
+#nonlin_mds = MDS(n_components=3, metric=False, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+#lin_mds_trans = nonlin_mds.fit_transform(chords_i_dists_square, init=lin_mds_trans)
+
+# Colours are tricky; let's start by making a basis that colourises according to position on the cycle of 5ths.
+rgbmap = hsv_to_rgb(np.array([
+    [(i*7%12)/12.0, 1, 1.0/12] for i in xrange(12)
+]).reshape(12,1,3)
+id_rgb = np.array([
+    rgbmap[chord_notes_from_ind(i),:].sum(0) for i in xrange(4096)
+])
+fig = plt.figure(1)
+ax = plt.axes([0., 0., 1., 1.])
+plt.scatter(lin_mds_trans[:, 0], lin_mds_trans[:, 1], s=20, c=id_rgb)
+fig = plt.figure(2)
+ax = plt.axes([0., 0., 1., 1.])
+plt.scatter(lin_mds_trans[:, 1], lin_mds_trans[:, 2], s=20, c=id_rgb)
+fig = plt.figure(3)
+ax = plt.axes([0., 0., 1., 1.])
+plt.scatter(lin_mds_trans[:, 2], lin_mds_trans[:, 3], s=20, c=id_rgb)
+fig = plt.figure(4)
+ax = plt.axes([0., 0., 1., 1.])
+plt.scatter(lin_mds_trans[:, 3], lin_mds_trans[:, 0], s=20, c=id_rgb)
+
+
+similarities = similarities.max() / similarities * 100
+similarities[np.isinf(similarities)] = 0
+
+# Plot the edges
+start_idx, end_idx = np.where(pos)
+#a sequence of (*line0*, *line1*, *line2*), where::
+#            linen = (x0, y0), (x1, y1), ... (xm, ym)
+segments = [[X_true[i, :], X_true[j, :]]
+            for i in range(len(pos)) for j in range(len(pos))]
+values = np.abs(similarities)
+lc = LineCollection(segments,
+                    zorder=0, cmap=plt.cm.hot_r,
+                    norm=plt.Normalize(0, values.max()))
+lc.set_array(similarities.flatten())
+lc.set_linewidths(0.5 * np.ones(len(segments)))
+ax.add_collection(lc)
+
+plt.show()
