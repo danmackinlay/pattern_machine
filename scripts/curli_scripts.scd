@@ -3,18 +3,18 @@ Curlicue
 
 TODO:
 * Quantise duration
-* echette-style allpass delays (intensity is product of total length and amplitude
+* echette-style allpass delays (intensity is product of total length and amplitude)
 * choose echette length algorithmically too
-* stop loop mode explosions (fixed? can't reproduce)
+* choose durations after quantization
+* switch between external (live, MRE) and internal mixers
 * tidier sample source selector
 * fix lower bound on quantized notes
 * transpose, jump etc fn (scaled list selector)
 * interesting param map
 * interesting rhythmn somehow
-* smart accent
 * random volume
+* smart accent
 * decent Lemur template
-* use soundflower/jack to make ableton an external mixer
 * tidy up shared usage of global clock.
 * OSC triggering for:
   * overall
@@ -28,6 +28,8 @@ TODO:
     * overall "weirdness" param to control with trivial mapping
     * buffer offset
     * stationarity
+    * inner envelope
+    * outer envelope
     * minijump sizes
     * seed value (eventually, ALWAYS reseed and
       choose whether to stick to latest seed)
