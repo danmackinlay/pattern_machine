@@ -200,13 +200,15 @@ if not os.path.exists('_chord_map_cache_make_chords.gz'):
 def get_pca(sq_dists, n_dims=None):
     kpca = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
     kpca_trans = kpca.fit_transform(sq_dists) #feed the product matric directly in for precomputed case
-    return kpca, kpca_trans
+    return kpca_trans
 
-def get_mds(sq_dists, n_dims=3):
-    lin_mds = MDS(n_components=n_dims, metric=True, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
+    lin_mds = MDS(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
     lin_mds_trans = lin_mds.fit_transform(sq_dists)
-    #nonlin_mds = MDS(n_components=3, metric=False, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-    #lin_mds_trans = nonlin_mds.fit_transform(chords_i_dists_square, init=lin_mds_trans)
-    return lin_mds, lin_mds_trans
+    if rotate:
+        # Rotate the data to a hopefully consistent orientation
+        clf = PCA(n_components=n_dims)
+        lin_mds_trans = clf.fit_transform(lin_mds_trans)
+    return lin_mds_trans
 
 # lin_mds_3, lin_mds_trans_3 = get_mds(chords_i_dists_square, 3)
