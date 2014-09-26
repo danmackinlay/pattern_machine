@@ -3,6 +3,7 @@ from chordmap_base import *
 from matplotlib import pyplot as plt
 from colorsys import hsv_to_rgb
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
 
 # Colours are tricky; let's start by making a basis that colourises according to position on the cycle of 5ths.
 rgbmap = np.array([
@@ -24,7 +25,9 @@ def plot_2d(trans):
         s=20, c=id_rgb)
     plt.show()
 
-def plot_3d(trans):
+def plot_3d(trans, cols=None):
+    if cols is None:
+        cols = id_rgb
     n_dims = trans.shape[1]
     fig = plt.figure()
     
@@ -36,7 +39,7 @@ def plot_3d(trans):
             xs=trans[:, x],
             ys=trans[:, y],
             zs=trans[:, z],
-            c=id_rgb,
+            c=cols,
             )
         ax.set_xlabel('{0} ax'.format(x))
         ax.set_ylabel('{0} ax'.format(y))

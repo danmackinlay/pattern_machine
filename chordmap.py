@@ -14,6 +14,24 @@
 # TODO: segment on number of notes, either before or after MDS
 # TODO: rotate to be parallel to axis; there are examples on the scikit learn mds of doing this with PCS
 # TODO: colorize base on number of notes
+# TODO: in 3 dimensions, this produces 8 low-dimensional manifolds. isolate each
+#   see, e.g. http://scikit-learn.org/stable/modules/clustering.html#spectral-clustering
+#    SpectralClustering, AffinityPropagation, DBSCAN seems the most likely 
+#    klearn.neighbors.radius_neighbors_graph with a smart param might get us this for free
+# really need to be preserving the seed for this stuff
+# Candidate centroids, 3 metric case
+# [-2,-2,-1]
+# [1,-2.5,1]
+# [-2,-1,-1]
+# [1,-1.5,1]
+# [-1,2,-1]
+# [2,1,1]
+# [-1,3,-1]
+# [2,2,1]
+
+# We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
+# Or can i just pull out one of these leavs nad inspect for what it is?
+
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -24,10 +42,11 @@ import cPickle as pickle
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA, KernelPCA
 import os.path
+from sklearn.cluster import SpectralClustering
 from chordmap_base import *
 
 N_HARMONICS = 16
-KERNEL_WIDTH = 0.01 # less than this and they are the same note
+KERNEL_WIDTH = 0.01 # less than this and they are the same note (probably too wide)
 
 
 energies = 1.0/(np.arange(N_HARMONICS)+1)
@@ -36,6 +55,8 @@ base_harm_fs = np.arange(N_HARMONICS)+1
 base_fundamentals = 2.0**(np.arange(12)/12.0)
 # wrap harmonics
 note_harmonics = (((np.outer(base_fundamentals, base_harm_fs)-1.0)%1.0)+1)
+# Alternatively (Thanks James Nichols for noticing)
+# note_harmonics = 2.0 ** (np.log2(np.outer(base_fundamentals, base_harm_fs))%1.0)
 
 note_idx = np.arange(12, dtype="uint32")
 harm_idx = np.arange(N_HARMONICS)
@@ -227,3 +248,9 @@ def load_projection(filename):
 
 # lin_mds_3 = get_mds(chords_i_dists_square, 3)
 # dump_projection("lin_mds_3.h5", lin_mds_3)
+# clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=10, affinity='nearest_neighbors', n_neighbors=10,assign_labels='kmeans').fit_predict(lin_mds_trans_3)
+# clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=10, gamma=8.0, affinity='rbf', n_neighbors=10,assign_labels='kmeans').fit_predict(lin_mds_trans_3)
+# see also assign_labels="kmeans"/assign_labels="discretize"
+# see also DBSCAN
+
+
