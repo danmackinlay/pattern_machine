@@ -209,3 +209,4 @@ def get_mds(sq_dists, n_dims=3):
     #lin_mds_trans = nonlin_mds.fit_transform(chords_i_dists_square, init=lin_mds_trans)
     return lin_mds, lin_mds_trans
 
+# lin_mds_3, lin_mds_trans_3 = get_mds(chords_i_dists_square, 3)

@@ -15,7 +15,7 @@ id_rgb = np.array([
 
 def plot_2d(trans):
     n_dims = trans.shape[1]
-    for d in n_dims:
+    for d in xrange(n_dims):
         fig = plt.figure(d)
         ax = plt.axes([0., 0., 1., 1.])
         plt.scatter(
@@ -28,15 +28,16 @@ def plot_3d(trans):
     n_dims = trans.shape[1]
     fig = plt.figure()
     
-    for x in n_dims-2:
-        ax = plt.add_subplot(110+x, projection='3d')
-        y = (d+1) % n_dims
-        z = (d+2) % n_dims
-        plt.scatter(
-            trans[:, x],
-            trans[:, y],
-            trans[:, z],
-        s=20, c=id_rgb)
+    for x in xrange(n_dims-2):
+        ax = fig.add_subplot(n_dims-2, 1, 1+x, projection='3d')
+        y = (x+1) % n_dims
+        z = (x+2) % n_dims
+        ax.scatter(
+            xs=trans[:, x],
+            ys=trans[:, y],
+            zs=trans[:, z],
+            c=id_rgb,
+            )
         ax.set_xlabel('{0} ax'.format(x))
         ax.set_ylabel('{0} ax'.format(y))
         ax.set_zlabel('{0} ax'.format(z))
