@@ -197,14 +197,14 @@ if not os.path.exists('_chord_map_cache_make_chords.gz'):
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
-def get_pca(n_dims=None):
+def get_pca(sq_dists, n_dims=None):
     kpca = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
-    kpca_trans = kpca.fit_transform(chords_i_products_square) #feed the product matric directly in for precomputed case
+    kpca_trans = kpca.fit_transform(sq_dists) #feed the product matric directly in for precomputed case
     return kpca, kpca_trans
 
-def get_mds(n_dims=3):
+def get_mds(sq_dists, n_dims=3):
     lin_mds = MDS(n_components=n_dims, metric=True, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-    lin_mds_trans = lin_mds.fit_transform(chords_i_dists_square)
+    lin_mds_trans = lin_mds.fit_transform(sq_dists)
     #nonlin_mds = MDS(n_components=3, metric=False, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
     #lin_mds_trans = nonlin_mds.fit_transform(chords_i_dists_square, init=lin_mds_trans)
     return lin_mds, lin_mds_trans
