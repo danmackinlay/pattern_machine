@@ -78,34 +78,34 @@ PSBufDelaySynthDefs {
 			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
 		*/
-		SynthDef.new(\ps_bufrd_phased_mod__1x2, {
+		SynthDef.new(\ps_bufrd_phased_mod_echette__1x2, {
 			arg out=0,
 			bufnum,
 			deltime=0.0,
 			phasebus,
-			rate=1.0, modulate=0, modlag=0.5,
+			rate=1.0,
+			modulate=0, modlag=0.5, modulateallp=0,
 			pan=0, amp=1, gate=1,
 			voxnum=0,
 			interp=4,
-			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, maxDur=inf;
+			attack=0.1, release=0.1,
+			innerDur=1,
+			allpdeltime=0.1, ringtime=1;
 
-			var sig, env, baseTime, readTime, clippedGate, ramp, bufDur;
+			var sig, innerenv, outerenv, baseTime, readTime, ramp, bufDur;
 
-			clippedGate = gate * Trig1.kr(gate, maxDur);
 			bufDur = BufDur.kr(bufnum)-SampleDur.ir;
-			env = EnvGen.kr(
-				Env.adsr(
+			innerenv = EnvGen.kr(
+				Env.linen(
 					attackTime: attack,
-					decayTime: decay,
-					sustainLevel: sustainLevel,
+					sustainTime: (innerDur-attack).max(0),
 					releaseTime: release),
-				gate: clippedGate,
-				levelScale:amp,
-				doneAction: 2);
-			deltime = deltime + ((1-rate) * Sweep.ar(clippedGate, 1));
+				gate: gate,
+				levelScale:amp);
+			deltime = deltime + ((1-rate) * Sweep.ar(gate, 1));
 			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur);
-			baseTime = Latch.kr(In.kr(phasebus), clippedGate);
+			ramp = Phasor.ar(trig: gate, rate: SampleDur.ir*rate, end: bufDur);
+			baseTime = Latch.kr(In.kr(phasebus), gate);
 			//is the following wrap right for the last sample in the buffer?
 			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
 			sig = BufRd.ar(
@@ -114,7 +114,21 @@ PSBufDelaySynthDefs {
 				phase: readTime*SampleRate.ir,
 				interpolation: interp,
 				loop: 1, // Is this actually loop TIME? or interpolation?
-			) * env;
+			) * innerenv;
+			outerenv = EnvGen.kr(
+				Env.linen(
+					attackTime: 0,
+					sustainTime: ringtime,
+					releaseTime: release
+					),
+				levelScale: (ringtime/innerDur).sqrt //normalises power *rate*
+			);
+			sig = AllpassN.ar(sig,
+				delaytime: allpdeltime + Lag2.ar(
+					K2A.ar(modulate), lagTime: modlag),
+				decaytime: ringtime,
+				maxdelaytime: 0.5,
+				mul: outerenv);
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
 		//
