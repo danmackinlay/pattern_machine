@@ -24,22 +24,11 @@ import cPickle as pickle
 from sklearn.manifold import MDS
 from sklearn.decomposition import PCA, KernelPCA
 import os.path
+from chordmap_base import *
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.01 # less than this and they are the same note
 
-def cross_p_idx(n1, n2):
-    "poor-mans's nditer, written offline when i couldn't look it up"
-    return np.vstack([
-        np.tile(np.arange(n1),n2),
-        np.repeat(np.arange(n2), n1),
-    ])
-
-def bit_unpack(i):
-    # little-endian bit-unpacking
-    bits = [int(s) for s in bin(i)[2:]]
-    bits.reverse()
-    return bits
 
 energies = 1.0/(np.arange(N_HARMONICS)+1)
 base_energies = 1.0/(np.arange(N_HARMONICS)+1)

@@ -1,3 +1,5 @@
+import numpy as np
+from chordmap_base import *
 from matplotlib import pyplot as plt
 from colorsys import hsv_to_rgb
 from mpl_toolkits.mplot3d import Axes3D
