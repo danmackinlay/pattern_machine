@@ -190,7 +190,7 @@ else:
 if not os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'w') as handle:
         data_atom_type = tables.Float32Atom()
-        filt=tables.Filters(complevel=5)
+        filt=tables.Filters(complevel=5, complib='blosc')
         handle.create_carray("/",'v_dists',
             atom=data_atom_type, shape=chords_i_dists.shape,
             title="dists",
@@ -235,7 +235,7 @@ def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
 def dump_projection(filename, coords):
     with tables.open_file(filename, 'w') as handle:
         data_atom_type = tables.Float32Atom()
-        filt=tables.Filters(complevel=5)
+        filt=tables.Filters(complevel=5, complib='blosc')
         handle.create_carray("/",'v_coords',
             atom=data_atom_type, shape=coords.shape,
             title="coords",

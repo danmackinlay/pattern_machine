@@ -72,5 +72,5 @@ def encode_notes():
             warnings.simplefilter("ignore")
             note_event_table = note_event_out_handle.create_table('/', 'note_event_meta',
                 note_event_table_description,
-                filters=tables.Filters(complevel=1))
+                filters=tables.Filters(complevel=5, complib='blosc'))
             os.path.walk(MIDI_BASE_DIR, parse_if_midi, None)

@@ -61,7 +61,7 @@ def encode_recence_data(output_filename, input_filename, max_age=2.0, ):
             note_obs_table = note_obs_table_handle.create_table(
                 '/', 'note_obs_meta',
                 note_obs_table_description,
-                filters=tables.Filters(complevel=1))
+                filters=tables.Filters(complevel=5, complib='blosc'))
         note_event_table = note_event_table_handle.get_node(
             '/', 'note_event_meta'
         )

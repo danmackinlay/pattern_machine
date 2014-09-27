@@ -193,7 +193,7 @@ with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
         warnings.simplefilter("ignore")
         obs_table = table_out_handle.create_table('/', 'obs_meta',
             obs_table_description,
-            filters=tables.Filters(complevel=1))
+            filters=tables.Filters(complevel=5, complib='blosc'))
     for r in xrange(n_obs):
         obs_table.row['file'] = obs_meta['file'][r]
         obs_table.row['time'] = obs_meta['time'][r]
@@ -219,7 +219,7 @@ with tables.open_file(FEATURE_TABLE_FROM_PYTHON_PATH, 'w') as table_out_handle:
     obs_table.attrs.maxAge = MAX_AGE
     obs_table.attrs.neighborhoodRadius = NEIGHBORHOOD_RADIUS
 
-    filt = tables.Filters(complevel=5)
+    filt = tables.Filters(complevel=5, complib='blosc')
     obs_group = table_out_handle.create_group("/", "obs")
     write_sparse_hdf(table_out_handle,
         obs_group, obs_vec,
