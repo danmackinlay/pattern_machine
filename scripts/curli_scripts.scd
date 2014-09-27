@@ -4,6 +4,7 @@ Curlicue
 TODO:
 * echette-style allpass delays (intensity is product of total length and amplitude)
 * choose echette length algorithmically too
+* cleanup is not working great- fails to allocate bus correctly.
 * choose durations after quantization
 * switch between external (live, MRE) and internal mixers
 * tidier sample source selector
@@ -205,6 +206,7 @@ fork {
 ~state.voiceStates[0].loopbuf.plot;
 ~state.voiceStates[0].density=20;
 ~state.voiceStates[0].strength=0.0;
+~state.voiceStates[0].loopphasebus.get;
 ~state.bpm;
 ~state.bpm=120;
 ~state.updateTempo.();

@@ -227,15 +227,15 @@
 				});
 				actualNextTime = actualTime + actualNextDelta;
 				evt[\delta] = actualNextDelta % (~loopBeats); // % breaks up v. long beats
-				//[\actualNextDelta, actualNextDelta].postln;
 
 				//
 				// Delay logic
 				//
-				// convert delay in beats to boring old seconds
-				nextDelTime = actualNextTime*(~stationarity)/(~beatDur);
-				//[\deltimeA, nextDelTime].postln;
+				// convert time in beats to boring old seconds to work out baseline stationary delay
+				nextDelTime = actualNextTime * ~beatDur * (1-~stationarity);
+				// next, our delay-beats
 				// offset using random list lookup
+				//[\deltimeA, nextDelTime, ~loopBeats,  actualNextTime, ~beatDur, ~stationarity].postln;
 				nextDelTime = nextDelTime + (
 					(~delquantumset.unif(~delquantumvar.asFloat.rand)) *
 					(~deljumpset.unif(~deljumpvar.asFloat.rand)) *
