@@ -85,7 +85,6 @@ PSBufDelaySynthDefs {
 			phasebus,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
-			voxnum=0,
 			interp=4,
 			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, maxDur=inf;
 
@@ -124,7 +123,6 @@ PSBufDelaySynthDefs {
 			phasebus,
 			rate=1.0, modulate=0, modlag=0.5,
 			pan=0, amp=1, gate=1,
-			voxnum=0,
 			interp=4,
 			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, dur=1;
 
@@ -164,7 +162,6 @@ PSBufDelaySynthDefs {
 			rate=1.0,
 			modulate=0, modlag=0.5, modulateallp=0,
 			pan=0, amp=1, gate=1,
-			voxnum=0,
 			interp=4,
 			attack=0.1, release=0.1,
 			innerSustain=1, sustain=1,
