@@ -78,6 +78,45 @@ PSBufDelaySynthDefs {
 			Out.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
 		*/
+		SynthDef.new(\ps_bufrd_phased_mod__1x2, {
+			arg out=0,
+			bufnum,
+			basedeltime=0.0,
+			phasebus,
+			rate=1.0, modulate=0, modlag=0.5,
+			pan=0, amp=1, gate=1,
+			voxnum=0,
+			interp=4,
+			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, maxDur=inf;
+
+			var sig, env, baseTime, readTime, deltime, clippedGate, ramp, bufDur;
+
+			clippedGate = gate * Trig1.kr(gate, maxDur);
+			bufDur = BufDur.kr(bufnum)-SampleDur.ir;
+			env = EnvGen.kr(
+				Env.adsr(
+					attackTime: attack,
+					decayTime: decay,
+					sustainLevel: sustainLevel,
+					releaseTime: release),
+				gate: clippedGate,
+				levelScale:amp,
+				doneAction: 2);
+			deltime = basedeltime + ((1-rate) * Sweep.ar(clippedGate, 1));
+			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
+			ramp = Phasor.ar(trig: clippedGate, rate: SampleDur.ir*rate, end: bufDur);
+			baseTime = Latch.kr(In.kr(phasebus), clippedGate);
+			//is the following wrap right for the last sample in the buffer?
+			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
+			sig = BufRd.ar(
+				numChannels:1,
+				bufnum: bufnum,
+				phase: readTime*SampleRate.ir,
+				interpolation: interp,
+				loop: 1, // Is this actually loop TIME? or interpolation?
+			) * env;
+			Out.ar(out, Pan2.ar(sig, pan));
+		}).add;
 		SynthDef.new(\ps_bufrd_phased_mod_echette__1x2, {
 			arg out=0,
 			bufnum,
