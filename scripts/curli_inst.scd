@@ -9,13 +9,8 @@
 		~sampleDur = state.sampleDur ? 30;
 		~updateTempo={|self|
 			\subupdatetempo.postln;
-			self.bpm = self.bpm ? 80.0;
-			self.tempo = 60.0/self.bpm;
-			self.quantum = self.quantum ? (1/4);
-			self.beatDur = self.tempo.reciprocal;
-			self.loopBeats = self.loopBeats ? 8.0;
-			self.loopTime = self.beatDur * self.loopBeats;
-			self.clock.tempo=self.tempo;
+			self.beatDur = self[\clock].tempo.reciprocal;
+			self.loopTime = self.beatDur * (self.loopBeats? 4.0);
 		};
 		~loopin={|self, loopseed|
 			[\loop, loopseed].postln;
@@ -66,7 +61,7 @@
 				addAction: \addToHead,
 				dur: dur ? self.loopTime,
 			//sendGate: false,//persist
-			))).trace.play(~clock);
+			))).trace.play(self[\clock]);
 		};
 
 		//channel fx

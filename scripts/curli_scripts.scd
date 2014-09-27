@@ -13,7 +13,6 @@ TODO:
 * random volume
 * smart accent
 * decent Lemur template
-* tidy up shared usage of global clock.
 * OSC triggering for:
   * overall
     * gestures
@@ -72,6 +71,9 @@ state.server.doWhenBooted({state.make({
 	~ninputs = 1;
 	~ninsts = 4;
 	~sampleDur = 60;
+	~bpm = 80;
+	~clock = TempoClock.new(~bpm/60.0);
+
 	//sample loading
 	~samples = PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur);
 	~samples.initFromDict((
@@ -117,9 +119,7 @@ state.server.doWhenBooted({state.make({
 	//default values for sub voices
 	//cannot fall back to parent for these; local controls might be installed
 	~modelvoice = Event.make({
-		~bpm = 140; ///wtf? clock is set globally
 		~debugSpawn = false;
-
 		// * record
 		// * minijump sizes
 		~delquantumset = [1/4, 1/2, 1];
