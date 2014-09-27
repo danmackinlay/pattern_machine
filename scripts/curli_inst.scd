@@ -142,10 +142,6 @@
 				//[\intendedNextDelta, intendedNextDelta].postln;
 
 				evt[\delta] = intendedNextDelta;
-				evt[\sustain] = (
-					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
-				).clip(0.01, 30);
-				//[\sustain, evt[\sustain]].postln;
 
 				intendedNextTime = intendedNextDelta + intendedTime;
 				~debugSpawn.asBoolean.if({
@@ -163,7 +159,6 @@
 				// finnicky loop logic
 				overshoot = (intendedNextTime/~loopBeats).floor * ~loopBeats;
 				(overshoot>0.0).if({
-					//should this be w/ intended time instead? or no difference?
 					(~loopseed).if({
 						~debugSpawn.asBoolean.if({
 							["reeeeeeeseeeeeed1",
@@ -227,6 +222,9 @@
 				});
 				actualNextTime = actualTime + actualNextDelta;
 				evt[\delta] = actualNextDelta % (~loopBeats); // % breaks up v. long beats
+				evt[\sustain] = (
+					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+				).clip(0.01, 30);
 
 				//
 				// Delay logic
@@ -249,7 +247,7 @@
 				// tuning logic
 				//
 				evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
-				[\rate, evt[\rate]].postln;
+				//[\rate, evt[\rate]].postln;
 
 				~debugSpawn.asBoolean.if({
 					[

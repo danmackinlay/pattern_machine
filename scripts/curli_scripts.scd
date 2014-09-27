@@ -174,7 +174,7 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
-var localstate, state = ~state, i = ~state.nextVoice, foo;
+var localstate, state = ~state, i = 0, foo;
 fork {
 	localstate = Event.new(n:60, proto: state, know: true);
 	localstate.putAll(state.modelvoice);
@@ -183,14 +183,12 @@ fork {
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
 		~strength = 1.0;
-		~quantum = 1/4;
-		~debugSpawn = true;
+		//~debugSpawn = true;
 	});
-	state.nextVoice = i + 1;
-	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);
+	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate, i);
 	[\foo, foo].postcs;
 	s.sync;
-	//state.voiceStates[0].rec(30);
+	{state.voiceStates[i].rec();}.defer(0.1);
 };
 )
 (
