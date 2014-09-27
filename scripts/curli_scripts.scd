@@ -2,13 +2,12 @@
 Curlicue
 
 TODO:
-* Quantise duration
+* fix per-voice cleanup
 * echette-style allpass delays (intensity is product of total length and amplitude)
 * choose echette length algorithmically too
 * choose durations after quantization
 * switch between external (live, MRE) and internal mixers
 * tidier sample source selector
-* fix lower bound on quantized notes
 * transpose, jump etc fn (scaled list selector)
 * interesting param map
 * interesting rhythmn somehow
@@ -183,6 +182,9 @@ fork {
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
+		~strength = 1.0;
+		~quantum = 1/4;
+		~debugSpawn = true;
 	});
 	state.nextVoice = i + 1;
 	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate,i);

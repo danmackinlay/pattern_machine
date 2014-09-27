@@ -144,13 +144,13 @@
 					rate: 1,
 				));
 				intendedNextDelta = (1.0.rand.log.neg/(~density)).clip(0.0, 30);
-				[\intendedNextDelta, intendedNextDelta].postln;
+				//[\intendedNextDelta, intendedNextDelta].postln;
 
 				evt[\delta] = intendedNextDelta;
 				evt[\sustain] = (
 					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
 				).clip(0.01, 30);
-				[\sustain, evt[\sustain]].postln;
+				//[\sustain, evt[\sustain]].postln;
 
 				intendedNextTime = intendedNextDelta + intendedTime;
 				~debugSpawn.asBoolean.if({
@@ -224,25 +224,28 @@
 					(~strength * quantizedNextTime);
 				actualNextDelta = (weightedNextTime - actualTime);
 				~debugSpawn.asBoolean.if({
-					[\CCCC2,\actualNextDelta,actualNextDelta, \quantum, ~quantum, \strength, ~strength].postln;});
+					[\CCCC2,\intendedNextDelta,intendedNextDelta,\actualNextDelta,actualNextDelta, \quantum, ~quantum, \strength, ~strength].postln;});
 				// % ensures that we skip no bars and we don't go backwards; shouldn't be needed
-				(actualNextDelta < 0).if({actualNextDelta = actualNextDelta % (~quantum)});
+				(actualNextDelta < 0).if({
+					["Whoa shit", actualNextDelta].postln;
+					actualNextDelta = actualNextDelta % (~quantum);
+				});
 				actualNextTime = actualTime + actualNextDelta;
 				evt[\delta] = actualNextDelta % (~loopBeats); // % breaks up v. long beats
-				[\actualNextDelta, actualNextDelta].postln;
+				//[\actualNextDelta, actualNextDelta].postln;
 
 				//
 				// Delay logic
 				//
 				// convert delay in beats to boring old seconds
 				nextDelTime = actualNextTime*(~stationarity)/(~beatDur);
-				[\deltimeA, nextDelTime].postln;
+				//[\deltimeA, nextDelTime].postln;
 				// offset using random list lookup
 				nextDelTime = nextDelTime + (
 					(~delquantumset.unif(~delquantumvar.asFloat.rand)) *
 					(~deljumpset.unif(~deljumpvar.asFloat.rand)) *
 					(~delscale) * (~beatDur));
-				[\deltimeB, nextDelTime].postln;
+				//[\deltimeB, nextDelTime].postln;
 				//don't wrap to sane values; the synth does this anyway
 				//nextDelTime = nextDelTime % (~loopBeats*~beatDur);
 				//[\deltimeC, nextDelTime].postln;
