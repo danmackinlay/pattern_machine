@@ -2,7 +2,6 @@
 Curlicue
 
 TODO:
-* fix per-voice cleanup
 * echette-style allpass delays (intensity is product of total length and amplitude)
 * choose echette length algorithmically too
 * choose durations after quantization

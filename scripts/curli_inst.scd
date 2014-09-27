@@ -301,7 +301,9 @@
 			});
 		});
 		~stream = ~pat.play(clock: ~clock);
-		~cleanupList.add({ state.stream.free });
+		~cleanupList.add({
+			state.stream.stop;
+		});
 
 		/*
 		~paramUpdater.addUpdater({|val|
