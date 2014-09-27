@@ -94,12 +94,12 @@
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
 			type: \note,
-			instrument: \ps_bufrd_phased_mod__1x2, // \ps_bufrd_phased_mod_echette__1x2,
+			instrument: \ps_bufrd_phased_mod_echette__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,
 			modulate: ~modbus.asMap,
-			sendGate: true,
+			sendGate: false,
 			out: ~outbus,
 			phasebus: ~loopphasebus,
 			bufnum: ~loopbuf,
@@ -123,10 +123,12 @@
 				var actualNextDelta;
 				var nextDelTime=0.0;
 				var overshoot;
+				var intendedInnerSustain;
+				var intendedSustain;
+				var intendedAllpDelTime;
+				var intendedRingTime;
 				// [state.stationarity, state.density, state.intensity, state.loopBeats,  state.beatDur].postcs;
 				// [~stationarity, ~density, ~intensity, ~loopBeats, ~beatDur].postcs;
-				// choose quantisation for this iteration:
-				~quantum = ~quantumset.unif(~quantumparam);
 
 				//Basic event construction:
 				evt = ~baseevt.copy.putAll((
@@ -137,12 +139,19 @@
 					db: ~db,
 					pan: ~pan,
 					rate: 1,
+					modulate: 0,
+					modlag: 0.5,
+					modulateallp: 0,
+					innerSustainDur: 1,
+					sustainDur: 4,
+					allpdeltime: 0.5,
+					ringtime: 6,
 				));
-				intendedNextDelta = (1.0.rand.log.neg/(~density)).clip(0.0, 30);
+				// choose quantisation for this iteration:
+				~quantum = ~quantumset.unif(~quantumparam);
+				intendedNextDelta = (1.0.rand.log.neg/(~density)).clip(0.0, 16);
 				//[\intendedNextDelta, intendedNextDelta].postln;
-
 				evt[\delta] = intendedNextDelta;
-
 				intendedNextTime = intendedNextDelta + intendedTime;
 				~debugSpawn.asBoolean.if({
 					[
@@ -222,12 +231,8 @@
 				});
 				actualNextTime = actualTime + actualNextDelta;
 				evt[\delta] = actualNextDelta % (~loopBeats); // % breaks up v. long beats
-				evt[\sustain] = (
-					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
-				).clip(0.01, 30);
-
 				//
-				// Delay logic
+				// Base delay logic
 				//
 				// convert time in beats to boring old seconds to work out baseline stationary delay
 				nextDelTime = actualNextTime * ~beatDur * (1-~stationarity);
@@ -243,6 +248,35 @@
 				//nextDelTime = nextDelTime % (~loopBeats*~beatDur);
 				//[\deltimeC, nextDelTime].postln;
 				evt[\deltime] = nextDelTime;
+				//
+				// echo logic
+				//
+				intendedSustain = (
+					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+				).clip(0.01, 16);
+				intendedSustain = ((1 - ~strength) * intendedSustain)
+				+ (~strength * (intendedSustain.round(~quantum)));
+				intendedInnerSustain = (
+					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+				).clip(0.01, 16);
+				intendedInnerSustain = ((1 - ~strength) * intendedInnerSustain)
+				+ (~strength * (intendedInnerSustain.round(~quantum)));
+				intendedAllpDelTime = (
+					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+				).clip(0.01, 16);
+				intendedAllpDelTime = ((1 - ~strength) * intendedAllpDelTime)
+				+ (~strength * (intendedAllpDelTime.round(~quantum)));
+				intendedRingTime = (
+					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+				).clip(0.01, 16);
+				intendedRingTime = ((1 - ~strength) * intendedRingTime)
+				+ (~strength * (intendedRingTime.round(~quantum)));
+
+				evt[\sustainDur] = intendedSustain * ~beatDur;
+				evt[\innerSustainDur] = intendedInnerSustain * ~beatDur;
+				evt[\intendedAllpDelTime] = intendedAllpDelTime * ~beatDur;
+				evt[\intendedRingTime] = intendedRingTime * ~beatDur;
+
 				//
 				// tuning logic
 				//

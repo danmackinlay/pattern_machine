@@ -201,7 +201,7 @@ PSBufDelaySynthDefs {
 			);
 			sig = AllpassN.ar(sig,
 				delaytime: allpdeltime + Lag2.ar(
-					K2A.ar(modulate), lagTime: modlag),
+					K2A.ar(modulateallp), lagTime: modlag),
 				decaytime: ringtime,
 				maxdelaytime: 0.5,
 				mul: outerenv);

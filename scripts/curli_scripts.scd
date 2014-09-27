@@ -188,13 +188,13 @@ fork {
 	foo =  this.executeFile(PS.scriptpath +/+ "curli_inst.scd").value(localstate, i);
 	[\foo, foo].postcs;
 	s.sync;
-	{state.voiceStates[i].rec();}.defer(0.1);
+	//{state.voiceStates[i].rec();}.defer(0.1);
 };
 )
 (
 //~state.voiceStates[0].rec(30);
 ~state.voiceStates[0].rec();
-~state.inbuses[0].makeBusMeter
+~state.inbuses[0].makeBusMeter;
 ~state.voiceStates[0].loopin(0);
 ~state.voiceStates[0].loopin(1);
 ~state.voiceStates[0].debugSpawn=false;
@@ -204,6 +204,7 @@ fork {
 ~state.voiceStates[0].loopbuf.plot;
 ~state.voiceStates[0].density=20;
 ~state.voiceStates[0].strength=0.0;
+~state.voiceStates[0].strength=1.0;
 ~state.voiceStates[0].loopphasebus.get;
 ~state.bpm;
 ~state.bpm=120;
