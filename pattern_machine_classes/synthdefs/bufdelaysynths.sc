@@ -164,7 +164,7 @@ PSBufDelaySynthDefs {
 			pan=0, amp=1, gate=1,
 			interp=4,
 			attack=0.1, release=0.1,
-			innerSustain=1, sustain=1,
+			innerSustainDur=1, sustainDur=1, //Dur to indicate they are measured in seconds, not beats
 			allpdeltime=0.1, ringtime=1;
 
 			var sig, innerenv, outerenv, baseTime, readTime, ramp, bufDur;
@@ -173,7 +173,7 @@ PSBufDelaySynthDefs {
 			innerenv = EnvGen.kr(
 				Env.linen(
 					attackTime: attack,
-					sustainTime: (innerSustain-attack).max(0),
+					sustainTime: (innerSustainDur-attack).max(0),
 					releaseTime: release),
 				gate: gate,
 				levelScale:amp);
@@ -193,7 +193,7 @@ PSBufDelaySynthDefs {
 			outerenv = EnvGen.kr(
 				Env.linen(
 					attackTime: 0,
-					sustainTime: sustain,
+					sustainTime: sustainDur,
 					releaseTime: release
 					),
 				levelScale: 1,
