@@ -14,6 +14,10 @@
 # TODO: segment on number of notes, either before or after MDS
 # TODO: rotate to be parallel to axis; there are examples on the scikit learn mds of doing this with PCS
 # TODO: colorize base on number of notes
+# TODO: ditch python dict serialization in favour of indexed pytables
+# TODO: merge this repository into my other one.
+# TODO: Actually integrate kernels together
+# TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
 # TODO: in 3 dimensions, this produces 8 low-dimensional manifolds. isolate each
 #   see, e.g. http://scikit-learn.org/stable/modules/clustering.html#spectral-clustering
 #    SpectralClustering, AffinityPropagation, DBSCAN seems the most likely 
@@ -30,8 +34,8 @@
 # [2,2,1]
 
 # We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
-# Or can i just pull out one of these leavs nad inspect for what it is?
-
+# Or can i just pull out one of these leaves and inspect for what it is?
+# I can do that;
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
