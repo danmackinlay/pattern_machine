@@ -280,8 +280,8 @@
 					+ (~strength * (allPassDelTime.round(~repquantum)))
 				).clip(
 					0.001.rand+0.001,//rand so we don't ring at set freq because of clipping
-					sustain);
-				innerSustain = (allPassDelTime * 2).max(sustain);
+					sustain); //no point making it longer than the entire event
+				innerSustain = (allPassDelTime * 2).min(sustain);
 				//we should still have 20db left at cutoff; is that ok?
 				ringTime = (sustain - innerSustain).max(0) * 3;
 				//compensate for notes that are mostly allpass
