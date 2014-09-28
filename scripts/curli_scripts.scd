@@ -143,15 +143,21 @@ state.server.doWhenBooted({state.make({
 		~loopseed = true;
 		// * quantization
 		~quantumset = [1/8, 1/4, 1/3, 1/2, 2/3, 1, 2, 4];
-		~quantumparam = 0.0;  // MODULATE ME
+		~quantumvar = 1.0;  // MODULATE ME
 		// * strength
 		~strength = 0.0;  // MODULATE ME
 		// * density (trigger rate)
 		~meandensity = 8.0;  // MODULATE ME
 		// * intensity (overlap)
-		~meanintensity = 3.0;  // MODULATE ME
+		~meanoverlap = 3.0;  // MODULATE ME
 		// * power (db) (expected signal power)
-		~power = -6;  // MODULATE ME
+		~meanpower = -6;  // MODULATE ME
+		// * how much energy is in repetition
+		~repeatiness = 0.5;  // MODULATE ME
+		~repeatinessvar = 0.5;  // MODULATE ME
+		// * rep sizes
+		~repquantumset = [1, 1/2, 1/4];
+		~repquantumvar = 0.5; // MODULATE ME
 		// * pan
 		~pan = 0.0;  // MODULATE ME
 		// * transposition

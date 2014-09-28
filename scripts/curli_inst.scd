@@ -123,12 +123,13 @@
 				var actualNextDelta;
 				var nextDelTime=0.0;
 				var overshoot;
-				var intendedInnerSustain;
-				var intendedSustain;
-				var intendedAllpDelTime;
-				var intendedRingTime;
+				var innerSustain;
+				var sustain;
+				var allPassDelTime;
+				var ringTime;
+				var amp;
 				// [state.stationarity, state.density, state.intensity, state.loopBeats,  state.beatDur].postcs;
-				// [~stationarity, ~meandensity, ~meanintensity, ~loopBeats, ~beatDur].postcs;
+				// [~stationarity, ~meandensity, ~meanoverlap, ~loopBeats, ~beatDur].postcs;
 
 				//Basic event construction:
 				evt = ~baseevt.copy.putAll((
@@ -136,7 +137,7 @@
 					decay: ~decay,
 					sustainLevel: ~sustainLevel,
 					release: ~release,
-					amp: ~power.dbamp,
+					amp: ~meanpower.dbamp,
 					pan: ~pan,
 					rate: 1,
 					modulate: 0,
@@ -148,7 +149,7 @@
 					ringtime: 6,
 				));
 				// choose quantisation for this iteration:
-				~quantum = ~quantumset.unif(~quantumparam);
+				~quantum = ~quantumset.unif(~quantumvar.asFloat.rand);
 				intendedNextDelta = (1.0.rand.log.neg/(~meandensity)).clip(0.0, 16);
 				//[\intendedNextDelta, intendedNextDelta].postln;
 				evt[\delta] = intendedNextDelta;
@@ -249,33 +250,58 @@
 				//[\deltimeC, nextDelTime].postln;
 				evt[\deltime] = nextDelTime;
 				//
-				// echo logic
+				// duration/power logic
 				//
-				intendedSustain = (
-					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
-				).clip(0.01, 16);
-				intendedSustain = ((1 - ~strength) * intendedSustain)
-				+ (~strength * (intendedSustain.round(~quantum)));
-				intendedInnerSustain = (
-					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
-				).clip(0.01, 16);
-				intendedInnerSustain = ((1 - ~strength) * intendedInnerSustain)
-				+ (~strength * (intendedInnerSustain.round(~quantum)));
-				intendedAllpDelTime = (
-					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
-				).clip(0.01, 16);
-				intendedAllpDelTime = ((1 - ~strength) * intendedAllpDelTime)
-				+ (~strength * (intendedAllpDelTime.round(~quantum)));
-				intendedRingTime = (
-					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
-				).clip(0.01, 16);
-				intendedRingTime = ((1 - ~strength) * intendedRingTime)
-				+ (~strength * (intendedRingTime.round(~quantum)));
+				// 1. We calculate an intended duration and power
+				// 2. We calculate how much of that should be allpass, and what
+				// 3. scale amplitude accordingly
+				~repquantum = ~quantum * ~repquantumset.unif(
+					~repquantumvar.asFloat.rand);
+				// ~repeatiness * ~repeatinessvar;
 
-				evt[\sustainDur] = intendedSustain * ~beatDur;
-				evt[\innerSustainDur] = intendedInnerSustain * ~beatDur;
-				evt[\intendedAllpDelTime] = intendedAllpDelTime * ~beatDur;
-				evt[\intendedRingTime] = intendedRingTime * ~beatDur;
+				sustain = (
+					intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap)
+				).clip(0.01, 16);
+				sustain = ((1 - ~strength) * sustain)
+				  + (~strength * (sustain.round(~quantum)));
+				innerSustain = (
+					intendedNextDelta * 1.0.rand.log.neg/(~meanoverlap)
+				).clip(0.01, 16);
+				innerSustain = ((1 - ~strength) * innerSustain)
+				  + (~strength * (innerSustain.round(~quantum)));
+				allPassDelTime = (
+					intendedNextDelta * 1.0.rand.log.neg/(~meanoverlap)
+				).clip(0.01, 16);
+				allPassDelTime = ((1 - ~strength) * allPassDelTime)
+				  + (~strength * (allPassDelTime.round(~repquantum)));
+				//we should still have 20db left at cutoff; is that ok?
+				ringTime = (sustain - innerSustain).max(0) * 3;
+				//compensate for notes that are mostly allpass
+				amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
+				//thought- should we be dealing with *effective* sustain times?
+
+				[
+					\intendedNextDelta,
+					intendedNextDelta,
+					\actualNextDelta,
+					actualNextDelta,
+					\sustain,
+					sustain,
+					\innerSustain,
+					innerSustain,
+					\allPassDelTime,
+					allPassDelTime,
+					\ringTime,
+					ringTime,
+					\amp,
+					amp,
+				].postln;
+
+				evt[\sustainDur] = sustain * ~beatDur;
+				evt[\innerSustainDur] = innerSustain * ~beatDur;
+				evt[\allPassDelTime] = allPassDelTime * ~beatDur;
+				evt[\ringTime] = ringTime * ~beatDur;
+				evt[\amp] = amp;
 
 				//
 				// tuning logic
