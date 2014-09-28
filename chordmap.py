@@ -12,30 +12,14 @@
 # TODO: simple transition graph might work, if it was made regular in some way
 # TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate though
 # TODO: segment on number of notes, either before or after MDS
-# TODO: rotate to be parallel to axis; there are examples on the scikit learn mds of doing this with PCS
 # TODO: colorize base on number of notes
 # TODO: ditch python dict serialization in favour of indexed pytables
 # TODO: merge this repository into my other one.
 # TODO: Actually integrate kernels together
 # TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
-# TODO: in 3 dimensions, this produces 8 low-dimensional manifolds. isolate each
-#   see, e.g. http://scikit-learn.org/stable/modules/clustering.html#spectral-clustering
-#    SpectralClustering, AffinityPropagation, DBSCAN seems the most likely 
-#    klearn.neighbors.radius_neighbors_graph with a smart param might get us this for free
 # really need to be preserving the seed for this stuff
-# Candidate centroids, 3 metric case
-# [-2,-2,-1]
-# [1,-2.5,1]
-# [-2,-1,-1]
-# [1,-1.5,1]
-# [-1,2,-1]
-# [2,1,1]
-# [-1,3,-1]
-# [2,2,1]
-
 # We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
 # Or can i just pull out one of these leaves and inspect for what it is?
-# I can do that;
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -48,6 +32,7 @@ from sklearn.decomposition import PCA, KernelPCA
 import os.path
 from sklearn.cluster import SpectralClustering
 from chordmap_base import *
+from sklearn.covariance import EllipticEnvelope
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.01 # less than this and they are the same note (probably too wide)
@@ -250,11 +235,21 @@ def load_projection(filename):
         coords = handle.get_node("/", 'v_dists').read()
     return coords
 
-# lin_mds_3 = get_mds(chords_i_dists_square, 3)
-# dump_projection("lin_mds_3.h5", lin_mds_3)
-# clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=10, affinity='nearest_neighbors', n_neighbors=10,assign_labels='kmeans').fit_predict(lin_mds_trans_3)
-# clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=10, gamma=8.0, affinity='rbf', n_neighbors=10,assign_labels='kmeans').fit_predict(lin_mds_trans_3)
-# see also assign_labels="kmeans"/assign_labels="discretize"
-# see also DBSCAN
-
-
+lin_mds_3 = get_mds(chords_i_dists_square, 3)
+dump_projection("lin_mds_3.h5", lin_mds_3)
+clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_trans_3)
+centers = np.array([lin_mds_trans_3[clusters==i].mean(0) for i in xrange(8)])
+most_central = (centers**2).sum(1).argmin()
+fave_cluster = lin_mds_trans_3[clusters==most_central]
+envelope = EllipticEnvelope(contamination=0.02)
+envelope.fit(fave_cluster)
+fave_cluster_best_points = fave_cluster[(envelope.predict(fave_cluster)==1).nonzero()[0]]
+anal3 = PCA(n_components=3)
+anal3.fit(fave_cluster_best_points)
+lin_mds_trans_3_rot = anal3.transform(lin_mds_trans_3)
+chordmap_vis.plot_3d(lin_mds_trans_3_rot, clusters_16)
+# can now PCA each group down to 2 elems
+anal2 = PCA(n_components=2)
+anal2.fit(fave_cluster_best_points)
+anal2.transform(fave_cluster)
+leaf_1=anal2.transform(fave_cluster) # or this could be an MDS again, from original distances (be careful orchestrating lookups of lookups)
