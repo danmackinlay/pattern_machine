@@ -2,27 +2,30 @@
 Curlicue
 
 TODO:
-* echette-style allpass delays (intensity is product of total length and amplitude)
 * choose echette length algorithmically too
 * cleanup is not working great- fails to allocate bus correctly.
 * choose durations after quantization
-* switch between external (live, MRE) and internal mixers
+* switch between external (live, MRE) and internal mixers using a BusAllocator
 * tidier sample source selector
-* transpose, jump etc fn (scaled list selector)
 * interesting param map
 * interesting rhythmn somehow
 * random volume
 * smart accent
 * decent Lemur template
 * OSC triggering for:
+
   * overall
-    * gestures
-    * live in
+  * gestures
+
+  * live in
+
     * sample source
     * tempo overall
+
       * tap sync?
-    * gestures?
+
   * per voice
+
     * overall "weirdness" param to control with trivial mapping
     * buffer offset
     * stationarity
@@ -46,13 +49,16 @@ TODO:
     * envelope "attackiness"?
     * modulation
     * reverb mix?
+
 * get rid of clicks by
+
   * soundfile-length-sensitive sound playing
   * shifting record pointer
-* record "past" - loop what JUST HAPPENED
+  * record "past" - loop what JUST HAPPENED...
+    This would be effectively simply stopping recording sometimes
+
 * master gain
-* channel synth (limi, gain, level reporting, perhaps EQ?)
-* buffer emptying command
+* monitor channel
 */
 
 //~server = Dan.serverboot(prox:\local, device:\rme);
