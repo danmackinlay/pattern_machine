@@ -153,6 +153,7 @@ state.server.doWhenBooted({state.make({
 		// * power (db) (expected signal power)
 		~meanpower = -6;  // MODULATE ME
 		// * how much energy is in repetition
+		~meanreptime=1/8;
 		~repeatiness = 0.5;  // MODULATE ME
 		~repeatinessvar = 0.5;  // MODULATE ME
 		// * rep sizes
