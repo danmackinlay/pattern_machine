@@ -268,21 +268,23 @@
 					~repquantumvar.asFloat.rand);
 				// ~repeatiness * ~repeatinessvar;
 
-				sustain = (
-					intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap)
-				).clip(0.01, 16);
-				sustain = ((1 - ~strength) * sustain)
-				  + (~strength * (sustain.round(~quantum)));
+				sustain = intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap);
+				sustain = (((1 - ~strength) * sustain)
+					+ (~strength * (sustain.round(~quantum)))
+				).clip(~repquantum, 16);
 				innerSustain = (
 					intendedNextDelta * 1.0.rand.log.neg/(~meanoverlap)
-				).clip(0.01, 16);
-				innerSustain = ((1 - ~strength) * innerSustain)
-				  + (~strength * (innerSustain.round(~quantum)));
+				);
+				innerSustain = (((1 - ~strength) * innerSustain)
+					+ (~strength * (innerSustain.round(~quantum)))
+				).clip(~repquantum, 16);
 				allPassDelTime = (
 					intendedNextDelta * 1.0.rand.log.neg/(~meanoverlap)
-				).clip(0.01, 16);
-				allPassDelTime = ((1 - ~strength) * allPassDelTime)
-				  + (~strength * (allPassDelTime.round(~repquantum)));
+				);
+				allPassDelTime = (
+					((1 - ~strength) * allPassDelTime)
+					+ (~strength * (allPassDelTime.round(~repquantum)))
+				).clip(0.001.rand+0.001, 16); //rand so we don't ring at set f because of clipping
 				//we should still have 20db left at cutoff; is that ok?
 				ringTime = (sustain - innerSustain).max(0) * 3;
 				//compensate for notes that are mostly allpass
@@ -290,20 +292,14 @@
 				//thought- should we be dealing with *effective* sustain times?
 
 				[
-					\intendedNextDelta,
-					intendedNextDelta,
-					\actualNextDelta,
-					actualNextDelta,
-					\sustain,
-					sustain,
-					\innerSustain,
-					innerSustain,
-					\allPassDelTime,
-					allPassDelTime,
-					\ringTime,
-					ringTime,
-					\amp,
-					amp,
+					"~meanoverlap", ~meanoverlap,
+					\intendedNextDelta, intendedNextDelta,
+					\actualNextDelta, actualNextDelta,
+					\sustain, sustain,
+					\innerSustain, innerSustain,
+					\allPassDelTime, allPassDelTime,
+					\ringTime, ringTime,
+					\amp, amp,
 				].postln;
 
 				evt[\sustainDur] = sustain * ~beatDur;
