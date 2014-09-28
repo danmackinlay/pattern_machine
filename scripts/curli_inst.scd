@@ -266,7 +266,6 @@
 				// 3. scale amplitude accordingly
 				~repquantum = ~quantum * ~repquantumset.unif(
 					~repquantumvar.asFloat.rand);
-				// ~repeatiness * ~repeatinessvar; //not yet used
 
 				sustain = intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap);
 				sustain = (((1 - ~strength) * sustain)
@@ -288,17 +287,18 @@
 				amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
 				//thought- should we be dealing with *effective* sustain times?
 
-				[
-					"~meanoverlap", ~meanoverlap,
-					\intendedNextDelta, intendedNextDelta,
-					\actualNextDelta, actualNextDelta,
-					\sustain, sustain,
-					\innerSustain, innerSustain,
-					\allPassDelTime, allPassDelTime,
-					\ringTime, ringTime,
-					\amp, amp,
-				].postln;
-
+				~debugSpawn.asBoolean.if({
+					[
+						"~meanoverlap", ~meanoverlap,
+						\intendedNextDelta, intendedNextDelta,
+						\actualNextDelta, actualNextDelta,
+						\sustain, sustain,
+						\innerSustain, innerSustain,
+						\allPassDelTime, allPassDelTime,
+						\ringTime, ringTime,
+						\amp, amp,
+					].postln;
+				});
 				evt[\sustainDur] = sustain * ~beatDur;
 				evt[\innerSustainDur] = innerSustain * ~beatDur;
 				evt[\allPassDelTime] = allPassDelTime * ~beatDur;

@@ -2,9 +2,8 @@
 Curlicue
 
 TODO:
-* choose echette length algorithmically too
+* Spectrum is a little this; inbuilt filtering would be nice
 * cleanup is not working great- fails to allocate bus correctly.
-* choose durations after quantization
 * switch between external (live, MRE) and internal mixers using a BusAllocator
 * tidier sample source selector
 * interesting param map
@@ -153,12 +152,10 @@ state.server.doWhenBooted({state.make({
 		// * power (db) (expected signal power)
 		~meanpower = -6;  // MODULATE ME
 		// * how much energy is in repetition
-		~meanreptime=1/8;
-		~repeatiness = 0.5;  // MODULATE ME
-		~repeatinessvar = 0.5;  // MODULATE ME
+		~meanreptime=1/8; // MODULATE ME
 		// * rep sizes
-		~repquantumset = [1, 1/2, 1/4];
-		~repquantumvar = 0.5; // MODULATE ME
+		~repquantumset = [1/2, 1/4, 1/8, 1/16];
+		~repquantumvar = 1.0; // MODULATE ME
 		// * pan
 		~pan = 0.0;  // MODULATE ME
 		// * transposition
@@ -218,7 +215,14 @@ fork {
 ~state.voiceStates[0].density=20;
 ~state.voiceStates[0].strength=0.0;
 ~state.voiceStates[0].strength=1.0;
+~state.voiceStates[0].delquantumvar=1.0;
+~state.voiceStates[0].delquantumvar=0.0;
+~state.voiceStates[0].repquantumvar=1.0;
+~state.voiceStates[0].repquantumvar=0.0;
+~state.voiceStates[0].repquantumset = [1/2, 1/4, 1/8, 1/16];
+~state.voiceStates[0].meanreptime = 1/16;
 ~state.voiceStates[0].loopphasebus.get;
+~state.voiceStates[0].meanoverlap = 8;
 ~state.bpm;
 ~state.bpm=120;
 ~state.updateTempo.();
