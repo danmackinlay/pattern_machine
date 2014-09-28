@@ -143,7 +143,7 @@ state.server.doWhenBooted({state.make({
 		~loopseed = true;
 		// * quantization
 		~quantumset = [1/8, 1/4, 1/3, 1/2, 2/3, 1, 2, 4];
-		~quantumvar = 1.0;  // MODULATE ME
+		~quantumparam = 0.25;  // MODULATE ME
 		// * strength
 		~strength = 0.0;  // MODULATE ME
 		// * density (trigger rate)

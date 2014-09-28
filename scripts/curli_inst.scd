@@ -149,7 +149,7 @@
 					ringtime: 6,
 				));
 				// choose quantisation for this iteration:
-				~quantum = ~quantumset.unif(~quantumvar.asFloat.rand);
+				~quantum = ~quantumset.unif(~quantumparam);
 				intendedNextDelta = (1.0.rand.log.neg/(~meandensity)).clip(0.0, 16);
 				//[\intendedNextDelta, intendedNextDelta].postln;
 				evt[\delta] = intendedNextDelta;
@@ -224,10 +224,19 @@
 					(~strength * quantizedNextTime);
 				actualNextDelta = (weightedNextTime - actualTime);
 				~debugSpawn.asBoolean.if({
-					[\CCCC2,\intendedNextDelta,intendedNextDelta,\actualNextDelta,actualNextDelta, \quantum, ~quantum, \strength, ~strength].postln;});
-				// % ensures that we skip no bars and we don't go backwards; shouldn't be needed
+					[\CCCC2,\intendedNextDelta,intendedNextDelta,\actualNextDelta,actualNextDelta, \quantum, ~quantum, \strength, ~strength].postln;
+				});
+				// % ensures that we skip no bars and we don't go backwards; shouldn't be needed except for wacky quantization changes
 				(actualNextDelta < 0).if({
-					["Whoa shit", actualNextDelta].postln;
+					~debugSpawn.asBoolean.if({
+						["Whoa shit",
+						\actualTime, actualTime,
+						\intendedTime, intendedTime,
+							\intendedNextDelta,intendedNextDelta,
+							\actualNextDelta,actualNextDelta,
+							\quantum, ~quantum,
+							\strength, ~strength].postln;
+					});
 					actualNextDelta = actualNextDelta % (~quantum);
 				});
 				actualNextTime = actualTime + actualNextDelta;
