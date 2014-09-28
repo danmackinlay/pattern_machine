@@ -146,12 +146,12 @@ state.server.doWhenBooted({state.make({
 		~quantumparam = 0.0;  // MODULATE ME
 		// * strength
 		~strength = 0.0;  // MODULATE ME
-		// * density
-		~density = 8.0;  // MODULATE ME
-		// * intensity
-		~intensity = 3.0;  // MODULATE ME
-		// * level (db might be nicer)
-		~db = -6;  // MODULATE ME
+		// * density (trigger rate)
+		~meandensity = 8.0;  // MODULATE ME
+		// * intensity (overlap)
+		~meanintensity = 3.0;  // MODULATE ME
+		// * power (db) (expected signal power)
+		~power = -6;  // MODULATE ME
 		// * pan
 		~pan = 0.0;  // MODULATE ME
 		// * transposition

@@ -128,7 +128,7 @@
 				var intendedAllpDelTime;
 				var intendedRingTime;
 				// [state.stationarity, state.density, state.intensity, state.loopBeats,  state.beatDur].postcs;
-				// [~stationarity, ~density, ~intensity, ~loopBeats, ~beatDur].postcs;
+				// [~stationarity, ~meandensity, ~meanintensity, ~loopBeats, ~beatDur].postcs;
 
 				//Basic event construction:
 				evt = ~baseevt.copy.putAll((
@@ -136,7 +136,7 @@
 					decay: ~decay,
 					sustainLevel: ~sustainLevel,
 					release: ~release,
-					db: ~db,
+					amp: ~power.dbamp,
 					pan: ~pan,
 					rate: 1,
 					modulate: 0,
@@ -149,7 +149,7 @@
 				));
 				// choose quantisation for this iteration:
 				~quantum = ~quantumset.unif(~quantumparam);
-				intendedNextDelta = (1.0.rand.log.neg/(~density)).clip(0.0, 16);
+				intendedNextDelta = (1.0.rand.log.neg/(~meandensity)).clip(0.0, 16);
 				//[\intendedNextDelta, intendedNextDelta].postln;
 				evt[\delta] = intendedNextDelta;
 				intendedNextTime = intendedNextDelta + intendedTime;
@@ -252,22 +252,22 @@
 				// echo logic
 				//
 				intendedSustain = (
-					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
 				).clip(0.01, 16);
 				intendedSustain = ((1 - ~strength) * intendedSustain)
 				+ (~strength * (intendedSustain.round(~quantum)));
 				intendedInnerSustain = (
-					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
 				).clip(0.01, 16);
 				intendedInnerSustain = ((1 - ~strength) * intendedInnerSustain)
 				+ (~strength * (intendedInnerSustain.round(~quantum)));
 				intendedAllpDelTime = (
-					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
 				).clip(0.01, 16);
 				intendedAllpDelTime = ((1 - ~strength) * intendedAllpDelTime)
 				+ (~strength * (intendedAllpDelTime.round(~quantum)));
 				intendedRingTime = (
-					intendedNextDelta * 1.0.rand.log.neg/(~intensity)
+					intendedNextDelta * 1.0.rand.log.neg/(~meanintensity)
 				).clip(0.01, 16);
 				intendedRingTime = ((1 - ~strength) * intendedRingTime)
 				+ (~strength * (intendedRingTime.round(~quantum)));
