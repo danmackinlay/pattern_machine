@@ -1,5 +1,5 @@
 
-Rapidly analyse a bunch of files for a particular autocorrelation profile
+Rapidly analyse audio for a particular autocorrelation profile
 
 To consider: should we highpass as the base f of the signal to reduce spurious bass "correlation"? (or is that OK? since it will select for similar spectral balances)
 In which case, should normalising be relative to filtered, or total, amplitude?
@@ -8,6 +8,7 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
+TODO: handle several files, and supplied return address
 TODO: search using pytables instead of BallTree; gives us more dynamic axial scaling. (*both* could be fun)
 TODO: mine MIDI files for spectral co-ocurrence data and see if this allows us to predict "matching" spectra
 TODO: alternative ratios- (more) enharmonic

@@ -1,7 +1,5 @@
 """
 Rapidly analyse a bunch of files for a particular autocorrelation profile
-
-
 """
 from sklearn.neighbors import NearestNeighbors, KDTree, BallTree
 from ps_correl_analyze import sf_anal

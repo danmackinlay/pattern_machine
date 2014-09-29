@@ -1,8 +1,10 @@
-* patch MixerChannel to be very simple
-  * without automation, dependency management, playing methods, resumption etc
-  * with gui and fader
-  * with level meter http://doc.sccode.org/Classes/LevelIndicator.html
-* MIDI slider velocity
+* interface
+  * https://github.com/triss/duplex-nexus-osc
+  * Lemur
+  * nice sequencer interface for curlique
+  * circular sequencer
+* proper nice machine listening granulation
+* general Python OSC serving framework, with talkback to server and client, and multiple different paths.
 * mine metal percussion for peak distribution
   * overview: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
   * "MTT" method
@@ -38,22 +40,16 @@
 * control RME mixer from supercollider
 * you can constrain a synth genome for evolution by only effecting downstream oscs. both f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
 * random param mapping thing
-  * Gaussian correlation
   * Student-t correlation
   * map params to physical model
-  * Cauchy correlation
   * sparse correlation
   * physical models as input
   * random sparse physical models as input
   * When does random physics produce partial order?
   * annealing/Gibbs distribution style process
   * Der/Zahedi/Bertschinger/Ay-style information sensorimotor loop
-* interface
-  * https://github.com/triss/duplex-nexus-osc
-  * Lemur
 * rhythms
   * hawkes process
-  * circular sequencer
 * sync oscillator system
   * continuous Kuramoto, possibly on a graph
   * or Strogatz/Perkel/Haken-style pulse-sync, possibly on a graph
@@ -87,3 +83,7 @@
   * 2d effects crossfade bus, maybe with a well-like dropp it in doppler thing. sountoirs of lfos are revealed over time
   * 3D effect scape through which we drop sound grains that rewrite and recolour themslves.
   * learn the inverse mapping from sound to synth parameters by hearing and comparing resynthesised version with delayed or recorded version, enveloped appropriately.
+* patch MixerChannel to be very simple
+  * without automation, dependency management, playing methods, resumption etc
+  * with gui and fader
+  * with level meter http://doc.sccode.org/Classes/LevelIndicator.html
