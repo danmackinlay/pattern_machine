@@ -30,3 +30,12 @@ def chord_mask_from_ind(i):
 def chord_mask_from_notes(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
 
+def write_matrix(matrix, filename="chordmap_data.scd"):
+    with open(filename, 'w') as h:
+        h.write("[\n")
+        for r in matrix:
+            h.write("\t[ ")
+            for c in r:
+                h.write("%f, " % c)
+            h.write("],\n")
+        h.write("];\n")
