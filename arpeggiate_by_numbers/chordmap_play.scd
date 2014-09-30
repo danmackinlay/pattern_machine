@@ -1,4 +1,4 @@
-// >>> chord_classes_from_ind(17)
+// >>> chord_class_from_ind(17)
 // array([0, 4], dtype=uint64)
 17.asBinaryDigits(12).reverse.collect({|v,i| (v>0).if(i) }).select(_.notNil);
 [1,0,1,1].convertDigits(2);
@@ -26,41 +26,40 @@ state.make({
 	~chordIdNeighboursOfChordId = {|self, chordId, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(self.map[chordId], rangesq);
 	};
-	~chordIdNeighboursOfClasses = {|self, classes, rangesq=0.5|
+	~chordIdNeighboursOfClass = {|self, class, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[self.chordIdFromClasses(classes)],
+			self.map[self.chordIdFromClass(class)],
 			rangesq);
 	};
-	~classesNeighboursOfClasses = {|self, classes, rangesq=0.5|
+	~classNeighboursOfClass = {|self, class, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[self.chordIdFromClasses(classes)],
-			rangesq).collect({|idDist| [self.classesFromChordId(idDist[0]), idDist[1]]});
+			self.map[self.chordIdFromClass(class)],
+			rangesq).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
 	};
-	~classesNeighboursOfCoord = {|self, chordId, rangesq=0.5|
+	~classNeighboursOfCoord = {|self, chordId, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
 			self.map[chordId], rangesq
-		).collect({|idDist| [self.classesFromChordId(idDist[0]),idDist[1]]});
+		).collect({|idDist| [self.classFromChordId(idDist[0]),idDist[1]]});
 	};
-	~classesFromChordId = {|self, chordId|
+	~classFromChordId = {|self, chordId|
 		chordId.asBinaryDigits(12).reverse.collect(
 			{|v,i| (v>0).if(i)}
 		).select(_.notNil);
 	};
-	~chordIdFromClasses = {|self, classes|
+	~chordIdFromClass = {|self, class|
 		var arr=Array.fill(12,0);
-		arr[classes]=1;
+		arr[class]=1;
 		arr.reverse.convertDigits(2);
 	};
-
 });
 )
 
 [[1,2,3],[4,5,6]].flop.flop
 
 ~state.chordIdNeighboursOfChordId(1, 0.1);
-~state.classesFromChordId(185);
-~state.chordIdFromClasses([0,3,4,5,7]);
-~state.classesNeighboursOfClasses([0,3,4,5,7]);
+~state.classFromChordId(185);
+~state.chordIdFromClass([0,3,4,5,7]);
+~state.classNeighboursOfClass([0,3,4,5,7]);
 4096.collect({|i|
-	i==~state.chordIdFromClasses(~state.classesFromChordId(i));
+	i==~state.chordIdFromClass(~state.classFromChordId(i));
 }).every(_);
