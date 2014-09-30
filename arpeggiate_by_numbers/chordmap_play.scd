@@ -2,6 +2,12 @@
 (
 var state = ();
 ~state = state;
+~l=SortedList.new(15, {|item1, item2| item1[1]<item2[1]});
+~l.add([1,1]);
+~l.add([1,3]);
+~l.add([1,2]);
+~l[0..2];
+
 state.make({
 	var data = (
 		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers" +/+ "chordmap_data.scd")
@@ -10,35 +16,34 @@ state.make({
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
 	~idfromrow.do({|id,row|~rowfromid[id]=row;});
 	~map=data.flop.collect({|r|r.asFloatArray});
-	~chordIdNeighboursOfCoord = {|self, center, rangesq=0.5|
-		var candidates=Array.new, dists=Array.new, distorder;
+	~chordIdNeighboursOfCoord = {|self, center, limCount=15|
+		var candidates;
+		candidates = SortedList.new(limCount+1, {|item1, item2| item1[1]<item2[1]});
 		self.map.do({|row, i|
 			var distsq = (row-center).squared.sum;
-			(distsq<rangesq).if({
-				candidates = candidates.add(self.idfromrow[i]);
-				dists = dists.add(distsq);
-			});
+			candidates = candidates.add([self.idfromrow[i], distsq]);
+			//candidates = candidates[..limCount];
 		});
-		distorder = dists.order;
-		[candidates[distorder], dists[distorder]].flop;
+		candidates.asArray;
+		//candidates;
 	};
-	~chordIdNeighboursOfChordId = {|self, chordId, rangesq=0.5|
-		self.chordIdNeighboursOfCoord(self.map[self.rowfromid[chordId]], rangesq);
+	~chordIdNeighboursOfChordId = {|self, chordId, limCount=15|
+		self.chordIdNeighboursOfCoord(self.map[self.rowfromid[chordId]], limCount);
 	};
-	~chordIdNeighboursOfClass = {|self, class, rangesq=0.5|
+	~chordIdNeighboursOfClass = {|self, class, limCount=15|
 		self.chordIdNeighboursOfCoord(
 			self.map[self.chordIdFromClass(class)],
-			rangesq);
+			limCount);
 	};
 	//Check this one.
-	~classNeighboursOfClass = {|self, class, rangesq=0.5|
+	~classNeighboursOfClass = {|self, class, limCount=15|
 		self.chordIdNeighboursOfCoord(
 			self.map[self.rowfromid[self.chordIdFromClass(class)]],
-			rangesq).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
+			limCount).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
 	};
-	~classNeighboursOfCoord = {|self, center, rangesq=0.5|
+	~classNeighboursOfCoord = {|self, center, limCount=15|
 		var ret;
-		ret = self.chordIdNeighboursOfCoord(center, rangesq);
+		ret = self.chordIdNeighboursOfCoord(center, limCount);
 		ret.collect(
 			{|idDist| [self.classFromChordId(idDist[0]),idDist[1]]}
 		);
@@ -62,6 +67,9 @@ state.make({
 ~state.classNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
 ~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
 ~state.chordIdNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5);
+
+
 (
 var state = ~state;
 state.chordspiral = Pspawner({|spawner|
