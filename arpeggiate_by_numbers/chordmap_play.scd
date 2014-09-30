@@ -13,9 +13,9 @@ state.make({
 	~chordIdNeighboursOfCoord = {|self, center, rangesq=0.5|
 		var candidates=Array.new, dists=Array.new, distorder;
 		self.map.do({|row, i|
-			var distsq = row.squared.sum;
+			var distsq = (row-center).squared.sum;
 			(distsq<rangesq).if({
-				candidates = candidates.add(i);
+				candidates = candidates.add(self.idfromrow[i]);
 				dists = dists.add(distsq);
 			});
 		});
@@ -23,20 +23,23 @@ state.make({
 		[candidates[distorder], dists[distorder]].flop;
 	};
 	~chordIdNeighboursOfChordId = {|self, chordId, rangesq=0.5|
-		self.chordIdNeighboursOfCoord(self.map[~rowfromid[chordId]], rangesq);
+		self.chordIdNeighboursOfCoord(self.map[self.rowfromid[chordId]], rangesq);
 	};
 	~chordIdNeighboursOfClass = {|self, class, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[~rowfromid[self.chordIdFromClass(class)]],
+			self.map[self.chordIdFromClass(class)],
 			rangesq);
 	};
+	//Check this one.
 	~classNeighboursOfClass = {|self, class, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[~rowfromid[self.chordIdFromClass(class)]],
+			self.map[self.rowfromid[self.chordIdFromClass(class)]],
 			rangesq).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
 	};
 	~classNeighboursOfCoord = {|self, center, rangesq=0.5|
-		self.chordIdNeighboursOfCoord(center, rangesq).collect(
+		var ret;
+		ret = self.chordIdNeighboursOfCoord(center, rangesq);
+		ret.collect(
 			{|idDist| [self.classFromChordId(idDist[0]),idDist[1]]}
 		);
 	};
