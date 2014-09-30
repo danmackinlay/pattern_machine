@@ -1,4 +1,4 @@
-// >>> chord_notes_from_ind(17)
+// >>> chord_classes_from_ind(17)
 // array([0, 4], dtype=uint64)
 17.asBinaryDigits(12).reverse.collect({|v,i| (v>0).if(i) }).select(_.notNil);
 [1,0,1,1].convertDigits(2);
@@ -26,29 +26,29 @@ state.make({
 	~chordIdNeighboursOfChordId = {|self, chordId, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(self.map[chordId], rangesq);
 	};
-	~chordIdNeighboursOfNotes = {|self, notes, rangesq=0.5|
+	~chordIdNeighboursOfClasses = {|self, classes, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[self.chordIdFromNotes(notes)],
+			self.map[self.chordIdFromClasses(classes)],
 			rangesq);
 	};
-	~notesNeighboursOfNotes = {|self, notes, rangesq=0.5|
+	~classesNeighboursOfClasses = {|self, classes, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[self.chordIdFromNotes(notes)],
-			rangesq).collect({|idDist| [self.notesFromChordId(idDist[0]), idDist[1]]});
+			self.map[self.chordIdFromClasses(classes)],
+			rangesq).collect({|idDist| [self.classesFromChordId(idDist[0]), idDist[1]]});
 	};
-	~notesNeighboursOfCoord = {|self, chordId, rangesq=0.5|
+	~classesNeighboursOfCoord = {|self, chordId, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
 			self.map[chordId], rangesq
-		).collect({|idDist| [self.notesFromChordId(idDist[0]),idDist[1]]});
+		).collect({|idDist| [self.classesFromChordId(idDist[0]),idDist[1]]});
 	};
-	~notesFromChordId = {|self, chordId|
+	~classesFromChordId = {|self, chordId|
 		chordId.asBinaryDigits(12).reverse.collect(
 			{|v,i| (v>0).if(i)}
 		).select(_.notNil);
 	};
-	~chordIdFromNotes = {|self, notes|
+	~chordIdFromClasses = {|self, classes|
 		var arr=Array.fill(12,0);
-		arr[notes]=1;
+		arr[classes]=1;
 		arr.reverse.convertDigits(2);
 	};
 
@@ -58,9 +58,9 @@ state.make({
 [[1,2,3],[4,5,6]].flop.flop
 
 ~state.chordIdNeighboursOfChordId(1, 0.1);
-~state.notesFromChordId(185);
-~state.chordIdFromNotes([0,3,4,5,7]);
-~state.notesNeighboursOfNotes([0,3,4,5,7]);
+~state.classesFromChordId(185);
+~state.chordIdFromClasses([0,3,4,5,7]);
+~state.classesNeighboursOfClasses([0,3,4,5,7]);
 4096.collect({|i|
-	i==~state.chordIdFromNotes(~state.notesFromChordId(i));
+	i==~state.chordIdFromClasses(~state.classesFromChordId(i));
 }).every(_);
