@@ -21,7 +21,7 @@ state.make({
 			});
 		});
 		distorder = dists.order;
-		[candidates[distorder], dists[distorder]];
+		[candidates[distorder], dists[distorder]].flop;
 	};
 	~chordIdNeighboursOfChordId = {|self, chordId, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(self.map[chordId], rangesq);
@@ -32,18 +32,14 @@ state.make({
 			rangesq);
 	};
 	~notesNeighboursOfNotes = {|self, notes, rangesq=0.5|
-		var candidates, dists;
-		# candidates, dists = self.chordIdNeighboursOfCoord(
+		self.chordIdNeighboursOfCoord(
 			self.map[self.chordIdFromNotes(notes)],
-			rangesq);
-		[candidates.collect({|id| self.notesFromChordId(id)}), dists];
+			rangesq).collect({|idDist| [self.notesFromChordId(idDist[0]), idDist[1]]});
 	};
 	~notesNeighboursOfCoord = {|self, chordId, rangesq=0.5|
-		var candidates, dists;
-		# candidates, dists = self.chordIdNeighboursOfCoord(
+		self.chordIdNeighboursOfCoord(
 			self.map[chordId], rangesq
-		);
-		[candidates.collect({|id| self.notesFromChordId(id)}), dists];
+		).collect({|idDist| [self.notesFromChordId(idDist[0]),idDist[1]]});
 	};
 	~notesFromChordId = {|self, chordId|
 		chordId.asBinaryDigits(12).reverse.collect(
@@ -55,8 +51,11 @@ state.make({
 		arr[notes]=1;
 		arr.reverse.convertDigits(2);
 	};
+
 });
 )
+
+[[1,2,3],[4,5,6]].flop.flop
 
 ~state.chordIdNeighboursOfChordId(1, 0.1);
 ~state.notesFromChordId(185);
