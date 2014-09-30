@@ -244,6 +244,7 @@ fave_cluster = lin_mds_trans_3[clusters==most_central]
 envelope = EllipticEnvelope(contamination=0.02)
 envelope.fit(fave_cluster)
 fave_cluster_best_points = fave_cluster[(envelope.predict(fave_cluster)==1).nonzero()[0]]
+fave_cluster_ids = (clusters==most_central).nonzero()[0]
 anal3 = PCA(n_components=3)
 anal3.fit(fave_cluster_best_points)
 lin_mds_trans_3_rot = anal3.transform(lin_mds_trans_3)
@@ -251,5 +252,4 @@ chordmap_vis.plot_3d(lin_mds_trans_3_rot, clusters_16)
 # can now PCA each group down to 2 elems
 anal2 = PCA(n_components=2)
 anal2.fit(fave_cluster_best_points)
-anal2.transform(fave_cluster)
 leaf_1=anal2.transform(fave_cluster) # or this could be an MDS again, from original distances (be careful orchestrating lookups of lookups)

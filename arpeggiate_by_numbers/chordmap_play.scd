@@ -1,16 +1,15 @@
-// >>> chord_class_from_ind(17)
-// array([0, 4], dtype=uint64)
-17.asBinaryDigits(12).reverse.collect({|v,i| (v>0).if(i) }).select(_.notNil);
-[1,0,1,1].convertDigits(2);
-~a=Array.fill(12,0);
-~a[[0,4]]=1
+// NB this currently assumes the chord list is exhaustive! need to change that
 (
 var state = ();
 ~state = state;
 state.make({
-	~map = (
+	var data = (
 		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers" +/+ "chordmap_data.scd")
-	).collect({|row| row.asFloatArray});
+	).flop;
+	~idfromrow=data.removeAt(0);
+	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
+	~idfromrow.do({|id,row|~rowfromid[id]=row;});
+	~map=data.flop.collect({|r|r.asFloatArray});
 	~chordIdNeighboursOfCoord = {|self, center, rangesq=0.5|
 		var candidates=Array.new, dists=Array.new, distorder;
 		self.map.do({|row, i|
@@ -24,22 +23,22 @@ state.make({
 		[candidates[distorder], dists[distorder]].flop;
 	};
 	~chordIdNeighboursOfChordId = {|self, chordId, rangesq=0.5|
-		self.chordIdNeighboursOfCoord(self.map[chordId], rangesq);
+		self.chordIdNeighboursOfCoord(self.map[~rowfromid[chordId]], rangesq);
 	};
 	~chordIdNeighboursOfClass = {|self, class, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[self.chordIdFromClass(class)],
+			self.map[~rowfromid[self.chordIdFromClass(class)]],
 			rangesq);
 	};
 	~classNeighboursOfClass = {|self, class, rangesq=0.5|
 		self.chordIdNeighboursOfCoord(
-			self.map[self.chordIdFromClass(class)],
+			self.map[~rowfromid[self.chordIdFromClass(class)]],
 			rangesq).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
 	};
-	~classNeighboursOfCoord = {|self, chordId, rangesq=0.5|
-		self.chordIdNeighboursOfCoord(
-			self.map[chordId], rangesq
-		).collect({|idDist| [self.classFromChordId(idDist[0]),idDist[1]]});
+	~classNeighboursOfCoord = {|self, center, rangesq=0.5|
+		self.chordIdNeighboursOfCoord(center, rangesq).collect(
+			{|idDist| [self.classFromChordId(idDist[0]),idDist[1]]}
+		);
 	};
 	~classFromChordId = {|self, chordId|
 		chordId.asBinaryDigits(12).reverse.collect(
@@ -54,12 +53,12 @@ state.make({
 });
 )
 
-[[1,2,3],[4,5,6]].flop.flop
-
+~state.chordIdNeighboursOfCoord([0,0],0.5);
+~state.classNeighboursOfCoord([0,0],0.5);
 ~state.chordIdNeighboursOfChordId(1, 0.1);
 ~state.classFromChordId(185);
 ~state.chordIdFromClass([0,3,4,5,7]);
-~state.classNeighboursOfClass([0,3,4,5,7]);
+~state.classNeighboursOfClass([0,3,4,5,9]);
 4096.collect({|i|
 	i==~state.chordIdFromClass(~state.classFromChordId(i));
 }).every(_);
