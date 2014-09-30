@@ -55,7 +55,45 @@ state.make({
 	};
 });
 )
+~state.idfromrow[65];
+~state.map.flop.collect(_.maxItem);
+~state.map.flop.collect(_.minItem);
+~state.classNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
+~state.classNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
+(
+var state = ~state;
+state.chordspiral = Pspawner({|spawner|
+	~state.use({
+		~dims = ~map[0].size;
+		~maxes=~map.flop.collect(_.maxItem);
+		~mins=~map.flop.collect(_.minItem);
+		~center = (~maxes+~mins)/2;
+		~range = (~maxes-~mins)/2;
+		~coord=Array.fill(~dims,0.0);
+		~time = 0.0;
+		~basef = 1/10;
+		~interval = 1/4;
+		inf.do({
+			var freqs;
+			~time = ~time + ~interval;
+			freqs = Array.series(~dims, ~basef, ~basef/17.0);
+			~coord = (freqs*~time).cos*~range + ~center;
+			~class = state.classNeighboursOfCoord(~coord, 0.5)[0][0];
+			~pitches = ~class;// + 60;
+			[~time, ~coord, freqs, ~class, ~pitches].postln;
+			spawner.seq((
+				dur: ~interval,
+				legato: 1,
+				note: ~pitches
+			));
+		});
+	});
+}).play;
+)
 
+(pitch:[ 0, 2, 5, 6, 8 ]).play;
 ~state.chordIdNeighboursOfCoord([0,0],0.5);
 ~state.classNeighboursOfCoord([0,0],0.5);
 ~state.chordIdNeighboursOfChordId(1, 0.1);
