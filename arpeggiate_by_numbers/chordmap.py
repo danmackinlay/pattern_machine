@@ -24,6 +24,7 @@
 # TODO: MIDI version
 # TODO: straight number-of-notes colour map
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
+# TODO: I can't do Lically Linear Embedding because I throw out the original coords (it is not a kernel method). But can I do Spectral Embedding? yep.
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -31,7 +32,7 @@ from math import sqrt
 import tables
 import gzip
 import cPickle as pickle
-from sklearn.manifold import MDS, SpectralEmbedding, LocallyLinearEmbedding
+from sklearn.manifold import MDS, SpectralEmbedding
 from sklearn.decomposition import PCA, KernelPCA
 import os.path
 from sklearn.cluster import SpectralClustering
@@ -199,6 +200,32 @@ def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
         transformed = clf.fit_transform(transformed)
     return transformed
 
+# 
+# def get_lle(sq_dists, n_dims=3, n_neighbors=6):
+#     transformer = LocallyLinearEmbedding(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+#     transformed = transformer.fit_transform(sq_dists)
+#     if rotate:
+#         # Rotate the data to a hopefully consistent orientation
+#         clf = PCA(n_components=n_dims)
+#         transformed = clf.fit_transform(transformed)
+#     return transformed
+
+def get_spectral_embedding_prod(sq_products, n_dims=3):
+    #The product matrix is already an affinity; 
+    # but it has the undesirable quality of making high energy chords more similar than low energy chords
+    # we normalise accordingly
+    # Alternatively: RBF. See next fn
+    inv_root_energy = 1.0/np.maximum(np.sqrt(np.diagonal(chords_i_products_square)),1)
+    affinity = sq_products * np.outer(inv_root_energy,inv_root_energy)
+    transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
+    transformed = transformer.fit_transform(affinity)
+    return transformed
+
+def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=16):
+    # see previous fn
+    transformer = SpectralEmbedding(n_components=n_dims, affinity='rbf', gamma=gamma)
+    transformed = transformer.fit_transform(sq_dists)
+    return transformed
 
 
 lin_mds_3 = get_mds(chords_i_dists_square, 3, rotate=False)
@@ -220,8 +247,16 @@ anal2 = PCA(n_components=2)
 anal2.fit(fave_cluster_best_points)
 leaf_1=anal2.transform(fave_cluster) # or this could be an MDS again, from original distances (be careful orchestrating lookups of lookups)
 
-nonlin_mds_3 = get_mds(chords_i_dists_square, 3, metric=False, rotate=False) 
-dump_projection("nonlin_mds_3.h5", nonlin_mds_3)
-nonlin_clusters = SpectralClustering(n_clusters=12, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(nonlin_mds_3)
-nonlin_centers = np.array([nonlin_mds_3[clusters==i].mean(0) for i in xrange(12)])
-chordmap_vis.plot_3d(nonlin_mds_3, nonlin_clusters)
+nonlin_mds_3 = get_mds(chords_i_dists_square, 3, metric=False, rotate=False)
+dump_projection("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
+write_matrix(nonlin_mds_3, filename="nonlin_mds_3.scd")
+
+spectral_embed_prod = get_spectral_embedding_prod(chords_i_products_square)
+dump_projection("spectral_embed_prod_3.h5", spectral_embed_prod)
+chordmap_vis.plot_3d(spectral_embed_prod) #rainbow ball
+write_matrix(spectral_embed_prod, filename="spectral_embed_prod_3.scd")
+
+spectral_embed_dist = get_spectral_embedding_dist(chords_i_dists_square, gamma=16)
+dump_projection("spectral_embed_dist_3.h5", spectral_embed_dist)
+chordmap_vis.plot_3d(spectral_embed_dist) #weird bow-tie structure
+write_matrix(spectral_embed_dist, filename="spectral_embed_dist_3.scd")
