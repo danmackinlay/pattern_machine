@@ -40,6 +40,10 @@ from sklearn.covariance import EllipticEnvelope
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.001 # less than this and they are the same note
 
+chords_i_products = None
+chords_i_products_square = None
+chords_i_dists_square = None
+chords_i_dists = None
 
 energies = 1.0/(np.arange(N_HARMONICS)+1)
 base_energies = 1.0/(np.arange(N_HARMONICS)+1)
@@ -113,71 +117,60 @@ def v_chord_dist(c1, c2):
         + v_chord_product(c2, c2)
     )
     
-def v_chord_product_from_chord_i(ci1, ci2):
+def v_chord_product_from_chord_i_raw(ci1, ci2):
+    """uncached version"""
     ci1 = int(ci1)
     ci2 = int(ci2)
-    indices = tuple(sorted([ci1, ci2]))
-    if not indices in _v_chord_product_from_chord_i_cache:
-        prod = v_chord_product(
-            make_chord(chord_notes_from_ind(ci1)),
-            make_chord(chord_notes_from_ind(ci2))
-        )
-        #python floats pickle smaller for some reason
-        prod = float(prod)
-        # for s in xrange(12):
-        #     next_indices = tuple(sorted([
-        #         binrotate(ci1,s), binrotate(ci2,s)
-        #     ]))
-        #     print "MISS", next_indices, prod
-        #     _v_chord_product_from_chord_i_cache[next_indices] = prod
-        _v_chord_product_from_chord_i_cache[indices] = prod
-        return prod
-    else:
-        prod = _v_chord_product_from_chord_i_cache[indices]
-        #print "HIT", indices, prod
-        return prod
-if "_v_chord_product_from_chord_i_cache" not in globals():
-    if os.path.exists('_chord_map_cache_products.gz'):
-        with gzip.open('_chord_map_cache_products.gz', 'rb') as f:
-            _v_chord_product_from_chord_i_cache = dict(pickle.load(f))
-    else:
-        _v_chord_product_from_chord_i_cache = {}
+    return v_chord_product(
+        make_chord(chord_notes_from_ind(ci1)),
+        make_chord(chord_notes_from_ind(ci2))
+    )
 
+def v_chord_product_from_chord_i_raw(ci1, ci2):
+    """uncached version, for filling the cache with."""
+    ci1 = int(ci1)
+    ci2 = int(ci2)
+    return v_chord_product(
+        make_chord(chord_notes_from_ind(ci1)),
+        make_chord(chord_notes_from_ind(ci2))
+    )
 
-def v_chord_dist_from_chord_i(ci1, ci2):
-    "construct a chord distance from the chord inner product"
-    v_chord_dist_from_chord_i.callct = v_chord_dist_from_chord_i.callct + 1
-    if (v_chord_dist_from_chord_i.callct % 11==0):
+def v_chord_product_from_chord_i_raw(ci1, ci2):
+    """cached version"""
+    ci1 = int(ci1)
+    ci2 = int(ci2)
+    return chords_i_products_square[int(ci1), int(ci2)]
+    
+def v_chord_dist2_from_chord_i(ci1, ci2):
+    "construct a chord distance^2 from the chord inner product"
+    #this is just to calculate how often to print progress messages
+    v_chord_dist2_from_chord_i.callct = v_chord_dist2_from_chord_i.callct + 1
+    if (v_chord_dist2_from_chord_i.callct % 11==0):
         print ci1, ci2
-    return sqrt(
+    return (
         v_chord_product_from_chord_i(ci1, ci1)
         - 2 * v_chord_product_from_chord_i(ci1, ci2)
         + v_chord_product_from_chord_i(ci2, ci2)
     )
-v_chord_dist_from_chord_i.callct = 0
+v_chord_dist2_from_chord_i.callct = 0
 
-chords_i_dists_square = None
-chords_i_dists = None
-chords_i_products = None
-chords_i_products_square = None
-    
 if os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'r') as handle:
-        chords_i_dists = handle.get_node("/", 'v_dists').read()
-        chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
         chords_i_products = handle.get_node("/", 'v_products').read()
         chords_i_products_square = handle.get_node("/", 'v_sq_products').read()
+        chords_i_dists = handle.get_node("/", 'v_dists').read()
+        chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
 else:
-    chords_i_dists = pdist(
-        chord_idx,
-        v_chord_dist_from_chord_i
-    )
-    chords_i_dists_square =squareform(chords_i_dists)
     chords_i_products = pdist(
         np.arange(2**12).reshape(2**12,1),
         v_chord_product_from_chord_i
     )
     chords_i_products_square = squareform(chords_i_products)
+    chords_i_dists = np.sqrt(pdist(
+        chord_idx,
+        v_chord_dist2_from_chord_i
+    ))
+    chords_i_dists_square = squareform(chords_i_dists)
 
 if not os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'w') as handle:
