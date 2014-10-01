@@ -44,7 +44,6 @@ KERNEL_WIDTH = 0.01 # less than this and they are the same note (probably too wi
 
 chords_i_products_square = None
 chords_i_dists_square = None
-chords_i_dists = None
 
 energies = 1.0/(np.arange(N_HARMONICS)+1)
 base_energies = 1.0/(np.arange(N_HARMONICS)+1)
@@ -149,7 +148,6 @@ v_chord_dist2_from_chord_i.callct = 0
 if os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'r') as handle:
         chords_i_products_square = handle.get_node("/", 'v_sq_products').read()
-        chords_i_dists = handle.get_node("/", 'v_dists').read()
         chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
 else:
     chords_i_products_square = squareform(pdist(
@@ -164,11 +162,10 @@ else:
         v_chord_product_from_chord_i_raw(i,i) for i in xrange(2**12)
     ]
 
-    chords_i_dists = np.sqrt(pdist(
+    chords_i_dists_square = squareform(np.sqrt(pdist(
         chord_idx,
         v_chord_dist2_from_chord_i
-    ))
-    chords_i_dists_square = squareform(chords_i_dists)
+    )))
 
 if not os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'w') as handle:
@@ -178,10 +175,6 @@ if not os.path.exists("dists.h5"):
             atom=data_atom_type, shape=chords_i_products_square.shape,
             title="sq products",
             filters=filt)[:] = chords_i_products_square
-        handle.create_carray("/",'v_dists',
-            atom=data_atom_type, shape=chords_i_dists.shape,
-            title="dists",
-            filters=filt)[:] = chords_i_dists
         handle.create_carray("/",'v_sq_dists',
             atom=data_atom_type, shape=chords_i_dists_square.shape,
             title="sq dists",
