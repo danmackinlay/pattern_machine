@@ -20,6 +20,8 @@
 # really need to be preserving the seed for this stuff
 # We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
 # Or can i just pull out one of these leaves and inspect for what it is?
+# TODO: straight number-of-notes colour map
+# TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -138,7 +140,7 @@ if "_v_chord_product_from_chord_i_cache" not in globals():
         with gzip.open('_chord_map_cache_products.gz', 'rb') as f:
             _v_chord_product_from_chord_i_cache = dict(pickle.load(f))
     else:
-        _make_chord_cache = {}
+        _v_chord_product_from_chord_i_cache = {}
 
 
 def v_chord_dist_from_chord_i(ci1, ci2):
@@ -237,18 +239,18 @@ def load_projection(filename):
 
 lin_mds_3 = get_mds(chords_i_dists_square, 3)
 dump_projection("lin_mds_3.h5", lin_mds_3)
-clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_trans_3)
-centers = np.array([lin_mds_trans_3[clusters==i].mean(0) for i in xrange(8)])
+clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_3)
+centers = np.array([lin_mds_3[clusters==i].mean(0) for i in xrange(8)])
 most_central = (centers**2).sum(1).argmin()
-fave_cluster = lin_mds_trans_3[clusters==most_central]
+fave_cluster = lin_mds_3[clusters==most_central]
 envelope = EllipticEnvelope(contamination=0.02)
 envelope.fit(fave_cluster)
 fave_cluster_best_points = fave_cluster[(envelope.predict(fave_cluster)==1).nonzero()[0]]
 fave_cluster_ids = (clusters==most_central).nonzero()[0]
 anal3 = PCA(n_components=3)
 anal3.fit(fave_cluster_best_points)
-lin_mds_trans_3_rot = anal3.transform(lin_mds_trans_3)
-chordmap_vis.plot_3d(lin_mds_trans_3_rot, clusters_16)
+lin_mds_3_rot = anal3.transform(lin_mds_3)
+chordmap_vis.plot_3d(lin_mds_3_rot, clusters_16)
 # can now PCA each group down to 2 elems
 anal2 = PCA(n_components=2)
 anal2.fit(fave_cluster_best_points)
