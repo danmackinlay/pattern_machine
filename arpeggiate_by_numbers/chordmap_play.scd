@@ -13,6 +13,7 @@ state.make({
 		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers" +/+ "chordmap_data.scd")
 	).flop;
 	~idfromrow=data.removeAt(0);
+	~midiout=MIDIOut.newByName("FastLane USB", "Port A").latency_(Server.default.latency);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
 	~idfromrow.do({|id,row|~rowfromid[id]=row;});
 	~map=data.flop.collect({|r|r.asFloatArray});
@@ -92,14 +93,33 @@ state.chordspiral = Pspawner({|spawner|
 			~pitches = ~class;// + 60;
 			[~time, ~coord, freqs, ~class, ~pitches].postln;
 			spawner.seq((
+				type: \midi,
 				dur: ~interval,
 				legato: 1,
-				note: ~pitches
+				note: ~pitches,
+				midicmd: \noteOn,
+				midiout: mOut,    // must provide the MIDI target here
+				chan: 0,
+
 			));
 		});
 	});
 }).play;
 )
+p = Pbind(
+    \type, \midi,
+        // this line is optional b/c noteOn is the default
+        // just making it explicit here
+    \midicmd, \noteOn,
+    \midiout, mOut,    // must provide the MIDI target here
+    \chan, 0,
+        // degree is converted to midinote, not just frequency
+    \degree, Pwhite(-7, 12, inf),
+    \dur, Pwrand([0.25, Pn(0.125, 2)], #[0.8, 0.2], inf),
+    \legato, sin(Ptime(inf) * 0.5).linexp(-1, 1, 1/3, 3),
+    \amp, Pexprand(0.5, 1.0, inf)
+).play(quant: 1);
+
 
 (pitch:[ 0, 2, 5, 6, 8 ]).play;
 ~state.chordIdNeighboursOfCoord([0,0],0.5);
