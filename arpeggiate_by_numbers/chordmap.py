@@ -31,7 +31,7 @@ from math import sqrt
 import tables
 import gzip
 import cPickle as pickle
-from sklearn.manifold import MDS
+from sklearn.manifold import MDS, SpectralEmbedding, LocallyLinearEmbedding
 from sklearn.decomposition import PCA, KernelPCA
 import os.path
 from sklearn.cluster import SpectralClustering
@@ -42,7 +42,6 @@ from sklearn.covariance import EllipticEnvelope
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.01 # less than this and they are the same note (probably too wide)
 
-chords_i_products = None
 chords_i_products_square = None
 chords_i_dists_square = None
 chords_i_dists = None
@@ -85,6 +84,7 @@ def chord_mask_from_ind(i):
 def chord_mask_from_notes(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
 
+#TODO: this might as well be a hdf5 table too, for consistency
 def make_chord(notes):
     notes = tuple(sorted(notes))
     if not notes in _make_chord_cache:
@@ -118,33 +118,23 @@ def v_chord_dist(c1, c2):
         - 2 * v_chord_product(c1, c2)
         + v_chord_product(c2, c2)
     )
-    
-def v_chord_product_from_chord_i_raw(ci1, ci2):
-    """uncached version"""
-    ci1 = int(ci1)
-    ci2 = int(ci2)
-    return v_chord_product(
-        make_chord(chord_notes_from_ind(ci1)),
-        make_chord(chord_notes_from_ind(ci2))
-    )
 
 def v_chord_product_from_chord_i_raw(ci1, ci2):
     """uncached version, for filling the cache with."""
-    ci1 = int(ci1)
-    ci2 = int(ci2)
     return v_chord_product(
         make_chord(chord_notes_from_ind(ci1)),
         make_chord(chord_notes_from_ind(ci2))
     )
 
-def v_chord_product_from_chord_i_raw(ci1, ci2):
+def v_chord_product_from_chord_i(ci1, ci2):
     """cached version"""
-    ci1 = int(ci1)
-    ci2 = int(ci2)
-    return chords_i_products_square[int(ci1), int(ci2)]
-    
+    return chords_i_products_square[ci1, ci2]
+
 def v_chord_dist2_from_chord_i(ci1, ci2):
-    "construct a chord distance^2 from the chord inner product"
+    """construct a chord distance^2 from the chord inner product
+    TODO: there is surely an optimised routine to do this in the MDS module
+    would be worth using it, since this step is slow and boring
+    """
     #this is just to calculate how often to print progress messages
     v_chord_dist2_from_chord_i.callct = v_chord_dist2_from_chord_i.callct + 1
     if (v_chord_dist2_from_chord_i.callct % 11==0):
@@ -158,16 +148,22 @@ v_chord_dist2_from_chord_i.callct = 0
 
 if os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'r') as handle:
-        chords_i_products = handle.get_node("/", 'v_products').read()
         chords_i_products_square = handle.get_node("/", 'v_sq_products').read()
         chords_i_dists = handle.get_node("/", 'v_dists').read()
         chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
 else:
-    chords_i_products = pdist(
+    chords_i_products_square = squareform(pdist(
         np.arange(2**12).reshape(2**12,1),
-        v_chord_product_from_chord_i
-    )
-    chords_i_products_square = squareform(chords_i_products)
+        v_chord_product_from_chord_i_raw
+    ))
+    #but wait! pdist optimised by assuming self-distance is zero
+    #but this isn't a distance function! Quick!
+    chords_i_products_square[
+        np.diag_indices_from(chords_i_products_square)
+    ] = [
+        v_chord_product_from_chord_i_raw(i,i) for i in xrange(2**12)
+    ]
+
     chords_i_dists = np.sqrt(pdist(
         chord_idx,
         v_chord_dist2_from_chord_i
@@ -178,6 +174,10 @@ if not os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'w') as handle:
         data_atom_type = tables.Float32Atom()
         filt=tables.Filters(complevel=5, complib='blosc')
+        handle.create_carray("/",'v_sq_products',
+            atom=data_atom_type, shape=chords_i_products_square.shape,
+            title="sq products",
+            filters=filt)[:] = chords_i_products_square
         handle.create_carray("/",'v_dists',
             atom=data_atom_type, shape=chords_i_dists.shape,
             title="dists",
@@ -186,20 +186,7 @@ if not os.path.exists("dists.h5"):
             atom=data_atom_type, shape=chords_i_dists_square.shape,
             title="sq dists",
             filters=filt)[:] = chords_i_dists_square
-        handle.create_carray("/",'v_products',
-            atom=data_atom_type, shape=chords_i_products.shape,
-            title="product",
-            filters=filt)[:] = chords_i_products
-        handle.create_carray("/",'v_sq_products',
-            atom=data_atom_type, shape=chords_i_products_square.shape,
-            title="sq products",
-            filters=filt)[:] = chords_i_products_square
 
-if not os.path.exists('_chord_map_cache_products.gz'):
-    #this pickle is incredibly huge; dunno why
-    # should truncate the floats
-    with gzip.open('_chord_map_cache_products.gz', 'wb') as f:
-        pickle.dump(_v_chord_product_from_chord_i_cache, f, protocol=2)
 if not os.path.exists('_chord_map_cache_make_chords.gz'):
     #this one is tiny (probably because repeated floats more compressible)
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
