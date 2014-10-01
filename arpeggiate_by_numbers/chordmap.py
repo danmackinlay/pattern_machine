@@ -37,17 +37,17 @@ from chordmap_base import *
 from sklearn.covariance import EllipticEnvelope
 
 N_HARMONICS = 16
-KERNEL_WIDTH = 0.01 # less than this and they are the same note (probably too wide)
+KERNEL_WIDTH = 0.001 # less than this and they are the same note
 
 
 energies = 1.0/(np.arange(N_HARMONICS)+1)
 base_energies = 1.0/(np.arange(N_HARMONICS)+1)
 base_harm_fs = np.arange(N_HARMONICS)+1
 base_fundamentals = 2.0**(np.arange(12)/12.0)
-# wrap harmonics
-note_harmonics = (((np.outer(base_fundamentals, base_harm_fs)-1.0)%1.0)+1)
+# wrap harmonics, non-log version
+# note_harmonics = (((np.outer(base_fundamentals, base_harm_fs)-1.0)%1.0)+1)
 # Alternatively (Thanks James Nichols for noticing)
-# note_harmonics = 2.0 ** (np.log2(np.outer(base_fundamentals, base_harm_fs))%1.0)
+note_harmonics = 2.0 ** (np.log2(np.outer(base_fundamentals, base_harm_fs))%1.0)
 
 note_idx = np.arange(12, dtype="uint32")
 harm_idx = np.arange(N_HARMONICS)
