@@ -1,4 +1,8 @@
+"""
+IO and conversion routines
+"""
 import numpy as np
+import tables
 
 def cross_p_idx(n1, n2):
     "poor-mans's nditer, written offline when i couldn't look it up"
@@ -42,3 +46,17 @@ def write_matrix(matrix, ids=None, filename="chordmap_data.scd"):
                 h.write("%f, " % c)
             h.write("],\n")
         h.write("];\n")
+
+def dump_projection(filename, coords):
+    with tables.open_file(filename, 'w') as handle:
+        data_atom_type = tables.Float32Atom()
+        filt=tables.Filters(complevel=5, complib='blosc')
+        handle.create_carray("/",'v_coords',
+            atom=data_atom_type, shape=coords.shape,
+            title="coords",
+            filters=filt)[:] = coords
+
+def load_projection(filename):
+    with tables.open_file(filename, 'r') as handle:
+        coords = handle.get_node("/", 'v_dists').read()
+    return coords
