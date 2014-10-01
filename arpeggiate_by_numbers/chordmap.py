@@ -2,24 +2,26 @@
 # assumptions: 
 # all notes are harmonically truncated saw waves
 # all harmonics wrapped to the octave
+
 # can construct a similarity by the inner product based on inner product of the the kernel-approximated vectors, then measuring ratio to mean inner norm; this is more-or-less the covariance of spectral energy
 # also could track kernel width per-harmonic; is this principled? "feels" right, but we'll see.
-# Could do a straight nearness search off the distance matrix using ball tree
+# Could do a straight nearness search off the distance matrix using ball tree (4000 is not so many points; brute force also OK)
 # or cast to a basis of notes using a custom kernel
 # need to have this in terms of notes, though
 # TODO: weight by actual chord occurence (when do 11 notes play at once? even 6 is pushing it)
 # TODO: toroidal maps
 # TODO: simple transition graph might work, if it was made regular in some way
-# TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate though
+# TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, though.
 # TODO: segment on number of notes, either before or after MDS
+# TODO: segment on total spectral energy; or at least weight transitions on relative energy. (how often do we then increase energy?)
 # TODO: colorize base on number of notes
 # TODO: ditch python dict serialization in favour of indexed pytables
-# TODO: merge this repository into my other one.
 # TODO: Actually integrate kernels together
 # TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
-# really need to be preserving the seed for this stuff
-# We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
-# Or can i just pull out one of these leaves and inspect for what it is?
+# TODO: really need to be preserving the seed for this stuff
+# TODO: We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
+# TODO: Or can i just pull out one of these leaves and inspect for what it is?
+# TODO: MIDI version
 # TODO: straight number-of-notes colour map
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
 
