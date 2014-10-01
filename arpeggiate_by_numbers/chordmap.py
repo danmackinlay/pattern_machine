@@ -34,6 +34,7 @@ from sklearn.decomposition import PCA, KernelPCA
 import os.path
 from sklearn.cluster import SpectralClustering
 from chordmap_base import *
+import chordmap_vis
 from sklearn.covariance import EllipticEnvelope
 
 N_HARMONICS = 16
@@ -237,9 +238,9 @@ def load_projection(filename):
         coords = handle.get_node("/", 'v_dists').read()
     return coords
 
-lin_mds_3 = get_mds(chords_i_dists_square, 3)
+lin_mds_3 = get_mds(chords_i_dists_square, 3, rotate=False)
 dump_projection("lin_mds_3.h5", lin_mds_3)
-clusters = SpectralClustering(n_clusters=8, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_3)
+clusters = SpectralClustering(n_clusters=12, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_3)
 centers = np.array([lin_mds_3[clusters==i].mean(0) for i in xrange(8)])
 most_central = (centers**2).sum(1).argmin()
 fave_cluster = lin_mds_3[clusters==most_central]
@@ -250,7 +251,7 @@ fave_cluster_ids = (clusters==most_central).nonzero()[0]
 anal3 = PCA(n_components=3)
 anal3.fit(fave_cluster_best_points)
 lin_mds_3_rot = anal3.transform(lin_mds_3)
-chordmap_vis.plot_3d(lin_mds_3_rot, clusters_16)
+chordmap_vis.plot_3d(lin_mds_3_rot, clusters)
 # can now PCA each group down to 2 elems
 anal2 = PCA(n_components=2)
 anal2.fit(fave_cluster_best_points)
