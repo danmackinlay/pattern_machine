@@ -206,18 +206,18 @@ if not os.path.exists('_chord_map_cache_make_chords.gz'):
         pickle.dump(_make_chord_cache, f, protocol=2)
 
 def get_pca(sq_dists, n_dims=None):
-    kpca = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
-    kpca_trans = kpca.fit_transform(sq_dists) #feed the product matric directly in for precomputed case
-    return kpca_trans
+    transformer = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
+    transformed = transformer.fit_transform(sq_dists) #feed the product matric directly in for precomputed case
+    return transformed
 
 def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
-    lin_mds = MDS(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-    lin_mds_trans = lin_mds.fit_transform(sq_dists)
+    transformer = MDS(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+    transformed = transformer.fit_transform(sq_dists)
     if rotate:
         # Rotate the data to a hopefully consistent orientation
         clf = PCA(n_components=n_dims)
-        lin_mds_trans = clf.fit_transform(lin_mds_trans)
-    return lin_mds_trans
+        transformed = clf.fit_transform(transformed)
+    return transformed
 
 
 
