@@ -26,6 +26,8 @@
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
 # TODO: switch between embeddings live (record current note affinity)
 # TODO: I can't do Locally Linear Embedding because I throw out the original coords (it is not a kernel method). But can I do Spectral Embedding? yep.
+# TODO: remove chord 0 (silence), since it only causes trouble.
+# TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -224,8 +226,9 @@ def get_spectral_embedding_prod(sq_products, n_dims=3):
 
 def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=16):
     # see previous fn
-    transformer = SpectralEmbedding(n_components=n_dims, affinity='rbf', gamma=gamma)
-    transformed = transformer.fit_transform(sq_dists)
+    affinity = np.exp(-gamma * sq_dists * sq_dists)
+    transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
+    transformed = transformer.fit_transform(affinity)
     return transformed
 
 
@@ -259,5 +262,5 @@ write_matrix(spectral_embed_prod, filename="spectral_embed_prod_3.scd")
 
 spectral_embed_dist = get_spectral_embedding_dist(chords_i_dists_square, gamma=16)
 dump_projection("spectral_embed_dist_3.h5", spectral_embed_dist)
-chordmap_vis.plot_3d(spectral_embed_dist) #weird bow-tie structure
+chordmap_vis.plot_3d(spectral_embed_dist) #weird striated honeycomb
 write_matrix(spectral_embed_dist, filename="spectral_embed_dist_3.scd")
