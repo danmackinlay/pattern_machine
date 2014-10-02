@@ -25,6 +25,7 @@
 # TODO: I can't do Locally Linear Embedding because I throw out the original coords (it is not a kernel method). But can I do Spectral Embedding? yep.
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
+# TODO: How about I extract a tendency for more notes from the fit by inferring a "number of notes" field from the density? this would work pretty good on the spectral embedding by rbf.
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -221,15 +222,19 @@ def get_spectral_embedding_prod(sq_products, n_dims=3):
     transformed = transformer.fit_transform(affinity)
     return transformed
 
-def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=16):
+def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625):
     # see previous fn
+    # this needs to be 64 bit for stability
+    sq_dists = sq_dists.astype('float64')
     affinity = np.exp(-gamma * sq_dists * sq_dists)
     transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
     transformed = transformer.fit_transform(affinity)
-    return transformed
+    # natural scale is dicey on this one. rescale to uni-ish variance
+    var = np.var(transformed, 0)
+    mean = np.mean(transformed, 0)
+    return ((transformed-mean)/np.sqrt(var)).astype('float32')
 
-
-lin_mds_3 = get_mds(chords_i_dists_square, 3, rotate=False)
+lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_projection("lin_mds_3.h5", lin_mds_3)
 clusters = SpectralClustering(n_clusters=12, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_3)
 centers = np.array([lin_mds_3[clusters==i].mean(0) for i in xrange(8)])
@@ -248,16 +253,36 @@ anal2 = PCA(n_components=2)
 anal2.fit(fave_cluster_best_points)
 leaf_1=anal2.transform(fave_cluster) # or this could be an MDS again, from original distances (be careful orchestrating lookups of lookups)
 
-nonlin_mds_3 = get_mds(chords_i_dists_square, 3, metric=False, rotate=False)
+nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
 dump_projection("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
 write_matrix(nonlin_mds_3, filename="nonlin_mds_3.scd")
 
-spectral_embed_prod = get_spectral_embedding_prod(chords_i_products_square)
-dump_projection("spectral_embed_prod_3.h5", spectral_embed_prod)
-chordmap_vis.plot_3d(spectral_embed_prod) #rainbow ball
-write_matrix(spectral_embed_prod, filename="spectral_embed_prod_3.scd")
+spectral_embed_prod_2 = get_spectral_embedding_prod(chords_i_products_square, n_dims=2)
+dump_projection("spectral_embed_prod_2.h5", spectral_embed_prod_2)
+chordmap_vis.plot_2d(spectral_embed_prod_2) #radial rainbow ball
+write_matrix(spectral_embed_prod_2, filename="spectral_embed_prod_2.scd")
 
-spectral_embed_dist = get_spectral_embedding_dist(chords_i_dists_square, gamma=16)
-dump_projection("spectral_embed_dist_3.h5", spectral_embed_dist)
-chordmap_vis.plot_3d(spectral_embed_dist) #weird striated honeycomb
-write_matrix(spectral_embed_dist, filename="spectral_embed_dist_3.scd")
+spectral_embed_dist_2 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=2)
+dump_projection("spectral_embed_dist_2.h5", spectral_embed_dist_2)
+chordmap_vis.plot_2d(spectral_embed_dist_2) #flat saturn. flaturn.
+write_matrix(spectral_embed_dist_2, filename="spectral_embed_dist_2.scd")
+
+spectral_embed_prod_3 = get_spectral_embedding_prod(chords_i_products_square, n_dims=3)
+dump_projection("spectral_embed_prod_3.h5", spectral_embed_prod_3)
+chordmap_vis.plot_3d(spectral_embed_prod_3) #radial rainbow ball
+write_matrix(spectral_embed_prod_3, filename="spectral_embed_prod_3.scd")
+
+spectral_embed_dist_3 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=3)
+dump_projection("spectral_embed_dist_3.h5", spectral_embed_dist_3)
+chordmap_vis.plot_3d(spectral_embed_dist_3) #weird striated honeycomb
+write_matrix(spectral_embed_dist_3, filename="spectral_embed_dist_3.scd")
+
+spectral_embed_prod_4 = get_spectral_embedding_prod(chords_i_products_square, n_dims=4)
+dump_projection("spectral_embed_prod_4.h5", spectral_embed_prod_4)
+chordmap_vis.plot_3d(spectral_embed_prod_4) #radial rainbow ball
+write_matrix(spectral_embed_prod_4, filename="spectral_embed_prod_4.scd")
+
+spectral_embed_dist_4 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=4)
+dump_projection("spectral_embed_dist_4.h5", spectral_embed_dist_4)
+chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
+write_matrix(spectral_embed_dist_4, filename="spectral_embed_dist_4.scd")
