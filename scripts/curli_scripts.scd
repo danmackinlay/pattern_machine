@@ -3,6 +3,8 @@ Curlicue
 
 TODO:
 * Spectrum is a little this; inbuilt filtering would be nice
+* go to granualr synthesis for voices instead of straight sample portion playing.
+* GUI is needed
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, MRE) and internal mixers using a BusAllocator
 * tidier sample source selector

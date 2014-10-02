@@ -24,7 +24,8 @@
 # TODO: MIDI version
 # TODO: straight number-of-notes colour map
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
-# TODO: I can't do Lically Linear Embedding because I throw out the original coords (it is not a kernel method). But can I do Spectral Embedding? yep.
+# TODO: switch between embeddings live (record current note affinity)
+# TODO: I can't do Locally Linear Embedding because I throw out the original coords (it is not a kernel method). But can I do Spectral Embedding? yep.
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
