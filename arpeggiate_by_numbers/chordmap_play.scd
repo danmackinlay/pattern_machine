@@ -1,4 +1,4 @@
-// NB this currently assumes the chord list is exhaustive! need to change that
+//TODO: display info
 (
 var state = ();
 ~state = state;
@@ -73,17 +73,19 @@ state.make({
 
 (
 var state = ~state;
+~state.use({
+	~dims = ~map[0].size;
+	~maxes=~map.flop.collect(_.maxItem);
+	~mins=~map.flop.collect(_.minItem);
+	~center = (~maxes+~mins)/2;
+	~range = (~maxes-~mins)/2;
+	~coord=Array.fill(~dims,0.0);
+	~time = 0.0;
+	~basef = 1/10;
+	~interval = 1/4;
+});
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
-		~dims = ~map[0].size;
-		~maxes=~map.flop.collect(_.maxItem);
-		~mins=~map.flop.collect(_.minItem);
-		~center = (~maxes+~mins)/2;
-		~range = (~maxes-~mins)/2;
-		~coord=Array.fill(~dims,0.0);
-		~time = 0.0;
-		~basef = 1/10;
-		~interval = 1/4;
 		inf.do({
 			var freqs;
 			~time = ~time + ~interval;
@@ -105,20 +107,27 @@ state.chordspiral = Pspawner({|spawner|
 		});
 	});
 }).play;
+state.use({
+	~plotter = GNUPlot.new;
+	~plotter.sendCmd("set xrange [%:%]".format(~mins[0], ~maxes[0]);
+	~plotter.sendCmd("set yrange [%:%]".format(~mins[1], ~maxes[1]);
+	(~dims>2).if({
+		~plotter.sendCmd("set zrange [%:%]".format(~mins[2], ~maxes[2]);
+	});
+	~plotworker = Routine.new({
+		loop {
+			var locs;
+			locs = population.collect({|ind|
+				//[\ind, ind].postln;
+				[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
+			});
+			~plotter.scatter(locs);
+			//state.locs = locs;
+			(~interval).yield;
+		};
+	}).play(AppClock);
+});
 )
-p = Pbind(
-    \type, \midi,
-        // this line is optional b/c noteOn is the default
-        // just making it explicit here
-    \midicmd, \noteOn,
-    \midiout, mOut,    // must provide the MIDI target here
-    \chan, 0,
-        // degree is converted to midinote, not just frequency
-    \degree, Pwhite(-7, 12, inf),
-    \dur, Pwrand([0.25, Pn(0.125, 2)], #[0.8, 0.2], inf),
-    \legato, sin(Ptime(inf) * 0.5).linexp(-1, 1, 1/3, 3),
-    \amp, Pexprand(0.5, 1.0, inf)
-).play(quant: 1);
 
 
 (pitch:[ 0, 2, 5, 6, 8 ]).play;
