@@ -18,13 +18,14 @@ Dan {
 		options.numAudioBusChannels_(1024);
 		options.memSize_(131072);
 		options.sampleRate = rate;
+		options.device = nil;
 		//this one works:
 		//options.device = nil;
 		//these two, they don't work
 		//options.inDevice = "Built-in Microphone";
 		//options.outDevice = "Built-in Output";
 		//this one does work, if you build an aggregate sound device out of your inputs, and give it this name
-		//options.device="internal sound devices";
+		//options.device="internal";
 		device.switch(
 			\motu, {
 				options.device = "MOTU UltraLite mk3 Hybrid";
@@ -32,9 +33,7 @@ Dan {
 				options.numInputBusChannels_(20);
 			},
 			\rme, {
-				//TODO find this out when RME is plugged in via
-				//ServerOptions.inDevices
-				options.device = "RME Something Something";
+				options.device = "Fireface UCX";
 				//make sure we get spdif ins too
 				options.numInputBusChannels_(20);
 			},
