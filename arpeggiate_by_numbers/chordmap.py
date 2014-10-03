@@ -29,6 +29,8 @@
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
 # TODO: How about I extract a tendency for more notes from the fit by inferring a "number of notes" field from the density? this would work pretty good on the spectral embedding by rbf.
+# TODO: add a "chaoticness" index in. As a new dimension. Now, how to construct it?
+# TODO: ...I could even add it in, then take a PCA to de-correlate it from the final output, then rotate to back along the original dimension.
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -237,6 +239,23 @@ def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625):
     var = np.var(transformed, 0)
     mean = np.mean(transformed, 0)
     return ((transformed-mean)/np.sqrt(var)).astype('float32')
+
+def normalize(a, axis=None):
+    """Normalise an array to unit variance"""
+    return (a-np.mean(a,axis=axis))/np.sqrt(np.var(a,axis=axis))
+
+# Two different impurity options:
+#product with the last row (maximum chaos)
+impurity_alt = normalize(chords_i_products_square[4095,:])
+
+# product with chaos rescaled by own power (could even take sqrt)
+impurity = -(chords_i_products_square[4095,:]/np.diagonal(chords_i_products_square))
+impurity[0] = np.mean(impurity[1:]) #because of null entry
+impurity = normalize(impurity)
+impurity[0] = 0 #because of null entry
+#I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
+
+
 
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_projection("lin_mds_3.h5", lin_mds_3)
