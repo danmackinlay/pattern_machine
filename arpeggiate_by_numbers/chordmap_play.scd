@@ -1,19 +1,25 @@
 //TODO: display info
+
+/*
+// for mac users who want X:
+GNUPlot.initCode    = GNUPlot.initCode ++ "\n set term x11 \n";
+GNUPlot.gnuplotpath = GNUPlot.pathToXLauncher.quote + "/opt/local/bin/gnuplot";
+*/
+
+MIDIClient.init;
+MIDIClient.destinations;
 (
 var state = ();
 ~state = state;
-~l=SortedList.new(15, {|item1, item2| item1[1]<item2[1]});
-~l.add([1,1]);
-~l.add([1,3]);
-~l.add([1,2]);
-~l[0..2];
+MIDIClient.init;
 
 state.make({
 	var data = (
-		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers" +/+ "chordmap_data.scd")
+		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers" +/+ "spectral_embed_dist_3.scd")
 	).flop;
 	~idfromrow=data.removeAt(0);
-	~midiout=MIDIOut.newByName("FastLane USB", "Port A").latency_(Server.default.latency);
+	~midiout=MIDIOut.newByName("IAC-Driver", "Bus 1"
+	  ).latency_(Server.default.latency);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
 	~idfromrow.do({|id,row|~rowfromid[id]=row;});
 	~map=data.flop.collect({|r|r.asFloatArray});
@@ -36,7 +42,7 @@ state.make({
 			self.map[self.chordIdFromClass(class)],
 			limCount);
 	};
-	//Check this one.
+	//Check this one before using; not tested since I messed with indices.
 	~classNeighboursOfClass = {|self, class, limCount=15|
 		self.chordIdNeighboursOfCoord(
 			self.map[self.rowfromid[self.chordIdFromClass(class)]],
@@ -61,15 +67,6 @@ state.make({
 	};
 });
 )
-~state.idfromrow[65];
-~state.map.flop.collect(_.maxItem);
-~state.map.flop.collect(_.minItem);
-~state.classNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
-~state.classNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
-~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
-~state.chordIdNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
-~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5);
-
 
 (
 var state = ~state;
@@ -86,49 +83,74 @@ var state = ~state;
 });
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
+		//link::Tutorials/A-Practical-Guide/PG_Cookbook04_Sending_MIDI::
+		~heldPitches = IdentitySet.new(12);
+		~protoEvent = (
+			type: \midi,
+			legato: 0.8,
+			midiout: ~midiout,
+			db: -10.0,
+			chan: 0,
+			midicmd: \noteOn,
+			//velocity: 64,
+		);
 		inf.do({
-			var freqs;
 			~time = ~time + ~interval;
-			freqs = Array.series(~dims, ~basef, ~basef/17.0);
-			~coord = (freqs*~time).cos*~range + ~center;
+			~rates = Array.series(~dims, ~basef, ~basef/17.0);
+			~coord = (~rates * ~time).cos * ~range + ~center;
 			~class = state.classNeighboursOfCoord(~coord, 0.5)[0][0];
 			~pitches = ~class;// + 60;
-			[~time, ~coord, freqs, ~class, ~pitches].postln;
-			spawner.seq((
-				type: \midi,
-				dur: ~interval,
-				legato: 1,
-				note: ~pitches,
-				midicmd: \noteOn,
-				midiout: mOut,    // must provide the MIDI target here
-				chan: 0,
 
-			));
+			[~time, ~coord, ~rates, ~class, ~pitches].postln;
+
+			spawner.seq(
+				~protoEvent.copy.putAll((
+					dur: ~interval,
+					note: ~pitches,
+				))
+			);
 		});
 	});
-}).play;
-state.use({
+}).trace.play;
+//this doesn't seem to hapen by isself.
+CmdPeriod.doOnce(
+	~state.protoEvent.copy.putAll((
+		midicmd: \allNotesOff,
+	));
+);
+)
+(
+~state.use({
 	~plotter = GNUPlot.new;
-	~plotter.sendCmd("set xrange [%:%]".format(~mins[0], ~maxes[0]);
-	~plotter.sendCmd("set yrange [%:%]".format(~mins[1], ~maxes[1]);
+	~plotter.sendCmd("set xrange [%:%]".format(~mins[0], ~maxes[0]));
+	~plotter.sendCmd("set yrange [%:%]".format(~mins[1], ~maxes[1]));
 	(~dims>2).if({
-		~plotter.sendCmd("set zrange [%:%]".format(~mins[2], ~maxes[2]);
+		~plotter.sendCmd("set zrange [%:%]".format(~mins[2], ~maxes[2]));
 	});
 	~plotworker = Routine.new({
 		loop {
-			var locs;
-			locs = population.collect({|ind|
-				//[\ind, ind].postln;
-				[ind.chromosome[0..1] ++ swarm.cookedFitnessMap[ind]];
-			});
-			~plotter.scatter(locs);
+			~plotter.scatter(~map);
+			~plotter.replot;
 			//state.locs = locs;
-			(~interval).yield;
+			(0.5).yield;
 		};
 	}).play(AppClock);
 });
 )
+~state.plotter.plot3(~state.map);
 
+~state.map
+~state.idfromrow[65];
+~state.map.flop.collect(_.maxItem);
+~state.map.flop.collect(_.minItem);
+~state.classNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
+~state.classNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5);
+
+GNUPlot
+Quarks.gui
 
 (pitch:[ 0, 2, 5, 6, 8 ]).play;
 ~state.chordIdNeighboursOfCoord([0,0],0.5);
