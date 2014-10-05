@@ -48,6 +48,7 @@ from sklearn.covariance import EllipticEnvelope
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.001 # less than this and they are the same note
+SEED = 76594
 
 chords_i_products_square = None
 chords_i_dists_square = None
@@ -188,94 +189,116 @@ if not os.path.exists("dists.h5"):
             filters=filt)[:] = chords_i_dists_square
 
 if not os.path.exists('_chord_map_cache_make_chords.gz'):
-    #this one is tiny (probably because repeated floats more compressible)
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
-def get_pca(sq_dists, n_dims=None):
+def get_pca(sq_products, n_dims=2, normalize=True):
     transformer = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
-    transformed = transformer.fit_transform(sq_dists) #feed the product matric directly in for precomputed case
+    transformed = transformer.fit_transform(sq_products) #feed the product matrix directly in for precomputed case
+    if normalize:
+        transformed = normalize_var(transformed)
     return transformed
 
-def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
-    transformer = MDS(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+def get_mds(sq_dists,
+        n_dims=3,
+        metric=True,
+        rotate=True,
+        normalize=True,
+        random_state=SEED):
+    transformer = MDS(
+        n_components=n_dims,
+        metric=metric,
+        n_init=4,
+        max_iter=300,
+        verbose=1,
+        eps=0.001,
+        n_jobs=3,
+        dissimilarity='precomputed',
+        random_state=random_state)
     transformed = transformer.fit_transform(sq_dists)
     if rotate:
         # Rotate the data to a hopefully consistent orientation
         clf = PCA(n_components=n_dims)
         transformed = clf.fit_transform(transformed)
+    if normalize:
+        transformed = normalize_var(transformed)
     return transformed
 
-# 
-# def get_lle(sq_dists, n_dims=3, n_neighbors=6):
-#     transformer = LocallyLinearEmbedding(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-#     transformed = transformer.fit_transform(sq_dists)
-#     if rotate:
-#         # Rotate the data to a hopefully consistent orientation
-#         clf = PCA(n_components=n_dims)
-#         transformed = clf.fit_transform(transformed)
-#     return transformed
-
-def get_spectral_embedding_prod(sq_products, n_dims=3):
+def get_spectral_embedding_prod(sq_products,
+        n_dims=3,
+        normalize=True,
+        random_state=SEED):
     #The product matrix is already an affinity; 
     # but it has the undesirable quality of making high energy chords more similar than low energy chords
     # we normalise accordingly
     # Alternatively: RBF. See next fn
     inv_root_energy = 1.0/np.maximum(np.sqrt(np.diagonal(chords_i_products_square)),1)
     affinity = sq_products * np.outer(inv_root_energy,inv_root_energy)
-    transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
+    transformer = SpectralEmbedding(
+        n_components=n_dims,
+        affinity='precomputed',
+        random_state=random_state)
     transformed = transformer.fit_transform(affinity)
+    if normalize:
+        transformed = normalize_var(transformed)
     return transformed
 
-
-def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625):
+def get_spectral_embedding_dist(sq_dists,
+        n_dims=3,
+        gamma=0.0625,
+        normalize=True,
+        random_state=SEED):
     # see previous fn
     # this needs to be 64 bit for stability
     sq_dists = sq_dists.astype('float64')
     affinity = np.exp(-gamma * sq_dists * sq_dists)
-    transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
+    transformer = SpectralEmbedding(
+        n_components=n_dims,
+        affinity='precomputed',
+        random_state=random_state)
     transformed = transformer.fit_transform(affinity)
     # natural scale is dicey on this one. rescale to uni-ish variance
     var = np.var(transformed, 0)
     mean = np.mean(transformed, 0)
-    return ((transformed-mean)/np.sqrt(var)).astype('float32')
+    if normalize:
+        transformed = normalize_var(transformed)
+    return transformed
 
-def normalize(a, axis=None):
+def normalize_var(a, axis=None):
     """Normalise an array to unit variance"""
-    return (a-np.mean(a,axis=axis))/np.sqrt(np.var(a,axis=axis))
+    return (a-np.mean(a,axis=axis, dtype='float64')
+        )/np.sqrt(np.var(a,axis=axis, dtype='float64'))
 
 # Two different impurity options:
 #product with the last row (maximum chaos)
-impurity_alt = normalize(chords_i_products_square[4095,:])
+impurity_alt = normalize_var(chords_i_products_square[4095,:])
 
 # product with chaos rescaled by own power (could even take sqrt)
 impurity = -(chords_i_products_square[4095,:]/np.diagonal(chords_i_products_square))
 impurity[0] = np.mean(impurity[1:]) #because of null entry
-impurity = normalize(impurity)
+impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
+kpca_2 = get_mds(chords_i_products_square, n_dims=2)
+dump_projection("kpca_2.h5", kpca_2) #chunky cube
+write_matrix(kpca_2, filename="kpca_2.scd")
 
+kpca_3 = get_mds(chords_i_products_square, n_dims=3)
+dump_projection("kpca_3.h5", kpca_3) #chunky cube
+write_matrix(kpca_3, filename="kpca_3.scd")
+
+lin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, rotate=False)
+dump_projection("lin_mds_2.h5", lin_mds_2)
+write_matrix(kpca_2, filename="lin_mds_2.scd")
 
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_projection("lin_mds_3.h5", lin_mds_3)
-clusters = SpectralClustering(n_clusters=12, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_3)
-centers = np.array([lin_mds_3[clusters==i].mean(0) for i in xrange(8)])
-most_central = (centers**2).sum(1).argmin()
-fave_cluster = lin_mds_3[clusters==most_central]
-envelope = EllipticEnvelope(contamination=0.02)
-envelope.fit(fave_cluster)
-fave_cluster_best_points = fave_cluster[(envelope.predict(fave_cluster)==1).nonzero()[0]]
-fave_cluster_ids = (clusters==most_central).nonzero()[0]
-anal3 = PCA(n_components=3)
-anal3.fit(fave_cluster_best_points)
-lin_mds_3_rot = anal3.transform(lin_mds_3)
-chordmap_vis.plot_3d(lin_mds_3_rot, clusters)
-# can now PCA each group down to 2 elems
-anal2 = PCA(n_components=2)
-anal2.fit(fave_cluster_best_points)
-leaf_1=anal2.transform(fave_cluster) # or this could be an MDS again, from original distances (be careful orchestrating lookups of lookups)
+write_matrix(kpca_2, filename="lin_mds_3.scd")
 
+nonlin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False)
+dump_projection("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
+write_matrix(nonlin_mds_2, filename="nonlin_mds_2.scd")
 
 nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
 dump_projection("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube

@@ -58,5 +58,5 @@ def dump_projection(filename, coords):
 
 def load_projection(filename):
     with tables.open_file(filename, 'r') as handle:
-        coords = handle.get_node("/", 'v_dists').read()
+        coords = handle.get_node("/", 'v_coords').read()
     return coords
