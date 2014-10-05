@@ -11,6 +11,9 @@ papers/
 *.csv
 *.json
 
+#Ableton weirdness
+Icon?
+
 # C extensions
 *.so
 
