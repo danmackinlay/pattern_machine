@@ -34,7 +34,7 @@ def chord_mask_from_ind(i):
 def chord_mask_from_notes(i):
     return np.asarray(np.nonzero(bit_unpack(i))[0], dtype="uint")
 
-def write_matrix(matrix, ids=None, filename="chordmap_data.scd"):
+def dump_matrix_sc(filename, matrix, ids=None):
     if ids is None:
         ids = np.arange(matrix.shape[0])
     with open(filename, 'w') as h:
@@ -47,7 +47,7 @@ def write_matrix(matrix, ids=None, filename="chordmap_data.scd"):
             h.write("],\n")
         h.write("];\n")
 
-def dump_projection(filename, coords):
+def dump_matrix_hdf(filename, coords):
     with tables.open_file(filename, 'w') as handle:
         data_atom_type = tables.Float32Atom()
         filt=tables.Filters(complevel=5, complib='blosc')
@@ -56,7 +56,7 @@ def dump_projection(filename, coords):
             title="coords",
             filters=filt)[:] = coords
 
-def load_projection(filename):
+def load_matrix_hdf(filename):
     with tables.open_file(filename, 'r') as handle:
         coords = handle.get_node("/", 'v_coords').read()
     return coords

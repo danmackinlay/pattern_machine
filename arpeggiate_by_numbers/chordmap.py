@@ -272,8 +272,8 @@ def normalize_var(a, axis=None):
 # Two different impurity options:
 #product with the last row (maximum chaos)
 impurity_alt = normalize_var(chords_i_products_square[4095,:])
-dump_projection("impurity_alt.h5", impurity_alt)
-write_matrix(impurity_alt, filename="impurity_alt.scd")
+dump_matrix_hdf("impurity_alt.h5", impurity_alt)
+dump_matrix_sc("impurity_alt.scd", impurity_alt)
 
 # product with chaos rescaled by own power (could even take sqrt)
 impurity = -(chords_i_products_square[4095,:]/np.diagonal(
@@ -281,60 +281,60 @@ impurity = -(chords_i_products_square[4095,:]/np.diagonal(
 impurity[0] = np.mean(impurity[1:]) #because of null entry
 impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
-dump_projection("impurity.h5", impurity)
-write_matrix(impurity, filename="impurity.scd")
+dump_matrix_hdf("impurity.h5", impurity)
+dump_matrix_sc("impurity.scd", impurity)
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
 kpca_2 = get_mds(chords_i_products_square, n_dims=2)
-dump_projection("kpca_2.h5", kpca_2) #chunky cube
-write_matrix(kpca_2, filename="kpca_2.scd")
+dump_matrix_hdf("kpca_2.h5", kpca_2) #chunky cube
+dump_matrix_sc("kpca_2.scd", kpca_2)
 
 kpca_3 = get_mds(chords_i_products_square, n_dims=3)
-dump_projection("kpca_3.h5", kpca_3) #chunky cube
-write_matrix(kpca_3, filename="kpca_3.scd")
+dump_matrix_hdf("kpca_3.h5", kpca_3) #chunky cube
+dump_matrix_sc("kpca_3.scd", kpca_3)
 
 lin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, rotate=False)
-dump_projection("lin_mds_2.h5", lin_mds_2)
-write_matrix(kpca_2, filename="lin_mds_2.scd")
+dump_matrix_hdf("lin_mds_2.h5", lin_mds_2)
+dump_matrix_sc("lin_mds_2.scd", kpca_2)
 
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
-dump_projection("lin_mds_3.h5", lin_mds_3)
-write_matrix(kpca_2, filename="lin_mds_3.scd")
+dump_matrix_hdf("lin_mds_3.h5", lin_mds_3)
+dump_matrix_sc("lin_mds_3.scd", kpca_2)
 
 nonlin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False)
-dump_projection("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
-write_matrix(nonlin_mds_2, filename="nonlin_mds_2.scd")
+dump_matrix_hdf("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
+dump_matrix_sc("nonlin_mds_2.scd", nonlin_mds_2)
 
 nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
-dump_projection("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
-write_matrix(nonlin_mds_3, filename="nonlin_mds_3.scd")
+dump_matrix_hdf("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
+dump_matrix_sc("nonlin_mds_3.scd", nonlin_mds_3)
 
 spectral_embed_prod_2 = get_spectral_embedding_prod(chords_i_products_square, n_dims=2)
-dump_projection("spectral_embed_prod_2.h5", spectral_embed_prod_2)
+dump_matrix_hdf("spectral_embed_prod_2.h5", spectral_embed_prod_2)
 chordmap_vis.plot_2d(spectral_embed_prod_2) #radial rainbow ball
-write_matrix(spectral_embed_prod_2, filename="spectral_embed_prod_2.scd")
+dump_matrix_sc("spectral_embed_prod_2.scd", spectral_embed_prod_2)
 
 spectral_embed_dist_2 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=2)
-dump_projection("spectral_embed_dist_2.h5", spectral_embed_dist_2)
+dump_matrix_hdf("spectral_embed_dist_2.h5", spectral_embed_dist_2)
 chordmap_vis.plot_2d(spectral_embed_dist_2) #flat saturn. flaturn.
-write_matrix(spectral_embed_dist_2, filename="spectral_embed_dist_2.scd")
+dump_matrix_sc("spectral_embed_dist_2.scd", spectral_embed_dist_2)
 
 spectral_embed_prod_3 = get_spectral_embedding_prod(chords_i_products_square, n_dims=3)
-dump_projection("spectral_embed_prod_3.h5", spectral_embed_prod_3)
+dump_matrix_hdf("spectral_embed_prod_3.h5", spectral_embed_prod_3)
 chordmap_vis.plot_3d(spectral_embed_prod_3) #radial rainbow ball
-write_matrix(spectral_embed_prod_3, filename="spectral_embed_prod_3.scd")
+dump_matrix_sc("spectral_embed_prod_3.scd", spectral_embed_prod_3)
 
 spectral_embed_dist_3 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=3)
-dump_projection("spectral_embed_dist_3.h5", spectral_embed_dist_3)
+dump_matrix_hdf("spectral_embed_dist_3.h5", spectral_embed_dist_3)
 chordmap_vis.plot_3d(spectral_embed_dist_3) #weird striated honeycomb
-write_matrix(spectral_embed_dist_3, filename="spectral_embed_dist_3.scd")
+dump_matrix_sc("spectral_embed_dist_3.scd", spectral_embed_dist_3)
 
 spectral_embed_prod_4 = get_spectral_embedding_prod(chords_i_products_square, n_dims=4)
-dump_projection("spectral_embed_prod_4.h5", spectral_embed_prod_4)
+dump_matrix_hdf("spectral_embed_prod_4.h5", spectral_embed_prod_4)
 chordmap_vis.plot_3d(spectral_embed_prod_4) #radial rainbow ball
-write_matrix(spectral_embed_prod_4, filename="spectral_embed_prod_4.scd")
+dump_matrix_sc("spectral_embed_prod_4.scd", spectral_embed_prod_4)
 
 spectral_embed_dist_4 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=4)
-dump_projection("spectral_embed_dist_4.h5", spectral_embed_dist_4)
+dump_matrix_hdf("spectral_embed_dist_4.h5", spectral_embed_dist_4)
 chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
-write_matrix(spectral_embed_dist_4, filename="spectral_embed_dist_4.scd")
+dump_matrix_sc("spectral_embed_dist_4.scd", spectral_embed_dist_4)
