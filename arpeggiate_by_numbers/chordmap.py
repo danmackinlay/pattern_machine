@@ -210,16 +210,6 @@ def get_mds(sq_dists, n_dims=3, metric=True, rotate=True, normalize=True):
         transformed = normalize_var(transformed)
     return transformed
 
-# 
-# def get_lle(sq_dists, n_dims=3, n_neighbors=6):
-#     transformer = LocallyLinearEmbedding(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
-#     transformed = transformer.fit_transform(sq_dists)
-#     if rotate:
-#         # Rotate the data to a hopefully consistent orientation
-#         clf = PCA(n_components=n_dims)
-#         transformed = clf.fit_transform(transformed)
-#     return transformed
-
 def get_spectral_embedding_prod(sq_products, n_dims=3, normalize=True):
     #The product matrix is already an affinity; 
     # but it has the undesirable quality of making high energy chords more similar than low energy chords
@@ -267,22 +257,6 @@ impurity[0] = 0 #because of null entry
 
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_projection("lin_mds_3.h5", lin_mds_3)
-clusters = SpectralClustering(n_clusters=12, random_state=None, n_init=16, gamma=16.0, affinity='rbf', n_neighbors=10, assign_labels='kmeans').fit_predict(lin_mds_3)
-centers = np.array([lin_mds_3[clusters==i].mean(0) for i in xrange(8)])
-most_central = (centers**2).sum(1).argmin()
-fave_cluster = lin_mds_3[clusters==most_central]
-envelope = EllipticEnvelope(contamination=0.02)
-envelope.fit(fave_cluster)
-fave_cluster_best_points = fave_cluster[(envelope.predict(fave_cluster)==1).nonzero()[0]]
-fave_cluster_ids = (clusters==most_central).nonzero()[0]
-anal3 = PCA(n_components=3)
-anal3.fit(fave_cluster_best_points)
-lin_mds_3_rot = anal3.transform(lin_mds_3)
-chordmap_vis.plot_3d(lin_mds_3_rot, clusters)
-# can now PCA each group down to 2 elems
-anal2 = PCA(n_components=2)
-anal2.fit(fave_cluster_best_points)
-leaf_1=anal2.transform(fave_cluster) # or this could be an MDS again, from original distances (be careful orchestrating lookups of lookups)
 
 
 nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
