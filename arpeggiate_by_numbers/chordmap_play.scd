@@ -111,7 +111,7 @@ state.chordspiral = Pspawner({|spawner|
 			);
 		});
 	});
-}).trace.play;
+}).play;
 //this doesn't seem to hapen by isself.
 CmdPeriod.doOnce(
 	~state.protoEvent.copy.putAll((

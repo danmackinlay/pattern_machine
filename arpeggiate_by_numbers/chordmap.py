@@ -18,10 +18,8 @@
 # TODO: ditch python dict serialization in favour of indexed pytables
 # TODO: Actually integrate kernels together
 # TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
-# TODO: really need to be preserving the seed for this stuff
 # TODO: We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
 # TODO: Or can i just pull out one of these leaves and inspect for what it is?
-# TODO: MIDI version
 # TODO: straight number-of-notes colour map
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
 # TODO: switch between embeddings live (record current note affinity)
@@ -269,11 +267,12 @@ def normalize_var(a, axis=None):
     return (a-np.mean(a,axis=axis, dtype='float64')
         )/np.sqrt(np.var(a,axis=axis, dtype='float64'))
 
+#
 # Two different impurity options:
+#
 #product with the last row (maximum chaos)
 impurity_alt = normalize_var(chords_i_products_square[4095,:])
 dump_matrix_hdf("impurity_alt.h5", impurity_alt)
-dump_matrix_sc("impurity_alt.scd", impurity_alt)
 
 # product with chaos rescaled by own power (could even take sqrt)
 impurity = -(chords_i_products_square[4095,:]/np.diagonal(
@@ -282,7 +281,6 @@ impurity[0] = np.mean(impurity[1:]) #because of null entry
 impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
 dump_matrix_hdf("impurity.h5", impurity)
-dump_matrix_sc("impurity.scd", impurity)
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
 kpca_2 = get_mds(chords_i_products_square, n_dims=2)
@@ -338,3 +336,4 @@ spectral_embed_dist_4 = get_spectral_embedding_dist(chords_i_dists_square, n_dim
 dump_matrix_hdf("spectral_embed_dist_4.h5", spectral_embed_dist_4)
 chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
 dump_matrix_sc("spectral_embed_dist_4.scd", spectral_embed_dist_4)
+

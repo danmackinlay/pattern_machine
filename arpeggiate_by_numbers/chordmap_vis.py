@@ -40,7 +40,7 @@ def plot_3d(trans, cols=None):
             ys=trans[:, y],
             zs=trans[:, z],
             c=cols,
-            )
+        )
         ax.set_xlabel('{0} ax'.format(x))
         ax.set_ylabel('{0} ax'.format(y))
         ax.set_zlabel('{0} ax'.format(z))
