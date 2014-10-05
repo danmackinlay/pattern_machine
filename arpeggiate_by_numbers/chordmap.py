@@ -272,12 +272,17 @@ def normalize_var(a, axis=None):
 # Two different impurity options:
 #product with the last row (maximum chaos)
 impurity_alt = normalize_var(chords_i_products_square[4095,:])
+dump_projection("impurity_alt.h5", impurity_alt)
+write_matrix(impurity_alt, filename="impurity_alt.scd")
 
 # product with chaos rescaled by own power (could even take sqrt)
-impurity = -(chords_i_products_square[4095,:]/np.diagonal(chords_i_products_square))
+impurity = -(chords_i_products_square[4095,:]/np.diagonal(
+    chords_i_products_square))
 impurity[0] = np.mean(impurity[1:]) #because of null entry
 impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
+dump_projection("impurity.h5", impurity)
+write_matrix(impurity, filename="impurity.scd")
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
 kpca_2 = get_mds(chords_i_products_square, n_dims=2)
