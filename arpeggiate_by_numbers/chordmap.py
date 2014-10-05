@@ -309,31 +309,31 @@ dump_matrix_sc("nonlin_mds_3.scd", nonlin_mds_3)
 
 spectral_embed_prod_2 = get_spectral_embedding_prod(chords_i_products_square, n_dims=2)
 dump_matrix_hdf("spectral_embed_prod_2.h5", spectral_embed_prod_2)
-chordmap_vis.plot_2d(spectral_embed_prod_2) #radial rainbow ball
+#chordmap_vis.plot_2d(spectral_embed_prod_2)
 dump_matrix_sc("spectral_embed_prod_2.scd", spectral_embed_prod_2)
 
 spectral_embed_dist_2 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=2)
 dump_matrix_hdf("spectral_embed_dist_2.h5", spectral_embed_dist_2)
-chordmap_vis.plot_2d(spectral_embed_dist_2) #flat saturn. flaturn.
+#chordmap_vis.plot_2d(spectral_embed_dist_2) #flat saturn. flaturn.
 dump_matrix_sc("spectral_embed_dist_2.scd", spectral_embed_dist_2)
 
 spectral_embed_prod_3 = get_spectral_embedding_prod(chords_i_products_square, n_dims=3)
 dump_matrix_hdf("spectral_embed_prod_3.h5", spectral_embed_prod_3)
-chordmap_vis.plot_3d(spectral_embed_prod_3) #radial rainbow ball
+#chordmap_vis.plot_3d(spectral_embed_prod_3) #radial rainbow ball
 dump_matrix_sc("spectral_embed_prod_3.scd", spectral_embed_prod_3)
 
 spectral_embed_dist_3 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=3)
 dump_matrix_hdf("spectral_embed_dist_3.h5", spectral_embed_dist_3)
-chordmap_vis.plot_3d(spectral_embed_dist_3) #weird striated honeycomb
+#chordmap_vis.plot_3d(spectral_embed_dist_3) #weird striated honeycomb
 dump_matrix_sc("spectral_embed_dist_3.scd", spectral_embed_dist_3)
 
 spectral_embed_prod_4 = get_spectral_embedding_prod(chords_i_products_square, n_dims=4)
 dump_matrix_hdf("spectral_embed_prod_4.h5", spectral_embed_prod_4)
-chordmap_vis.plot_3d(spectral_embed_prod_4) #radial rainbow ball
+#chordmap_vis.plot_3d(spectral_embed_prod_4) #radial rainbow ball
 dump_matrix_sc("spectral_embed_prod_4.scd", spectral_embed_prod_4)
 
 spectral_embed_dist_4 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=4)
 dump_matrix_hdf("spectral_embed_dist_4.h5", spectral_embed_dist_4)
-chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
+#chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
 dump_matrix_sc("spectral_embed_dist_4.scd", spectral_embed_dist_4)
 
