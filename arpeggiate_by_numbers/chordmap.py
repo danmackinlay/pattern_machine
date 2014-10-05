@@ -253,11 +253,25 @@ impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
+kpca_2 = get_mds(chords_i_products_square, n_dims=2)
+dump_projection("kpca_2.h5", kpca_2) #chunky cube
+write_matrix(kpca_2, filename="kpca_2.scd")
 
+kpca_3 = get_mds(chords_i_products_square, n_dims=3)
+dump_projection("kpca_3.h5", kpca_3) #chunky cube
+write_matrix(kpca_3, filename="kpca_3.scd")
+
+lin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, rotate=False)
+dump_projection("lin_mds_2.h5", lin_mds_2)
+write_matrix(kpca_2, filename="lin_mds_2.scd")
 
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_projection("lin_mds_3.h5", lin_mds_3)
+write_matrix(kpca_2, filename="lin_mds_3.scd")
 
+nonlin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False)
+dump_projection("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
+write_matrix(nonlin_mds_2, filename="nonlin_mds_2.scd")
 
 nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
 dump_projection("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
