@@ -192,18 +192,22 @@ if not os.path.exists('_chord_map_cache_make_chords.gz'):
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
-def get_pca(sq_dists, n_dims=None):
+def get_pca(sq_products, n_dims=2, normalize=True):
     transformer = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
-    transformed = transformer.fit_transform(sq_dists) #feed the product matric directly in for precomputed case
+    transformed = transformer.fit_transform(sq_products) #feed the product matrix directly in for precomputed case
+    if normalize:
+        transformed = normalize_var(transformed)
     return transformed
 
-def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
+def get_mds(sq_dists, n_dims=3, metric=True, rotate=True, normalize=True):
     transformer = MDS(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
     transformed = transformer.fit_transform(sq_dists)
     if rotate:
         # Rotate the data to a hopefully consistent orientation
         clf = PCA(n_components=n_dims)
         transformed = clf.fit_transform(transformed)
+    if normalize:
+        transformed = normalize_var(transformed)
     return transformed
 
 # 
@@ -216,7 +220,7 @@ def get_mds(sq_dists, n_dims=3, metric=True, rotate=True):
 #         transformed = clf.fit_transform(transformed)
 #     return transformed
 
-def get_spectral_embedding_prod(sq_products, n_dims=3):
+def get_spectral_embedding_prod(sq_products, n_dims=3, normalize=True):
     #The product matrix is already an affinity; 
     # but it has the undesirable quality of making high energy chords more similar than low energy chords
     # we normalise accordingly
@@ -225,10 +229,12 @@ def get_spectral_embedding_prod(sq_products, n_dims=3):
     affinity = sq_products * np.outer(inv_root_energy,inv_root_energy)
     transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
     transformed = transformer.fit_transform(affinity)
+    if normalize:
+        transformed = normalize_var(transformed)
     return transformed
 
 
-def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625):
+def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625, normalize=True):
     # see previous fn
     # this needs to be 64 bit for stability
     sq_dists = sq_dists.astype('float64')
@@ -238,20 +244,22 @@ def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625):
     # natural scale is dicey on this one. rescale to uni-ish variance
     var = np.var(transformed, 0)
     mean = np.mean(transformed, 0)
-    return ((transformed-mean)/np.sqrt(var)).astype('float32')
+    if normalize:
+        transformed = normalize_var(transformed)
+    return transformed
 
-def normalize(a, axis=None):
+def normalize_var(a, axis=None):
     """Normalise an array to unit variance"""
-    return (a-np.mean(a,axis=axis))/np.sqrt(np.var(a,axis=axis))
+    return (a-np.mean(a,axis=axis, dtype='float64'))/np.sqrt(np.var(a,axis=axis, dtype='float64'))
 
 # Two different impurity options:
 #product with the last row (maximum chaos)
-impurity_alt = normalize(chords_i_products_square[4095,:])
+impurity_alt = normalize_var(chords_i_products_square[4095,:])
 
 # product with chaos rescaled by own power (could even take sqrt)
 impurity = -(chords_i_products_square[4095,:]/np.diagonal(chords_i_products_square))
 impurity[0] = np.mean(impurity[1:]) #because of null entry
-impurity = normalize(impurity)
+impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
