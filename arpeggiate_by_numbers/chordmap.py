@@ -48,6 +48,7 @@ from sklearn.covariance import EllipticEnvelope
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.001 # less than this and they are the same note
+SEED = 76594
 
 chords_i_products_square = None
 chords_i_dists_square = None
@@ -188,7 +189,6 @@ if not os.path.exists("dists.h5"):
             filters=filt)[:] = chords_i_dists_square
 
 if not os.path.exists('_chord_map_cache_make_chords.gz'):
-    #this one is tiny (probably because repeated floats more compressible)
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
@@ -199,8 +199,22 @@ def get_pca(sq_products, n_dims=2, normalize=True):
         transformed = normalize_var(transformed)
     return transformed
 
-def get_mds(sq_dists, n_dims=3, metric=True, rotate=True, normalize=True):
-    transformer = MDS(n_components=n_dims, metric=metric, n_init=4, max_iter=300, verbose=1, eps=0.001, n_jobs=3, random_state=None, dissimilarity='precomputed')
+def get_mds(sq_dists,
+        n_dims=3,
+        metric=True,
+        rotate=True,
+        normalize=True,
+        random_state=SEED):
+    transformer = MDS(
+        n_components=n_dims,
+        metric=metric,
+        n_init=4,
+        max_iter=300,
+        verbose=1,
+        eps=0.001,
+        n_jobs=3,
+        dissimilarity='precomputed',
+        random_state=random_state)
     transformed = transformer.fit_transform(sq_dists)
     if rotate:
         # Rotate the data to a hopefully consistent orientation
@@ -210,26 +224,38 @@ def get_mds(sq_dists, n_dims=3, metric=True, rotate=True, normalize=True):
         transformed = normalize_var(transformed)
     return transformed
 
-def get_spectral_embedding_prod(sq_products, n_dims=3, normalize=True):
+def get_spectral_embedding_prod(sq_products,
+        n_dims=3,
+        normalize=True,
+        random_state=SEED):
     #The product matrix is already an affinity; 
     # but it has the undesirable quality of making high energy chords more similar than low energy chords
     # we normalise accordingly
     # Alternatively: RBF. See next fn
     inv_root_energy = 1.0/np.maximum(np.sqrt(np.diagonal(chords_i_products_square)),1)
     affinity = sq_products * np.outer(inv_root_energy,inv_root_energy)
-    transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
+    transformer = SpectralEmbedding(
+        n_components=n_dims,
+        affinity='precomputed',
+        random_state=random_state)
     transformed = transformer.fit_transform(affinity)
     if normalize:
         transformed = normalize_var(transformed)
     return transformed
 
-
-def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625, normalize=True):
+def get_spectral_embedding_dist(sq_dists,
+        n_dims=3,
+        gamma=0.0625,
+        normalize=True,
+        random_state=SEED):
     # see previous fn
     # this needs to be 64 bit for stability
     sq_dists = sq_dists.astype('float64')
     affinity = np.exp(-gamma * sq_dists * sq_dists)
-    transformer = SpectralEmbedding(n_components=n_dims, affinity='precomputed')
+    transformer = SpectralEmbedding(
+        n_components=n_dims,
+        affinity='precomputed',
+        random_state=random_state)
     transformed = transformer.fit_transform(affinity)
     # natural scale is dicey on this one. rescale to uni-ish variance
     var = np.var(transformed, 0)
@@ -240,7 +266,8 @@ def get_spectral_embedding_dist(sq_dists, n_dims=3, gamma=0.0625, normalize=True
 
 def normalize_var(a, axis=None):
     """Normalise an array to unit variance"""
-    return (a-np.mean(a,axis=axis, dtype='float64'))/np.sqrt(np.var(a,axis=axis, dtype='float64'))
+    return (a-np.mean(a,axis=axis, dtype='float64')
+        )/np.sqrt(np.var(a,axis=axis, dtype='float64'))
 
 # Two different impurity options:
 #product with the last row (maximum chaos)
