@@ -39,10 +39,9 @@ import cPickle as pickle
 from sklearn.manifold import MDS, SpectralEmbedding
 from sklearn.decomposition import PCA, KernelPCA
 import os.path
-from sklearn.cluster import SpectralClustering
 from chordmap_base import *
-import chordmap_vis
-from sklearn.covariance import EllipticEnvelope
+from chordmap_vis import *
+from sklearn.utils.arrayfuncs import min_pos
 
 N_HARMONICS = 16
 KERNEL_WIDTH = 0.001 # less than this and they are the same note
@@ -131,30 +130,25 @@ def v_chord_product_from_chord_i_raw(ci1, ci2):
         make_chord(chord_notes_from_ind(ci2))
     )
 
-def v_chord_product_from_chord_i(ci1, ci2):
-    """cached version"""
-    return chords_i_products_square[ci1, ci2]
-
 def v_chord_dist2_from_chord_i(ci1, ci2):
     """construct a chord distance^2 from the chord inner product
     TODO: there is surely an optimised routine to do this in the MDS module
     would be worth using it, since this step is slow and boring
     """
-    #this is just to calculate how often to print progress messages
-    v_chord_dist2_from_chord_i.callct = v_chord_dist2_from_chord_i.callct + 1
-    if (v_chord_dist2_from_chord_i.callct % 11==0):
-        print ci1, ci2
     return (
-        v_chord_product_from_chord_i(ci1, ci1)
-        - 2 * v_chord_product_from_chord_i(ci1, ci2)
-        + v_chord_product_from_chord_i(ci2, ci2)
+        chords_i_products_square[ci1, ci1]
+        - 2 * chords_i_products_square[ci1, ci2]
+        + chords_i_products_square[ci2, ci2]
     )
-v_chord_dist2_from_chord_i.callct = 0
 
 if os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'r') as handle:
         chords_i_products_square = handle.get_node("/", 'v_sq_products').read()
         chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
+        chords_i_correlations_square = handle.get_node("/", 'v_sq_corr_products').read()
+        chords_i_corr_dists_square = handle.get_node("/", 'v_sq_corr_dists').read()
+    product_power = np.diagonal(chords_i_products_square)
+    mean_power = np.sqrt(np.outer(product_power, product_power))
 else:
     chords_i_products_square = squareform(pdist(
         np.arange(2**12).reshape(2**12,1),
@@ -172,6 +166,25 @@ else:
         chord_idx,
         v_chord_dist2_from_chord_i
     )))
+    
+    # We can also construct everything in terms of correlations...
+    product_power = np.diagonal(chords_i_products_square)
+    mean_power = np.sqrt(np.outer(product_power, product_power))
+    assert(min_pos(mean_power)>=1.0) #otherwise ... uh... double renormalization?
+    chords_i_correlations_square = chords_i_products_square/np.maximum(mean_power,1)
+    
+    #let's do the same thing as with the product matrix but a different way because of laziness
+    chords_i_corr_dists_square = np.zeros_like(chords_i_correlations_square)
+    for ci1 in xrange(chords_i_correlations_square.shape[0]):
+        for ci2 in xrange(ci1, chords_i_correlations_square.shape[1]):
+            if ci2 % 11 ==0:
+                print ci1, ci2
+            dist = sqrt(chords_i_correlations_square[ci1, ci1]
+                - 2 * chords_i_correlations_square[ci1, ci2]
+                + chords_i_correlations_square[ci2, ci2]
+            )
+            chords_i_corr_dists_square[ci1, ci2] = dist
+            chords_i_corr_dists_square[ci2, ci1] = dist
 
 if not os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'w') as handle:
@@ -185,6 +198,14 @@ if not os.path.exists("dists.h5"):
             atom=data_atom_type, shape=chords_i_dists_square.shape,
             title="sq dists",
             filters=filt)[:] = chords_i_dists_square
+        handle.create_carray("/",'v_sq_corr_products',
+            atom=data_atom_type, shape=chords_i_correlations_square.shape,
+            title="sq corr products",
+            filters=filt)[:] = chords_i_correlations_square
+        handle.create_carray("/",'v_sq_corr_dists',
+            atom=data_atom_type, shape=chords_i_corr_dists_square.shape,
+            title="sq corr dists",
+            filters=filt)[:] = chords_i_corr_dists_square
 
 if not os.path.exists('_chord_map_cache_make_chords.gz'):
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
@@ -268,20 +289,25 @@ def normalize_var(a, axis=None):
         )/np.sqrt(np.var(a,axis=axis, dtype='float64'))
 
 #
-# Two different impurity options:
+# Three different impurity options:
 #
 #product with the last row (maximum chaos)
 impurity_alt = normalize_var(chords_i_products_square[4095,:])
 dump_matrix_hdf("impurity_alt.h5", impurity_alt)
 
-# product with chaos rescaled by own power (could even take sqrt)
-impurity = -(chords_i_products_square[4095,:]/np.diagonal(
-    chords_i_products_square))
+# product with chaos rescaled by own power
+impurity = -(chords_i_products_square[4095,:]/product_power)
 impurity[0] = np.mean(impurity[1:]) #because of null entry
 impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
 dump_matrix_hdf("impurity.h5", impurity)
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
+
+impurity_lin = -np.sqrt(chords_i_products_square[4095,:]/product_power)
+impurity_lin[0] = np.mean(impurity_lin[1:]) #because of null entry
+impurity_lin = normalize_var(impurity_lin)
+impurity_lin[0] = 0 #because of null entry
+dump_matrix_hdf("impurity_lin.h5", impurity_lin)
 
 kpca_2 = get_mds(chords_i_products_square, n_dims=2)
 dump_matrix_hdf("kpca_2.h5", kpca_2) #chunky cube
@@ -298,14 +324,6 @@ dump_matrix_sc("lin_mds_2.scd", kpca_2)
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_matrix_hdf("lin_mds_3.h5", lin_mds_3)
 dump_matrix_sc("lin_mds_3.scd", kpca_2)
-
-nonlin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False)
-dump_matrix_hdf("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
-dump_matrix_sc("nonlin_mds_2.scd", nonlin_mds_2)
-
-nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
-dump_matrix_hdf("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
-dump_matrix_sc("nonlin_mds_3.scd", nonlin_mds_3)
 
 spectral_embed_prod_2 = get_spectral_embedding_prod(chords_i_products_square, n_dims=2)
 dump_matrix_hdf("spectral_embed_prod_2.h5", spectral_embed_prod_2)
@@ -337,3 +355,11 @@ dump_matrix_hdf("spectral_embed_dist_4.h5", spectral_embed_dist_4)
 #chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
 dump_matrix_sc("spectral_embed_dist_4.scd", spectral_embed_dist_4)
 
+###slow ones
+nonlin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False)
+dump_matrix_hdf("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
+dump_matrix_sc("nonlin_mds_2.scd", nonlin_mds_2)
+
+nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
+dump_matrix_hdf("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
+dump_matrix_sc("nonlin_mds_3.scd", nonlin_mds_3)
