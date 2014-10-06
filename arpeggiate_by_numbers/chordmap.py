@@ -288,6 +288,11 @@ def normalize_var(a, axis=None):
     return (a-np.mean(a,axis=axis, dtype='float64')
         )/np.sqrt(np.var(a,axis=axis, dtype='float64'))
 
+def calc_and_stash(filename_base, calc):
+    """convenience to calculate, serialise and return all in one line so I stop making mistakes"""
+    dump_matrix_hdf(filename_base + ".h5", calc) 
+    dump_matrix_sc(filename_base + ".scd", calc)
+    return calc
 #
 # Three different impurity options:
 #
@@ -309,113 +314,29 @@ impurity_lin = normalize_var(impurity_lin)
 impurity_lin[0] = 0 #because of null entry
 dump_matrix_hdf("impurity_lin.h5", impurity_lin)
 
-kpca_2 = get_mds(chords_i_products_square, n_dims=2)
-dump_matrix_hdf("kpca_2.h5", kpca_2) #chunky cube
-dump_matrix_sc("kpca_2.scd", kpca_2)
-
-kpca_3 = get_mds(chords_i_products_square, n_dims=3)
-dump_matrix_hdf("kpca_3.h5", kpca_3) #chunky cube
-dump_matrix_sc("kpca_3.scd", kpca_3)
-
-lin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, rotate=False)
-dump_matrix_hdf("lin_mds_2.h5", lin_mds_2)
-dump_matrix_sc("lin_mds_2.scd", lin_mds_2)
-
-lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
-dump_matrix_hdf("lin_mds_3.h5", lin_mds_3)
-dump_matrix_sc("lin_mds_3.scd", lin_mds_3)
-
-spectral_embed_prod_2 = get_spectral_embedding_prod(chords_i_products_square, n_dims=2)
-dump_matrix_hdf("spectral_embed_prod_2.h5", spectral_embed_prod_2)
-#chordmap_vis.plot_2d(spectral_embed_prod_2)
-dump_matrix_sc("spectral_embed_prod_2.scd", spectral_embed_prod_2)
-
-spectral_embed_dist_2 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=2)
-dump_matrix_hdf("spectral_embed_dist_2.h5", spectral_embed_dist_2)
-#chordmap_vis.plot_2d(spectral_embed_dist_2) #flat saturn. flaturn.
-dump_matrix_sc("spectral_embed_dist_2.scd", spectral_embed_dist_2)
-
-spectral_embed_prod_3 = get_spectral_embedding_prod(chords_i_products_square, n_dims=3)
-dump_matrix_hdf("spectral_embed_prod_3.h5", spectral_embed_prod_3)
-#chordmap_vis.plot_3d(spectral_embed_prod_3) #radial rainbow ball
-dump_matrix_sc("spectral_embed_prod_3.scd", spectral_embed_prod_3)
-
-spectral_embed_dist_3 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=3)
-dump_matrix_hdf("spectral_embed_dist_3.h5", spectral_embed_dist_3)
-#chordmap_vis.plot_3d(spectral_embed_dist_3) #weird striated honeycomb
-dump_matrix_sc("spectral_embed_dist_3.scd", spectral_embed_dist_3)
-
-spectral_embed_prod_4 = get_spectral_embedding_prod(chords_i_products_square, n_dims=4)
-dump_matrix_hdf("spectral_embed_prod_4.h5", spectral_embed_prod_4)
-#chordmap_vis.plot_3d(spectral_embed_prod_4) #radial rainbow ball
-dump_matrix_sc("spectral_embed_prod_4.scd", spectral_embed_prod_4)
-
-spectral_embed_dist_4 = get_spectral_embedding_dist(chords_i_dists_square, n_dims=4)
-dump_matrix_hdf("spectral_embed_dist_4.h5", spectral_embed_dist_4)
-#chordmap_vis.plot_3d(spectral_embed_dist_4) #weird striated honeycomb
-dump_matrix_sc("spectral_embed_dist_4.scd", spectral_embed_dist_4)
-
-###slow ones
-nonlin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False)
-dump_matrix_hdf("nonlin_mds_2.h5", nonlin_mds_2) #chunky cube
-dump_matrix_sc("nonlin_mds_2.scd", nonlin_mds_2)
-
-nonlin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False)
-dump_matrix_hdf("nonlin_mds_3.h5", nonlin_mds_3) #chunky cube
-dump_matrix_sc("nonlin_mds_3.scd", nonlin_mds_3)
+kpca_2 = calc_and_stash("kpca_2", get_pca(chords_i_products_square, n_dims=2))
+kpca_3 = calc_and_stash("kpca_3", get_pca(chords_i_products_square, n_dims=3))
+lin_mds_2 = calc_and_stash("lin_mds_2", get_mds(chords_i_products_square, n_dims=2))
+lin_mds_3 = calc_and_stash("lin_mds_3", get_mds(chords_i_products_square, n_dims=3))
+spectral_embed_prod_2 = calc_and_stash("spectral_embed_prod_2", get_spectral_embedding_prod(chords_i_products_square, n_dims=2))
+spectral_embed_prod_3 = calc_and_stash("spectral_embed_prod_3", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
+spectral_embed_prod_4 = calc_and_stash("spectral_embed_prod_4", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
+spectral_embed_dist_2 = calc_and_stash("spectral_embed_dist_2", get_spectral_embedding_dist(chords_i_dists_square, n_dims=2))
+spectral_embed_dist_3 = calc_and_stash("spectral_embed_dist_3", get_spectral_embedding_dist(chords_i_dists_square, n_dims=3))
+spectral_embed_dist_4 = calc_and_stash("spectral_embed_dist_4", get_spectral_embedding_dist(chords_i_dists_square, n_dims=4))
+nonlin_mds_2 = calc_and_stash("nonlin_mds_2", get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False))
+nonlin_mds_3 = calc_and_stash("nonlin_mds_3", get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False))
 
 ##########correlation ones
-kpca_corr_2 = get_mds(chords_i_correlations_square, n_dims=2)
-dump_matrix_hdf("kpca_corr_2.h5", kpca_corr_2) #chunky cube
-dump_matrix_sc("kpca_corr_2.scd", kpca_corr_2)
-
-kpca_corr_3 = get_mds(chords_i_correlations_square, n_dims=3)
-dump_matrix_hdf("kpca_corr_3.h5", kpca_corr_3) #chunky cube
-dump_matrix_sc("kpca_corr_3.scd", kpca_corr_3)
-
-lin_mds_corr_2 = get_mds(chords_i_corr_dists_square, n_dims=2, rotate=False)
-dump_matrix_hdf("lin_mds_corr_2.h5", lin_mds_corr_2)
-dump_matrix_sc("lin_mds_corr_2.scd", lin_mds_corr_2)
-
-lin_mds_corr_3 = get_mds(chords_i_corr_dists_square, n_dims=3, rotate=False)
-dump_matrix_hdf("lin_mds_corr_3.h5", lin_mds_corr_3)
-dump_matrix_sc("lin_mds_corr_3.scd", lin_mds_corr_3)
-
-spectral_embed_prod_corr_2 = get_spectral_embedding_prod(chords_i_correlations_square, n_dims=2)
-dump_matrix_hdf("spectral_embed_prod_corr_2.h5", spectral_embed_prod_corr_2)
-#chordmap_vis.plot_2d(spectral_embed_prod_corr_2)
-dump_matrix_sc("spectral_embed_prod_corr_2.scd", spectral_embed_prod_corr_2)
-
-spectral_embed_dist_corr_2 = get_spectral_embedding_dist(chords_i_corr_dists_square, n_dims=2)
-dump_matrix_hdf("spectral_embed_dist_corr_2.h5", spectral_embed_dist_corr_2)
-#chordmap_vis.plot_2d(spectral_embed_dist_corr_2) #flat saturn. flaturn.
-dump_matrix_sc("spectral_embed_dist_corr_2.scd", spectral_embed_dist_corr_2)
-
-spectral_embed_prod_corr_3 = get_spectral_embedding_prod(chords_i_correlations_square, n_dims=3)
-dump_matrix_hdf("spectral_embed_prod_corr_3.h5", spectral_embed_prod_corr_3)
-#chordmap_vis.plot_3d(spectral_embed_prod_corr_3) #radial rainbow ball
-dump_matrix_sc("spectral_embed_prod_corr_3.scd", spectral_embed_prod_corr_3)
-
-spectral_embed_dist_corr_3 = get_spectral_embedding_dist(chords_i_corr_dists_square, n_dims=3)
-dump_matrix_hdf("spectral_embed_dist_corr_3.h5", spectral_embed_dist_corr_3)
-#chordmap_vis.plot_3d(spectral_embed_dist_corr_3) #weird striated honeycomb
-dump_matrix_sc("spectral_embed_dist_corr_3.scd", spectral_embed_dist_corr_3)
-
-spectral_embed_prod_corr_4 = get_spectral_embedding_prod(chords_i_correlations_square, n_dims=4)
-dump_matrix_hdf("spectral_embed_prod_corr_4.h5", spectral_embed_prod_corr_4)
-#chordmap_vis.plot_3d(spectral_embed_prod_corr_4) #radial rainbow ball
-dump_matrix_sc("spectral_embed_prod_corr_4.scd", spectral_embed_prod_corr_4)
-
-spectral_embed_dist_corr_4 = get_spectral_embedding_dist(chords_i_corr_dists_square, n_dims=4)
-dump_matrix_hdf("spectral_embed_dist_corr_4.h5", spectral_embed_dist_corr_4)
-#chordmap_vis.plot_3d(spectral_embed_dist_corr_4) #weird striated honeycomb
-dump_matrix_sc("spectral_embed_dist_corr_4.scd", spectral_embed_dist_corr_4)
-
-###slow ones
-nonlin_mds_corr_2 = get_mds(chords_i_corr_dists_square, n_dims=2, metric=False, rotate=False)
-dump_matrix_hdf("nonlin_mds_corr_2.h5", nonlin_mds_corr_2) #chunky cube
-dump_matrix_sc("nonlin_mds_corr_2.scd", nonlin_mds_corr_2)
-
-nonlin_mds_corr_3 = get_mds(chords_i_corr_dists_square, n_dims=3, metric=False, rotate=False)
-dump_matrix_hdf("nonlin_mds_corr_3.h5", nonlin_mds_corr_3) #chunky cube
-dump_matrix_sc("nonlin_mds_corr_3.scd", nonlin_mds_corr_3)
+kpca_corr_2 = calc_and_stash("kpca_corr_2", get_pca(chords_i_products_square, n_dims=2))
+kpca_corr_3 = calc_and_stash("kpca_corr_3", get_pca(chords_i_products_square, n_dims=3))
+lin_mds_corr_2 = calc_and_stash("lin_mds_corr_2", get_mds(chords_i_products_square, n_dims=2))
+lin_mds_corr_3 = calc_and_stash("lin_mds_corr_3", get_mds(chords_i_products_square, n_dims=3))
+spectral_embed_prod_corr_2 = calc_and_stash("spectral_embed_prod_corr_2", get_spectral_embedding_prod(chords_i_products_square, n_dims=2))
+spectral_embed_prod_corr_3 = calc_and_stash("spectral_embed_prod_corr_3", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
+spectral_embed_prod_corr_4 = calc_and_stash("spectral_embed_prod_corr_4", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
+spectral_embed_dist_corr_2 = calc_and_stash("spectral_embed_dist_corr_2", get_spectral_embedding_dist(chords_i_dists_square, n_dims=2))
+spectral_embed_dist_corr_3 = calc_and_stash("spectral_embed_dist_corr_3", get_spectral_embedding_dist(chords_i_dists_square, n_dims=3))
+spectral_embed_dist_corr_4 = calc_and_stash("spectral_embed_dist_corr_4", get_spectral_embedding_dist(chords_i_dists_square, n_dims=4))
+nonlin_mds_corr_2 = calc_and_stash("nonlin_mds_corr_2", get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False))
+nonlin_mds_corr_3 = calc_and_stash("nonlin_mds_corr_3", get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False))
