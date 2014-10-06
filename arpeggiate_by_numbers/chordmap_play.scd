@@ -81,6 +81,7 @@ var state = ~state;
 	~basef = 1/10;
 	~interval = 1;
 	~maxDist = 0.1;
+	~offset = 150.0.rand;
 });
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
@@ -98,13 +99,13 @@ state.chordspiral = Pspawner({|spawner|
 		inf.do({
 			~time = ~time + ~interval;
 			~rates = Array.series(~dims, ~basef, ~basef/17.0);
-			~coord = (~rates * ~time).cos * ~range + ~center;
+			~coord = (~rates * ~time + ~offset).cos * ~range + ~center;
 			~neighbours = state.classNeighboursOfCoord(~coord, 1, 0.2);
 			(~neighbours.size>0).if({
 				~bestclass = ~neighbours[0][0];
 				~bestdist = ~neighbours[0][1];
 				~notes = ~bestclass;
-				[~time, ~coord, ~bestdist, ~bestclass, ~notes].postln;
+				[~time, ~coord, ~bestdist, ~bestclass, ~notes, ~offset].postln;
 				~ev = ~protoEvent.copy;
 				~ev.putAll((
 					dur: ~interval,
@@ -149,7 +150,7 @@ CmdPeriod.doOnce(
 )
 ~state.plotter.plot3(~state.map);
 
-~state.map
+~state.offset=135;
 ~state.idfromrow[65];
 ~state.map.flop.collect(_.maxItem);
 ~state.map.flop.collect(_.minItem);
