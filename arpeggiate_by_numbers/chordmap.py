@@ -319,11 +319,11 @@ dump_matrix_sc("kpca_3.scd", kpca_3)
 
 lin_mds_2 = get_mds(chords_i_dists_square, n_dims=2, rotate=False)
 dump_matrix_hdf("lin_mds_2.h5", lin_mds_2)
-dump_matrix_sc("lin_mds_2.scd", kpca_2)
+dump_matrix_sc("lin_mds_2.scd", lin_mds_2)
 
 lin_mds_3 = get_mds(chords_i_dists_square, n_dims=3, rotate=False)
 dump_matrix_hdf("lin_mds_3.h5", lin_mds_3)
-dump_matrix_sc("lin_mds_3.scd", kpca_2)
+dump_matrix_sc("lin_mds_3.scd", lin_mds_3)
 
 spectral_embed_prod_2 = get_spectral_embedding_prod(chords_i_products_square, n_dims=2)
 dump_matrix_hdf("spectral_embed_prod_2.h5", spectral_embed_prod_2)
