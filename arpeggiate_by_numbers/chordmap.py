@@ -9,26 +9,20 @@
 # or cast to a basis of notes using a custom kernel
 # need to have this in terms of notes, though
 # TODO: weight by actual chord occurence (when do 11 notes play at once? even 6 is pushing it)
+# TODO: restrict cursor to convex hull of notes
 # TODO: toroidal maps
+# TODO: frame in terms of *partial* dimension recovery
 # TODO: simple transition graph might work, if it was made regular in some way
 # TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, though.
-# TODO: segment on number of notes, either before or after MDS
 # TODO: segment on total spectral energy; or at least weight transitions on relative energy. (how often do we then increase energy?)
 # TODO: colorize base on number of notes
-# TODO: ditch python dict serialization in favour of indexed pytables
 # TODO: Actually integrate kernels together
 # TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
 # TODO: We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
-# TODO: Or can i just pull out one of these leaves and inspect for what it is?
-# TODO: straight number-of-notes colour map
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
 # TODO: switch between embeddings live (record current note affinity)
-# TODO: I can't do Locally Linear Embedding because I throw out the original coords (it is not a kernel method). But can I do Spectral Embedding? yep.
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
-# TODO: How about I extract a tendency for more notes from the fit by inferring a "number of notes" field from the density? this would work pretty good on the spectral embedding by rbf.
-# TODO: add a "chaoticness" index in. As a new dimension. Now, how to construct it?
-# TODO: ...I could even add it in, then take a PCA to de-correlate it from the final output, then rotate to back along the original dimension.
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
