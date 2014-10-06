@@ -6,7 +6,6 @@ GNUPlot.initCode    = GNUPlot.initCode ++ "\n set term x11 \n";
 GNUPlot.gnuplotpath = GNUPlot.pathToXLauncher.quote + "/opt/local/bin/gnuplot";
 */
 
-MIDIClient.init;
 MIDIClient.destinations;
 (
 var state = ();
@@ -19,38 +18,39 @@ state.make({
 	).flop;
 	~idfromrow=data.removeAt(0);
 	~midiout=MIDIOut.newByName("IAC-Driver", "Bus 1"
-	  ).latency_(Server.default.latency);
+	).latency_(Server.default.latency);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
 	~idfromrow.do({|id,row|~rowfromid[id]=row;});
 	~map=data.flop.collect({|r|r.asFloatArray});
-	~chordIdNeighboursOfCoord = {|self, center, limCount=15|
-		var candidates;
+	~chordIdNeighboursOfCoord = {|self, center, limCount=15, limDist=inf|
+		var candidates, limDistSq=limDist.squared;
 		candidates = SortedList.new(limCount+1, {|item1, item2| item1[1]<item2[1]});
 		self.map.do({|row, i|
 			var distsq = (row-center).squared.sum;
 			candidates = candidates.add([self.idfromrow[i], distsq]);
 			//candidates = candidates[..limCount];
 		});
-		candidates.asArray;
+		candidates[..(limCount-1)].select({|item| item[1]<limDistSq}).asArray;
 		//candidates;
 	};
-	~chordIdNeighboursOfChordId = {|self, chordId, limCount=15|
-		self.chordIdNeighboursOfCoord(self.map[self.rowfromid[chordId]], limCount);
+	~chordIdNeighboursOfChordId = {|self, chordId, limCount=15, limDist=inf|
+		self.chordIdNeighboursOfCoord(self.map[self.rowfromid[chordId]], limCount, limDist);
 	};
-	~chordIdNeighboursOfClass = {|self, class, limCount=15|
+	~chordIdNeighboursOfClass = {|self, class, limCount=15, limDist=inf|
 		self.chordIdNeighboursOfCoord(
 			self.map[self.chordIdFromClass(class)],
-			limCount);
+			limCount, limDist);
 	};
 	//Check this one before using; not tested since I messed with indices.
-	~classNeighboursOfClass = {|self, class, limCount=15|
+	~classNeighboursOfClass = {|self, class, limCount=15, limDist=inf|
 		self.chordIdNeighboursOfCoord(
 			self.map[self.rowfromid[self.chordIdFromClass(class)]],
-			limCount).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
+			limCount, limDist
+		).collect({|idDist| [self.classFromChordId(idDist[0]), idDist[1]]});
 	};
-	~classNeighboursOfCoord = {|self, center, limCount=15|
+	~classNeighboursOfCoord = {|self, center, limCount=15, limDist=inf|
 		var ret;
-		ret = self.chordIdNeighboursOfCoord(center, limCount);
+		ret = self.chordIdNeighboursOfCoord(center, limCount, limDist);
 		ret.collect(
 			{|idDist| [self.classFromChordId(idDist[0]),idDist[1]]}
 		);
@@ -79,7 +79,8 @@ var state = ~state;
 	~coord=Array.fill(~dims,0.0);
 	~time = 0.0;
 	~basef = 1/10;
-	~interval = 1/4;
+	~interval = 1;
+	~maxDist = 0.1;
 });
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
@@ -98,25 +99,31 @@ state.chordspiral = Pspawner({|spawner|
 			~time = ~time + ~interval;
 			~rates = Array.series(~dims, ~basef, ~basef/17.0);
 			~coord = (~rates * ~time).cos * ~range + ~center;
-			~class = state.classNeighboursOfCoord(~coord, 0.5)[0][0];
-			~pitches = ~class;// + 60;
+			~neighbours = state.classNeighboursOfCoord(~coord, 1, 0.2);
+			(~neighbours.size>0).if({
+				~bestclass = ~neighbours[0][0];
+				~bestdist = ~neighbours[0][1];
+				~notes = ~bestclass;
+				[~time, ~coord, ~bestdist, ~bestclass, ~notes].postln;
+				spawner.seq(
+					state.protoEvent.copy.putAll((
+						dur: ~interval,
+						note: ~notes,
+					))
+				);
+			}, {
+				[\nonotes, ~time, ~coord].postln;
+				spawner.wait(~interval);
+			});
 
-			[~time, ~coord, ~rates, ~class, ~pitches].postln;
-
-			spawner.seq(
-				~protoEvent.copy.putAll((
-					dur: ~interval,
-					note: ~pitches,
-				))
-			);
 		});
 	});
-}).play;
-//this doesn't seem to hapen by isself.
+}).trace.play;
+//this doesn't seem to happen by isself reliably
 CmdPeriod.doOnce(
 	~state.protoEvent.copy.putAll((
 		midicmd: \allNotesOff,
-	));
+	).play);
 );
 )
 (
@@ -143,8 +150,10 @@ CmdPeriod.doOnce(
 ~state.idfromrow[65];
 ~state.map.flop.collect(_.maxItem);
 ~state.map.flop.collect(_.minItem);
+~state.classNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0).flop[0];
 ~state.classNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
 ~state.classNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
+~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 1, 0.3).flop[0];
 ~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
 ~state.chordIdNeighboursOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
 ~state.chordIdNeighboursOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5);
