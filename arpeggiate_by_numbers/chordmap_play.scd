@@ -14,7 +14,7 @@ MIDIClient.init;
 
 state.make({
 	var data = (
-		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers" +/+ "spectral_embed_dist_3.scd")
+		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
 	).flop;
 	~idfromrow=data.removeAt(0);
 	~midiout=MIDIOut.newByName("IAC-Driver", "Bus 1"
@@ -28,7 +28,7 @@ state.make({
 		self.map.do({|row, i|
 			var distsq = (row-center).squared.sum;
 			candidates = candidates.add([self.idfromrow[i], distsq]);
-			//candidates = candidates[..limCount];
+			candidates = candidates.copyRange(0,limCount+1);
 		});
 		candidates[..(limCount-1)].select({|item| item[1]<limDistSq}).asArray;
 		//candidates;
@@ -105,11 +105,14 @@ state.chordspiral = Pspawner({|spawner|
 				~bestdist = ~neighbours[0][1];
 				~notes = ~bestclass;
 				[~time, ~coord, ~bestdist, ~bestclass, ~notes].postln;
+				~ev = ~protoEvent.copy;
+				~ev.putAll((
+					dur: ~interval,
+					note: ~notes,
+				));
+				[\ev, ~ev].postln;
 				spawner.seq(
-					state.protoEvent.copy.putAll((
-						dur: ~interval,
-						note: ~notes,
-					))
+					~protoEvent.copy.putAll(~ev);
 				);
 			}, {
 				[\nonotes, ~time, ~coord].postln;
