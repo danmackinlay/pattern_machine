@@ -290,8 +290,8 @@ def normalize_var(a, axis=None):
 
 def calc_and_stash(filename_base, calc):
     """convenience to calculate, serialise and return all in one line so I stop making mistakes"""
-    dump_matrix_hdf(filename_base + ".h5", calc) 
-    dump_matrix_sc(filename_base + ".scd", calc)
+    dump_matrix_hdf("mappings/ " + filename_base + ".h5", calc) 
+    dump_matrix_sc("mappings/ " + filename_base + ".scd", calc)
     return calc
 #
 # Three different impurity options:
@@ -348,3 +348,54 @@ nonlin_mds_corr_3 = calc_and_stash("nonlin_mds_corr_3", get_mds(chords_i_dists_s
 #chordmap_vis.plot_3d(spectral_embed_dist_corr_3) #weird striated honeycomb
 #chordmap_vis.plot_3d(spectral_embed_prod_corr_4) #radial rainbow ball
 #chordmap_vis.plot_3d(spectral_embed_dist_corr_4) #weird striated honeycomb
+
+def decache():
+    "nasty hack for loading analysis from cache"
+    for basename in [
+        "kpca_2",
+        "kpca_3",
+        "kpca_corr_2",
+        "kpca_corr_3",
+        "lin_mds_2",
+        "lin_mds_3",
+        "lin_mds_4",
+        "lin_mds_corr_2",
+        "lin_mds_corr_3",
+        "nonlin_mds_2",
+        "nonlin_mds_3",
+        "nonlin_mds_corr_2",
+        "nonlin_mds_corr_3",
+        "spectral_embed_dist_2",
+        "spectral_embed_dist_3",
+        "spectral_embed_dist_4",
+        "spectral_embed_dist_corr_2",
+        "spectral_embed_dist_corr_3",
+        "spectral_embed_dist_corr_4",
+        "spectral_embed_prod_2",
+        "spectral_embed_prod_3",
+        "spectral_embed_prod_4",
+        "spectral_embed_prod_corr_2",
+        "spectral_embed_prod_corr_3",
+        "spectral_embed_prod_corr_4",
+        "impurity",
+        "impurity_alt",
+        "impurity_lin",
+    ]:
+        globals()[basename] = load_matrix_hdf("mappings/" + basename + ".h5")
+        
+# Interesting exemplars:
+# conical! impurity is already captured by radius:
+plot_3d(np.hstack([lin_mds_corr_2, impurity_alt.reshape(-1,1)])) 
+#"handerchief" manifolds
+plot_3d(np.hstack([lin_mds_2, impurity_alt.reshape(-1,1)]))
+plot_3d(np.hstack([spectral_embed_dist_2, impurity_alt.reshape(-1,1)]))
+#diamond manifold: 3rd axis adds nothing
+plot_3d(np.hstack([kpca_2, impurity_alt.reshape(-1,1)]))
+# OTOH, this is a sphere no matter how you look at it.... true 4d?
+plot_3d(np.hstack([kpca_3, impurity_alt.reshape(-1,1)]))
+# cones:
+plot_3d(np.hstack([spectral_embed_prod_2, impurity_alt.reshape(-1,1)]))
+plot_3d(np.hstack([spectral_embed_dist_corr_2, impurity_alt.reshape(-1,1)]))
+plot_3d(np.hstack([spectral_embed_prod_corr_2, impurity_alt.reshape(-1,1)]))
+#4d cone
+plot_3d(np.hstack([spectral_embed_dist_3, impurity_lin.reshape(-1,1)]))
