@@ -340,3 +340,11 @@ spectral_embed_dist_corr_3 = calc_and_stash("spectral_embed_dist_corr_3", get_sp
 spectral_embed_dist_corr_4 = calc_and_stash("spectral_embed_dist_corr_4", get_spectral_embedding_dist(chords_i_dists_square, n_dims=4))
 nonlin_mds_corr_2 = calc_and_stash("nonlin_mds_corr_2", get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False))
 nonlin_mds_corr_3 = calc_and_stash("nonlin_mds_corr_3", get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False))
+
+###################Viz
+#chordmap_vis.plot_2d(spectral_embed_prod_corr_2)
+#chordmap_vis.plot_2d(spectral_embed_dist_corr_2) #flat saturn. flaturn.
+#chordmap_vis.plot_3d(spectral_embed_prod_corr_3) #radial rainbow ball
+#chordmap_vis.plot_3d(spectral_embed_dist_corr_3) #weird striated honeycomb
+#chordmap_vis.plot_3d(spectral_embed_prod_corr_4) #radial rainbow ball
+#chordmap_vis.plot_3d(spectral_embed_dist_corr_4) #weird striated honeycomb
