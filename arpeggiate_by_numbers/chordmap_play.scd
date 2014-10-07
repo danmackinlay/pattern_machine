@@ -12,7 +12,8 @@ state.make({
 	~data = (
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
-		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd")
+		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd") //PRETTY
+		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_lin.scd") //MEH
 	).flop;
 	~idfromrow = ~data.removeAt(0);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
@@ -77,11 +78,13 @@ var state = ~state;
 	~interval = 1/4;
 	~maxDist = 0.1;
 	~offset = 150.0.rand;
+	~manualparam = Array.fill(4, 0.0);
+	~manualcoord = Array.fill(~dims, 0.0);
+	~auto = 1;
 });
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
 		//link::Tutorials/A-Practical-Guide/PG_Cookbook04_Sending_MIDI::
-		~heldPitches = IdentitySet.new(12);
 		~protoEvent = (
 			type: \midi,
 			legato: 0.8,
@@ -94,9 +97,8 @@ state.chordspiral = Pspawner({|spawner|
 		inf.do({
 			~time = ~time + ~interval;
 			~rates = Array.series(~dims, ~basef, ~basef/17.0);
-			~auto = 1;
 			~autocoord = ((~rates * ~time + ~offset).cos * ~scale + ~center);
-			~manualcoord = Array.fill(~dims, 0.0);
+			~manualcoord = ~manualparam.copyRange(0,~dims-1) * ~scale + ~center;
 			~coord = (~autocoord * ~auto) + (~manualcoord * (1 - ~auto));
 			~neighbours = state.classNeighbourOfCoord(~coord, 1, 0.2);
 			(~neighbours.size>0).if({
@@ -120,7 +122,58 @@ state.chordspiral = Pspawner({|spawner|
 
 		});
 	});
-}).trace.play;
+}).play;
+state.use({
+	~alldefs = List.new;
+	~sliderInPort = ~sliderInPort ?? {
+		MIDIClient.init;
+		MIDIClient.list;
+		MIDIIn.connectAll;
+		// MIDIIn.findPort("nanoKEY2", "CTRL")
+		~sliderInPort = MIDIIn.findPort("nanoKONTROL2", "CTRL");
+	};
+	//MIDIFunc.trace(true);
+	MIDIFunc.trace(false);
+	~sliderMeta =[
+		[1,  0],//slider 1
+		[1, 16],//knob 1
+		[1,  1],//slider 2
+		[1, 17],//knob 2
+		[1,  2],//etc
+		[1, 18],
+		[1,  3],
+		[1, 19],
+		[1,  4],
+		[1, 20],
+		[1,  5],
+		[1, 21],
+		[1,  6],
+		[1, 22],
+		[1,  7],
+		[1, 23],
+	];
+	//location the first 3-4 faders
+	~alldefs.add(MIDIdef.cc(\param0, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		state.manualparam[0] = mapped;
+		[\param0, mapped].postln;
+	}, ccNum: 0, chan: 1));
+	~alldefs.add(MIDIdef.cc(\param1, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		state.manualparam[1] = mapped;
+		[\param1, mapped].postln;
+	}, ccNum: 1, chan: 1));
+	~alldefs.add(MIDIdef.cc(\param2, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		state.manualparam[2] = mapped;
+		[\param2, mapped].postln;
+	}, ccNum: 2, chan: 1));
+	/*~alldefs.add(MIDIdef.cc(\param1, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
+		state.manualparam[3] = mapped;
+		[\param3, mapped].postln;
+	}, ccNum: 3, chan: 1));*/
+});
 //this doesn't seem to happen by isself reliably
 CmdPeriod.doOnce({
 	var ev = ~state.protoEvent.copy;
@@ -129,6 +182,7 @@ CmdPeriod.doOnce({
 	)).play;
 });
 )
+~state.auto=0;
 
 ~state.map[0].size;
 ~state.map.flop.collect(_.maxItem);
