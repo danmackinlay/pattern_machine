@@ -23,6 +23,7 @@
 # TODO: switch between embeddings live (record current note affinity)
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
+# TODO: octave selection, transposition, # of notes
 # TODO: swtich to JSON for interchange medium
 # TODO: visualise, somehow, e.g.
 #  http://www.ibm.com/developerworks/library/wa-webgl3/
@@ -398,3 +399,6 @@ plot_3d(np.hstack([spectral_embed_dist_corr_2, impurity_alt.reshape(-1,1)]))
 plot_3d(np.hstack([spectral_embed_prod_corr_2, impurity_alt.reshape(-1,1)]))
 #4d cone
 plot_3d(np.hstack([spectral_embed_dist_3, impurity_lin.reshape(-1,1)]))
+
+# can stash them lik, e.g.
+dump_matrix_sc("mappings/spectral_embed_prod_corr_2_impurity_alt.scd", np.hstack([spectral_embed_prod_corr_2, impurity_alt.reshape(-1,1)])) 
