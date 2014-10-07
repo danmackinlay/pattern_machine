@@ -1,6 +1,7 @@
 //TODO: display info
 
-// MIDIClient.destinations;
+MIDIClient.destinations;
+MIDIClient.sources;
 (
 var state = ();
 ~state = state;
@@ -80,7 +81,8 @@ var state = ~state;
 	~offset = 150.0.rand;
 	~manualparam = Array.fill(4, 0.0);
 	~manualcoord = Array.fill(~dims, 0.0);
-	~auto = 1;
+	~auto = 0;
+	~verbose = false;
 });
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
@@ -105,7 +107,7 @@ state.chordspiral = Pspawner({|spawner|
 				~bestclass = ~neighbours[0][0];
 				~bestdist = ~neighbours[0][1];
 				~notes = ~bestclass;
-				[~time, ~coord, ~bestdist, ~bestclass, ~notes, ~offset].postln;
+				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~notes, ~offset].postln;});
 				~ev = ~protoEvent.copy;
 				~ev.putAll((
 					dur: ~interval,
@@ -116,7 +118,7 @@ state.chordspiral = Pspawner({|spawner|
 					~protoEvent.copy.putAll(~ev);
 				);
 			}, {
-				[\nonotes, ~time, ~coord].postln;
+				~verbose.if({[\nonotes, ~time, ~coord].postln;});
 				spawner.wait(~interval);
 			});
 
@@ -125,13 +127,11 @@ state.chordspiral = Pspawner({|spawner|
 }).play;
 state.use({
 	~alldefs = List.new;
-	~sliderInPort = ~sliderInPort ?? {
+	~sliderInPort = {
 		MIDIClient.init;
-		MIDIClient.list;
 		MIDIIn.connectAll;
-		// MIDIIn.findPort("nanoKEY2", "CTRL")
-		~sliderInPort = MIDIIn.findPort("nanoKONTROL2", "CTRL");
-	};
+		MIDIIn.findPort("nanoKONTROL2", "SLIDER/KNOB");
+	}.value;
 	//MIDIFunc.trace(true);
 	MIDIFunc.trace(false);
 	~sliderMeta =[
@@ -156,23 +156,23 @@ state.use({
 	~alldefs.add(MIDIdef.cc(\param0, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[0] = mapped;
-		[\param0, mapped].postln;
+		//[\param0, mapped].postln;
 	}, ccNum: 0, chan: 1));
 	~alldefs.add(MIDIdef.cc(\param1, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[1] = mapped;
-		[\param1, mapped].postln;
+		//[\param1, mapped].postln;
 	}, ccNum: 1, chan: 1));
 	~alldefs.add(MIDIdef.cc(\param2, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[2] = mapped;
-		[\param2, mapped].postln;
+		//[\param2, mapped].postln;
 	}, ccNum: 2, chan: 1));
-	/*~alldefs.add(MIDIdef.cc(\param1, {|val,num,chan,src|
+	~alldefs.add(MIDIdef.cc(\param3, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[3] = mapped;
-		[\param3, mapped].postln;
-	}, ccNum: 3, chan: 1));*/
+		//[\param3, mapped].postln;
+	}, ccNum: 3, chan: 1));
 });
 //this doesn't seem to happen by isself reliably
 CmdPeriod.doOnce({
@@ -183,6 +183,9 @@ CmdPeriod.doOnce({
 });
 )
 ~state.auto=0;
+~state.auto=1;
+~state.manualparam
+~state.sliderInPort;
 
 ~state.map[0].size;
 ~state.map.flop.collect(_.maxItem);

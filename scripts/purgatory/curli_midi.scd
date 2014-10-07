@@ -6,8 +6,8 @@
 		MIDIClient.init;
 		MIDIClient.list;
 		MIDIIn.connectAll;
-		// MIDIIn.findPort("nanoKEY2", "CTRL")
-		//state.sliderInPort = MIDIIn.findPort("nanoKONTROL2", "CTRL");
+		// MIDIIn.findPort("nanoKEY2", "SLIDER/KNOB")
+		//state.sliderInPort = MIDIIn.findPort("nanoKONTROL2", "SLIDER/KNOB"	);
 		state.sliderInPort;
 	};
 	//MIDIFunc.trace(true);
