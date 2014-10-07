@@ -71,11 +71,13 @@ state.make({
 var state = ~state;
 ~state.use({
 	~dims = ~map[0].size;
-	~maxes=~map.flop.collect(_.maxItem);
-	~mins=~map.flop.collect(_.minItem);
+	~maxes = ~map.flop.collect(_.maxItem);
+	~mins = ~map.flop.collect(_.minItem);
+	//~center = (~maxes+~mins)/2;
+	//~scale = (~maxes-~mins)/2;
 	~center = ~map.flop.collect(_.mean);
 	~scale = ~map.flop.collect(_.stdDevPop * 2);
-	~coord=Array.fill(~dims,0.0);
+	~coord = Array.fill(~dims,0.0);
 	~time = 0.0;
 	~basef = 1/10;
 	~interval = 1/4;
@@ -136,7 +138,7 @@ state.use({
 	}.value;
 	//MIDIFunc.trace(true);
 	MIDIFunc.trace(false);
-	~sliderMeta =[
+	~sliderMeta = [
 		[1,  0],//slider 1
 		[1, 16],//knob 1
 		[1,  1],//slider 2
@@ -186,7 +188,7 @@ CmdPeriod.doOnce({
 )
 ~state.auto=0;
 ~state.auto=1;
-~state.manualparam
+~state.manualparam;
 ~state.sliderInPort;
 
 ~state.map[0].size;

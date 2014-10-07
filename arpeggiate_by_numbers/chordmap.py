@@ -24,7 +24,7 @@
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
 # TODO: octave selection, transposition, # of notes
-# TODO: swtich to JSON for interchange medium
+# TODO: switch to JSON for interchange medium
 # TODO: visualise, somehow, e.g.
 #  http://www.ibm.com/developerworks/library/wa-webgl3/
 #  http://scenejs.org/
