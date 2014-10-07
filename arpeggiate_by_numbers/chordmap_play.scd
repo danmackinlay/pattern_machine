@@ -16,7 +16,9 @@ state.make({
 	~midiout=MIDIOut.newByName("IAC-Driver", "Bus 1"
 	).latency_(Server.default.latency);
 	~data = (
-		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
+		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
+		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
+		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd")
 	).flop;
 	~idfromrow = ~data.removeAt(0);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
