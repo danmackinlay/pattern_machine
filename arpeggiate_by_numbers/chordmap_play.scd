@@ -1,12 +1,6 @@
 //TODO: display info
 
-/*
-// for mac users who want X:
-GNUPlot.initCode    = GNUPlot.initCode ++ "\n set term x11 \n";
-GNUPlot.gnuplotpath = GNUPlot.pathToXLauncher.quote + "/opt/local/bin/gnuplot";
-*/
-
-MIDIClient.destinations;
+// MIDIClient.destinations;
 (
 var state = ();
 ~state = state;
@@ -142,6 +136,12 @@ CmdPeriod.doOnce({
 ~state.map.flop.collect(_.mean);
 ~state.map.flop.collect(_.stdDevPop * 2);
 ~state.tree.nearest([1,1,1,1]);
+
+/*
+// for mac users who want X:
+GNUPlot.initCode    = GNUPlot.initCode ++ "\n set term x11 \n";
+GNUPlot.gnuplotpath = GNUPlot.pathToXLauncher.quote + "/opt/local/bin/gnuplot";
+*/
 
 (
 ~state.use({
