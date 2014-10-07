@@ -13,8 +13,10 @@ state.make({
 	~data = (
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
-		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd") //PRETTY
+		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd") //PRETTY
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_lin.scd") //MEH
+		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_prod_corr_2_impurity_alt.scd") // cone; needs coord transform
+		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_prod_corr_2_impurity_lin.scd") //Squid-shaped
 	).flop;
 	~idfromrow = ~data.removeAt(0);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
