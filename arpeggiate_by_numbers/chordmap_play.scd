@@ -75,8 +75,8 @@ var state = ~state;
 	~dims = ~map[0].size;
 	~maxes=~map.flop.collect(_.maxItem);
 	~mins=~map.flop.collect(_.minItem);
-	~center = (~maxes+~mins)/2;
-	~range = (~maxes-~mins)/2;
+	~center = ~map.flop.collect(_.mean);
+	~scale = ~map.flop.collect(_.stdDevPop * 2);
 	~coord=Array.fill(~dims,0.0);
 	~time = 0.0;
 	~basef = 1/10;
@@ -100,7 +100,10 @@ state.chordspiral = Pspawner({|spawner|
 		inf.do({
 			~time = ~time + ~interval;
 			~rates = Array.series(~dims, ~basef, ~basef/17.0);
-			~coord = (~rates * ~time + ~offset).cos * ~range + ~center;
+			~auto = 1;
+			~autocoord = ((~rates * ~time + ~offset).cos * ~scale + ~center);
+			~manualcoord = Array.fill(~dims, 0.0);
+			~coord = (~autocoord * ~auto) + (~manualcoord * (1 - ~auto));
 			~neighbours = state.classNeighbourOfCoord(~coord, 1, 0.2);
 			(~neighbours.size>0).if({
 				~bestclass = ~neighbours[0][0];
