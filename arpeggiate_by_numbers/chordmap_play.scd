@@ -124,11 +124,12 @@ state.chordspiral = Pspawner({|spawner|
 	});
 }).trace.play;
 //this doesn't seem to happen by isself reliably
-CmdPeriod.doOnce(
-	~state.protoEvent.copy.putAll((
+CmdPeriod.doOnce({
+	var ev = ~state.protoEvent.copy;
+	ev.putAll((
 		midicmd: \allNotesOff,
-	).play);
-);
+	)).play;
+});
 )
 (
 ~state.use({
