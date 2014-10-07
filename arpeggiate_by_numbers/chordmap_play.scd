@@ -13,9 +13,9 @@ state.make({
 	~data = (
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
-		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd") //PRETTY
+		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_alt.scd") //PRETTY
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_corr_2_impurity_lin.scd") //MEH
-		this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_prod_corr_2_impurity_alt.scd") // cone; needs coord transform
+		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_prod_corr_2_impurity_alt.scd") // cone; needs coord transform
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_prod_corr_2_impurity_lin.scd") //Squid-shaped
 	).flop;
 	~idfromrow = ~data.removeAt(0);
@@ -87,6 +87,9 @@ var state = ~state;
 	~manualcoord = Array.fill(~dims, 0.0);
 	~auto = 0;
 	~verbose = false;
+	~octavestart = 5;
+	~octaverange = 0;
+	~nnotes = 6; //upper bound
 });
 state.chordspiral = Pspawner({|spawner|
 	~state.use({
@@ -110,12 +113,16 @@ state.chordspiral = Pspawner({|spawner|
 			(~neighbours.size>0).if({
 				~bestclass = ~neighbours[0][0];
 				~bestdist = ~neighbours[0][1];
-				~notes = ~bestclass;
-				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~notes, ~offset].postln;});
+				//wrapping into a range wolud be nicer
+				~octaves = Array.series(~octavestart, (~octavestart+(~octaverange*11-~octavestart)).floor);
+				~notes = IdentitySet.newFrom(~nnotes.collect({~bestclass.choose + (12*~octaves.choose)})).asArray;
+				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~notes].postln;});
+
 				~ev = ~protoEvent.copy;
 				~ev.putAll((
 					dur: ~interval,
-					note: ~notes,
+					midinote: ~notes,
+					octave: [2,5],
 				));
 				//[\ev, ~ev].postln;
 				spawner.seq(
@@ -177,6 +184,22 @@ state.use({
 		state.manualparam[3] = mapped;
 		//[\param3, mapped].postln;
 	}, ccNum: 3, chan: 1));
+	~alldefs.add(MIDIdef.cc(\octavestart, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,10).asInteger;
+		state.octavestart = mapped;
+		[\octaverange, mapped].postln;
+	}, ccNum: 4, chan: 1));
+	~alldefs.add(MIDIdef.cc(\octaverange, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		state.octaverange = mapped;
+		[\octaverange, mapped].postln;
+	}, ccNum: 5, chan: 1));
+	~alldefs.add(MIDIdef.cc(\nnotes, {|val,num,chan,src|
+		var mapped = val.linlin(0.0,127.0,1,17).asInteger;
+		state.nnotes = mapped;
+		[\nnotes, mapped].postln;
+	}, ccNum: 6, chan: 1));
+
 });
 //this doesn't seem to happen by isself reliably
 CmdPeriod.doOnce({
