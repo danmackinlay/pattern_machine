@@ -14,7 +14,7 @@ MIDIClient.init;
 
 state.make({
 	~midiout=MIDIOut.newByName("IAC-Driver", "Bus 1"
-	).latency_(Server.default.latency);
+		).latency_(Server.default.latency);
 	~data = (
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_dist_3.scd")
@@ -23,9 +23,8 @@ state.make({
 	~idfromrow = ~data.removeAt(0);
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
 	~idfromrow.do({|id,row|~rowfromid[id]=row;});
-	~data=~data.add(~idfromrow);
+	~map = ~data.copyRange(0,(~data.size-1)).flop.collect({|r, i| r.asFloatArray});
 	~tree = KDTree(~data.add(~idfromrow).flop, lastIsLabel: true);
-	~map=~data.flop.collect({|r, i|r.asFloatArray});
 	~chordIdNeighbourOfCoord = {|self, center, limDist=inf|
 		var node, dist;
 		# node, dist = ~tree.nearest(center);
@@ -133,6 +132,14 @@ CmdPeriod.doOnce({
 	)).play;
 });
 )
+
+~state.map[0].size;
+~state.map.flop.collect(_.maxItem);
+~state.map.flop.collect(_.minItem);
+~state.map.flop.collect(_.mean);
+~state.map.flop.collect(_.stdDevPop * 2);
+~state.tree.nearest([1,1,1,1]);
+
 (
 ~state.use({
 	~plotter = GNUPlot.new;
@@ -156,8 +163,6 @@ CmdPeriod.doOnce({
 ~state.offset=135;
 ~state.interval=1/4;
 ~state.idfromrow[65];
-~state.map.flop.collect(_.maxItem);
-~state.map.flop.collect(_.minItem);
 ~state.classNeighbourOfCoord([ -1.0207888991954, -0.73112531959605 ], 0).flop[0];
 ~state.classNeighbourOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
 ~state.classNeighbourOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
@@ -165,7 +170,9 @@ CmdPeriod.doOnce({
 ~state.chordIdNeighbourOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5).flop[0];
 ~state.chordIdNeighbourOfCoord([ 3.3441033974773, 0.93656058383309 ], 0.5).flop[0];
 ~state.chordIdNeighbourOfCoord([ -1.0207888991954, -0.73112531959605 ], 0.5);
-
+~state.map;
+~state.dim;
+~state.tree.nearest([0,0,0])
 
 (pitch:[ 0, 2, 5, 6, 8 ]).play;
 ~state.chordIdNeighbourOfCoord([0,0],0.5);
