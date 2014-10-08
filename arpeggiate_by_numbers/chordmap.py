@@ -14,7 +14,7 @@
 # TODO: frame in terms of *partial* dimension recovery
 # TODO: simple transition graph might work, if it was made regular in some way
 # TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, though.
-# TODO: segment on total spectral energy; or at least weight transitions on relative energy. (how often do we then increase energy?)
+# TODO: a physics-based model might do this reasonably well - springs with constants monotonic in product
 # TODO: colorize base on number of notes
 # TODO: Actually integrate kernels together
 # TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
@@ -23,6 +23,12 @@
 # TODO: switch between embeddings live (record current note affinity)
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
+# TODO: octave selection, transposition, # of notes
+# TODO: switch to JSON for interchange medium
+# TODO: visualise, somehow, e.g.
+#  http://www.ibm.com/developerworks/library/wa-webgl3/
+#  http://scenejs.org/
+#  http://threejs.org/
 
 import numpy as np
 from scipy.spatial.distance import squareform, pdist
@@ -393,3 +399,6 @@ plot_3d(np.hstack([spectral_embed_dist_corr_2, impurity_alt.reshape(-1,1)]))
 plot_3d(np.hstack([spectral_embed_prod_corr_2, impurity_alt.reshape(-1,1)]))
 #4d cone
 plot_3d(np.hstack([spectral_embed_dist_3, impurity_lin.reshape(-1,1)]))
+
+# can stash them lik, e.g.
+dump_matrix_sc("mappings/spectral_embed_prod_corr_2_impurity_alt.scd", np.hstack([spectral_embed_prod_corr_2, impurity_alt.reshape(-1,1)])) 
