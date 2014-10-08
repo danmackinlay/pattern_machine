@@ -19,6 +19,16 @@ state.make({
 		//this.executeFile(PS.pmpath +/+ "arpeggiate_by_numbers/mappings" +/+ "spectral_embed_prod_corr_2_impurity_lin.scd") //Squid-shaped
 	).flop;
 	~idfromrow = ~data.removeAt(0);
+	~nullIdx = ~idfromrow.find([0]);
+	(~nullIdx).notNil.if({
+		//[\deletingnullchord, ~nullIdx, ~idfromrow.size, ~data[0].size].postln;
+		~data.do({|row, i|
+			row.removeAt(~nullIdx);
+			~data[i] = row;
+		});
+		~idfromrow.removeAt(~nullIdx);
+		//[\deletingnullchord, ~nullIdx, ~idfromrow.size, ~data[0].size].postln;
+	});
 	~rowfromid=IdentityDictionary.new(n=~idfromrow.size);
 	~idfromrow.do({|id,row|~rowfromid[id]=row;});
 	~map = ~data.copyRange(0,(~data.size-1)).flop.collect({|r, i| r.asFloatArray});
