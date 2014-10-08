@@ -8,9 +8,19 @@ Also to consider: random frequencies? if so, how many? Or, e.g. 7/11/13-tone ste
 
 Also, what loss function? negative correlation is more significant than positive, for example...
 
-TODO: handle several files, and supplied return address
+TODO: handle general feature search using librosa. Candidate features:
+
+* `chromagram <http://bmcfee.github.io/librosa/librosa.html#librosa.feature.chromagram>`__
+* `pitch <http://bmcfee.github.io/librosa/librosa.html#librosa.feature.ifptrack>`__ and some prejection thereof (`alt <http://bmcfee.github.io/librosa/librosa.html#librosa.feature.piptrack>`__)
+* `MFCC <http://bmcfee.github.io/librosa/librosa.html#librosa.feature.mfcc>`__ and `deltas thereof<http://bmcfee.github.io/librosa/librosa.html#librosa.feature.delta>`__
+* `aggregate stats thereof <http://bmcfee.github.io/librosa/librosa.html#librosa.feature.sync>`__
+* `onsets <http://bmcfee.github.io/librosa/librosa.html#module-librosa.onset>`__
+* general `segmentation <http://bmcfee.github.io/librosa/librosa.html#module-librosa.segment>`__
+  
+  Also `harmonic-percussive decomposition <http://bmcfee.github.io/librosa/librosa.html#librosa.decompose.hpss>`__ could be REALLY fun
+  
 TODO: search using pytables instead of BallTree; gives us more dynamic axial scaling. (*both* could be fun)
-TODO: mine MIDI files for spectral co-ocurrence data and see if this allows us to predict "matching" spectra
+TODO: Better yet, search on a PCA (or other low-dim representation) of the data
 TODO: alternative ratios- (more) enharmonic
 TODO: ratio ideas - consider Farey sequence: http://www.johndcook.com/blog/2010/10/20/best-rational-approximation/
 TODO: project pitch shifts that would align spectra correctly
@@ -29,8 +39,6 @@ TODO: cache analysis to disk?
 TODO: How do we detect noise? Correlated with shuffled, or enveloped pink/white noise? 
 TODO: search ALSO on variance, to avoid spurious transient onset matches
 TODO: search ALSO on gradient
-TODO: dimension reduction through PCA
-TODO: dimension reduction through MDS
 TODO: more conservative pregain management to avoid onset clipping
 TODO: include grain size in search and search based on that (tricky but safer)
 TODO: restrict search based on amplitude range
@@ -58,9 +66,4 @@ Although i don't think I'll bother reading those right now; I think i just worke
 
 should think about decent basis functions (rbf? fourier? b-spline?)
 
-http://pythonhosted.org//librosa/tutorial.html#quickstart
-http://pythonhosted.org//librosa/librosa.html#module-librosa.feature
-
-
-librosa.feature.piptrack
-librosa.feature.ifptrack
+http://network.bepress.com/engineering/electrical-and-computer-engineering/signal-processing/?utm_campaign=PDFCoverPages&utm_medium=PDF&utm_source=arrow.dit.ie%2Fargcon%2F67
