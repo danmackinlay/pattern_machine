@@ -86,9 +86,11 @@ var state = ~state;
 	~manualparam = Array.fill(4, 0.0);
 	~manualcoord = Array.fill(~dims, 0.0);
 	~auto = 0;
-	~verbose = false;
-	~octavestart = 5;
-	~octaverange = 0;
+	~verbose = true;
+	~octavestartparam=0.0;
+	~octaverangeparam=0.0;
+	~octavestart = 64;
+	~octaveend = 76;
 	~nnotes = 6; //upper bound
 });
 state.chordspiral = Pspawner({|spawner|
@@ -116,16 +118,14 @@ state.chordspiral = Pspawner({|spawner|
 				~verbose.if({[~neighbours].postln;});
 				~bestclass = ~neighbours[0][0];
 				~bestdist = ~neighbours[0][1];
-				//wrapping into a range wolud be nicer
-				~octaves = Array.series(~octavestart, (~octavestart+(~octaverange*11-~octavestart)).floor);
-				~notes = IdentitySet.newFrom(~nnotes.collect({~bestclass.choose + (12*~octaves.choose)})).asArray;
-				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~notes].postln;});
-
+				~octavestart = ~octavestartparam.linlin(0.0, 1.0, 20.0, 105.0).floor;
+				~octaveend = ~octaverangeparam.linlin(0.0, 1.0, ~octavestart+12, 127.0).floor;
+				~notes = IdentitySet.newFrom(~nnotes.collect({(~bestclass.choose + (30.rand * 12)).offsetModBase(~octavestart, ~octaveend)})).asArray;
+				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~octavestart, ~octaveend, ~notes].postln;});
 				~ev = ~protoEvent.copy;
 				~ev.putAll((
 					dur: ~interval,
 					midinote: ~notes,
-					octave: [2,5],
 				));
 				//[\ev, ~ev].postln;
 				spawner.seq(
@@ -188,13 +188,13 @@ state.use({
 		//[\param3, mapped].postln;
 	}, ccNum: 3, chan: 1));
 	~alldefs.add(MIDIdef.cc(\octavestart, {|val,num,chan,src|
-		var mapped = val.linlin(0.0,127.0,1,10).asInteger;
-		state.octavestart = mapped;
-		[\octaverange, mapped].postln;
+		var mapped = val.linlin(0.0,127.0,0.0,1.0);
+		state.octavestartparam = mapped;
+		[\octavestart, mapped].postln;
 	}, ccNum: 4, chan: 1));
 	~alldefs.add(MIDIdef.cc(\octaverange, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
-		state.octaverange = mapped;
+		state.octaverangeparam = mapped;
 		[\octaverange, mapped].postln;
 	}, ccNum: 5, chan: 1));
 	~alldefs.add(MIDIdef.cc(\nnotes, {|val,num,chan,src|
