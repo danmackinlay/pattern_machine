@@ -41,7 +41,7 @@ state.make({
 			limDist);
 	};
 	//Check this one before using; not tested since I messed with indices.
-	~classNeighboursOfClass = {|self, class, limCount=15, limDist=inf|
+	~classNeighboursOfClass = {|self, class, limDist=inf|
 		self.chordIdNeighbourOfCoord(
 			self.map[self.rowfromid[self.chordIdFromClass(class)]],
 			limDist
@@ -109,8 +109,11 @@ state.chordspiral = Pspawner({|spawner|
 			~autocoord = ((~rates * ~time + ~offset).cos * ~scale + ~center);
 			~manualcoord = ~manualparam.copyRange(0,~dims-1) * ~scale + ~center;
 			~coord = (~autocoord * ~auto) + (~manualcoord * (1 - ~auto));
-			~neighbours = state.classNeighbourOfCoord(~coord, 1, 0.2);
-			(~neighbours.size>0).if({
+			//~neighbours = state.classNeighbourOfCoord(~coord, limDist: 1);
+			~neighbours = state.classNeighbourOfCoord(~coord);
+			//The 2nd term in the test filters out the empty class
+			((~neighbours.size>0) && (~neighbours[0][0].size>0)).if({
+				~verbose.if({[~neighbours].postln;});
 				~bestclass = ~neighbours[0][0];
 				~bestdist = ~neighbours[0][1];
 				//wrapping into a range wolud be nicer
