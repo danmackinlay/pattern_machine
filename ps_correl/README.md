@@ -30,31 +30,25 @@ Handle general feature search using librosa. Candidate features:
 -   Also [harmonic-percussive decomposition](http://bmcfee.github.io/librosa/librosa.html#librosa.decompose.hpss)
     could be REALLY fun
 
-
 -   search using pytables instead of BallTree; gives us more dynamic
-axial scaling. (*both* could be fun) 
+    axial scaling. (*both* could be fun) 
 -   Better yet, search on a PCA
-(or other low-dim representation) of the data 
--   alternative ratios-
-(more) enharmonic 
+    (or other low-dim representation) of the data 
+-   alternative ratios- (more) enharmonic 
 -   ratio ideas - consider Farey sequence:
-<http://www.johndcook.com/blog/2010/10/20/best-rational-approximation/>
-
--   project pitch shifts that would align spectra correctly TODO:
-possibly this would require quadratic peak interpolation -
-<http://www.dsprelated.com/dspbooks/sasp/Quadratic_Interpolation_Spectral_Peaks.html>
-
+    <http://www.johndcook.com/blog/2010/10/20/best-rational-approximation/>
+-   project pitch shifts that would align spectra correctly 
+-   possibly this would require quadratic peak interpolation - <http://www.dsprelated.com/dspbooks/sasp/Quadratic_Interpolation_Spectral_Peaks.html>
 -   Comb filters instead of autocorrelation? This would model have
-quadratic maxima, but sharper would be better; this could be a
-combination FB+FF, or an extra layer of FF. Advantage: linear,
-well-behaved z-transform. | H(e\^{j omega}) | = sqrt{(1 + alpha\^2) + 2
-alpha cos(omega K)} 
--   Does the Hilbert transform do what I want?
-<https://en.wikipedia.org/wiki/Hilbert_transform#Relationship_with_the_Fourier_transform>
-<http://yehar.com/blog/?p=368>
-<https://en.wikipedia.org/wiki/Convolution_theorem#Functions_of_a_discrete_variable>...\_sequences
-Hartley transfrom? <https://en.wikipedia.org/wiki/Hartley_transform>
-more generally
+    quadratic maxima, but sharper would be better; this could be a
+    combination FB+FF, or an extra layer of FF. Advantage: linear,
+    well-behaved z-transform. | H(e\^{j omega}) | = sqrt{(1 + alpha\^2) + 2
+    alpha cos(omega K)} 
+-   <http://yehar.com/blog/?p=368>
+-   <https://en.wikipedia.org/wiki/Convolution_theorem#Functions_of_a_discrete_variable>...\_sequences
+-   Hartley transfrom? <https://en.wikipedia.org/wiki/Hartley_transform>
+
+More general transforms:
 <https://en.wikipedia.org/wiki/Integral_transform#Table_of_transforms>
 <https://en.wikipedia.org/wiki/Singular_integral_operators_of_convolution_type>
 
@@ -64,13 +58,14 @@ more generally
 -   How do we detect noise? Correlated with shuffled, or enveloped pink/white noise? 
 -   search ALSO on variance, to avoid spurious transient onset matches 
 -   search ALSO on gradient 
+-   delts and double deltas
 -   more conservative pregain management to avoid onset clipping 
 -   include grain size in search and search based on that (tricky but safer) 
 -   restrict search based on amplitude range
 -   restrict search based on certainty range (this would require us to
-actually have a model), e.g. higher when amp is low, or around major
-changes, or estimated from sample variance (this should be taken wrt the
-innovation process) 
+    actually have a model), e.g. higher when amp is low, or around major
+    changes, or estimated from sample variance (this should be taken wrt the
+    innovation process) 
 -   handle multiple files 
 -   handle multiple clients through e.g. nodeid 
 -   adaptive masking noise floor
@@ -86,20 +81,6 @@ innovation process)
 <http://mechatronics.ece.usu.edu/yqchen/dd/index.html>
 <http://cnx.org/content/m15490/latest/> See also Vaelimaeki's thesis:
 <http://users.spa.aalto.fi/vpv/publications/vesa_phd.html>
-
-Note:
-registering two correlograms to find optimal alignment isa computatinoal
-tractable problem - there is only one paramter once the two are fit to
-some fucntional basis, and its derivative is simple (ish), up to
-function interpolation. So I can align based on this. Is it worth it?
-Probably only if i can find a descriptor such that i can search for
-similar correlograms, THEN register them. Watch out for boundary
-conditions. Also note, i can restrict transforms to within an octave
-Keywords: Procrustes method, rigid body solution. Although i don't think
-I'll bother reading those right now; I think i just worked out a
-newton's method solution with good ol' pen'n'paper.
-
-should think about decent basis functions (rbf? fourier? b-spline?)
 
 <http://network.bepress.com/engineering/electrical-and-computer-engineering/signal-processing/>
 
