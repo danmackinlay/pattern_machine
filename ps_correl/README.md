@@ -82,5 +82,19 @@ More general transforms:
 <http://cnx.org/content/m15490/latest/> See also Vaelimaeki's thesis:
 <http://users.spa.aalto.fi/vpv/publications/vesa_phd.html>
 
+Note:
+registering two correlograms to find optimal alignment isa computatinoal
+tractable problem - there is only one paramter once the two are fit to
+some fucntional basis, and its derivative is simple (ish), up to
+function interpolation. So I can align based on this. Is it worth it?
+Probably only if i can find a descriptor such that i can search for
+similar correlograms, THEN register them. Watch out for boundary
+conditions. Also note, i can restrict transforms to within an octave
+Keywords: Procrustes method, rigid body solution. Although i don't think
+I'll bother reading those right now; I think i just worked out a
+newton's method solution with good ol' pen'n'paper.
+
+should think about decent basis functions (rbf? fourier? b-spline?)
+
 <http://network.bepress.com/engineering/electrical-and-computer-engineering/signal-processing/>
 
