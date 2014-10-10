@@ -144,7 +144,7 @@ state.chordspiral = Pspawner({|spawner|
 					~protoEvent.copy.putAll(~ev);
 				);
 			}, {
-				~verbose.if({[\nonotes, ~time, ~coord].postln;});
+				~verbose.if({[\nonotes, ~time, ~coord, ~neighbours].postln;});
 				spawner.wait(~interval);
 			});
 
