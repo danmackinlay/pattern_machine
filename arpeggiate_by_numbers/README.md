@@ -12,38 +12,48 @@ Learning a harmony space
 Notes
 ======
 
-# hand rolled ghetto chord similarity kernel gives us a gram matrix
-# assumptions: 
-# all notes are truncated saw waves with 16 harmonics
-# all harmonics wrapped to the octave
+hand rolled ghetto chord similarity kernel gives us a gram matrix
 
-# also could track (kde) kernel width per-harmonic; is this principled? 
-# Could do a straight nearness search off the distance matrix using ball tree (4000 is not so many points; brute force also OK)
-# or cast to a basis of notes using a custom kernel
-# need to have this in terms of notes, though
-# TODO: weight by actual chord occurence (when do 11 notes play at once? even 6 is pushing it)
-# TODO: restrict cursor to convex hull of notes, or, e.g. ball?
-# TODO: exploid rotational symmetry in distance calculations - and analysis
-#   e.g. hmmm we could position pitch classes rotationally around an axis
-#   note further that there might be yet more symmetry relationship dependednt on the class - but sets of 12 is an obvious one.
-# TODO: toroidal maps
-# TODO: simple transition graph might work, if it was made regular in some way
-# TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, without some orderings
-# TODO: a physics-based model might do this reasonably well - springs with constants monotonic in product
-# TODO: colorize based on number of notes
-# TODO: Actually integrate kernels together
-# TODO: use correlation matrix as a markov transition probability weight in some kind of deranged markov model (you'd want some weighting or restriction)
-# TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
-# TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
-# TODO: interpolate between embeddings live (record current note affinity)
-# TODO: remove chord 0 (silence), since it only causes trouble.
-# TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
-# TODO: octave selection, transposition, # of notes
-# TODO: switch to JSON for interchange medium
-# TODO: visualise, somehow, e.g.
-#  http://www.ibm.com/developerworks/library/wa-webgl3/
-#  http://scenejs.org/
-#  http://threejs.org/
+
+assumptions: 
+
+* all notes are truncated saw waves with 16 harmonics
+* all harmonics wrapped to the octave
+
+Ideas:
+
+also could track (kde) kernel width per-harmonic; is this principled? 
+ould do a straight nearness search off the distance matrix using ball tree (4000 is not so many points; brute force also OK)
+Or cast to a basis of notes using a custom kernel
+need to have this in terms of notes, though
+
+Todo
+-----
+
+* weight by actual chord occurence (when do 11 notes play at once? even 6 is pushing it)
+* restrict cursor to convex hull of notes, or, e.g. ball?
+* exploid rotational symmetry in distance calculations - and analysis
+   e.g. hmmm we could position pitch classes rotationally around an axis
+   note further that there might be yet more symmetry relationship dependednt
+   on the class - but sets of 12 is an obvious one.
+* toroidal maps
+* simple transition graph might work, if it was made regular in some way
+* we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, without some orderings
+* a physics-based model might do this reasonably well - springs with constants monotonic in product
+* colorize based on number of notes
+* Actually integrate kernels together
+* use correlation matrix as a markov transition probability weight in some kind of deranged markov model (you'd want some weighting or restriction)
+* ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
+* For more than ca 6 notes, this is nonsense; we don't care about such "chords"
+* interpolate between embeddings live (record current note affinity)
+* remove chord 0 (silence), since it only causes trouble.
+* rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
+* octave selection, transposition, # of notes
+* switch to JSON for interchange medium
+* visualise, somehow, e.g.
+  * http://www.ibm.com/developerworks/library/wa-webgl3/
+  * http://scenejs.org/
+  * http://threejs.org/
 
 
 
