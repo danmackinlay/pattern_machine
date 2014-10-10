@@ -1,26 +1,27 @@
-# hand rolled ghetto chord similarity measure gives us a similarity matrix
+# hand rolled ghetto chord similarity kernel gives us a gram matrix
 # assumptions: 
-# all notes are harmonically truncated saw waves
+# all notes are truncated saw waves with 16 harmonics
 # all harmonics wrapped to the octave
 
-# can construct a similarity by the inner product based on inner product of the the kernel-approximated vectors, then measuring ratio to mean inner norm; this is more-or-less the covariance of spectral energy
-# also could track kernel width per-harmonic; is this principled? "feels" right, but we'll see.
+# also could track (kde) kernel width per-harmonic; is this principled? 
 # Could do a straight nearness search off the distance matrix using ball tree (4000 is not so many points; brute force also OK)
 # or cast to a basis of notes using a custom kernel
 # need to have this in terms of notes, though
 # TODO: weight by actual chord occurence (when do 11 notes play at once? even 6 is pushing it)
-# TODO: restrict cursor to convex hull of notes
+# TODO: restrict cursor to convex hull of notes, or, e.g. ball?
+# TODO: exploid rotational symmetry in distance calculations - and analysis
+#   e.g. hmmm we could position pitch classes rotationally around an axis
+#   note further that there might be yet more symmetry relationship dependednt on the class - but sets of 12 is an obvious one.
 # TODO: toroidal maps
-# TODO: frame in terms of *partial* dimension recovery
 # TODO: simple transition graph might work, if it was made regular in some way
-# TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, though.
+# TODO: we could even place chords on a grid in a way that provides minimal dissonance between them; esp since we may repeat chords if necessary. In fact, we could even construct such a path by weaving chords together. Hard to navigate, without some orderings
 # TODO: a physics-based model might do this reasonably well - springs with constants monotonic in product
-# TODO: colorize base on number of notes
+# TODO: colorize based on number of notes
 # TODO: Actually integrate kernels together
+# TODO: use correlation matrix as a markov transition probability weight in some kind of deranged markov model (you'd want some weighting or restriction)
 # TODO: ditch pickle for optimized tables https://pytables.github.io/usersguide/optimization.html
-# TODO: We could use this by constructing 8 2d navigation systems, and for each point, the 7 nearest neighbours in adjacent leaves
 # TODO: For more than ca 6 notes, this is nonsense; we don't care about such "chords"
-# TODO: switch between embeddings live (record current note affinity)
+# TODO: interpolate between embeddings live (record current note affinity)
 # TODO: remove chord 0 (silence), since it only causes trouble.
 # TODO: rbf spectral embedding with a variable gamma could produce a nice colour scheme, hm?
 # TODO: octave selection, transposition, # of notes
