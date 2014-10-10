@@ -12,9 +12,12 @@ Also, what loss function? negative correlation is more significant than
 positive, for example...
 
 
--   handle general feature search using librosa. Candidate features:
+Todo
+--------
 
--   [chromagram](http://bmcfee.github.io/librosa/librosa.html#librosa.feature.chromagram)
+Handle general feature search using librosa. Candidate features:
+
+-    [chromagram](http://bmcfee.github.io/librosa/librosa.html#librosa.feature.chromagram)
 -   [pitch](http://bmcfee.github.io/librosa/librosa.html#librosa.feature.ifptrack)
     and some prejection thereof ([alt](http://bmcfee.github.io/librosa/librosa.html#librosa.feature.piptrack))
 -   [MFCC](http://bmcfee.github.io/librosa/librosa.html#librosa.feature.mfcc)
@@ -56,48 +59,35 @@ more generally
 <https://en.wikipedia.org/wiki/Singular_integral_operators_of_convolution_type>
 
 -   median filters for bands 
--   never return times at start and end
-of the file 
+-   never return times at start and end of the file 
 -   cache analysis to disk? 
--   How do we detect noise?
-Correlated with shuffled, or enveloped pink/white noise? 
--   search
-ALSO on variance, to avoid spurious transient onset matches 
--   search
-ALSO on gradient 
--   more conservative pregain management to avoid
-onset clipping 
--   include grain size in search and search based on
-that (tricky but safer) 
+-   How do we detect noise? Correlated with shuffled, or enveloped pink/white noise? 
+-   search ALSO on variance, to avoid spurious transient onset matches 
+-   search ALSO on gradient 
+-   more conservative pregain management to avoid onset clipping 
+-   include grain size in search and search based on that (tricky but safer) 
 -   restrict search based on amplitude range
-
 -   restrict search based on certainty range (this would require us to
 actually have a model), e.g. higher when amp is low, or around major
 changes, or estimated from sample variance (this should be taken wrt the
 innovation process) 
 -   handle multiple files 
--   handle multiple
-clients through e.g. nodeid 
--   adaptive masking noise floor TODO:
-plot spectrograms and sanity check against analysis data 
--   work out
-how to suppress "no handler" warnings 
--   switch to Erik De Castro
-Lopo's libsamplerate to do the conversions; scipy's decimate could be
-better; there exist nice wrappers eg
-<https://github.com/cournape/samplerate> 
--   treat smoothing or other
-free parameters (or neighbourhood size) as a model-selection problem?
-AIC or cross-validation? 
--   decimation is to neareset whole number
-ratio and therefore does not respect time exactly. For fractional sample
-delay, we could do cubic interpolation, or polyphase filtering:
+-   handle multiple clients through e.g. nodeid 
+-   adaptive masking noise floor
+-   plot spectrograms and sanity check against analysis data 
+-   work out how to suppress "no handler" warnings 
+-   switch to Erik De Castro Lopo's libsamplerate to do the conversions; scipy's decimate could be better; there exist nice wrappers eg <https://github.com/cournape/samplerate> 
+-   treat smoothing or other free parameters (or neighbourhood size) as a model-selection problem?
+    AIC or cross-validation? 
+-   decimation is to neareset whole number ratio and therefore does not respect time exactly. For fractional sample delay, we could do cubic interpolation, or polyphase filtering:
 <http://www.tau.ac.il/~kineret/amit/scipy_tutorial/>
 <http://hub.hku.hk/bitstream/10722/46311/1/71706.pdf?accept=1>
 <http://cnx.org/content/m11657/latest/>
 <http://mechatronics.ece.usu.edu/yqchen/dd/index.html>
 <http://cnx.org/content/m15490/latest/> See also Vaelimaeki's thesis:
-<http://users.spa.aalto.fi/vpv/publications/vesa_phd.html> Note:
+<http://users.spa.aalto.fi/vpv/publications/vesa_phd.html>
+
+Note:
 registering two correlograms to find optimal alignment isa computatinoal
 tractable problem - there is only one paramter once the two are fit to
 some fucntional basis, and its derivative is simple (ish), up to
