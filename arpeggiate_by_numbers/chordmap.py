@@ -48,8 +48,8 @@ N_HARMONICS = 16
 KERNEL_WIDTH = 0.001 # less than this and they are the same note
 SEED = 76594
 
-chords_i_products_square = None
-chords_i_dists_square = None
+chords_i_gram_matrix = None
+chords_i_dist_matrix = None
 
 energies = 1.0/(np.arange(N_HARMONICS)+1)
 base_energies = 1.0/(np.arange(N_HARMONICS)+1)
@@ -137,89 +137,89 @@ def v_chord_dist2_from_chord_i(ci1, ci2):
     would be worth using it, since this step is slow and boring
     """
     return (
-        chords_i_products_square[ci1, ci1]
-        - 2 * chords_i_products_square[ci1, ci2]
-        + chords_i_products_square[ci2, ci2]
+        chords_i_gram_matrix[ci1, ci1]
+        - 2 * chords_i_gram_matrix[ci1, ci2]
+        + chords_i_gram_matrix[ci2, ci2]
     )
 
 if os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'r') as handle:
-        chords_i_products_square = handle.get_node("/", 'v_sq_products').read()
-        chords_i_dists_square = handle.get_node("/", 'v_sq_dists').read()
-        chords_i_correlations_square = handle.get_node("/", 'v_sq_corr_products').read()
-        chords_i_corr_dists_square = handle.get_node("/", 'v_sq_corr_dists').read()
-    product_power = np.diagonal(chords_i_products_square)
+        chords_i_gram_matrix = handle.get_node("/", 'v_gram_matrix').read()
+        chords_i_dist_matrix = handle.get_node("/", 'v_dist_matrix').read()
+        chords_i_corr_matrix = handle.get_node("/", 'v_sq_corr_products').read()
+        chords_i_corr_dist_matrix = handle.get_node("/", 'v_sq_corr_dists').read()
+    product_power = np.diagonal(chords_i_gram_matrix)
     mean_power = np.sqrt(np.outer(product_power, product_power))
 else:
-    chords_i_products_square = squareform(pdist(
+    chords_i_gram_matrix = squareform(pdist(
         np.arange(2**12).reshape(2**12,1),
         v_chord_product_from_chord_i_raw
     ))
     #but wait! pdist optimised by assuming self-distance is zero
     #but this isn't a distance function! Quick!
-    chords_i_products_square[
-        np.diag_indices_from(chords_i_products_square)
+    chords_i_gram_matrix[
+        np.diag_indices_from(chords_i_gram_matrix)
     ] = [
         v_chord_product_from_chord_i_raw(i,i) for i in xrange(2**12)
     ]
 
-    chords_i_dists_square = squareform(np.sqrt(pdist(
+    chords_i_dist_matrix = squareform(np.sqrt(pdist(
         chord_idx,
         v_chord_dist2_from_chord_i
     )))
     
     # We can also construct everything in terms of correlations...
-    product_power = np.diagonal(chords_i_products_square)
+    product_power = np.diagonal(chords_i_gram_matrix)
     mean_power = np.sqrt(np.outer(product_power, product_power))
     assert(min_pos(mean_power)>=1.0) #otherwise ... uh... double renormalization?
-    chords_i_correlations_square = chords_i_products_square/np.maximum(mean_power,1)
+    chords_i_corr_matrix = chords_i_gram_matrix/np.maximum(mean_power,1)
     
     #let's do the same thing as with the product matrix but a different way because of laziness
-    chords_i_corr_dists_square = np.zeros_like(chords_i_correlations_square)
-    for ci1 in xrange(chords_i_correlations_square.shape[0]):
-        for ci2 in xrange(ci1, chords_i_correlations_square.shape[1]):
+    chords_i_corr_dist_matrix = np.zeros_like(chords_i_corr_matrix)
+    for ci1 in xrange(chords_i_corr_matrix.shape[0]):
+        for ci2 in xrange(ci1, chords_i_corr_matrix.shape[1]):
             if ci2 % 11 ==0:
                 print ci1, ci2
-            dist = sqrt(chords_i_correlations_square[ci1, ci1]
-                - 2 * chords_i_correlations_square[ci1, ci2]
-                + chords_i_correlations_square[ci2, ci2]
+            dist = sqrt(chords_i_corr_matrix[ci1, ci1]
+                - 2 * chords_i_corr_matrix[ci1, ci2]
+                + chords_i_corr_matrix[ci2, ci2]
             )
-            chords_i_corr_dists_square[ci1, ci2] = dist
-            chords_i_corr_dists_square[ci2, ci1] = dist
+            chords_i_corr_dist_matrix[ci1, ci2] = dist
+            chords_i_corr_dist_matrix[ci2, ci1] = dist
 
 if not os.path.exists("dists.h5"):
     with tables.open_file("dists.h5", 'w') as handle:
         data_atom_type = tables.Float32Atom()
         filt=tables.Filters(complevel=5, complib='blosc')
-        handle.create_carray("/",'v_sq_products',
-            atom=data_atom_type, shape=chords_i_products_square.shape,
-            title="sq products",
-            filters=filt)[:] = chords_i_products_square
-        handle.create_carray("/",'v_sq_dists',
-            atom=data_atom_type, shape=chords_i_dists_square.shape,
-            title="sq dists",
-            filters=filt)[:] = chords_i_dists_square
+        handle.create_carray("/",'v_gram_matrix',
+            atom=data_atom_type, shape=chords_i_gram_matrix.shape,
+            title="products",
+            filters=filt)[:] = chords_i_gram_matrix
+        handle.create_carray("/",'v_dist_matrix',
+            atom=data_atom_type, shape=chords_i_dist_matrix.shape,
+            title="dists",
+            filters=filt)[:] = chords_i_dist_matrix
         handle.create_carray("/",'v_sq_corr_products',
-            atom=data_atom_type, shape=chords_i_correlations_square.shape,
-            title="sq corr products",
-            filters=filt)[:] = chords_i_correlations_square
+            atom=data_atom_type, shape=chords_i_corr_matrix.shape,
+            title="corrs",
+            filters=filt)[:] = chords_i_corr_matrix
         handle.create_carray("/",'v_sq_corr_dists',
-            atom=data_atom_type, shape=chords_i_corr_dists_square.shape,
-            title="sq corr dists",
-            filters=filt)[:] = chords_i_corr_dists_square
+            atom=data_atom_type, shape=chords_i_corr_dist_matrix.shape,
+            title="corr dists",
+            filters=filt)[:] = chords_i_corr_dist_matrix
 
 if not os.path.exists('_chord_map_cache_make_chords.gz'):
     with gzip.open('_chord_map_cache_make_chords.gz', 'wb') as f:
         pickle.dump(_make_chord_cache, f, protocol=2)
 
-def get_pca(sq_products, n_dims=2, normalize=True):
+def get_pca(gram_matrix, n_dims=2, normalize=True):
     transformer = KernelPCA(n_components=n_dims, kernel='precomputed', eigen_solver='auto', tol=0, max_iter=None)
-    transformed = transformer.fit_transform(sq_products) #feed the product matrix directly in for precomputed case
+    transformed = transformer.fit_transform(gram_matrix) #feed the product matrix directly in for precomputed case
     if normalize:
         transformed = normalize_var(transformed)
     return transformed
 
-def get_mds(sq_dists,
+def get_mds(dist_matrix,
         n_dims=3,
         metric=True,
         rotate=True,
@@ -235,7 +235,7 @@ def get_mds(sq_dists,
         n_jobs=3,
         dissimilarity='precomputed',
         random_state=random_state)
-    transformed = transformer.fit_transform(sq_dists)
+    transformed = transformer.fit_transform(dist_matrix)
     if rotate:
         # Rotate the data to a hopefully consistent orientation
         clf = PCA(n_components=n_dims)
@@ -244,16 +244,16 @@ def get_mds(sq_dists,
         transformed = normalize_var(transformed)
     return transformed
 
-def get_spectral_embedding_prod(sq_products,
+def get_spectral_embedding_prod(gram_matrix,
         n_dims=3,
         normalize=True,
         random_state=SEED):
-    #The product matrix is already an affinity; 
+    #The gram matrix is already an affinity; 
     # but it has the undesirable quality of making high energy chords more similar than low energy chords
     # we normalise accordingly
     # Alternatively: RBF. See next fn
-    inv_root_energy = 1.0/np.maximum(np.sqrt(np.diagonal(chords_i_products_square)),1)
-    affinity = sq_products * np.outer(inv_root_energy,inv_root_energy)
+    inv_root_energy = 1.0/np.maximum(np.sqrt(np.diagonal(gram_matrix)),1)
+    affinity = gram_matrix * np.outer(inv_root_energy,inv_root_energy)
     transformer = SpectralEmbedding(
         n_components=n_dims,
         affinity='precomputed',
@@ -263,15 +263,15 @@ def get_spectral_embedding_prod(sq_products,
         transformed = normalize_var(transformed)
     return transformed
 
-def get_spectral_embedding_dist(sq_dists,
+def get_spectral_embedding_dist(dist_matrix,
         n_dims=3,
         gamma=0.0625,
         normalize=True,
         random_state=SEED):
     # see previous fn
     # this needs to be 64 bit for stability
-    sq_dists = sq_dists.astype('float64')
-    affinity = np.exp(-gamma * sq_dists * sq_dists)
+    dist_matrix = dist_matrix.astype('float64')
+    affinity = np.exp(-gamma * dist_matrix * dist_matrix)
     transformer = SpectralEmbedding(
         n_components=n_dims,
         affinity='precomputed',
@@ -298,49 +298,49 @@ def calc_and_stash(filename_base, calc):
 # Three different impurity options:
 #
 #product with the last row (maximum chaos)
-impurity_alt = normalize_var(chords_i_products_square[4095,:])
+impurity_alt = normalize_var(chords_i_gram_matrix[4095,:])
 dump_matrix_hdf("impurity_alt.h5", impurity_alt)
 
 # product with chaos rescaled by own power
-impurity = -(chords_i_products_square[4095,:]/product_power)
+impurity = -(chords_i_gram_matrix[4095,:]/product_power)
 impurity[0] = np.mean(impurity[1:]) #because of null entry
 impurity = normalize_var(impurity)
 impurity[0] = 0 #because of null entry
 dump_matrix_hdf("impurity.h5", impurity)
 #I'm not sure which is better, but since they have a correlation of 0.82 it may not matter
 
-impurity_lin = -np.sqrt(chords_i_products_square[4095,:]/product_power)
+impurity_lin = -np.sqrt(chords_i_gram_matrix[4095,:]/product_power)
 impurity_lin[0] = np.mean(impurity_lin[1:]) #because of null entry
 impurity_lin = normalize_var(impurity_lin)
 impurity_lin[0] = 0 #because of null entry
 dump_matrix_hdf("impurity_lin.h5", impurity_lin)
 
-kpca_2 = calc_and_stash("kpca_2", get_pca(chords_i_products_square, n_dims=2))
-kpca_3 = calc_and_stash("kpca_3", get_pca(chords_i_products_square, n_dims=3))
-lin_mds_2 = calc_and_stash("lin_mds_2", get_mds(chords_i_products_square, n_dims=2))
-lin_mds_3 = calc_and_stash("lin_mds_3", get_mds(chords_i_products_square, n_dims=3))
-spectral_embed_prod_2 = calc_and_stash("spectral_embed_prod_2", get_spectral_embedding_prod(chords_i_products_square, n_dims=2))
-spectral_embed_prod_3 = calc_and_stash("spectral_embed_prod_3", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
-spectral_embed_prod_4 = calc_and_stash("spectral_embed_prod_4", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
-spectral_embed_dist_2 = calc_and_stash("spectral_embed_dist_2", get_spectral_embedding_dist(chords_i_dists_square, n_dims=2))
-spectral_embed_dist_3 = calc_and_stash("spectral_embed_dist_3", get_spectral_embedding_dist(chords_i_dists_square, n_dims=3))
-spectral_embed_dist_4 = calc_and_stash("spectral_embed_dist_4", get_spectral_embedding_dist(chords_i_dists_square, n_dims=4))
-nonlin_mds_2 = calc_and_stash("nonlin_mds_2", get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False))
-nonlin_mds_3 = calc_and_stash("nonlin_mds_3", get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False))
+kpca_2 = calc_and_stash("kpca_2", get_pca(chords_i_gram_matrix, n_dims=2))
+kpca_3 = calc_and_stash("kpca_3", get_pca(chords_i_gram_matrix, n_dims=3))
+lin_mds_2 = calc_and_stash("lin_mds_2", get_mds(chords_i_gram_matrix, n_dims=2))
+lin_mds_3 = calc_and_stash("lin_mds_3", get_mds(chords_i_gram_matrix, n_dims=3))
+spectral_embed_prod_2 = calc_and_stash("spectral_embed_prod_2", get_spectral_embedding_prod(chords_i_gram_matrix, n_dims=2))
+spectral_embed_prod_3 = calc_and_stash("spectral_embed_prod_3", get_spectral_embedding_prod(chords_i_gram_matrix, n_dims=3))
+spectral_embed_prod_4 = calc_and_stash("spectral_embed_prod_4", get_spectral_embedding_prod(chords_i_gram_matrix, n_dims=3))
+spectral_embed_dist_2 = calc_and_stash("spectral_embed_dist_2", get_spectral_embedding_dist(chords_i_dist_matrix, n_dims=2))
+spectral_embed_dist_3 = calc_and_stash("spectral_embed_dist_3", get_spectral_embedding_dist(chords_i_dist_matrix, n_dims=3))
+spectral_embed_dist_4 = calc_and_stash("spectral_embed_dist_4", get_spectral_embedding_dist(chords_i_dist_matrix, n_dims=4))
+nonlin_mds_2 = calc_and_stash("nonlin_mds_2", get_mds(chords_i_dist_matrix, n_dims=2, metric=False, rotate=False))
+nonlin_mds_3 = calc_and_stash("nonlin_mds_3", get_mds(chords_i_dist_matrix, n_dims=3, metric=False, rotate=False))
 
 ##########correlation ones
-kpca_corr_2 = calc_and_stash("kpca_corr_2", get_pca(chords_i_products_square, n_dims=2))
-kpca_corr_3 = calc_and_stash("kpca_corr_3", get_pca(chords_i_products_square, n_dims=3))
-lin_mds_corr_2 = calc_and_stash("lin_mds_corr_2", get_mds(chords_i_products_square, n_dims=2))
-lin_mds_corr_3 = calc_and_stash("lin_mds_corr_3", get_mds(chords_i_products_square, n_dims=3))
-spectral_embed_prod_corr_2 = calc_and_stash("spectral_embed_prod_corr_2", get_spectral_embedding_prod(chords_i_products_square, n_dims=2))
-spectral_embed_prod_corr_3 = calc_and_stash("spectral_embed_prod_corr_3", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
-spectral_embed_prod_corr_4 = calc_and_stash("spectral_embed_prod_corr_4", get_spectral_embedding_prod(chords_i_products_square, n_dims=3))
-spectral_embed_dist_corr_2 = calc_and_stash("spectral_embed_dist_corr_2", get_spectral_embedding_dist(chords_i_dists_square, n_dims=2))
-spectral_embed_dist_corr_3 = calc_and_stash("spectral_embed_dist_corr_3", get_spectral_embedding_dist(chords_i_dists_square, n_dims=3))
-spectral_embed_dist_corr_4 = calc_and_stash("spectral_embed_dist_corr_4", get_spectral_embedding_dist(chords_i_dists_square, n_dims=4))
-nonlin_mds_corr_2 = calc_and_stash("nonlin_mds_corr_2", get_mds(chords_i_dists_square, n_dims=2, metric=False, rotate=False))
-nonlin_mds_corr_3 = calc_and_stash("nonlin_mds_corr_3", get_mds(chords_i_dists_square, n_dims=3, metric=False, rotate=False))
+kpca_corr_2 = calc_and_stash("kpca_corr_2", get_pca(chords_i_gram_matrix, n_dims=2))
+kpca_corr_3 = calc_and_stash("kpca_corr_3", get_pca(chords_i_gram_matrix, n_dims=3))
+lin_mds_corr_2 = calc_and_stash("lin_mds_corr_2", get_mds(chords_i_gram_matrix, n_dims=2))
+lin_mds_corr_3 = calc_and_stash("lin_mds_corr_3", get_mds(chords_i_gram_matrix, n_dims=3))
+spectral_embed_prod_corr_2 = calc_and_stash("spectral_embed_prod_corr_2", get_spectral_embedding_prod(chords_i_gram_matrix, n_dims=2))
+spectral_embed_prod_corr_3 = calc_and_stash("spectral_embed_prod_corr_3", get_spectral_embedding_prod(chords_i_gram_matrix, n_dims=3))
+spectral_embed_prod_corr_4 = calc_and_stash("spectral_embed_prod_corr_4", get_spectral_embedding_prod(chords_i_gram_matrix, n_dims=3))
+spectral_embed_dist_corr_2 = calc_and_stash("spectral_embed_dist_corr_2", get_spectral_embedding_dist(chords_i_dist_matrix, n_dims=2))
+spectral_embed_dist_corr_3 = calc_and_stash("spectral_embed_dist_corr_3", get_spectral_embedding_dist(chords_i_dist_matrix, n_dims=3))
+spectral_embed_dist_corr_4 = calc_and_stash("spectral_embed_dist_corr_4", get_spectral_embedding_dist(chords_i_dist_matrix, n_dims=4))
+nonlin_mds_corr_2 = calc_and_stash("nonlin_mds_corr_2", get_mds(chords_i_dist_matrix, n_dims=2, metric=False, rotate=False))
+nonlin_mds_corr_3 = calc_and_stash("nonlin_mds_corr_3", get_mds(chords_i_dist_matrix, n_dims=3, metric=False, rotate=False))
 
 ###################Viz
 #chordmap_vis.plot_2d(spectral_embed_prod_corr_2)
