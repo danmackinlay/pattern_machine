@@ -7,31 +7,6 @@ s=Dan.serverboot(prox:\local, device:\internal);
 var state = ();
 ~state=state;
 fork {state.make({
-	~c1x1=SynthDef.new(\ps_mutatingreverb_4__1x1,
-		diffuserfactory.value(
-			{|in|[In.ar(in,1)]},
-			{|chan, i| chan.sum},
-			outchan:1,
-		)
-	).add;
-	~c1x2=SynthDef.new(\ps_mutatingreverb_4__1x2,
-		diffuserfactory.value(
-			{|in|[In.ar(in,1)]},
-			{|chan, i|
-				//chan.poll(5,\flarg1, i);
-				Splay.ar(chan)},
-			outchan:2,
-		)
-	).add;
-	~c2x2=SynthDef.new(\ps_mutatingreverb_4__2x2,
-		diffuserfactory.value(
-			{|in|In.ar(in,2)},
-			{|chan, i|
-				//chan.poll(5, \flarg2, i);
-				Splay.ar(chan, spread: 1-(2*i))},
-			outchan:2,
-		)
-	).add;
 	~testsamplepath = PS.scsamplepath +/+ "NS-wind-chimes-002-denoise-edit.wav";
 	~testbuf=Buffer.read(s, ~testsamplepath);
 	~outbus = Bus.new(\audio, 0, 2, s);

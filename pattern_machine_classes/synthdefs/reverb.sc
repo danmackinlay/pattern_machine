@@ -5,8 +5,8 @@ PSReverbSynthDefs {
 		});
 	}
 	*loadSynthDefs {
-		//Reverb unit with bonus dry sidemix
 		this.loadMutator;
+		//Reverb unit with bonus dry sidemix
 		SynthDef(\ps_freeverbside__2x2, {
 			|out=0, wet=1, room=0.15, damp=0.8, amp=1.0, sidebus=0, sidebusAmp=1, index=0|
 			var signal;
@@ -135,5 +135,30 @@ PSReverbSynthDefs {
 				//Out.ar(out, baseSig);
 			};
 		};
+		SynthDef.new(\ps_mutatingreverb_4__1x1,
+			diffuserfactory.value(
+				{|in|[In.ar(in,1)]},
+				{|chan, i| chan.sum},
+				outchan:1,
+			)
+		).add;
+		SynthDef.new(\ps_mutatingreverb_4__1x2,
+			diffuserfactory.value(
+				{|in|[In.ar(in,1)]},
+				{|chan, i|
+					//chan.poll(5,\flarg1, i);
+					Splay.ar(chan)},
+				outchan:2,
+			)
+		).add;
+		SynthDef.new(\ps_mutatingreverb_4__2x2,
+			diffuserfactory.value(
+				{|in|In.ar(in,2)},
+				{|chan, i|
+					//chan.poll(5, \flarg2, i);
+					Splay.ar(chan, spread: 1-(2*i))},
+				outchan:2,
+			)
+		).add;
 	}
 }
