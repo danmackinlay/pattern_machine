@@ -154,18 +154,6 @@
 				//[\intendedNextDelta, intendedNextDelta].postln;
 				evt[\delta] = intendedNextDelta;
 				intendedNextTime = intendedNextDelta + intendedTime;
-				~debugSpawn.asBoolean.if({
-					[
-						\BBBB,
-						\quantum, ~quantum,
-						\loopBeats, ~loopBeats,
-						\loopseed, ~loopseed,
-						\intendedTime, intendedTime,
-						\intendedNextTime, intendedNextTime,
-						\intendedNextDelta, intendedNextDelta,
-						\intendedFirstBeat, intendedFirstBeat,
-					].postln;
-				});
 				// finnicky loop logic
 				overshoot = (intendedNextTime/~loopBeats).floor * ~loopBeats;
 				(overshoot>0.0).if({
@@ -202,17 +190,6 @@
 						});
 
 					});
-				});
-				~debugSpawn.asBoolean.if({
-					[
-						\CCCC,
-						\quantum, ~quantum,
-						\loopBeats, ~loopBeats,
-						\intendedTime, intendedTime,
-						\intendedNextTime, intendedNextTime,
-						\intendedNextDelta, intendedNextDelta,
-						\overshoot, overshoot,
-					].postln;
 				});
 				//
 				// Quantisation logic, adapted from timing.sc
@@ -287,18 +264,10 @@
 				amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
 				//thought- should we be dealing with *effective* sustain times?
 
-				~debugSpawn.asBoolean.if({
-					[
-						"~meanoverlap", ~meanoverlap,
-						\intendedNextDelta, intendedNextDelta,
-						\actualNextDelta, actualNextDelta,
-						\sustain, sustain,
-						\innerSustain, innerSustain,
-						\allPassDelTime, allPassDelTime,
-						\ringTime, ringTime,
-						\amp, amp,
-					].postln;
-				});
+				evt[\posrate]=1.0;
+				evt[\grainsize]=0.1;
+				evt[\windowRandRatio]=0.1;
+
 				evt[\sustainDur] = sustain * ~beatDur;
 				evt[\innerSustainDur] = innerSustain * ~beatDur;
 				evt[\allPassDelTime] = allPassDelTime * ~beatDur;
@@ -311,26 +280,6 @@
 				evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
 				//[\rate, evt[\rate]].postln;
 
-				~debugSpawn.asBoolean.if({
-					[
-						\DDDD,
-						\actualNextTime,actualNextTime,
-						\evtdelta,evt[\delta],
-						\quantum, ~quantum,
-						\loopBeats, ~loopBeats,
-						\intendedTime, intendedTime,
-						\intendedNextTime, intendedNextTime,
-						\intendedNextDelta, intendedNextDelta,
-						\quantizedNextTime, quantizedNextTime,
-						\weightedNextTime, weightedNextTime,
-						\actualTime, actualTime,
-						\actualNextTime, actualNextTime,
-						\actualNextDelta, actualNextDelta,
-						\intendedFirstBeat, intendedFirstBeat,
-						\deltime, nextDelTime,
-					].postln;
-				});
-
 				//actually sequence it.
 				pat = Pfin(1, Pevent(evt));
 				~debugSpawn.asBoolean.if({
@@ -340,18 +289,6 @@
 				//wrap around bar end
 				actualTime = actualNextTime % (~loopBeats);
 				intendedTime = intendedNextTime % (~loopBeats);
-
-				~debugSpawn.asBoolean.if({
-					[
-						\EEEE,
-						\quantum, ~quantum,
-						\loopBeats, ~loopBeats,
-						\intendedTime, intendedTime,
-						\intendedNextTime, intendedNextTime,
-						\actualTime, actualTime,
-						\actualNextTime, actualNextTime,
-					].postln;
-				});
 
 			});
 		});
