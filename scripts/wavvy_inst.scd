@@ -1,5 +1,3 @@
-//This should totally be a class; I use it often enough.
-//TODO: variable barlength (including pspawner counter)
 //TODO: switch from Event type Note to Grain, and avoid having to think about it
 //TODO: markovity
 //Grain candidates
@@ -7,23 +5,90 @@
 //GrainBuf
 //BufDur
 //TGrains (specified in seconds)
+(
+		SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
+			arg out=0,
+			bufnum,
+			deltime=0.0,
+			phasebus,
+			rate=1.0,
+			posrate=1.0,
+			grainsize=0.1,
+			windowRandRatio=0.1,
+			modulate=0, modlag=0.5, modulateallp=0,
+			pan=0, amp=1, gate=1,
+			interp=4,
+			attack=0.1, release=0.1,
+			innerSustainDur=1, sustainDur=1, //Dur to indicate they are measured in seconds, not beats
+			allpdeltime=0.1, ringtime=1;
+
+			//Grain candidates
+			//Warp1;
+			//GrainBuf
+			//BufDur
+			//TGrains (specified in seconds)
+
+			var sig, innerenv, outerenv, baseTime, readTime, ramp, bufDur;
+
+			bufDur = BufDur.kr(bufnum);
+			innerenv = EnvGen.kr(
+				Env.linen(
+					attackTime: attack,
+					sustainTime: (innerSustainDur-attack).max(0),
+					releaseTime: release),
+				gate: gate,
+				levelScale:amp);
+			deltime = deltime + ((1-posrate) * Sweep.ar(gate, 1)); //base read pos
+			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
+			ramp = Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur); //why is this also a ramp?
+			baseTime = Latch.kr(In.kr(phasebus), gate);
+			//is the following wrap right for the last sample in the buffer?
+			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
+
+			sig = Warp1.ar(
+				numChannels: 1,
+				bufnum: bufnum,
+				pointer: readTime * (bufDur.reciprocal),
+				freqScale: rate,
+				interp: interp,
+				windowSize: grainsize,
+				overlaps: 2,
+				windowRandRatio: windowRandRatio,
+				mul: innerenv
+			);
+
+			//OR
+
+			/*sig = BufRd.ar(
+				numChannels:1,
+				bufnum: bufnum,
+				phase: readTime*SampleRate.ir,
+				interpolation: interp,
+				loop: 1, // Is this actually loop TIME? or interpolation?
+			) * innerenv; */
+			outerenv = EnvGen.kr(
+				Env.linen(
+					attackTime: 0,
+					sustainTime: sustainDur,
+					releaseTime: release
+					),
+				levelScale: 1,
+				doneAction: 2,
+			);
+			sig = AllpassN.ar(sig,
+				delaytime: allpdeltime + Lag2.ar(
+					K2A.ar(modulateallp), lagTime: modlag),
+				decaytime: ringtime,
+				maxdelaytime: 0.5,
+				mul: outerenv);
+			Out.ar(out, Pan2.ar(sig, pan));
+		}).add;
 
 {|state, i|
 	state.make({
 		~i=i;
 		state.voiceStates[i]=(state);
 		~sampleDur = state.sampleDur ? 30;
-		~updateTempo={|self|
-			\subupdatetempo.postln;
-			self.beatDur = self[\clock].tempo.reciprocal;
-			self.loopTime = self.beatDur * (self.loopBeats? 4.0);
-		};
-		~loopin={|self, loopseed|
-			[\loop, loopseed].postln;
-			loopseed = loopseed.asBoolean;
-			self.loopseed = loopseed;
-			self.loopseed;
-		};
 		~cleanup={|self|
 			var nextitem, ct = self.cleanupList.size;
 			//[\precleaning, ct].postln;
@@ -41,7 +106,6 @@
 		//can't do this one until the list exists; has to be first if at all
 		//~cleanupList.add({ state.voiceStates[i]=nil });
 
-		state.updateTempo();
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
 		~cleanupList.add({ state.loopbuf.free });
 		~modbus = Bus.control(~server,1);
@@ -57,7 +121,7 @@
 		~rec = {|self, dur|
 			//[\rec, \self, self].postcs;
 			//[\rec, \dur, dur].postcs;
-			Pfin(1, Pevent((
+			(
 				instrument: \ps_bufwr_phased__1x1,
 				in: self.inbus,
 				bufnum: self.loopbuf,
@@ -67,7 +131,7 @@
 				addAction: \addToHead,
 				dur: dur ? self.loopTime,
 			//sendGate: false,//persist
-			))).trace.play(self[\clock]);
+			).trace.play(self[\clock]);
 		};
 
 		//channel fx
@@ -97,8 +161,7 @@
 		).play;
 		~cleanupList.add({ state.jack.free });
 
-		//cannot also be called ~pat or recursive reference manages to happen somehow.
-		~baseevt = (
+		~parentevt = (
 			type: \note,
 			instrument: \ps_bufrd_phased_grain_mod_echette__1x2,
 			group: ~headGroup,
@@ -111,119 +174,9 @@
 			bufnum: ~loopbuf,
 		);
 		// least troublesome way of reseeding is Pspawner
-		~pat = Pspawner({|spawner|
-			var actualTime=0.0;
-			var intendedTime=0.0;
-			var weightedNextTime;
-			//For looping
-			var intendedFirstBeat = 0.0;
-			var candidateIntendedFirstBeat = 0.0;
+		~seq = PSWavvyseq(state: state, parentEvent: ~parentevt);
 
-			inf.do({|i|
-				//Pevent?
-				var evt, pat;
-				var intendedNextTime=0.0;
-				var quantizedNextTime=0.0;
-				var actualNextTime=0.0;
-				var intendedNextDelta;
-				var actualNextDelta;
-				var nextDelTime=0.0;
-				var overshoot;
-				var innerSustain;
-				var sustain;
-				var allPassDelTime;
-				var ringTime;
-				var amp;
-				// [state.stationarity, state.density, state.intensity, state.loopBeats,  state.beatDur].postcs;
-				// [~stationarity, ~meandensity, ~meanoverlap, ~loopBeats, ~beatDur].postcs;
 
-				//Basic event construction:
-				evt = ~baseevt.copy.putAll((
-					attack: ~attack,
-					decay: ~decay,
-					sustainLevel: ~sustainLevel,
-					release: ~release,
-					amp: ~meanpower.dbamp,
-					pan: ~pan,
-					rate: 1,
-					modulate: 0,
-					modlag: 0.5,
-					modulateallp: 0,
-					innerSustainDur: 1,
-					sustainDur: 4,
-					allpdeltime: 0.5,
-					ringtime: 6,
-				));
-				// choose quantisation for this iteration:
-				~quantum = ~quantumset.unif(~quantumparam);
-				intendedNextDelta = (1.0.rand.log.neg/(~meandensity)).clip(0.0, 16);
-				//[\intendedNextDelta, intendedNextDelta].postln;
-				evt[\delta] = intendedNextDelta;
-				intendedNextTime = intendedNextDelta + intendedTime;
-				// finnicky loop logic
-				overshoot = (intendedNextTime/~loopBeats).floor * ~loopBeats;
-				(overshoot>0.0).if({
-					(~loopseed).if({
-						~debugSpawn.asBoolean.if({
-							["reeeeeeeseeeeeed1",
-								\intendedNextTime,
-								intendedNextTime,
-								\intendedFirstBeat,
-								intendedFirstBeat,
-								\intendedNextTime2,
-								overshoot + intendedFirstBeat].postln;
-						});
-						intendedNextTime = overshoot + intendedFirstBeat;
-						intendedNextDelta = intendedNextTime - intendedTime;
-						~debugSpawn.asBoolean.if({
-							["reeeeeeeseeeeeed2",
-								\intendedNextTime,
-								intendedNextTime,
-								\intendedNextDelta,
-								intendedNextDelta].postln;
-						});
-						thisThread.randSeed_(~seed);
-					}, {
-						intendedFirstBeat = intendedNextTime % ~loopBeats;
-						~debugSpawn.asBoolean.if({
-							["nooooreeeeeeeseeeeeed",
-								\intendedNextTime,
-								intendedNextTime,
-								\loopBeats,
-								~loopBeats,
-								\intendedFirstBeat,
-								intendedFirstBeat].postln;
-						});
-
-					});
-				});
-				//
-				// Quantisation logic, adapted from timing.sc
-				//
-				// TODO: round to 0 if close enough
-				// TODO: switch back to round instead of roundup, or we don't get notes on the downbeat in the first bar.
-				quantizedNextTime = intendedNextTime.round(~quantum);
-				weightedNextTime = ((1 - ~strength) * intendedNextTime) +
-					(~strength * quantizedNextTime);
-				actualNextDelta = (weightedNextTime - actualTime);
-				~debugSpawn.asBoolean.if({
-					[\CCCC2,\intendedNextDelta,intendedNextDelta,\actualNextDelta,actualNextDelta, \quantum, ~quantum, \strength, ~strength].postln;
-				});
-				// % ensures that we skip no bars and we don't go backwards; shouldn't be needed except for wacky quantization changes
-				(actualNextDelta < 0).if({
-					~debugSpawn.asBoolean.if({
-						["Whoa shit",
-						\actualTime, actualTime,
-						\intendedTime, intendedTime,
-							\intendedNextDelta,intendedNextDelta,
-							\actualNextDelta,actualNextDelta,
-							\quantum, ~quantum,
-							\strength, ~strength].postln;
-					});
-					actualNextDelta = actualNextDelta % (~quantum);
-				});
-				actualNextTime = actualTime + actualNextDelta;
-				evt[\delta] = actualNextDelta % (~loopBeats); // % breaks up v. long beats
 				//
 				// Base delay logic
 				//
@@ -314,3 +267,7 @@
 		*/
 	});
 }
+d=(a:1);
+e=(b:2);
+e.parent_(d);
+e[\b]

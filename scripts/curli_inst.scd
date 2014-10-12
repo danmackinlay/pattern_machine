@@ -95,8 +95,8 @@
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
 			type: \note,
-			instrument: \ps_bufrd_phased_grain_mod_echette__1x2,
-			//instrument: \ps_bufrd_phased_mod_echette__1x2,
+			//instrument: \ps_bufrd_phased_grain_mod_echette__1x2,
+			instrument: \ps_bufrd_phased_mod_echette__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,

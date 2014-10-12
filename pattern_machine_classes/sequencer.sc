@@ -7,6 +7,7 @@ PSWavvyseq {
 	var <>nBars;
 	var <maxLen;
 	var <>baseEvents;
+	var <>parentEvent;
 	var <>state;
 	var <>debug;
 	var <timePoints;
@@ -21,6 +22,7 @@ PSWavvyseq {
 	var <beatlen;
 	var <nextfirst=0;
 	var <>evt;
+	var <>clock;
 	//stream wrangling
 	var <>barcallback;
 	var <>notecallback;
@@ -37,6 +39,7 @@ PSWavvyseq {
 		nBars=4,
 		maxLen=1024,
 		baseEvents,
+		parentEvent,
 		state,
 		debug=false,
 		timePoints|
@@ -46,6 +49,7 @@ PSWavvyseq {
 			nBars,
 			maxLen,
 			baseEvents ?? [(degree: 0)],
+			parentEvent,
 			state ?? (),
 			debug,
 		).init(timePoints);
@@ -61,7 +65,8 @@ PSWavvyseq {
 				beatlen = nBars*beatsPerBar;
 				nextidxptr = idxptr + 1;
 				nexttimeptr = timePoints[nextidxptr];
-				evt = baseEvents.wrapAt(idxptr).copy;
+				evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
+				evt['tempo'] = (clock ? TempoClock.default).tempo;
 				(nexttimeptr > beatlen).if({
 					//next beat falls outside the bar. Hmm.
 					barcallback.notNil.if({
@@ -90,10 +95,11 @@ PSWavvyseq {
 	timePoints_{|newTimePoints|
 		newTimePoints.sort.do({|v,i| timePoints[i]=v})
 	}
-	play {|clock|
+	play {|clock, protoEvent, quant|
 		//This inst looks like a pattern, but in fact carries bundled state. Um.
 		stream.notNil.if({stream.stop});
-		stream = pat.play(clock);
+		this.clock_(clock);
+		stream = pat.play(clock, protoEvent, quant);
 		^stream;
 	}
 	stop {
