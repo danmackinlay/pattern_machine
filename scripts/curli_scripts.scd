@@ -64,8 +64,8 @@ TODO:
 * monitor channel
 */
 
-//~server = Dan.serverboot(prox:\local, device:\rme);
-//~server = Dan.serverboot(prox:\local, device:\motu);
+~server = Dan.serverboot(prox:\local, device:\rme);
+~server = Dan.serverboot(prox:\local, device:\motu);
 ~server = Dan.serverboot(prox:\local, device:\builtin);
 (
 var state = ();
