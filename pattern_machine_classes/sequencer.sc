@@ -6,7 +6,7 @@ PSWavvyseq {
 	var <beatsPerBar;
 	var <>nBars;
 	var <maxLen;
-	var <>baseEvent;
+	var <>baseEvents;
 	var <>state;
 	var <>debug;
 	var <timePoints;
@@ -36,7 +36,7 @@ PSWavvyseq {
 		beatsPerBar=4,
 		nBars=4,
 		maxLen=1024,
-		baseEvent,
+		baseEvents,
 		state,
 		debug=false,
 		timePoints|
@@ -45,7 +45,7 @@ PSWavvyseq {
 			beatsPerBar,
 			nBars,
 			maxLen,
-			baseEvent ?? (degree: 0),
+			baseEvents ?? [(degree: 0)],
 			state ?? (),
 			debug,
 		).init(timePoints);
@@ -61,7 +61,7 @@ PSWavvyseq {
 				beatlen = nBars*beatsPerBar;
 				nextidxptr = idxptr + 1;
 				nexttimeptr = timePoints[nextidxptr];
-				evt = baseEvent.copy;
+				evt = baseEvents.wrapAt(idxptr).copy;
 				(nexttimeptr > beatlen).if({
 					//next beat falls outside the bar. Hmm.
 					barcallback.notNil.if({
