@@ -132,8 +132,9 @@ state.chordspiral = Pspawner({|spawner|
 				~bestdist = ~neighbours[0][1];
 				~octavestart = ~octavestartparam.linlin(0.0, 1.0, 20.0, 105.0).floor;
 				~octaveend = ~octaverangeparam.linlin(0.0, 1.0, ~octavestart+12, 127.0).floor;
-				~notes = IdentitySet.newFrom(~nnotes.collect({(~bestclass.choose + (30.rand * 12)).offsetModBase(~octavestart, ~octaveend)})).asArray;
-				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~octavestart, ~octaveend, ~notes].postln;});
+				~allnotes = IdentitySet.newFrom(100.collect({(~bestclass.choose + (30.rand * 12)).offsetModBase(~octavestart, ~octaveend)})).asArray.scramble;
+				~notes = ~allnotes[0..(~nnotes.min(~allnotes.size))];
+				~verbose.if({[~time, ~coord, ~bestdist, ~bestclass, ~octavestart, ~octaveend, ~allnotes, ~notes].postln;});
 				~ev = ~protoEvent.copy;
 				~ev.putAll((
 					dur: ~interval,
@@ -178,7 +179,7 @@ state.use({
 		[1,  7],
 		[1, 23],
 	];
-	//location the first 3-4 faders
+	//location the first 4 knobs/faders
 	~alldefs.add(MIDIdef.cc(\param0, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[0] = mapped;
@@ -188,32 +189,32 @@ state.use({
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[1] = mapped;
 		//[\param1, mapped].postln;
-	}, ccNum: 1, chan: 1));
+	}, ccNum: 16, chan: 1));
 	~alldefs.add(MIDIdef.cc(\param2, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[2] = mapped;
 		//[\param2, mapped].postln;
-	}, ccNum: 2, chan: 1));
+	}, ccNum: 17, chan: 1));
 	~alldefs.add(MIDIdef.cc(\param3, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,-1.0,1.0);
 		state.manualparam[3] = mapped;
 		//[\param3, mapped].postln;
-	}, ccNum: 3, chan: 1));
+	}, ccNum: 1, chan: 1));
 	~alldefs.add(MIDIdef.cc(\octavestart, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
 		state.octavestartparam = mapped;
 		[\octavestart, mapped].postln;
-	}, ccNum: 4, chan: 1));
+	}, ccNum: 2, chan: 1));
 	~alldefs.add(MIDIdef.cc(\octaverange, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,0.0,1.0);
 		state.octaverangeparam = mapped;
 		[\octaverange, mapped].postln;
-	}, ccNum: 5, chan: 1));
+	}, ccNum: 18, chan: 1));
 	~alldefs.add(MIDIdef.cc(\nnotes, {|val,num,chan,src|
 		var mapped = val.linlin(0.0,127.0,1,17).asInteger;
 		state.nnotes = mapped;
 		[\nnotes, mapped].postln;
-	}, ccNum: 6, chan: 1));
+	}, ccNum: 3, chan: 1));
 
 });
 //this doesn't seem to happen by isself reliably
