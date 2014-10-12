@@ -7,6 +7,7 @@ Learning a harmony space
   * maybe; the optimality criterion will be a little weird; I wish to maximis evenness of point distribution, and number of neighbours. This might be a different manifold criterion than MDS. perhaps isotonic?
   * this would be nice; sparse kernel (as in KDE) vector product; a littel expensive to evaluate. I wonder if I coudl make it into a kernel (as in kernel trick) product?
   * that would also allow dissonance (negative shoulder) kernels
+* alternatively can i learn  chords by recurrence plot inversion? BEcause what we probably really have is more a c-occurrence recurrence relation (if multivariate)
 
 
 Notes
