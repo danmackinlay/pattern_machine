@@ -2,8 +2,9 @@
 Curlicue
 
 TODO:
-* Spectrum is a little this; inbuilt filtering would be nice
+* Spectrum is a little thick; inbuilt filtering would be nice
 * go to granualr synthesis for voices instead of straight sample portion playing.
+* perhaps a sequencer
 * GUI is needed
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, MRE) and internal mixers using a BusAllocator
@@ -13,6 +14,7 @@ TODO:
 * random volume
 * smart accent
 * decent Lemur template
+* or NexusUI
 * OSC triggering for:
 
   * overall
