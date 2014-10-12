@@ -1,0 +1,10 @@
+trackerMasterAddress;
+syphonClientAddress;
+visualizerAddress;
+workingDir;
+visualizerAddresscli;
+debugLevel = 2;
+pixWidth =2560;
+~vizpid;
+~startAnalysis.value;
+~stopFLustre.value;

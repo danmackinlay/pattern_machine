@@ -1,0 +1,12 @@
+indiv. tracker ports
+
+60001
+60002
+60003
+60004
+
+masterTracker listening port 64000
+
+fixed OSC relay port (GUI)  59999
+
+8 dynamic osc relays with command "/trackerMaster/requestTuiostream $1" and to masterTracker listening port (64000)
