@@ -174,6 +174,13 @@ state.server.doWhenBooted({state.make({
 		// * loop beats?
 		~loopBeats = 4;
 		// * reverb mix?
+		~posrateset = [0, 1, 3/2, 1/4, 2 ];
+		~posratevar = 0.33;  // MODULATE ME
+		~basegrainsize = 0.1;
+		~grainsizeset = [1, 3/2, 1/2, 2/3, 1/8 ];
+		~grainsizevar = 0.332;  // MODULATE ME
+		~windowRandRatio = 0.1;
+
 	});
 	//UI interaction stuff
 	// ~metaparamMap = PSMetaParamMap.new(inDims:3, outDims:10);

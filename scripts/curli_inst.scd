@@ -2,11 +2,6 @@
 //TODO: variable barlength (including pspawner counter)
 //TODO: switch from Event type Note to Grain, and avoid having to think about it
 //TODO: markovity
-//Grain candidates
-//Warp1;
-//GrainBuf
-//BufDur
-//TGrains (specified in seconds)
 
 {|state, i|
 	state.make({
@@ -100,7 +95,8 @@
 		//cannot also be called ~pat or recursive reference manages to happen somehow.
 		~baseevt = (
 			type: \note,
-			instrument: \ps_bufrd_phased_grain_mod_echette__1x2,
+			//instrument: \ps_bufrd_phased_grain_mod_echette__1x2,
+			instrument: \ps_bufrd_phased_mod_echette__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,
@@ -270,10 +266,9 @@
 				amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
 				//thought- should we be dealing with *effective* sustain times?
 
-
-				evt[\posrate]=1.0;
-				evt[\grainsize]=0.1;
-				evt[\windowRandRatio]=0.1;
+				evt[\posrate] = ~posrateset.unif(~posratevar.asFloat.rand);
+				evt[\grainsize] = ~grainsizeset.unif(~grainsizevar.asFloat.rand) *~basegrainsize;
+				evt[\windowRandRatio]= ~windowRandRatio;
 				evt[\sustainDur] = sustain * ~beatDur;
 				evt[\innerSustainDur] = innerSustain * ~beatDur;
 				evt[\allPassDelTime] = allPassDelTime * ~beatDur;
@@ -285,6 +280,7 @@
 				//
 				evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
 				//[\rate, evt[\rate]].postln;
+				~debugSpawn.asBoolean.if({evt.postcs});
 
 				//actually sequence it.
 				pat = Pfin(1, Pevent(evt));
@@ -295,7 +291,6 @@
 				//wrap around bar end
 				actualTime = actualNextTime % (~loopBeats);
 				intendedTime = intendedNextTime % (~loopBeats);
-
 			});
 		});
 		~stream = ~pat.play(clock: ~clock);

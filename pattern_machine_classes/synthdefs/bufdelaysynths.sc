@@ -222,6 +222,12 @@ PSBufDelaySynthDefs {
 			attack=0.1, release=0.1,
 			innerSustainDur=1, sustainDur=1, //Dur to indicate they are measured in seconds, not beats
 			allpdeltime=0.1, ringtime=1;
+			
+			//Grain candidates
+			//Warp1;
+			//GrainBuf
+			//BufDur
+			//TGrains (specified in seconds)
 
 			var sig, innerenv, outerenv, baseTime, readTime, ramp, bufDur;
 
