@@ -207,6 +207,77 @@ PSBufDelaySynthDefs {
 				mul: outerenv);
 			Out.ar(out, Pan2.ar(sig, pan));
 		}).add;
+		SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
+			arg out=0,
+			bufnum,
+			deltime=0.0,
+			phasebus,
+			rate=1.0,
+			posrate=1.0,
+			grainsize=0.1,
+			windowRandRatio=0.1,
+			modulate=0, modlag=0.5, modulateallp=0,
+			pan=0, amp=1, gate=1,
+			interp=4,
+			attack=0.1, release=0.1,
+			innerSustainDur=1, sustainDur=1, //Dur to indicate they are measured in seconds, not beats
+			allpdeltime=0.1, ringtime=1;
+
+			var sig, innerenv, outerenv, baseTime, readTime, ramp, bufDur;
+
+			bufDur = BufDur.kr(bufnum);
+			innerenv = EnvGen.kr(
+				Env.linen(
+					attackTime: attack,
+					sustainTime: (innerSustainDur-attack).max(0),
+					releaseTime: release),
+				gate: gate,
+				levelScale:amp);
+			deltime = deltime + ((1-posrate) * Sweep.ar(gate, 1)); //base read pos
+			deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
+			ramp = Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur); //why is this also a ramp?
+			baseTime = Latch.kr(In.kr(phasebus), gate);
+			//is the following wrap right for the last sample in the buffer?
+			readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
+			
+			sig = Warp1.ar(
+				numChannels: 1,
+				bufnum: bufnum,
+				pointer: readTime * (bufDur.reciprocal),
+				freqScale: rate,
+				interp: interp,
+				windowSize: grainsize,
+				overlaps: 2,
+				windowRandRatio: windowRandRatio,
+				mul: innerenv
+			);
+			
+			//OR
+			
+			/*sig = BufRd.ar(
+				numChannels:1,
+				bufnum: bufnum,
+				phase: readTime*SampleRate.ir,
+				interpolation: interp,
+				loop: 1, // Is this actually loop TIME? or interpolation?
+			) * innerenv; */
+			outerenv = EnvGen.kr(
+				Env.linen(
+					attackTime: 0,
+					sustainTime: sustainDur,
+					releaseTime: release
+					),
+				levelScale: 1,
+				doneAction: 2,
+			);
+			sig = AllpassN.ar(sig,
+				delaytime: allpdeltime + Lag2.ar(
+					K2A.ar(modulateallp), lagTime: modlag),
+				decaytime: ringtime,
+				maxdelaytime: 0.5,
+				mul: outerenv);
+			Out.ar(out, Pan2.ar(sig, pan));
+		}).add;
 		//
 		// DelTap-style delays, using buffers
 		//
