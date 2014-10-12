@@ -4,7 +4,7 @@
 PSWavvyseq {
 	var <baseBarBeat;
 	var <beatsPerBar;
-	var <nBars;
+	var <>nBars;
 	var <maxLen;
 	var <>baseEvent;
 	var <>state;
@@ -14,6 +14,16 @@ PSWavvyseq {
 	var <timeptr;
 	var <pat;
 	var <stream;
+	//private var, made memebrs for ease of debugging.
+	var <nexttimeptr;
+	var <nextidxptr;
+	var <>delta;
+	var <beatlen;
+	var <nextfirst=0;
+	var <>evt;
+	//stream wrangling
+	var <>barcallback;
+	var <>notecallback;
 	
 	*initClass{
 		StartUp.add({
@@ -47,22 +57,32 @@ PSWavvyseq {
 		newTimePoints.notNil.if({this.timePoints_(newTimePoints)});
 		pat = Pspawner({|spawner|
 			inf.do({
-				var nexttimeptr, nextidxptr, delta, beatlen, evt;
-				evt = baseEvent.copy;
+				[beatlen, timeptr, nexttimeptr].postln;
 				beatlen = nBars*beatsPerBar;
 				nextidxptr = idxptr + 1;
 				nexttimeptr = timePoints[nextidxptr];
+				evt = baseEvent.copy;
 				(nexttimeptr > beatlen).if({
 					//next beat falls outside the bar. Hmm.
-					delta = beatlen - (timeptr % beatlen);
-					timeptr = 0;
-					idxptr = -1;
+					barcallback.notNil.if({
+						barcallback.value(this);
+					});
+					nextfirst = timePoints[0].min(beatlen);
+					delta = (beatlen + nextfirst - timeptr) % beatlen;
+					timeptr = nextfirst;
+					idxptr = 0;
+					//evt = Rest(delta);
 				}, {
 					delta = (nexttimeptr-timeptr).max(0);
 					timeptr = timeptr + delta;
 					idxptr = nextidxptr;
+					evt[\delta] = delta;
 				});
-				evt[\delta] = delta;
+				//at the moment this will desync if you change the note delta in the callback
+				// can change that if useful
+				notecallback.notNil.if({
+					notecallback.value(this);
+				});
 				spawner.seq(evt);
 			});
 		});

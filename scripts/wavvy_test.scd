@@ -3,5 +3,5 @@ p= Pspawner({|spawner|
 });
 r=p.play;
 
-p=PSWavvyseq.new(nBars:1,timePoints:[0.0, 0.3, 0.9,3.5]);
+p=PSWavvyseq.new(nBars:1,timePoints:[0.0, 1.0, 2.0, 3.0]);
 p.pat.trace.play
