@@ -8,6 +8,7 @@ Learning a harmony space
   * this would be nice; sparse kernel (as in KDE) vector product; a littel expensive to evaluate. I wonder if I coudl make it into a kernel (as in kernel trick) product?
   * that would also allow dissonance (negative shoulder) kernels
   * Also, not all distances are equally important; the ones beween two dissontant chords are not significant. can i distort space, or change weightings, to deal with this?
+  * If I threw out all chords with more than 6 notes I would also speed up search times. Just sayin'.
 * alternatively can i learn  chords by recurrence plot inversion? BEcause what we probably really have is more a c-occurrence recurrence relation (if multivariate)
 
 
