@@ -173,85 +173,53 @@
 			phasebus: ~loopphasebus,
 			bufnum: ~loopbuf,
 		);
-		// least troublesome way of reseeding is Pspawner
 		~seq = PSWavvyseq(state: state, parentEvent: ~parentevt);
+		~seq.notecallback = {|seq|
+			//
+			// duration/power logic
+			//
+			// 1. We calculate an intended duration and power
+			// 2. We calculate how much of that should be allpass, and what
+			// 3. scale amplitude accordingly
+			~repquantum = ~quantum * ~repquantumset.unif(
+				~repquantumvar.asFloat.rand);
 
+			sustain = intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap);
+			sustain = (((1 - ~strength) * sustain)
+				+ (~strength * (sustain.round(~quantum)))
+			).clip(~repquantum, 16);
+			allPassDelTime = (
+				1.0.rand.log.neg*(~meanreptime)
+			);
+			allPassDelTime = (
+				((1 - ~strength) * allPassDelTime)
+				+ (~strength * (allPassDelTime.round(~repquantum)))
+			).clip(
+				0.001.rand+0.001,//rand so we don't ring at set freq because of clipping
+				sustain); //no point making it longer than the entire event
+			innerSustain = (allPassDelTime * 2).min(sustain);
+			//we should still have 20db left at cutoff; is that ok?
+			ringTime = (sustain - innerSustain).max(0) * 3;
+			//compensate for notes that are mostly allpass
+			amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
+			//thought- should we be dealing with *effective* sustain times?
 
-				//
-				// Base delay logic
-				//
-				// convert time in beats to boring old seconds to work out baseline stationary delay
-				nextDelTime = actualNextTime * ~beatDur * (1-~stationarity);
-				// next, our delay-beats
-				// offset using random list lookup
-				//[\deltimeA, nextDelTime, ~loopBeats,  actualNextTime, ~beatDur, ~stationarity].postln;
-				nextDelTime = nextDelTime + (
-					(~delquantumset.unif(~delquantumvar.asFloat.rand)) *
-					(~deljumpset.unif(~deljumpvar.asFloat.rand)) *
-					(~delscale) * (~beatDur));
-				//[\deltimeB, nextDelTime].postln;
-				//don't wrap to sane values; the synth does this anyway
-				//nextDelTime = nextDelTime % (~loopBeats*~beatDur);
-				//[\deltimeC, nextDelTime].postln;
-				evt[\deltime] = nextDelTime;
-				//
-				// duration/power logic
-				//
-				// 1. We calculate an intended duration and power
-				// 2. We calculate how much of that should be allpass, and what
-				// 3. scale amplitude accordingly
-				~repquantum = ~quantum * ~repquantumset.unif(
-					~repquantumvar.asFloat.rand);
+			evt[\posrate]=1.0;
+			evt[\grainsize]=0.1;
+			evt[\windowRandRatio]=0.1;
+			evt[\sustainDur] = sustain * ~beatDur;
+			evt[\innerSustainDur] = innerSustain * ~beatDur;
+			evt[\allPassDelTime] = allPassDelTime * ~beatDur;
+			evt[\ringTime] = ringTime * ~beatDur;
+			evt[\amp] = amp;
 
-				sustain = intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap);
-				sustain = (((1 - ~strength) * sustain)
-					+ (~strength * (sustain.round(~quantum)))
-				).clip(~repquantum, 16);
-				allPassDelTime = (
-					1.0.rand.log.neg*(~meanreptime)
-				);
-				allPassDelTime = (
-					((1 - ~strength) * allPassDelTime)
-					+ (~strength * (allPassDelTime.round(~repquantum)))
-				).clip(
-					0.001.rand+0.001,//rand so we don't ring at set freq because of clipping
-					sustain); //no point making it longer than the entire event
-				innerSustain = (allPassDelTime * 2).min(sustain);
-				//we should still have 20db left at cutoff; is that ok?
-				ringTime = (sustain - innerSustain).max(0) * 3;
-				//compensate for notes that are mostly allpass
-				amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
-				//thought- should we be dealing with *effective* sustain times?
-
-
-				evt[\posrate]=1.0;
-				evt[\grainsize]=0.1;
-				evt[\windowRandRatio]=0.1;
-				evt[\sustainDur] = sustain * ~beatDur;
-				evt[\innerSustainDur] = innerSustain * ~beatDur;
-				evt[\allPassDelTime] = allPassDelTime * ~beatDur;
-				evt[\ringTime] = ringTime * ~beatDur;
-				evt[\amp] = amp;
-
-				//
-				// tuning logic
-				//
-				evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
-				//[\rate, evt[\rate]].postln;
-
-				//actually sequence it.
-				pat = Pfin(1, Pevent(evt));
-				~debugSpawn.asBoolean.if({
-					pat = pat.trace(prefix: \deepinner)
-				});
-				spawner.seq(pat);
-				//wrap around bar end
-				actualTime = actualNextTime % (~loopBeats);
-				intendedTime = intendedNextTime % (~loopBeats);
-
-			});
-		});
-		~stream = ~pat.play(clock: ~clock);
+			//
+			// tuning logic
+			//
+			evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
+			//[\rate, evt[\rate]].postln;
+		};
+		~stream = ~seq.play(clock: ~clock);
 		~cleanupList.add({
 			state.stream.stop;
 		});
