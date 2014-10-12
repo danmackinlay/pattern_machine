@@ -1,7 +1,8 @@
 /*
-Curlicue
+Wavvy
 
 TODO:
+* make a sequencer
 * Spectrum is a little thick; inbuilt filtering would be nice
 * go to granualr synthesis for voices instead of straight sample portion playing.
 * perhaps a sequencer

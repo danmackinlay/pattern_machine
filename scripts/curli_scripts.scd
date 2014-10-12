@@ -2,9 +2,9 @@
 Curlicue
 
 TODO:
+* rename args in synthdefs to make this less hairy and weird.
 * Spectrum is a little thick; inbuilt filtering would be nice
 * go to granualr synthesis for voices instead of straight sample portion playing.
-* perhaps a sequencer
 * GUI is needed
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, MRE) and internal mixers using a BusAllocator
