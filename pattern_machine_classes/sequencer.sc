@@ -15,7 +15,7 @@ PSWavvyseq {
 	var <timeptr;
 	var <pat;
 	var <stream;
-	//private var, made memebrs for ease of debugging.
+	//private var, made members for ease of debugging.
 	var <nexttimeptr;
 	var <nextidxptr;
 	var <>delta;
@@ -78,6 +78,7 @@ PSWavvyseq {
 					idxptr = 0;
 					//evt = Rest(delta);
 				}, {
+					//this always plays all notes; but we could skip ones if the seq changes instead?
 					delta = (nexttimeptr-timeptr).max(0);
 					timeptr = timeptr + delta;
 					idxptr = nextidxptr;
@@ -105,5 +106,22 @@ PSWavvyseq {
 	stop {
 		//should i implement other stream methods?
 		stream.notNil.if({stream.stop});
+	}
+	seqFrom {|pattern, protoEvent|
+		//return dur beats of a pattern
+		var timePoints, baseEvents, stream, time;
+		time = 0.0;
+		baseEvents = List.new;
+		timePoints = List.new;
+		stream = pattern.asStream;
+		({time<=beatlen}).while({
+			var nextEv = stream.next(protoEvent ? Event.default);
+			nextEv.isRest.not.if({
+				timePoints.add(time);
+				baseEvents.add(nextEv);
+			});
+			time = time + nextEv.delta;
+		});
+		^[timePoints, baseEvents];
 	}
 }
