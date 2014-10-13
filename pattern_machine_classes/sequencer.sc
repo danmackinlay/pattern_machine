@@ -1,5 +1,10 @@
 //A stateful stream (or pattern, or stream/pattern factory, i haven't decided) that plays a sequence
 // Should probably be a pattern factory.
+// Additional features installed for my needs:
+// tempo shifting
+// injecting tempo info into events
+// providing per-event and per-rep callbacks to mess with shit.
+// Future plans could include a state amchine that skips around the sequence based on events
 
 PSWavvyseq {
 	var <baseBarBeat;
@@ -9,6 +14,7 @@ PSWavvyseq {
 	var <>baseEvents;
 	var <>parentEvent;
 	var <>state;
+	var <>timerate=1.0;
 	var <>debug;
 	var <timePoints;
 	var <idxptr;
@@ -41,6 +47,7 @@ PSWavvyseq {
 		baseEvents,
 		parentEvent,
 		state,
+		timerate=1.0,
 		debug=false,
 		timePoints|
 		^super.newCopyArgs(
@@ -51,6 +58,7 @@ PSWavvyseq {
 			baseEvents ?? [(degree: 0)],
 			parentEvent,
 			state ?? (),
+			timerate,
 			debug,
 		).init(timePoints);
 	}
@@ -64,9 +72,10 @@ PSWavvyseq {
 				[beatlen, timeptr, nexttimeptr].postln;
 				beatlen = nBars*beatsPerBar;
 				nextidxptr = idxptr + 1;
-				nexttimeptr = timePoints[nextidxptr];
+				nexttimeptr = timePoints[nextidxptr] ?? inf/timerate;
 				evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
 				evt['tempo'] = (clock ? TempoClock.default).tempo;
+				evt['timerate'] = timerate;
 				(nexttimeptr > beatlen).if({
 					//next beat falls outside the bar. Hmm.
 					barcallback.notNil.if({
