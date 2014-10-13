@@ -1,26 +1,20 @@
 //TODO: switch from Event type Note to Grain, and avoid having to think about it
 //TODO: markovity
-//Grain candidates
-//Warp1;
-//GrainBuf
-//BufDur
-//TGrains (specified in seconds)
+//TODO: think about a less stupid modulation architecture, w/nice LFOs on pos, amp, pan, grainsize, and other LFOs
 (
-SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
+SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	arg out=0,
 	bufnum,
-	deltime=0.0,
+	timeago=0.0, //how far back from the end we wish to look
 	now=0.0,
-	rate=1.0,
+	sustainDur=1,
+	pitchrate=1.0,
 	posrate=1.0,
 	grainsize=0.1,
 	windowRandRatio=0.1,
-	modulate=0, modlag=0.5, modulateallp=0,
 	pan=0, amp=1, gate=1,
 	interp=4,
-	attack=0.1, release=0.1,
-	innerSustainDur=1, sustainDur=1, //Dur to indicate they are measured in seconds, not beats
-	allpdeltime=0.1, ringtime=1;
+	attack=0.1, release=0.1;
 
 	//Grain candidates
 	//Warp1;
@@ -28,44 +22,25 @@ SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
 	//BufDur
 	//TGrains (specified in seconds)
 
-	var sig, innerenv, outerenv, baseTime, readTime, ramp, bufDur;
-
+	var sig, 
+		env,
+		baseTime,
+		readTime,
+		bufDur;
 	bufDur = BufDur.kr(bufnum);
-	innerenv = EnvGen.kr(
-		Env.linen(
-			attackTime: attack,
-			sustainTime: (innerSustainDur-attack).max(0),
-			releaseTime: release),
-		gate: gate,
-		levelScale:amp);
-	deltime = deltime + ((1-posrate) * Sweep.ar(gate, 1)); //base read pos
-	deltime = deltime + Lag2.ar(K2A.ar(modulate), lagTime: modlag);
-	ramp = Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur); //why is this also a ramp?
 	baseTime = Latch.kr(now, gate);
-	//is the following wrap right for the last sample in the buffer?
-	readTime = ((baseTime-deltime)+ramp).wrap(0, bufDur);
-
-	sig = Warp1.ar(
-		numChannels: 1,
-		bufnum: bufnum,
-		pointer: readTime * (bufDur.reciprocal),
-		freqScale: rate,
-		interp: interp,
-		windowSize: grainsize,
-		overlaps: 2,
-		windowRandRatio: windowRandRatio,
-		mul: innerenv
+	//readTime = (baseTime - timeago +
+	//	Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur)
+	//	).wrap(0, bufDur);
+	//Or, since we can do this at control rate
+	readTime = Phasor.kr(
+		trig: gate,
+		rate: ControlDur.ir*posrate,
+		start: 0,
+		end: bufDur,
+		resetPos: (baseTime - timeago).wrap(0, bufDur)
 	);
-
-	//OR
-	/*sig = BufRd.ar(
-		numChannels:1,
-		bufnum: bufnum,
-		phase: readTime*SampleRate.ir,
-		interpolation: interp,
-		loop: 1, // Is this actually loop TIME? or interpolation?
-	) * innerenv; */
-	outerenv = EnvGen.kr(
+	env = EnvGen.kr(
 		Env.linen(
 			attackTime: 0,
 			sustainTime: sustainDur,
@@ -74,15 +49,22 @@ SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
 		levelScale: 1,
 		doneAction: 2,
 	);
-	sig = AllpassN.ar(sig,
-		delaytime: allpdeltime + Lag2.ar(
-			K2A.ar(modulateallp), lagTime: modlag),
-		decaytime: ringtime,
-		maxdelaytime: 0.5,
-		mul: outerenv);
+	sig = Warp1.ar(
+		numChannels: 1,
+		bufnum: bufnum,
+		pointer: readTime * (bufDur.reciprocal),
+		freqScale: pitchrate,
+		interp: interp,
+		windowSize: grainsize,
+		overlaps: 2,
+		windowRandRatio: windowRandRatio,
+		mul: env
+	);
+
 	Out.ar(out, Pan2.ar(sig, pan));
 }).add;
-
+)
+(
 {|state, i|
 	state.make({
 		~i=i;
@@ -162,7 +144,7 @@ SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
 
 		~parentevt = (
 			type: \note,
-			instrument: \ps_bufrd_phased_grain_mod_echette__1x2,
+			instrument: \ps_bufgrain_type_1__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,
@@ -218,7 +200,7 @@ SynthDef.new(\ps_bufrd_phased_grain_mod_echette__1x2, {
 			//
 			// tuning logic
 			//
-			evt[\rate] = ~transset.unif(~transvar.asFloat.rand);
+			evt[\pitchrate] = ~transset.unif(~transvar.asFloat.rand);
 			//[\rate, evt[\rate]].postln;
 		};
 		~stream = ~seq.play(clock: ~clock);
