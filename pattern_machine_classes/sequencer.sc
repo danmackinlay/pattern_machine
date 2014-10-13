@@ -4,7 +4,7 @@
 // tempo shifting
 // injecting tempo info into events
 // providing per-event and per-rep callbacks to mess with shit.
-// Future plans could include a state amchine that skips around the sequence based on events
+// Future plans could include a state machine that skips around the sequence based on events
 
 PSWavvyseq {
 	var <baseBarBeat;
@@ -73,7 +73,10 @@ PSWavvyseq {
 				beatlen = nBars*beatsPerBar;
 				nextidxptr = idxptr + 1;
 				nexttimeptr = timePoints[nextidxptr] ?? inf/timerate;
-				evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
+				// should be faster:
+				//evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
+				// easier to debug:
+				evt = parentEvent.copy.putAll(baseEvents.wrapAt(idxptr));
 				evt['tempo'] = (clock ? TempoClock.default).tempo;
 				evt['timerate'] = timerate;
 				(nexttimeptr > beatlen).if({
@@ -96,7 +99,7 @@ PSWavvyseq {
 				//at the moment this will desync if you change the note delta in the callback
 				// can change that if useful
 				notecallback.notNil.if({
-					notecallback.value(this);
+					evt = notecallback.value(evt, this);
 				});
 				spawner.seq(evt);
 			});
