@@ -32,7 +32,6 @@ So - framesize-64 up to 512,  3/4 framesize-64 for 2048.
 1024 and 4096 are just a mystery.
 Convolution source inspection is probably necessary.
 */
-Server.default = s = Dan.serverboot(\internal, \builtin);
 (
 fork {
 	~size=4096;

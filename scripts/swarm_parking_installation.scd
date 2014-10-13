@@ -1,7 +1,3 @@
-Server.default = s = Dan.serverboot(\local, \internal);
-Server.default = s = Dan.serverboot(\local, \motu);
-Server.default = s = Dan.serverboot(\internal, \motu);
-Server.default = s = Dan.serverboot(\internal, \internal);
 ~openStartup.();
 (
 SynthDef.new(\ps_oneshot_record, {|in, sndbuffer|

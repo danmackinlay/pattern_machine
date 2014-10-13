@@ -19,8 +19,6 @@ TODO: delayscape
 TODO: bassier samples
 */
 
-s=Dan.serverboot(prox:\local, device:\builtin);
-s=Dan.serverboot(prox:\local, device:\rme);
 (
 var state;
 state = ();

@@ -71,12 +71,7 @@ TODO:
 (
 var state = ();
 ~state=state;
-state.server = ~server ?? {
-	//Dan.serverboot(prox:\local, device:\rme);
-	//Dan.serverboot(prox:\local, device:\motu);
-	Dan.serverboot(prox:\local, device:\builtin);
-};
-~server = state.server;
+state.server = ~server;
 
 state.server.doWhenBooted({state.make({
 	~ninputs = 1;

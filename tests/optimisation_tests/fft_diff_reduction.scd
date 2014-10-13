@@ -1,4 +1,3 @@
-GUI.qt;Server.default = s = Dan.serverboot(\internal, \builtin);
 /*
 Summary:
 FFT differences are just awful because low f bins are lies, and highly variable, esp for high bandwidth.

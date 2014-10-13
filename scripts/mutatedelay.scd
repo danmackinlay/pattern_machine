@@ -1,5 +1,3 @@
-s=Dan.serverboot(prox:\local, device:\rme);
-s=Dan.serverboot(prox:\local, device:\internal);
 // "http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/Routing-audio-synths-using-ProxySpace-td6416833.html"
 // "http://comments.gmane.org/gmane.comp.audio.supercollider.user/65142"
 // "http://new-supercollider-mailing-lists-forums-use-these.2681727.n2.nabble.com/JITLib-basics-td6990590.html"

@@ -1,0 +1,12 @@
+~server = Server.default = s = Dan.serverboot(\local, \builtin);
+~server = Server.default = s = Dan.serverboot(\local, \rme);
+~server = Server.default = s = Dan.serverboot(\local, \motu);
+~server = Server.default = s = Dan.serverboot(\internal, \builtin);
+Quarks.gui;
+s.dumpOSC(1);
+OSCdef.trace(true);
+s.dumpOSC(0);
+OSCdef.trace(false);
+ServerTreeGui.makeWindow(s);
+StartUp.run;
+PS.go.();

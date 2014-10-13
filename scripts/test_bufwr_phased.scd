@@ -1,7 +1,6 @@
 (
 var state = Environment.new(know:true);
 ~state = state;
-state.server = Dan.serverboot(prox:\local, device:\builtin);
 )
 (
 var state = ~state;

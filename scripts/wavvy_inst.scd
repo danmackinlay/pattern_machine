@@ -22,7 +22,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	//BufDur
 	//TGrains (specified in seconds)
 
-	var sig, 
+	var sig,
 		env,
 		baseTime,
 		readTime,
@@ -67,6 +67,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 (
 {|state, i|
 	state.make({
+		var sequencemaker;
 		~i=i;
 		state.voiceStates[i]=(state);
 		~sampleDur = state.sampleDur ? 30;
@@ -154,54 +155,23 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 			now: ~loopphasebus.asMap,
 			bufnum: ~loopbuf,
 		);
-		~seq = PSWavvyseq(state: state, parentEvent: ~parentevt);
-		~seq.barcallback = {|seq|
-
+		sequencemaker = {
+			20.collect({16.0.rand.round(0.25)}).sort;
 		};
-		~seq.notecallback = {|seq|
-			//
-			// duration/power logic
-			//
-			// 1. We calculate an intended duration and power
-			// 2. We calculate how much of that should be allpass, and what
-			// 3. scale amplitude accordingly
-			~repquantum = ~quantum * ~repquantumset.unif(
-				~repquantumvar.asFloat.rand);
+		~seq = PSWavvyseq(state: state, parentEvent: ~parentevt);
 
-			sustain = intendedNextDelta * 1.0.rand.log.neg * (~meanoverlap);
-			sustain = (((1 - ~strength) * sustain)
-				+ (~strength * (sustain.round(~quantum)))
-			).clip(~repquantum, 16);
-			allPassDelTime = (
-				1.0.rand.log.neg*(~meanreptime)
-			);
-			allPassDelTime = (
-				((1 - ~strength) * allPassDelTime)
-				+ (~strength * (allPassDelTime.round(~repquantum)))
-			).clip(
-				0.001.rand+0.001,//rand so we don't ring at set freq because of clipping
-				sustain); //no point making it longer than the entire event
-			innerSustain = (allPassDelTime * 2).min(sustain);
-			//we should still have 20db left at cutoff; is that ok?
-			ringTime = (sustain - innerSustain).max(0) * 3;
-			//compensate for notes that are mostly allpass
-			amp = (innerSustain/sustain).min(1).sqrt * (~meanpower.dbamp);
-			//thought- should we be dealing with *effective* sustain times?
-
-			evt[\posrate]=1.0;
+		~seq.barcallback = {|seq|
+			seq.timePoints = sequencemaker.value;
+		};
+		~seq.notecallback = {|evt, seq|
+			var evt;
+			evt[\posrate]=0.0;
 			evt[\grainsize]=0.1;
 			evt[\windowRandRatio]=0.1;
-			evt[\sustainDur] = sustain * ~beatDur;
-			evt[\innerSustainDur] = innerSustain * ~beatDur;
-			evt[\allPassDelTime] = allPassDelTime * ~beatDur;
-			evt[\ringTime] = ringTime * ~beatDur;
+			evt[\sustainDur] = 1 ~beatDur;
 			evt[\amp] = amp;
-
-			//
-			// tuning logic
-			//
-			evt[\pitchrate] = ~transset.unif(~transvar.asFloat.rand);
-			//[\rate, evt[\rate]].postln;
+			evt[\pitchrate] = 1;
+			evt.postcs;
 		};
 		~stream = ~seq.play(clock: ~clock);
 		~cleanupList.add({

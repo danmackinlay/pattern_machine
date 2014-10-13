@@ -3,8 +3,6 @@ A wild an dangerous effect that is designed to feedback (more) safely through yo
 
 */
 
-
-s=Dan.serverboot(prox:\local, device:\builtin);
 //TODO: EQ
 //TODO: make safer, by ignoring shifting baseline potential
 (

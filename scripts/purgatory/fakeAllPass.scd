@@ -5,8 +5,6 @@ I am trying to create a reversible reverb-echo like effect, where the
 diffusion can be undone.
 */
 
-s=Dan.serverboot(prox:\local, device:\builtin);
-s=Dan.serverboot(prox:\local, device:\rme);
 ~state = 'foo';
 (
 var in, out, ingroup, voxgroup, fxgroup, postgroup, testsample, testbuf, envBuf, state, freqMap, minFreq=55, nOctaves=8, nBpBandsPerOctave=1, nBpBandsTotal, allBpFreqs ,bwr;

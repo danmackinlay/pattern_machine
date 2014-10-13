@@ -5,10 +5,6 @@ ServerTreeGui.makeWindow(s);
 ////////////
 
 //initialisation
-Server.default = s = Dan.serverboot(\local, \motu);
-Server.default = s = Dan.serverboot(\local, \builtin);
-Server.default = s = Dan.serverboot(\internal, \motu);
-Server.default = s = Dan.serverboot(\internal, \builtin);
 StartUp.run;
 (
 fork {
@@ -126,11 +122,6 @@ PSSynthDefPhenotype.chromosomeAsSynthArgs(PSSynthDefPhenotype.synthArgsAsChromos
 
 
 //initialisation
-Server.default = s = Dan.serverboot(\local, \motu);
-Server.default = s = Dan.serverboot(\local, \builtin);
-Server.default = s = Dan.serverboot(\internal, \motu);
-Server.default = s = Dan.serverboot(\internal, \builtin);
-StartUp.run;
 (
 fork {
 	~globalOuts = Bus.new(\audio, 0, 1, s);

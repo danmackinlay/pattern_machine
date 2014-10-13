@@ -1,12 +1,7 @@
 /*
  * Messing around trying to find a low-dimensional feature vector that represents harmonicity
  */
-s=Dan.serverboot(prox:\local, device:\builtin);
 
-s.dumpOSC(1);
-OSCdef.trace(true);
-s.dumpOSC(0);
-OSCdef.trace(false);
 
 (
 var analNode, concatNode, soundSource, infilep, confilep, inBuf, conBuf;
