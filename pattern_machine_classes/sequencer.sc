@@ -74,50 +74,53 @@ PSWavvyseq {
 			time = 0.0;
 			//iterate!
 			inf.do({
-				//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
-				beatlen = nBars*beatsPerBar;
-				//set up the next iteration
-				nextidxptr = idxptr + 1;
-				nextbartime = timePoints[nextidxptr] ?? inf/timerate;
-				(nextbartime > beatlen).if({
-					//next beat falls outside the bar. Wrap.
-					barcallback.notNil.if({
-						barcallback.value(this);
-					});
-					nextfirst = timePoints[0].min(beatlen);
-					delta = (beatlen + nextfirst - bartime) % beatlen;
-					bartime = nextfirst;
-					idxptr = 0;
-					//evt = Rest(delta);
-				}, {
-					//this always plays all notes, at once if necessary; but we could skip ones if the seq changes instead?
-					delta = (nextbartime-bartime).max(0);
-					bartime = bartime + delta;
-					idxptr = nextidxptr;
-				});
-				time = time + delta;
-				
-				//Advance logical time
-				(delta>0).if({
-					spawner.seq(Rest(delta));
-				});
-				
-				// Create and schedule event:
-				// "proper" way:
-				// evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
-				// easier-to-debug way:
-				evt = parentEvent.copy.putAll(baseEvents.wrapAt(idxptr));
-				evt['tempo'] = (clock ? TempoClock.default).tempo;
-				evt['bartime'] = bartime;
-				evt['time'] = time;
-				evt['timerate'] = timerate;
-				evt['idxptr'] = idxptr;
-				notecallback.notNil.if({
-					evt = notecallback.value(evt, this);
-				});
-				spawner.par(P1event(evt));
+				this.prAdvanceTime(spawner);
 			});
 		});
+	}
+	prAdvanceTime{|spawner|
+		//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
+		beatlen = nBars*beatsPerBar;
+		//set up the next iteration
+		nextidxptr = idxptr + 1;
+		nextbartime = timePoints[nextidxptr] ?? inf/timerate;
+		(nextbartime > beatlen).if({
+			//next beat falls outside the bar. Wrap.
+			barcallback.notNil.if({
+				barcallback.value(this);
+			});
+			nextfirst = timePoints[0].min(beatlen);
+			delta = (beatlen + nextfirst - bartime) % beatlen;
+			bartime = nextfirst;
+			idxptr = 0;
+			//evt = Rest(delta);
+		}, {
+			//this always plays all notes, at once if necessary; but we could skip ones if the seq changes instead?
+			delta = (nextbartime-bartime).max(0);
+			bartime = bartime + delta;
+			idxptr = nextidxptr;
+		});
+		time = time + delta;
+		
+		//Advance logical time
+		(delta>0).if({
+			spawner.seq(Rest(delta));
+		});
+		
+		// Create and schedule event:
+		// "proper" way:
+		// evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
+		// easier-to-debug way:
+		evt = parentEvent.copy.putAll(baseEvents.wrapAt(idxptr));
+		evt['tempo'] = (clock ? TempoClock.default).tempo;
+		evt['bartime'] = bartime;
+		evt['time'] = time;
+		evt['timerate'] = timerate;
+		evt['idxptr'] = idxptr;
+		notecallback.notNil.if({
+			evt = notecallback.value(evt, this);
+		});
+		spawner.par(P1event(evt));
 	}
 	timePoints_{|newTimePoints|
 		//needs infinte sentinel value after
