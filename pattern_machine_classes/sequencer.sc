@@ -15,6 +15,8 @@ PSWavvyseq {
 	var <>parentEvent;
 	var <>state;
 	var <>timerate=1.0;
+	var <>barcallback;
+	var <>notecallback;
 	var <>debug;
 	var <timePoints;
 	var <idxptr=0;
@@ -31,8 +33,6 @@ PSWavvyseq {
 	var <>evt;
 	var <>clock;
 	//stream wrangling
-	var <>barcallback;
-	var <>notecallback;
 	
 	*initClass{
 		StartUp.add({
@@ -48,6 +48,8 @@ PSWavvyseq {
 		parentEvent,
 		state,
 		timerate=1.0,
+		barcallback,
+		notecallback,
 		debug=false,
 		timePoints|
 		^super.newCopyArgs(
@@ -58,8 +60,10 @@ PSWavvyseq {
 			parentEvent ?? (),
 			state ?? (),
 			timerate,
+			barcallback,
+			notecallback,
 			debug,
-		).init(timePoints);
+		).init(timePoints ? []);
 	}
 	init{|newTimePoints|
 		timePoints = Array.fill(maxLen, inf);
