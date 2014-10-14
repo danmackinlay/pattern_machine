@@ -1,4 +1,3 @@
-//TODO: switch from Event type Note to Grain, and avoid having to think about it
 //TODO: markovity
 //TODO: think about a less stupid modulation architecture, w/nice LFOs on pos, amp, pan, grainsize, and other LFOs
 (
@@ -19,7 +18,6 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	//Grain candidates
 	//Warp1;
 	//GrainBuf
-	//BufDur
 	//TGrains (specified in seconds)
 
 	var sig,

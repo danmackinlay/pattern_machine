@@ -44,11 +44,10 @@
 				fadetime: 0.05,
 				group: self.headGroup,
 				addAction: \addToHead,
-				dur: dur ? self.loopTime,
+				dur: dur ? self.sampleDur,
 			//sendGate: false,//persist
-			).trace.play(self[\clock]);
+			).play(self[\clock]);
 		};
-
 		//channel fx
 		~reverb = (
 			instrument: \ps_gverb__2x2,
@@ -75,7 +74,6 @@
 			out: state.masteroutbus,
 		).play;
 		~cleanupList.add({ state.jack.free });
-
 		~parentevt = (
 			type: \note,
 			instrument: \ps_bufgrain_type_1__1x2,

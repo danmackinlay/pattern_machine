@@ -2,11 +2,11 @@
 Wavvy
 
 TODO:
+* switch from Event type Note to Grain, and avoid having to think about it
 * Spectrum is a little thick; inbuilt filtering would be nice
-* perhaps a sequencer
 * GUI is needed
 * cleanup is not working great- fails to allocate bus correctly.
-* switch between external (live, MRE) and internal mixers using a BusAllocator
+* switch between external (live, RME) and internal mixers using a BusAllocator
 * tidier sample source selector
 * interesting param map
 * interesting rhythmn somehow
@@ -150,6 +150,7 @@ fork {
 ~state.bpm=120;
 ~state.updateTempo.();
 ~state.tempo;
+~state.voiceStates[0].loopbuf.plot;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
