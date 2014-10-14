@@ -13,16 +13,33 @@ PSwrand {
 }
 P1bind {
 	//P-one-bind embeds the arguments as a single event in the stream ONCE
-	//(events embed perpetually per default.)
+	//events embed unpredictably - e.g. eternally repeating if you embed them in parallel, otherwise just once.
 	//note events with better defaults, or an event subclass,
-	// might be able to avoid that
+	// might be able to do this better.
 	// Shouldn't this be EmbedOnce, or OneShot?
 	*new { arg ... pairs;
 		^Pfin(1, Pbind(*pairs))
 	}
 }
+P1event : Pattern {
+	//P-one-EVENT embeds the arguments as a single  event in the stream ONCE
+	//see P1bind for disclaimers.
+	var <>pattern, <>event;
+
+	*new { arg pattern, event;
+		^super.newCopyArgs(pattern, event ?? { Event.default });
+	}
+	storeArgs { ^[pattern, event] }
+	embedInStream { arg inval;
+		var outval;
+		outval = pattern.asStream.next(event);
+		if (outval.isNil) { ^inval };
+		inval = outval.yield;
+		^inval;
+	}
+}
 P1Rest {
-	//P-one-Rest embeds the arguments as a single event in the stream ONCE
+	//P-one-Rest embeds the arguments as a single rest event in the stream ONCE
 	//see P1bind for disclaimers.
 	*new { arg dur;
 		^Pfin(1, Rest(dur))

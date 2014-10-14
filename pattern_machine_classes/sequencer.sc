@@ -5,9 +5,9 @@
 // injecting tempo info into events
 // providing per-event and per-rep callbacks to mess with shit.
 // Future plans could include a state machine that skips around the sequence based on events
+// More general sequence that could be extracted from this would create stateful patterns that allowed per-event updates
 
 PSWavvyseq {
-	var <baseBarBeat;
 	var <beatsPerBar;
 	var <>nBars;
 	var <maxLen;
@@ -17,12 +17,13 @@ PSWavvyseq {
 	var <>timerate=1.0;
 	var <>debug;
 	var <timePoints;
-	var <idxptr;
-	var <timeptr;
+	var <idxptr=0;
+	var <bartime=0.0;
+	var <time=0.0;
 	var <pat;
 	var <stream;
 	//private var, made members for ease of debugging.
-	var <nexttimeptr;
+	var <nextbartime;
 	var <nextidxptr;
 	var <>delta;
 	var <beatlen;
@@ -40,8 +41,7 @@ PSWavvyseq {
 	}
 	*loadSynthDefs {
 	}
-	*new{|baseBarBeat=0,
-		beatsPerBar=4,
+	*new{|beatsPerBar=4,
 		nBars=4,
 		maxLen=1024,
 		baseEvents,
@@ -51,65 +51,81 @@ PSWavvyseq {
 		debug=false,
 		timePoints|
 		^super.newCopyArgs(
-			baseBarBeat,
 			beatsPerBar,
 			nBars,
 			maxLen,
 			baseEvents ?? [(degree: 0)],
-			parentEvent,
+			parentEvent ?? (),
 			state ?? (),
 			timerate,
 			debug,
 		).init(timePoints);
 	}
 	init{|newTimePoints|
-		idxptr = -1;
-		timeptr = 0.0;
 		timePoints = Array.fill(maxLen, inf);
 		newTimePoints.notNil.if({this.timePoints_(newTimePoints)});
 		pat = Pspawner({|spawner|
+			//init
+			barcallback.notNil.if({
+				barcallback.value(this);
+			});
+			idxptr = -1;
+			bartime = 0.0;
+			time = 0.0;
+			//iterate!
 			inf.do({
-				[beatlen, timeptr, nexttimeptr].postln;
+				//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
 				beatlen = nBars*beatsPerBar;
+				//set up the next iteration
 				nextidxptr = idxptr + 1;
-				nexttimeptr = timePoints[nextidxptr] ?? inf/timerate;
-				// should be faster:
-				//evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
-				// easier to debug:
-				evt = parentEvent.copy.putAll(baseEvents.wrapAt(idxptr));
-				evt['tempo'] = (clock ? TempoClock.default).tempo;
-				evt['timerate'] = timerate;
-				(nexttimeptr > beatlen).if({
-					//next beat falls outside the bar. Hmm.
+				nextbartime = timePoints[nextidxptr] ?? inf/timerate;
+				(nextbartime > beatlen).if({
+					//next beat falls outside the bar. Wrap.
 					barcallback.notNil.if({
 						barcallback.value(this);
 					});
 					nextfirst = timePoints[0].min(beatlen);
-					delta = (beatlen + nextfirst - timeptr) % beatlen;
-					timeptr = nextfirst;
+					delta = (beatlen + nextfirst - bartime) % beatlen;
+					bartime = nextfirst;
 					idxptr = 0;
 					//evt = Rest(delta);
 				}, {
-					//this always plays all notes; but we could skip ones if the seq changes instead?
-					delta = (nexttimeptr-timeptr).max(0);
-					timeptr = timeptr + delta;
+					//this always plays all notes, at once if necessary; but we could skip ones if the seq changes instead?
+					delta = (nextbartime-bartime).max(0);
+					bartime = bartime + delta;
 					idxptr = nextidxptr;
-					evt[\delta] = delta;
 				});
-				//at the moment this will desync if you change the note delta in the callback
-				// can change that if useful
+				time = time + delta;
+				
+				//Advance logical time
+				(delta>0).if({
+					spawner.seq(Rest(delta));
+				});
+				
+				// Create and schedule event:
+				// "proper" way:
+				// evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
+				// easier-to-debug way:
+				evt = parentEvent.copy.putAll(baseEvents.wrapAt(idxptr));
+				evt['tempo'] = (clock ? TempoClock.default).tempo;
+				evt['bartime'] = bartime;
+				evt['time'] = time;
+				evt['timerate'] = timerate;
+				evt['idxptr'] = idxptr;
 				notecallback.notNil.if({
 					evt = notecallback.value(evt, this);
 				});
-				spawner.seq(evt);
+				spawner.par(P1event(evt));
 			});
 		});
 	}
 	timePoints_{|newTimePoints|
-		newTimePoints.sort.do({|v,i| timePoints[i]=v})
+		//needs infinte sentinel value after
+		newTimePoints.sort.do({|v,i| timePoints[i]=v});
+		timePoints[newTimePoints.size] = inf;
 	}
 	play {|clock, protoEvent, quant|
-		//This inst looks like a pattern, but in fact carries bundled state. Um.
+		//This instance looks like a pattern, but in fact carries bundled state. Um.
 		stream.notNil.if({stream.stop});
 		this.clock_(clock);
 		stream = pat.play(clock, protoEvent, quant);
