@@ -5,6 +5,7 @@ TODO:
 * switch from Event type Note to Grain, and avoid having to think about it
 * Spectrum is a little thick; inbuilt filtering would be nice
 * GUI is needed
+* off switch for all notes (external gate?)
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, RME) and internal mixers using a BusAllocator
 * tidier sample source selector
@@ -139,10 +140,13 @@ fork {
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvy_inst.scd").value(localstate, i);
 	[\foo, foo].postcs;
 	s.sync;
-	//{state.voiceStates[i].rec();}.defer(0.1);
+	{state.voiceStates[i].rec();}.defer(0.1);
 };
 )
 (
+play({ PMOsc.ar(carfreq: 300, modfreq: Line.kr(600, 900, 5), pmindex:3, modphase:0, mul:0.1) }); // modulate modfreq
+
+)
 //~state.voiceStates[0].rec(30);
 ~state.voiceStates[0].rec();
 ~state.voiceStates[0].debugSpawn=false;

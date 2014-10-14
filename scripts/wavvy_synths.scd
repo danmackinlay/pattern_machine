@@ -12,7 +12,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	grainsize=0.1,
 	windowRandRatio=0.1,
 	pan=0, amp=1, gate=1,
-	interp=4,
+	interp=2,
 	attack=0.1, release=0.1;
 
 	//Grain candidates
@@ -26,7 +26,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		readTime,
 		bufDur;
 	bufDur = BufDur.kr(bufnum);
-	baseTime = Latch.kr(now, gate);
+	baseTime = Latch.kr(now.poll(2, \now), gate);
 	//readTime = (baseTime - timeago +
 	//	Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur)
 	//	).wrap(0, bufDur);
@@ -36,8 +36,8 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		rate: ControlDur.ir*posrate,
 		start: 0,
 		end: bufDur,
-		resetPos: (baseTime - timeago).wrap(0, bufDur)
-	);
+		resetPos: (baseTime - timeago).poll(2, \unwrappedreadtime).wrap(0, bufDur)
+	).poll(2, \readtime);
 	env = EnvGen.kr(
 		Env.linen(
 			attackTime: 0,
@@ -50,7 +50,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: readTime * (bufDur.reciprocal),
+		pointer: readTime * (bufDur.reciprocal).poll(2, \pointer);,
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize,

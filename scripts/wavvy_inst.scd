@@ -18,7 +18,7 @@
 		};
 		~cleanupList = List.new;
 		CmdPeriod.doOnce({ state.cleanup();});
-		//can't do this one until the list exists; has to be first if at all
+		//can't do this one until the cleanup list exists; has to be first if at all
 		//~cleanupList.add({ state.voiceStates[i]=nil });
 
 		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
@@ -32,7 +32,7 @@
 		~tailGroup = Group.tail(~instgroup);
 		s.sync;
 
-		//delay input
+		//record input (I would prefer resumble record)
 		~rec = {|self, dur|
 			//[\rec, \self, self].postcs;
 			//[\rec, \dur, dur].postcs;
@@ -90,18 +90,17 @@
 		};
 		~seq = PSWavvyseq(
 			state: state,
-			parentEvent: ~parentevt,
-			timePoints:sequencemaker.value);
+			parentEvent: ~parentevt);
 
 		~seq.barcallback = {|seq|
 			seq.timePoints = sequencemaker.value.postcs;
 		};
 		~seq.notecallback = {|evt, seq|
-			evt[\posrate]=0.0;
+			evt[\posrate]=0.1;
 			evt[\timeago]=1.0; // in seconds
-			evt[\grainsize]=0.1; //in seconds
+			evt[\grainsize]=0.15.rand + 0.05; //in seconds
 			evt[\windowRandRatio]=0.1;
-			evt[\sustainDur] = 1; //inseconds
+			evt[\sustainDur] = 4.0.rand+1; //inseconds
 			evt[\db] = -10.0;
 			evt[\pitchrate] = 1;
 			evt.postcs;
