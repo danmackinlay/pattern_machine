@@ -118,8 +118,6 @@ fork {
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
-		~strength = 1.0;
-		//~debugSpawn = true;
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -163,9 +161,9 @@ fork {
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
-~state.sourcesounds[0].set(\bufnum,~state.samples.key(\choral,0));
-~state.sourcesounds[0].set(\bufnum,~state.samples.key(\siren,0));
-~state.sourcesounds[0].set(\bufnum,~state.samples.key(\desolation,0));
+~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\choral,0));
+~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\siren,0));
+~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\desolation,0));
 
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
