@@ -159,6 +159,7 @@ fork {
 			evt[\sustainDur] = 4.0.rand+1; //inseconds
 			evt[\db] = -10.0;
 			evt[\pitchrate] = 1;
+			evt[\overlaps] = 4;
 			evt.postcs;
 		};
 		~seq = seq;
