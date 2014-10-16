@@ -76,7 +76,7 @@
 		~cleanupList.add({ state.jack.free });
 		~parentevt = (
 			type: \note,
-			instrument: \ps_bufgrain_type_1__1x2,
+			instrument: \ps_bufgrain_type_2__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,
