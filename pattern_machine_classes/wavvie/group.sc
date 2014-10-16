@@ -134,49 +134,11 @@ PSWavvieGroup {
 		).play;
 		~cleanupList.add({ state.jack.free });
 		~parentevt = (
-			type: \note,
-			instrument: \ps_bufgrain_type_2__1x2,
 			group: ~headGroup,
 			addAction: \addToTail,
 			server: ~server,
-			sendGate: false,
 			out: ~outbus,
-			now: ~loopphasebus.asMap,
-			bufnum: ~loopbuf,
 		);
-		sequencemaker = {
-			20.collect({32.0.rand.round(0.25)}).sort;
-		};
-		~seq = PSWavvieSeq(
-			state: state,
-			parentEvent: ~parentevt);
-
-		~seq.barcallback = {|seq|
-			seq.timePoints = sequencemaker.value.postcs;
-		};
-		~seq.notecallback = {|evt, seq|
-			evt[\posrate]=0.1;
-			evt[\timeago]=1.0; // in seconds
-			evt[\grainsize]=0.15.rand + 0.05; //in seconds
-			evt[\windowRandRatio]=0.2.rand;
-			evt[\sustainDur] = 4.0.rand+1; //inseconds
-			evt[\db] = -10.0;
-			evt[\pitchrate] = 1;
-			evt.postcs;
-		};
-		~stream = ~seq.play(clock: ~clock);
-		~cleanupList.add({
-			state.stream.stop;
-		});
-		/*
-		~paramUpdater.addUpdater({|val|
-			~parambus.set(val.linlin(0.0,1.0,0.0, 2.0));
-		});
-		~paramUpdater.addUpdater({|val|
-			//[\val,val].postln;
-			~pan = val.linlin(0.0,1.0,-0.8, 0.8);
-		});
-		*/
 	});
 }
 */
