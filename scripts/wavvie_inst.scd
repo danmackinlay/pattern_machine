@@ -88,7 +88,7 @@
 		sequencemaker = {
 			20.collect({32.0.rand.round(0.25)}).sort;
 		};
-		~seq = PSWavvyseq(
+		~seq = PSWavvieSeq(
 			state: state,
 			parentEvent: ~parentevt);
 

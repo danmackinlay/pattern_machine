@@ -7,7 +7,7 @@
 // Future plans could include a state machine that skips around the sequence based on events
 // More general sequence that could be extracted from this would create stateful patterns that allowed per-event updates
 
-PSWavvyseq {
+PSWavvieSeq {
 	var <beatsPerBar;
 	var <>nBars;
 	var <maxLen;

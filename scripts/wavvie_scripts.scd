@@ -1,5 +1,5 @@
 /*
-Wavvy
+Wavvie
 
 TODO:
 * switch from Event type Note to Grain, and avoid having to think about it
@@ -102,7 +102,7 @@ state.server.doWhenBooted({state.make({
 	CmdPeriod.doOnce({ state.samples.free });
 	s.sync;
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
-	this.executeFile(PS.scriptpath +/+ "wavvy_synths.scd").value(state);
+	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
 	//sync fails to handle the source setting properly
 	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
@@ -137,7 +137,7 @@ fork {
 		~strength = 1.0;
 		//~debugSpawn = true;
 	});
-	foo =  this.executeFile(PS.scriptpath +/+ "wavvy_inst.scd").value(localstate, i);
+	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	[\foo, foo].postcs;
 	s.sync;
 	{state.voiceStates[i].rec();}.defer(0.1);
