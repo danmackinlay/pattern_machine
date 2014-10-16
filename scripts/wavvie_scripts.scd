@@ -107,22 +107,6 @@ state.server.doWhenBooted({state.make({
 	//sync fails to handle the source setting properly
 	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
 	{state.sourcesounds[0].set(\bufnum,state.samples.key(\choral,0))}.defer(1);
-
-	//default values for sub voices
-	//cannot fall back to parent for these; local controls might be installed
-	~modelvoice = Event.make({
-		~debugSpawn = false;
-		// * record
-		// * minijump sizes
-		// * seed value
-		~seed = 1;
-		// * looping
-		~loopseed = true;
-		// * pan
-		// * loop beats?
-		~loopBeats = 4;
-		// * reverb mix?
-	});
 })});
 )
 (
@@ -130,7 +114,6 @@ var sequencemaker, seq;
 var localstate, state = ~state, i = 0, foo;
 fork {
 	localstate = Event.new(n:60, proto: state, know: true);
-	localstate.putAll(state.modelvoice);
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
