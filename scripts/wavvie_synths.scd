@@ -19,7 +19,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	overlaps=2,
 	pan=0, amp=1, gate=1,
 	interp=2,
-	attack=0.1, release=0.1,
+	attack=0.1, release=0.1;
 
 	var sig,
 		env,
@@ -32,13 +32,15 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	//	Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur)
 	//	).wrap(0, bufDur);
 	//Or, since we can do this at control rate
-	readTime = Phasor.kr(
+	readTime = ((Phasor.kr(
 		trig: gate,
 		rate: ControlDur.ir*posrate,
 		start: 0,
 		end: bufDur,
-		resetPos: (baseTime - timeago).poll(debugrate, \unwrappedreadtime).wrap(0, bufDur)
-	).poll(debugrate, \readtime);
+		resetPos: 0
+	) +
+		(baseTime - timeago).poll(2, \unwrappedreadtime)
+	)).wrap(0, bufDur).poll(2, \readtime);
 	env = EnvGen.kr(
 		Env.linen(
 			attackTime: 0,
@@ -55,7 +57,8 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize,
-		overlaps: overlaps,
+		overlaps: overlaps
+	,
 		windowRandRatio: windowRandRatio,
 		mul: env
 	);
@@ -75,7 +78,8 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	windowRandRatio=0.1,
 	pan=0, amp=1, gate=1,
 	interp=2,
-	attack=0.1, release=0.1,
+	attack=0.01,
+	//release=0.1,
 	lfobasef=1,
 	lfomodf=2.5,
 	lfomodamp=0.5,
@@ -104,28 +108,30 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	// and other LFOs
 	// think also about optional LFO sync to overall rate
 	// Also a scalar ramp that can be added to the LFO and poss other things
-	age = Line.kr(start: 0, end: 1, dur: sustainDur + release);
+	age = Line.kr(start: 0, end: 1, dur: sustainDur);
 	lfo = PMOsc.kr(carfreq: lfobasef,
 		modfreq: lfomodf,
 		pmindex: lfomodamp * pi * 2,
 		modphase: lfophase * pi * 2);
 
-	readTime = (Phasor.kr(
+	readTime = ((Phasor.kr(
 		trig: gate,
 		rate: ControlDur.ir*posrate,
 		start: 0,
 		end: bufDur,
-		resetPos: (baseTime - timeago).poll(debugrate, \unwrappedreadtime)
-
-	) + (lfo * lfo2pos)).wrap(0, bufDur) .poll(debugrate, \readtime);
-
+		resetPos: 0
+	) +
+		(baseTime - timeago).poll(2, \unwrappedreadtime)
+	) +
+		(lfo * lfo2pos)
+	).wrap(0, bufDur).poll(2, \readtime);
 	env = EnvGen.kr(
-		Env.linen(
-			attackTime: 0,
-			sustainTime: sustainDur,
-			releaseTime: release
+		Env.perc(
+			attackTime: attack,
+			releaseTime: sustainDur,
+			curve: -4.0,
 			),
-		levelScale: 1,
+		levelScale: amp,
 		doneAction: 2,
 	);
 	sig = Warp1.ar(

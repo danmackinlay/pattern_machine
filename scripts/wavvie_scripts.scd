@@ -123,8 +123,9 @@ fork {
 	//[\foo, foo].postcs;
 	s.sync;
 	localstate.use({
+
 		sequencemaker = {
-			20.collect({32.0.rand.round(0.25)}).sort;
+			50.rand.collect({16.0.rand.round(0.25)}).sort;
 		};
 		seq = PSWavvieSeq(
 			state: state,
@@ -133,15 +134,52 @@ fork {
 			seq.timePoints = sequencemaker.value.postcs;
 		};
 		seq.notecallback = {|evt, seq|
+			evt.postln;
+			/* modulateable
+			bufnum,
+			timeago=0.0, //how far back from the end we wish to look
+			now=0.0, //
+			sustainDur=1,
+			pitchrate=1.0,
+			posrate=1.0,
+			grainsize=0.1,
+			overlaps=2,
+			windowRandRatio=0.1,
+			pan=0,
+			amp=1,
+			gate=1,
+			interp=2,
+			attack=0.1,
+			//release=0.1,
+			lfobasef=1,
+			lfomodf=2.5,
+			lfomodamp=0.5,
+			lfophase=0.25,//cos, lfomodamp-depending
+			lfo2pos=0,
+			lfo2amp=0,
+			lfo2grain=0,
+			lfo2pan=0,
+			age2lfo=0,
+			*/
+			//evt[\posrate]=1;
+			evt[\lfobasef]=1;
+			evt[\lfomodf]=2.5;
+			evt[\lfomodamp]=0.5;
+			evt[\lfophase]=0.25;//cos; lfomodamp-depending
+			evt[\lfo2pos]=0;
+			evt[\lfo2amp]=0;
+			evt[\lfo2grain]=0;
+			evt[\lfo2pan]=0;
+			evt[\debugrate]=2;
 			evt[\posrate]=0.1;
-			evt[\timeago]=1.0; // in seconds
-			evt[\grainsize]=0.15.rand + 0.05; //in seconds
-			evt[\windowRandRatio]=0.2.rand;
-			evt[\sustainDur] = 4.0.rand+1; //inseconds
+			evt[\timeago]=10.0.rand; // in seconds
+			evt[\grainsize]=0.15.rand + 0.15; //in seconds
+			evt[\windowRandRatio]=0.3;
+			evt[\sustainDur] = 3.0.rand+1; //inseconds
 			evt[\db] = -10.0;
 			evt[\pitchrate] = 1;
-			evt[\overlaps] = 4;
-			evt.postcs;
+			evt[\overlaps] = 2;
+			//evt.postcs;
 		};
 		~seq = seq;
 		~stream = ~seq.play(clock: ~clock);
