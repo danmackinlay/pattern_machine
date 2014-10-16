@@ -9,15 +9,17 @@
 SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	arg out=0,
 	bufnum,
-	timeago=0.0, //how far back from the end we wish to look
+	pan=0,
+	amp=1,
+	gate=1,
 	now=0.0,
+	timeago=0.0, //how far back from the end we wish to look
 	sustainDur=1,
 	pitchrate=1.0,
 	posrate=1.0,
 	grainsize=0.1,
 	windowRandRatio=0.1,
 	overlaps=2,
-	pan=0, amp=1, gate=1,
 	interp=2,
 	attack=0.1, release=0.1;
 
@@ -47,7 +49,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 			sustainTime: sustainDur,
 			releaseTime: release
 			),
-		levelScale: 1,
+		levelScale: amp,
 		doneAction: 2,
 	);
 	sig = Warp1.ar(
@@ -57,8 +59,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize,
-		overlaps: overlaps
-	,
+		overlaps: overlaps,
 		windowRandRatio: windowRandRatio,
 		mul: env
 	);
@@ -66,17 +67,19 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	Out.ar(out, Pan2.ar(sig, pan));
 }).add;
 SynthDef.new(\ps_bufgrain_type_2__1x2, {
-	arg out=0,
-	bufnum,
-	timeago=0.0, //how far back from the end we wish to look
+	arg gate=1,
 	now=0.0,
+	out=0,
+	bufnum,
+	pan=0,
+	amp=1,
+	timeago=0.0, //how far back from the end we wish to look
 	sustainDur=1,
 	pitchrate=1.0,
 	posrate=1.0,
 	grainsize=0.1,
 	overlaps=2,
 	windowRandRatio=0.1,
-	pan=0, amp=1, gate=1,
 	interp=2,
 	attack=0.01,
 	//release=0.1,
@@ -147,5 +150,12 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	);
 
 	Out.ar(out, Pan2.ar(sig, pan));
-}).add;
+}, [
+		nil, nil, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir, \ir]
+).add;
 )
