@@ -18,7 +18,8 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	windowRandRatio=0.1,
 	pan=0, amp=1, gate=1,
 	interp=2,
-	attack=0.1, release=0.1;
+	attack=0.1, release=0.1,
+	debugrate=0;
 
 	var sig,
 		env,
@@ -26,7 +27,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		readTime,
 		bufDur;
 	bufDur = BufDur.kr(bufnum);
-	baseTime = Latch.kr(now.poll(2, \now), gate);
+	baseTime = Latch.kr(now.poll(debugrate, \now), gate);
 	//readTime = (baseTime - timeago +
 	//	Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur)
 	//	).wrap(0, bufDur);
@@ -36,8 +37,8 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		rate: ControlDur.ir*posrate,
 		start: 0,
 		end: bufDur,
-		resetPos: (baseTime - timeago).poll(2, \unwrappedreadtime).wrap(0, bufDur)
-	).poll(2, \readtime);
+		resetPos: (baseTime - timeago).poll(debugrate, \unwrappedreadtime).wrap(0, bufDur)
+	).poll(debugrate, \readtime);
 	env = EnvGen.kr(
 		Env.linen(
 			attackTime: 0,
@@ -50,7 +51,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: readTime * (bufDur.reciprocal).poll(2, \pointer);,
+		pointer: readTime * (bufDur.reciprocal).poll(debugrate, \pointer);,
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize,
@@ -82,7 +83,8 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	lfo2amp=0,
 	lfo2grain=0,
 	lfo2pan=0,
-	age2lfo=0;
+	age2lfo=0,
+	debugrate=0;
 
 	var sig,
 		env,
@@ -93,7 +95,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		age;
 
 	bufDur = BufDur.kr(bufnum);
-	baseTime = Latch.kr(now.poll(2, \now), gate);
+	baseTime = Latch.kr(now.poll(debugrate, \now), gate);
 	//TODO: LFOs on
 	// pos
 	// amp
@@ -113,9 +115,9 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		rate: ControlDur.ir*posrate,
 		start: 0,
 		end: bufDur,
-		resetPos: (baseTime - timeago).poll(2, \unwrappedreadtime)
+		resetPos: (baseTime - timeago).poll(debugrate, \unwrappedreadtime)
 
-	) + (lfo * lfo2pos)).wrap(0, bufDur) .poll(2, \readtime);
+	) + (lfo * lfo2pos)).wrap(0, bufDur) .poll(debugrate, \readtime);
 
 	env = EnvGen.kr(
 		Env.linen(
@@ -129,7 +131,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: readTime * (bufDur.reciprocal).poll(2, \pointer);,
+		pointer: readTime * (bufDur.reciprocal).poll(debugrate, \pointer);,
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize* (1+(lfo2grain * lfo)),
