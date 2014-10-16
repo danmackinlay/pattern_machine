@@ -126,6 +126,7 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
+var sequencemaker, seq;
 var localstate, state = ~state, i = 0, foo;
 fork {
 	localstate = Event.new(n:60, proto: state, know: true);
@@ -138,17 +139,37 @@ fork {
 		//~debugSpawn = true;
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
-	[\foo, foo].postcs;
+	//[\foo, foo].postcs;
 	s.sync;
-	{state.voiceStates[i].rec();}.defer(0.1);
+	localstate.use({
+		sequencemaker = {
+			20.collect({32.0.rand.round(0.25)}).sort;
+		};
+		seq = PSWavvieSeq(
+			state: state,
+			parentEvent: ~parentevt);
+		seq.barcallback = {|seq|
+			seq.timePoints = sequencemaker.value.postcs;
+		};
+		seq.notecallback = {|evt, seq|
+			evt[\posrate]=0.1;
+			evt[\timeago]=1.0; // in seconds
+			evt[\grainsize]=0.15.rand + 0.05; //in seconds
+			evt[\windowRandRatio]=0.2.rand;
+			evt[\sustainDur] = 4.0.rand+1; //inseconds
+			evt[\db] = -10.0;
+			evt[\pitchrate] = 1;
+			evt.postcs;
+		};
+		~seq = seq;
+		~stream = ~seq.play(clock: ~clock);
+	});
+	{localstate.rec();}.defer(0.1);
 };
-)
-(
-play({ PMOsc.ar(carfreq: 300, modfreq: Line.kr(600, 900, 5), pmindex:3, modphase:0, mul:0.1) }); // modulate modfreq
-
 )
 //~state.voiceStates[0].rec(30);
 ~state.voiceStates[0].rec();
+~state.voiceStates[0]
 ~state.voiceStates[0].debugSpawn=false;
 ~state.bpm;
 ~state.bpm=120;
