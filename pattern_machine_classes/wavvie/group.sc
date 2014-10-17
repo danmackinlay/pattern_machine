@@ -4,10 +4,17 @@ PSWavvieGroup {
 	var <synthgroup, <fxgroup, <mixergroup;
 	var <freebus, <freegroup;
 	var <pats2stop, <stuff2free;
+	var <clock, <tempo=120.0, <beatDur=0.5;
 	 
 	*new {arg cutsynths,group,bus,numChannels;
 		^super.new.initWavvieGroup(cutsynths,group,bus,numChannels);
 	}	
+	
+	//utility conversions
+	beat2sec {|beats| ^beatDur * beats}
+	sec2beat {|secs| ^secs /(beatDur)}
+	beat2freq {|beats| ^(beatDur * beats).reciprocal }
+	freq2beat {|freq| ^tempo / freq}
 	
 	addStoppablePat {|pat|
 		pats2stop = pats2stop.add(pat);
