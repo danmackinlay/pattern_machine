@@ -13,7 +13,7 @@
     <colours positive="ff009fff" negative="ffa41111" disabled="ff555555"/>
     <activeHand id="0"/>
     <midi output="IAC-Driver Bus 3" decimation="16"/>
-    <osc hostname="localhost" portnumber="0" enabled="1" decimation="29">
+    <osc hostname="localhost" portnumber="57120" enabled="1" decimation="29">
       <paths>
         <entry openness="16" dexterity="1" type="256" path="/left/open/present"/>
         <entry openness="16" dexterity="2" type="256" path="/right/open/present"/>
