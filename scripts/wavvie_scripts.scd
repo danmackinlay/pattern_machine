@@ -110,7 +110,7 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
-var sequencemaker, seq;
+var sequencemaker, seq, beat2sec, sec2beat, beat2freq, freq2beat;
 var localstate, state = ~state, i = 0, foo;
 fork {
 	localstate = Event.new(n:60, proto: state, know: true);
@@ -121,6 +121,11 @@ fork {
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
+	//todo move these functions somewhere general
+	beat2sec = {|beats| localstate.beatTime * beats};
+	sec2beat = {|secs| secs /(localstate.beatTime)};
+	beat2freq = {|beats| (localstate.beatTime * beats).reciprocal };
+	freq2beat = {|freq| (localstate.beatTime.reciprocal) / freq};
 	s.sync;
 	localstate.use({
 
@@ -135,50 +140,23 @@ fork {
 		};
 		seq.notecallback = {|evt, seq|
 			evt.postln;
-			/* modulateable
-			bufnum,
-			timeago=0.0, //how far back from the end we wish to look
-			now=0.0, //
-			sustainDur=1,
-			pitchrate=1.0,
-			posrate=1.0,
-			grainsize=0.1,
-			overlaps=2,
-			windowRandRatio=0.1,
-			pan=0,
-			amp=1,
-			gate=1,
-			interp=2,
-			attack=0.1,
-			//release=0.1,
-			lfobasef=1,
-			lfomodf=2.5,
-			lfomodamp=0.5,
-			lfophase=0.25,//cos, lfomodamp-depending
-			lfo2pos=0,
-			lfo2amp=0,
-			lfo2grain=0,
-			lfo2pan=0,
-			age2lfo=0,
-			*/
-			//evt[\posrate]=1;
-			evt[\lfobasef]=1;
-			evt[\lfomodf]=2.5;
-			evt[\lfomodamp]=0.5;
+			evt[\lfobasef]= beat2freq.value([0.5, 1].choose);
+			evt[\lfomodf]= beat2freq.value([0.25, 0.5].choose);
+			evt[\lfomodamp]=1;
 			evt[\lfophase]=0.25;//cos; lfomodamp-depending
 			evt[\lfo2pos]=0;
-			evt[\lfo2amp]=0;
+			evt[\lfo2amp]=0.5;
 			evt[\lfo2grain]=0;
 			evt[\lfo2pan]=0;
-			evt[\debugrate]=2;
-			evt[\posrate]=0.1;
-			evt[\timeago]=10.0.rand; // in seconds
-			evt[\grainsize]=0.15.rand + 0.15; //in seconds
-			evt[\windowRandRatio]=0.3;
-			evt[\sustainDur] = 3.0.rand+1; //inseconds
+			//evt[\debugrate]=2;
+			evt[\posrate]=1/8;
+			evt[\timeago]=beat2sec.value(4.rand + 1);
+			evt[\grainsize]=beat2sec.value(1/16);
+			evt[\windowRandRatio]=0.5;
+			evt[\sustainDur] = beat2sec.value(2);
 			evt[\db] = -10.0;
 			evt[\pitchrate] = 1;
-			evt[\overlaps] = 2;
+			evt[\overlaps] = 4;
 			//evt.postcs;
 		};
 		~seq = seq;
