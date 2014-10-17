@@ -1,7 +1,6 @@
 //A stateful stream (or pattern, or stream/pattern factory, i haven't decided) that plays a sequence
 // Should probably be a pattern factory.
 // Additional features installed for my needs:
-// tempo shifting
 // injecting tempo info into events
 // providing per-event and per-rep callbacks to mess with shit.
 // Future plans could include a state machine that skips around the sequence based on events
@@ -14,7 +13,6 @@ PSWavvieSeq {
 	var <>baseEvents;
 	var <>parentEvent;
 	var <>state;
-	var <>timerate=1.0;
 	var <>barcallback;
 	var <>notecallback;
 	var <>debug;
@@ -47,7 +45,6 @@ PSWavvieSeq {
 		baseEvents,
 		parentEvent,
 		state,
-		timerate=1.0,
 		barcallback,
 		notecallback,
 		debug=false,
@@ -59,7 +56,6 @@ PSWavvieSeq {
 			baseEvents ?? [(degree: 0)],
 			parentEvent ?? (),
 			state ?? (),
-			timerate,
 			barcallback,
 			notecallback,
 			debug,
@@ -70,9 +66,6 @@ PSWavvieSeq {
 		newTimePoints.notNil.if({this.timePoints_(newTimePoints)});
 		pat = Pspawner({|spawner|
 			//init
-			barcallback.notNil.if({
-				barcallback.value(this);
-			});
 			idxptr = -1;
 			bartime = 0.0;
 			time = 0.0;
@@ -88,11 +81,11 @@ PSWavvieSeq {
 		beatlen = nBars*beatsPerBar;
 		//set up the next iteration
 		nextidxptr = idxptr + 1;
-		nextbartime = timePoints[nextidxptr] ?? inf/timerate;
+		nextbartime = timePoints[nextidxptr] ?? inf;
 		(nextbartime > beatlen).if({
 			//next beat falls outside the bar. Wrap.
 			barcallback.notNil.if({
-				var rout = Routine(barcallback);
+				var rout = Routine({|seq| barcallback.value(seq).yield});
 				rout.randData = thisThread.randData;
 				rout.value(this);
 				this.sharedRandData = rout.randData;
@@ -122,10 +115,9 @@ PSWavvieSeq {
 		evt['tempo'] = (clock ? TempoClock.default).tempo;
 		evt['bartime'] = bartime;
 		evt['time'] = time;
-		evt['timerate'] = timerate;
 		evt['idxptr'] = idxptr;
 		notecallback.notNil.if({
-			var rout = Routine(notecallback);
+			var rout = Routine({|evt, seq| notecallback.value(evt, seq).yield});
 			rout.randData = thisThread.randData;
 			evt = rout.value(evt, this);
 			this.sharedRandData = rout.randData;
@@ -137,12 +129,14 @@ PSWavvieSeq {
 		newTimePoints.sort.do({|v,i| timePoints[i]=v});
 		timePoints[newTimePoints.size] = inf;
 	}
-	play {|clock, protoEvent, quant|
+	play {|clock, protoEvent, quant, trace=false|
 		//This instance looks like a pattern, but in fact carries bundled state. Um.
+		var thispat = pat;
+		trace.if({thispat=pat.trace});
 		stream.notNil.if({stream.stop});
 		this.clock_(clock);
 		this.sharedRandData = thisThread.randData;
-		stream = pat.play(clock, protoEvent, quant);
+		stream = thispat.play(clock, protoEvent, quant);
 		stream.routine.randData = this.sharedRandData;
 		^stream;
 	}
