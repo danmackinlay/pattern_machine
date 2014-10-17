@@ -136,7 +136,16 @@ fork {
 			state: state,
 			parentEvent: ~parentevt);
 		seq.barcallback = {|seq|
+			[seq.sharedRandData, thisThread.randData].postln;
+			localstate[\seed].notNil.if({
+				thisThread.randSeed_(localstate[\seed]);
+			});
 			seq.timePoints = sequencemaker.value.postcs;
+			// nightmares of RND state inheritance! wach this:
+			//[\seeding, localstate[\seed], thisThread.identityHash, thisThread.parent.identityHash, thisThread.parent.parent.identityHash,  seq.stream.routine.identityHash].postln;
+			//giving
+			//[ seeding, 1, 1151352501, -36163575, -734650457, -734650457 ]
+			// we are THREE threads deep. Sigh. I just wanna pass around RNGs.
 		};
 		seq.notecallback = {|evt, seq|
 			evt.postln;
@@ -167,6 +176,10 @@ fork {
 )
 //~state.voiceStates[0].rec(30);
 ~state.voiceStates[0].rec();
+~state.voiceStates[0].seed;
+~state.voiceStates[0].seed=1;
+~state.voiceStates[0].seq.stream.randSeed;
+
 ~state.voiceStates[0]
 ~state.voiceStates[0].debugSpawn=false;
 ~state.bpm;

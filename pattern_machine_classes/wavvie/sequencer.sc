@@ -32,7 +32,7 @@ PSWavvieSeq {
 	var <nextfirst=0;
 	var <>evt;
 	var <>clock;
-	//stream wrangling
+	var <>sharedRandData;
 	
 	*initClass{
 		StartUp.add({
@@ -76,6 +76,7 @@ PSWavvieSeq {
 			idxptr = -1;
 			bartime = 0.0;
 			time = 0.0;
+			this.sharedRandData = thisThread.randData;
 			//iterate!
 			inf.do({
 				this.prAdvanceTime(spawner);
@@ -91,13 +92,15 @@ PSWavvieSeq {
 		(nextbartime > beatlen).if({
 			//next beat falls outside the bar. Wrap.
 			barcallback.notNil.if({
-				barcallback.value(this);
+				var rout = Routine(barcallback);
+				rout.randData = thisThread.randData;
+				rout.value(this);
+				this.sharedRandData = rout.randData;
 			});
 			nextfirst = timePoints[0].min(beatlen);
 			delta = (beatlen + nextfirst - bartime) % beatlen;
 			bartime = nextfirst;
 			idxptr = 0;
-			//evt = Rest(delta);
 		}, {
 			//this always plays all notes, at once if necessary; but we could skip ones if the seq changes instead?
 			delta = (nextbartime-bartime).max(0);
@@ -122,7 +125,10 @@ PSWavvieSeq {
 		evt['timerate'] = timerate;
 		evt['idxptr'] = idxptr;
 		notecallback.notNil.if({
-			evt = notecallback.value(evt, this);
+			var rout = Routine(notecallback);
+			rout.randData = thisThread.randData;
+			evt = rout.value(evt, this);
+			this.sharedRandData = rout.randData;
 		});
 		spawner.par(P1event(evt));
 	}
@@ -135,7 +141,9 @@ PSWavvieSeq {
 		//This instance looks like a pattern, but in fact carries bundled state. Um.
 		stream.notNil.if({stream.stop});
 		this.clock_(clock);
+		this.sharedRandData = thisThread.randData;
 		stream = pat.play(clock, protoEvent, quant);
+		stream.routine.randData = this.sharedRandData;
 		^stream;
 	}
 	stop {
@@ -149,6 +157,8 @@ PSWavvieSeq {
 		baseEvents = List.new;
 		timePoints = List.new;
 		stream = pattern.asStream;
+		stream.routine.randData = this.sharedRandData;
+		//Do i need to copy this out again afterwards?
 		({time<=beatlen}).while({
 			var nextEv = stream.next(protoEvent ? Event.default);
 			nextEv.isRest.not.if({
