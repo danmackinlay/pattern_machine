@@ -55,7 +55,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: readTime * (bufDur.reciprocal).poll(2, \pointer);,
+		pointer: (readTime * (bufDur.reciprocal)).poll(2, \pointer);,
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize,
@@ -140,7 +140,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: readTime * (bufDur.reciprocal).poll(2, \pointer);,
+		pointer: (readTime * (bufDur.reciprocal)).poll(2, \pointer);,
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize* (1+(lfo2grain * lfo)),
