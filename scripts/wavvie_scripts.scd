@@ -8,8 +8,10 @@ TODO:
 * off switch for all notes (external gate?)
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, RME) and internal mixers using a BusAllocator
-* tidier sample source selector
 * interesting param map
+
+  * poss Martin MArrier's excellent PresetInterpolator
+
 * interesting rhythmn somehow
 * random volume
 * smart accent
@@ -30,27 +32,15 @@ TODO:
   * per voice
 
     * overall "weirdness" param to control with trivial mapping
-    * buffer offset
-    * stationarity
+    * record-head relative tracking
+    * record time
     * seed value
-    * looping
     * quantization
-    * strength
-    * density
-    * intensity
     * level
     * pan
     * reverb mix
     * transposition
-    * reverb mix?
-    * loop beats?
-    * transposition
-    * envelope "attackiness"?
-    * modulation
-    * reverb mix?
-
-* master gain
-* monitor channel
+    * attack/release
 */
 
 (
@@ -118,6 +108,7 @@ fork {
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
+		~seed=1;
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -127,16 +118,16 @@ fork {
 	beat2freq = {|beats| (localstate.beatTime * beats).reciprocal };
 	freq2beat = {|freq| (localstate.beatTime.reciprocal) / freq};
 	s.sync;
+
 	localstate.use({
 
 		sequencemaker = {
-			50.rand.collect({16.0.rand.round(0.25)}).sort;
+			(50.rand+10).collect({16.0.rand.round(0.25)}).sort;
 		};
 		seq = PSWavvieSeq(
 			state: state,
 			parentEvent: ~parentevt);
 		seq.barcallback = {|seq|
-			[seq.sharedRandData, thisThread.randData].postln;
 			localstate[\seed].notNil.if({
 				thisThread.randSeed_(localstate[\seed]);
 			});
@@ -148,7 +139,7 @@ fork {
 			// we are THREE threads deep. Sigh. I just wanna pass around RNGs.
 		};
 		seq.notecallback = {|evt, seq|
-			evt.postln;
+			//evt.postln;
 			evt[\lfobasef]= beat2freq.value([0.5, 1].choose);
 			evt[\lfomodf]= beat2freq.value([0.25, 0.5].choose);
 			evt[\lfomodamp]=1;
