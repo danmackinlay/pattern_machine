@@ -29,7 +29,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		readTime,
 		bufDur;
 	bufDur = BufDur.kr(bufnum);
-	baseTime = Latch.kr(now.poll(2, \now), gate);
+	baseTime = Latch.kr(now, gate);
 	//readTime = (baseTime - timeago +
 	//	Phasor.ar(trig: gate, rate: SampleDur.ir*posrate, end: bufDur)
 	//	).wrap(0, bufDur);
@@ -41,8 +41,8 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		end: bufDur,
 		resetPos: 0
 	) +
-		(baseTime - timeago).poll(2, \unwrappedreadtime)
-	)).wrap(0, bufDur).poll(2, \readtime);
+		(baseTime - timeago)
+	)).wrap(0, bufDur);
 	env = EnvGen.kr(
 		Env.linen(
 			attackTime: 0,
@@ -55,7 +55,7 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: (readTime * (bufDur.reciprocal)).poll(2, \pointer);,
+		pointer: (readTime * (bufDur.reciprocal)),
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize,
@@ -102,7 +102,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		age;
 
 	bufDur = BufDur.kr(bufnum);
-	baseTime = Latch.kr(now.poll(2, \now), gate);
+	baseTime = Latch.kr(now, gate);
 	//TODO: LFOs on
 	// pos
 	// amp
@@ -124,10 +124,10 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		end: bufDur,
 		resetPos: 0
 	) +
-		(baseTime - timeago).poll(2, \unwrappedreadtime)
+		(baseTime - timeago)
 	) +
 		(lfo * lfo2pos)
-	).wrap(0, bufDur).poll(2, \readtime);
+	).wrap(0, bufDur);
 	env = EnvGen.kr(
 		Env.perc(
 			attackTime: attack,
@@ -140,7 +140,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	sig = Warp1.ar(
 		numChannels: 1,
 		bufnum: bufnum,
-		pointer: (readTime * (bufDur.reciprocal)).poll(2, \pointer);,
+		pointer: (readTime * (bufDur.reciprocal)),
 		freqScale: pitchrate,
 		interp: interp,
 		windowSize: grainsize* (1+(lfo2grain * lfo)),
