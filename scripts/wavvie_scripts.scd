@@ -139,7 +139,7 @@ fork {
 			// we are THREE threads deep. Sigh. I just wanna pass around RNGs.
 		};
 		seq.notecallback = {|evt, seq|
-			//evt.postln;
+			//evt.postcs;
 			evt[\lfobasef]= beat2freq.value([0.5, 1].choose);
 			evt[\lfomodf]= beat2freq.value([0.25, 0.5].choose);
 			evt[\lfomodamp]=1;
@@ -160,7 +160,7 @@ fork {
 			//evt.postcs;
 		};
 		~seq = seq;
-		~stream = ~seq.play(clock: ~clock);
+		~stream = ~seq.play(clock: ~clock, trace:true);
 	});
 	{localstate.rec();}.defer(0.1);
 };
@@ -171,7 +171,7 @@ fork {
 ~state.voiceStates[0].seed=1;
 ~state.voiceStates[0].seq.stream.randSeed;
 
-~state.voiceStates[0]
+~state.voiceStates[0];
 ~state.voiceStates[0].debugSpawn=false;
 ~state.bpm;
 ~state.bpm=120;
@@ -187,13 +187,6 @@ fork {
 
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
-
-~state.sourcesounds[0].set(\livefade, 0);
-~state.sourcesounds[0].set(\livefade, 1);
-
-(\a: 5).gui;
-~state.limiter.gui;
-~state.sourcesounds[0];
 
 (
 ~spy = (
