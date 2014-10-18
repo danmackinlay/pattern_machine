@@ -10,3 +10,4 @@ OSCdef.trace(false);
 ServerTreeGui.makeWindow(s);
 StartUp.run;
 PS.go.();
+PS.kill.();
