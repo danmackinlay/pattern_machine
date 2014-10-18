@@ -15,6 +15,9 @@ TODO:
 * interesting rhythmn somehow
 * random volume
 * smart accent
+* filtering for lve input
+* pitch recording
+* FSM sequencer
 * decent Lemur template
 * or NexusUI
 * OSC triggering for:
@@ -96,7 +99,7 @@ state.server.doWhenBooted({state.make({
 	s.sync;
 	//sync fails to handle the source setting properly
 	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
-	{state.sourcesounds[0].set(\bufnum,state.samples.key(\choral,0))}.defer(1);
+	{state.sourcesounds[0].set(\bufnum,state.samples.key(\tuneful,0))}.defer(1);
 })});
 )
 (
@@ -140,20 +143,19 @@ fork {
 		};
 		seq.notecallback = {|evt, seq|
 			//evt.postcs;
-			evt[\lfobasef]= beat2freq.value([0.5, 1].choose);
-			evt[\lfomodf]= beat2freq.value([0.25, 0.5].choose);
-			evt[\lfomodamp]=1;
-			evt[\lfophase]=0.25;//cos; lfomodamp-depending
-			evt[\lfo2pos]=0;
-			evt[\lfo2amp]=0.5;
-			evt[\lfo2grain]=0;
-			evt[\lfo2pan]=0;
-			//evt[\debugrate]=2;
-			evt[\posrate]=1/8;
-			evt[\timeago]=beat2sec.value(4.rand + 1);
-			evt[\grainsize]=beat2sec.value(1/16);
-			evt[\windowRandRatio]=0.5;
-			evt[\sustainDur] = beat2sec.value(2);
+			evt[\lfobasef] = beat2freq.([2, 1].choose);
+			evt[\lfomodf] = beat2freq.([0.25, 0.125].choose);
+			evt[\lfomodamp] = 1/2;
+			evt[\lfophase] = 0.25;
+			evt[\lfo2pos] = beat2freq.(1/4);
+			evt[\lfo2amp]= -0.25;
+			evt[\lfo2grain] = 0;
+			evt[\lfo2pan] = 0.25;
+			evt[\posrate] = 0;
+			evt[\timeago] = beat2sec.(4.rand + 1);
+			evt[\grainsize] = beat2sec.(1/32);
+			evt[\windowRandRatio] = 0.1;
+			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
 			evt[\pitchrate] = 1;
 			evt[\overlaps] = 4;
