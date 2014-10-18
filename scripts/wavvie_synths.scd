@@ -150,6 +150,10 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		windowRandRatio: windowRandRatio,
 		mul: env * (1+(lfo2amp * lfo))
 	);
+	sig = OpHPF.ar(sig,
+		100.0,
+		iter: 1
+	);
 	deltime = allpdelayratio*grainsize;
 	dectime = allpdecayratio*grainsize;
 	sig = AllpassN.ar(sig,

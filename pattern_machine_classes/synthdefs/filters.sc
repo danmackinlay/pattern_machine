@@ -10,7 +10,7 @@ OpLPF {
 		iter.do({in=OnePole.kr(in, coef);});
 		^in;
 	}
-	*ar {|in, freq, iter=1|
+	*ar {|in, freq=100, iter=1|
 		var coef = exp(-2*pi * (freq * SampleDur.ir));
 		iter.do({in=OnePole.ar(in, coef);});
 		^in;
@@ -23,9 +23,9 @@ OpHPF {
 		iter.do({in=in - OnePole.kr(in, coef);});
 		^in;
 	}
-	*ar {|in, freq, iter=1|
+	*ar {|in, freq=100, iter=1|
 		var coef = exp(-2*pi * (freq * SampleDur.ir));
-		iter.do({in=in - OnePole.kr(in, coef);});
+		iter.do({in=in - OnePole.ar(in, coef);});
 		^in;
 	}
 }
