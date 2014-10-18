@@ -8,6 +8,7 @@ TODO:
 * off switch for all notes (external gate?)
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, RME) and internal mixers using a BusAllocator
+* leakDC
 * interesting param map
 
   * poss Martin MArrier's excellent PresetInterpolator
@@ -154,7 +155,7 @@ fork {
 			evt[\lfo2pan] = 0.25;
 			evt[\posrate] = 0;
 			evt[\timeago] = beat2sec.(4.rand + 1);
-			evt[\grainsize] = beat2sec.(1/32);
+			evt[\grainsize] = beat2sec.(1/64);
 			evt[\windowRandRatio] = 0.1;
 			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
@@ -163,7 +164,8 @@ fork {
 			//evt.postcs;
 		};
 		~seq = seq;
-		~stream = ~seq.play(clock: ~clock, trace:true);
+		// ~stream = ~seq.play(clock: ~clock, trace:true);
+		~stream = ~seq.play(clock: ~clock);
 	});
 	{localstate.rec();}.defer(0.1);
 };

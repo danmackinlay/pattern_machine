@@ -4,7 +4,6 @@
 //GrainBuf
 //TGrains (specified in seconds)
 
-
 (
 SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	arg out=0,
@@ -63,7 +62,6 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		windowRandRatio: windowRandRatio,
 		mul: env
 	);
-
 	Out.ar(out, Pan2.ar(sig, pan));
 }).add;
 SynthDef.new(\ps_bufgrain_type_2__1x2, {
@@ -91,7 +89,9 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	lfo2amp=0,
 	lfo2grain=0,
 	lfo2pan=0,
-	age2lfo=0;
+	age2lfo=0,
+	allpdelayratio=0.125,
+	allpdecayratio=4;
 
 	var sig,
 		env,
@@ -99,7 +99,9 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		readTime,
 		bufDur,
 		lfo,
-		age;
+		age,
+		deltime,
+		dectime;
 
 	bufDur = BufDur.kr(bufnum);
 	baseTime = Latch.kr(now, gate);
@@ -148,7 +150,12 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		windowRandRatio: windowRandRatio,
 		mul: env * (1+(lfo2amp * lfo))
 	);
-
+	deltime = allpdelayratio*grainsize;
+	dectime = allpdecayratio*grainsize;
+	sig = AllpassN.ar(sig,
+		maxdelaytime: 1,
+		delaytime: deltime,
+		decaytime: dectime);
 	Out.ar(out, Pan2.ar(sig, pan));
 }, [
 		nil, nil, \ir, \ir,
@@ -156,6 +163,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
-		\ir, \ir, \ir, \ir]
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir]
 ).add;
 )
