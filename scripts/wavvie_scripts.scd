@@ -8,12 +8,13 @@ TODO:
 * off switch for all notes (external gate?)
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, RME) and internal mixers using a BusAllocator
-* leakDC
 * interesting param map
 
   * poss Martin MArrier's excellent PresetInterpolator
 
 * interesting rhythmn somehow
+* comb out grain noise
+* degreeToKey-style lookup for other things
 * random volume
 * smart accent
 * filtering for lve input
@@ -147,20 +148,22 @@ fork {
 			evt[\lfobasef] = beat2freq.([2, 1].choose);
 			evt[\lfomodf] = beat2freq.([0.25, 0.125].choose);
 			evt[\lfomodamp] = 1/2;
-			evt[\lfophase] = 0.25;
+			evt[\lfophase] = 0;
 			evt[\lfo2pos] = beat2sec.(0/4);
-			evt[\lfo2pos] = 0.1;
 			evt[\lfo2amp]= -0.25;
 			evt[\lfo2grain] = 0;
 			evt[\lfo2pan] = 0.25;
 			evt[\posrate] = 0;
 			evt[\timeago] = beat2sec.(4.rand + 1);
-			evt[\grainsize] = beat2sec.(1/64);
-			evt[\windowRandRatio] = 0.1;
+			evt[\grainsize] = beat2sec.(1/32);
+			evt[\windowRandRatio] = 0.0;
 			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
 			evt[\pitchrate] = 1;
 			evt[\overlaps] = 4;
+			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
+			evt[\allpdecayratio] = 4;
+
 			//evt.postcs;
 		};
 		~seq = seq;

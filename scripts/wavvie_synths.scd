@@ -160,6 +160,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		maxdelaytime: 1,
 		delaytime: deltime,
 		decaytime: dectime);
+
 	Out.ar(out, Pan2.ar(sig, pan));
 }, [
 		nil, nil, \ir, \ir,
