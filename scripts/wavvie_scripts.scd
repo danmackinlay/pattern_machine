@@ -147,7 +147,8 @@ fork {
 			evt[\lfomodf] = beat2freq.([0.25, 0.125].choose);
 			evt[\lfomodamp] = 1/2;
 			evt[\lfophase] = 0.25;
-			evt[\lfo2pos] = beat2freq.(1/4);
+			evt[\lfo2pos] = beat2sec.(0/4);
+			evt[\lfo2pos] = 0.1;
 			evt[\lfo2amp]= -0.25;
 			evt[\lfo2grain] = 0;
 			evt[\lfo2pan] = 0.25;
