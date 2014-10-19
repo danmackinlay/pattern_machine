@@ -16,8 +16,8 @@ PSquama {
 		^PSquamaLin.newCopyArgs(tuning, octaveStep).updateShadowTuning;
 	}
 	updateShadowTuning {
-		nsteps = tuning.size-1;
-		shadowtuning = FloatArray.newFrom(nsteps).add(this.pedanticAt(0,1));
+		nsteps = tuning.size;
+		shadowtuning = FloatArray.newFrom(nsteps).add(this.prAt(0,1));
 	}
 	as { |class|
 		^this.tuning.as(class)
@@ -31,20 +31,20 @@ PSquama {
 	}
 	at { |index|
 		var div, mod;
-		div = (index/nsteps).floor;
-		mod = (index - (div*nsteps)).asInt;
-		^this.pedanticAt(mod, div);
+		div = (index/nsteps).floor.asInt;
+		mod = index - (div*nsteps);
+		^this.prAt(mod, div);
 	}
-	pedanticAt{|degree, octave|
+	prAt{|degree, octave|
 		^tuning.at(degree) * (octaveStep**octave)
 	}
 	blendAt { |index|
 		var div, mod;
-		div = (index/nsteps).floor;
+		div = (index/nsteps).floor.asInt;
 		mod = index - (div*nsteps);
-		^this.pedanticBlendAt(mod, div)
+		^this.prBlendAt(mod, div)
 	}
-	pedanticBlendAt{|degree, octave|
+	prBlendAt{|degree, octave|
 		^shadowtuning.blendAt(degree) * (octaveStep**octave)
 	}
 	wrapAt { |index|
@@ -66,10 +66,10 @@ PSquama {
 	}
 }
 PSquamaLin : PSquama {
-	pedanticAt{|degree, octave|
+	prAt{|degree, octave|
 		^tuning.at(degree) + (octaveStep*octave)
 	}
-	pedanticBlendAt{|degree, octave|
+	prBlendAt{|degree, octave|
 		^shadowtuning.blendAt(degree) + (octaveStep*octave)
 	}
 }
