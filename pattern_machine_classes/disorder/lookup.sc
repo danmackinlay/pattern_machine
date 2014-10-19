@@ -3,17 +3,21 @@
 // TODO: make *blending* exponential for the exp version
 
 //exp version
-PSquama {
+PSquama[slot] {
 	var <tuning;
 	var <octaveStep;
 	var <nsteps;
 	var <shadowtuning;
 
 	*exp { | tuning, octaveStep = 2.0|
-		^super.newCopyArgs(tuning, octaveStep).updateShadowTuning;
+		^super.new.init(tuning, octaveStep).updateShadowTuning;
 	}
 	*lin { | tuning, octaveStep = 16|
-		^PSquamaLin.newCopyArgs(tuning, octaveStep).updateShadowTuning;
+		^PSquamaLin.new.init(tuning, octaveStep).updateShadowTuning;
+	}
+	init {|mytuning, myoctaveStep|
+		tuning = mytuning;
+		octaveStep = myoctaveStep;
 	}
 	updateShadowTuning {
 		nsteps = tuning.size;
@@ -76,7 +80,7 @@ PSquama {
 		this.storeOn(stream)
 	}
 }
-PSquamaLin : PSquama {
+PSquamaLin[slot] : PSquama {
 	prAt{|degree, octave|
 		^tuning.at(degree) + (octaveStep*octave)
 	}

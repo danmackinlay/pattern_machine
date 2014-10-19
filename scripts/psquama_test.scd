@@ -1,6 +1,7 @@
 p=PSquama.lin([0,3,7], 16);
 p=PSquama.exp([1,2,3]);
-p.at(-1);
+p.at(-3);
+p[123]
 p.put(0,6);
 l=[5,7,9];
 l.put(1,2);
