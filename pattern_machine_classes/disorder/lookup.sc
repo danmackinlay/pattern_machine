@@ -1,6 +1,6 @@
 // support non-integer Scale+Tuning-like things for e.g. delay times and ratios etc, that don't naturally look like MIDI.
 // will need to extend Integer, SimpleNumber etc
-// TODO: make blending exponential
+// TODO: make *blending* exponential for the exp version
 
 //exp version
 PSquama {
@@ -50,7 +50,18 @@ PSquama {
 	wrapAt { |index|
 		^tuning.wrapAt(index)
 	}
-
+	unif {|p|
+		/*
+		uniform lookup, as if this were a discrete pdf
+		same as choose, but BYO lookup index in [0,1]. (further if you want)
+		cribbed from my Array extn
+		*/
+		^this.at((p*nsteps).floor);
+	}
+	choose {
+		^this.tuning.choose;
+	}
+	
 	== { arg that;
 		^this.compareObject(that, #[\tuning, \octaveStep])
 	}
