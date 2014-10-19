@@ -1,15 +1,22 @@
 // support non-integer Scale+Tuning-like things for e.g. delay times and ratios etc, that don't naturally look like MIDI.
 // will need to extend Integer, SimpleNumber etc
-// shoould I sort this?
-PSquama[slot] {
-
+// should I sort this list?
+PSquama[slot] : RawArray {
 	var <tuning;
 	var <octaveRatio;
 	var <nsteps;
 	var <shadowtuning;
 
 	*new { | tuning, octaveRatio = 2.0|
-		^super.newCopyArgs(tuning, octaveRatio).updateShadowTuning;
+		var newguy;
+		[\tuning, tuning].postcs;
+		newguy = super.new(tuning.size);
+		tuning.do {| item | newguy.add(item) };
+		[\newguy,newguy].postcs;
+		^newguy.init(octaveRatio);
+	}
+	init {|myoctaveRatio|
+		octaveRatio = myoctaveRatio;
 	}
 	updateShadowTuning {
 		nsteps = tuning.size-1;
@@ -23,11 +30,18 @@ PSquama[slot] {
 		^tuning.size;
 	}
 
-	at { |index|
+	blendAt { |index|
 		var div, mod;
 		div = (index/nsteps).floor;
 		mod = index - (div*nsteps);
 		^tuning.blendAt(mod) * (octaveRatio**div)
+	}
+
+	at { |index|
+		var div, mod;
+		div = (index/nsteps).floor;
+		mod = (index - (div*nsteps)).asInt;
+		^tuning.at(mod) * (octaveRatio**div)
 	}
 
 	wrapAt { |index|
