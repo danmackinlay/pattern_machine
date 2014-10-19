@@ -62,6 +62,10 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		windowRandRatio: windowRandRatio,
 		mul: env
 	);
+	sig = OpHPF.ar(sig,
+		100.0,
+		iter: 1
+	);
 	Out.ar(out, Pan2.ar(sig, pan));
 }).add;
 SynthDef.new(\ps_bufgrain_type_2__1x2, {
@@ -91,7 +95,8 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	lfo2pan=0,
 	age2lfo=0,
 	allpdelayratio=0.125,
-	allpdecayratio=4;
+	allpdecayratio=4,
+	combed=0.5;
 
 	var sig,
 		env,
@@ -101,7 +106,9 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		lfo,
 		age,
 		deltime,
-		dectime;
+		dectime,
+		combwet,
+		combdry;
 
 	bufDur = BufDur.kr(bufnum);
 	baseTime = Latch.kr(now, gate);
@@ -154,6 +161,10 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		100.0,
 		iter: 1
 	);
+	//comb out window noise, at least somewhat
+	combwet = (combed/2).sqrt;
+	combdry = (1-(combed/2)).sqrt;
+	sig = combdry*sig - DelayL.ar(sig, 1, grainsize*2, combwet.neg);
 	deltime = allpdelayratio*grainsize;
 	dectime = allpdecayratio*grainsize;
 	sig = AllpassN.ar(sig,
@@ -169,6 +180,6 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
-		\ir, \ir, \ir]
+		\ir, \ir, \ir, \ir]
 ).add;
 )
