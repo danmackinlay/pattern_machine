@@ -145,7 +145,8 @@ fork {
 		};
 		seq.notecallback = {|evt, seq|
 			//evt.postcs;
-			evt[\lfobasef] = beat2freq.([2, 1].choose);
+			evt[\lfobasef] = PSquama.lin([2, 1]).choose;
+			//evt[\lfobasef] = [2, 1].choose;
 			evt[\lfomodf] = beat2freq.([0.25, 0.125].choose);
 			evt[\lfomodamp] = 1/2;
 			evt[\lfophase] = 0;
