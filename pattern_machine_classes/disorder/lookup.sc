@@ -3,7 +3,7 @@
 // TODO: make *blending* exponential for the exp version
 
 //exp version
-PSquama[slot] {
+PSquama {
 	var <tuning;
 	var <octaveStep;
 	var <nsteps;
@@ -80,7 +80,7 @@ PSquama[slot] {
 		this.storeOn(stream)
 	}
 }
-PSquamaLin[slot] : PSquama {
+PSquamaLin : PSquama {
 	prAt{|degree, octave|
 		^tuning.at(degree) + (octaveStep*octave)
 	}
