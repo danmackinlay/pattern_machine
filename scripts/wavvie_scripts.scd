@@ -2,7 +2,8 @@
 Wavvie
 
 TODO:
-* switch from Event type Note to Grain, and avoid having to think about it
+* Audit for zipper noise
+* switch from Event type Note to Grain, and avoid having to think about it. Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
 * GUI is needed
 * off switch for all notes (external gate?)
@@ -11,11 +12,11 @@ TODO:
 * interesting param map
 
   * poss Martin Marier's excellent PresetInterpolator
+  * Or Wekinator
 
-* interesting rhythmn somehow
+* interesting rhythm somehow
 * random volume
 * smart accent
-* filtering for lve input
 * pitch recording
 * FSM sequencer
 * decent Lemur template
@@ -196,7 +197,7 @@ fork {
 
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
-
+~state.voiceStates[0].parentevt[\group];
 (
 ~spy = (
 	instrument: \jack__1,
