@@ -113,6 +113,7 @@ fork {
 		~lfobasef = PSquama.lin([1,2]);
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8]/32);
+		~transps = PSquama.lin([1/2,1,2]);
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -159,7 +160,7 @@ fork {
 			evt[\windowRandRatio] = 0.0;
 			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
-			evt[\pitchrate] = 1;
+			evt[\pitchrate] = ~transps.choose;
 			evt[\overlaps] = 4;
 			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
 			evt[\allpdecayratio] = 4;
@@ -171,11 +172,10 @@ fork {
 		// ~stream = ~seq.play(clock: ~clock, trace:true);
 		~stream = ~seq.play(clock: ~clock);
 	});
-	{localstate.rec(10.0);}.defer(0.1);
+	{localstate.rec(10.0);}.defer(1.0);
 };
 )
-//~state.voiceStates[0].rec(30);
-~state.voiceStates[0].rec();
+~state.voiceStates[0].rec(10);
 ~state.voiceStates[0].seed;
 ~state.voiceStates[0].seed=1;
 ~state.voiceStates[0].seq.stream.randSeed;

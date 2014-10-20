@@ -39,7 +39,8 @@
 			group: ~headGroup,
 			addAction: \addToHead,
 			sendGate: false,//persist
-		).play();
+		).play;
+		~cleanupList.add({ state.recsynth.free });
 		//record input
 		~rec = {|self, dur=10.0|
 			self.recsynth.set(\t_rec, dur);
