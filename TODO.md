@@ -38,7 +38,9 @@
     * stable attactors, with friction
     * hamiltonians, orbits?
 * control RME mixer from supercollider
-* you can constrain a synth genome for evolution by only effecting downstream oscs. both f and a should be effected. The method to use here is "inject".  http://sccode.org/1-4SM
+* accumulate energy in varous spectral bins and trigger thigns based on their levels
+* notestream app, streaming chords in different patterns to different midi channels (to ableton?)
+* you can constrain a synth genome for evolution by only effecting downstream oscs. both f and a should be effected. 
 * random param mapping thing
   * Student-t correlation
   * map params to physical model
@@ -59,8 +61,8 @@
   * http://www.scholarpedia.org/article/Pulse_coupled_oscillators
   * nice brownian calc treatment: http://www.math.uiuc.edu/~rdeville/research/nk.pdf suggests N!=4 and neirest neighbour networks
   * left-field idea: work using decaying harmonics through feedback - macroscopic karplus-strong.
-  * left-field idea: bayesian synchronisers, with a loss function that favours harmonic ratios of the correct answer near their own fundamental; this should be really easy
-  * any of these would be iteresting with driving noise and arbitrary topologies
+  * left-field idea: bayesian synchronisers, with a loss function that favours harmonic ratios of the correct answer near their own fundamental; this should be realtively easy
+  * any of these would be interesting with driving noise and arbitrary topologies. See also MIMO allpass.
 * find some way of interpreting a call-and-response composition like Stockhausen's Stimmung, but for laptops
 * tuvasynth - roaming resonant filters on vocal-like samples (formant filters?)
 * grab bag
@@ -82,7 +84,7 @@
   * microproducer effect synths
   * 2d effects crossfade bus, maybe with a well-like dropp it in doppler thing. sountoirs of lfos are revealed over time
   * 3D effect scape through which we drop sound grains that rewrite and recolour themslves.
-  * learn the inverse mapping from sound to synth parameters by hearing and comparing resynthesised version with delayed or recorded version, enveloped appropriately.
+  * regression of mapping from sound to synth parameters by hearing and comparing resynthesised version with delayed or recorded version, enveloped appropriately.
 * patch MixerChannel to be very simple
   * without automation, dependency management, playing methods, resumption etc
   * with gui and fader
