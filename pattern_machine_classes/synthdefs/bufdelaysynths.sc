@@ -46,6 +46,30 @@ PSBufDelaySynthDefs {
 			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
 			ReplaceOut.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
 		}).add;
+		SynthDef.new(\ps_bufwr_resumable__1x1, {
+			arg in=0,
+			t_rec=0.0,
+			bufnum,
+			fadetime=0.01,
+			phasebus;
+			var env, bufSamps, sampCount, gate, recTime;
+			recTime = Gate.kr(t_rec, t_rec).poll(2, \rectime);
+			gate = Trig1.kr(t_rec, recTime).poll(2, \gate);
+			bufSamps = BufFrames.kr(bufnum);
+			in = In.ar(in,1);
+			env = EnvGen.kr(
+				Env.linen(
+					attackTime: fadetime,
+					sustainTime: (recTime-(2*fadetime)),
+					releaseTime: fadetime,
+					curve: \sine),
+				gate: gate);
+			gate = (env>0);
+			sampCount = Phasor.ar(
+				rate: gate, start: 0, end: bufSamps);
+			BufWr.ar(in, bufnum: bufnum, phase: sampCount);
+			ReplaceOut.kr(phasebus, A2K.kr(sampCount*SampleDur.ir));
+		}).add;
 		SynthDef.new(\ps_bufrd_phased_gated_mod__1x2, {
 			arg out=0,
 			bufnum,

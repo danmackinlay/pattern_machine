@@ -30,22 +30,19 @@
 		~headGroup = Group.head(~instgroup);
 		~tailGroup = Group.tail(~instgroup);
 		s.sync;
-
-		//record input (I would prefer resumble record)
-		~rec = {|self, dur|
-			//[\rec, \self, self].postcs;
-			//[\rec, \dur, dur].postcs;
-			(
-				instrument: \ps_bufwr_phased__1x1,
-				in: self.inbus,
-				bufnum: self.loopbuf,
-				phasebus: self.loopphasebus,
-				fadetime: 0.05,
-				group: self.headGroup,
-				addAction: \addToHead,
-				dur: dur ? self.sampleDur,
-			//sendGate: false,//persist
-			).play(self[\clock]);
+		~recsynth = (
+			instrument: \ps_bufwr_resumable__1x1,
+			in: ~inbus,
+			bufnum: ~loopbuf,
+			phasebus: ~loopphasebus,
+			fadetime: 0.05,
+			group: ~headGroup,
+			addAction: \addToHead,
+			sendGate: false,//persist
+		).play();
+		//record input
+		~rec = {|self, dur=10.0|
+			self.recsynth.set(\t_rec, dur);
 		};
 		//channel fx
 		~reverb = (
