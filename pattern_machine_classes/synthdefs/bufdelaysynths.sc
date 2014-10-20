@@ -53,8 +53,8 @@ PSBufDelaySynthDefs {
 			fadetime=0.01,
 			phasebus;
 			var env, bufSamps, sampCount, gate, recTime;
-			recTime = Gate.kr(t_rec, t_rec).poll(2, \rectime);
-			gate = Trig1.kr(t_rec, recTime).poll(2, \gate);
+			recTime = Gate.kr(t_rec, t_rec);
+			gate = Trig1.kr(t_rec, recTime);
 			bufSamps = BufFrames.kr(bufnum);
 			in = In.ar(in,1);
 			env = EnvGen.kr(
