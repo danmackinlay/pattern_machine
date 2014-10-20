@@ -114,6 +114,7 @@ fork {
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
 		~seed=1;
+		~lfobasef = PSquama.lin([2, 1]);
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -144,9 +145,9 @@ fork {
 			// we are THREE threads deep. Sigh. I just wanna pass around RNGs.
 		};
 		seq.notecallback = {|evt, seq|
+			localstate.use({
 			//evt.postcs;
-			evt[\lfobasef] = PSquama.lin([2, 1]).choose;
-			//evt[\lfobasef] = [2, 1].choose;
+			evt[\lfobasef] = ~lfobasef.choose;
 			evt[\lfomodf] = beat2freq.([0.25, 0.125].choose);
 			evt[\lfomodamp] = 1/2;
 			evt[\lfophase] = 0;
@@ -166,6 +167,7 @@ fork {
 			evt[\allpdecayratio] = 4;
 			evt[\combed] = 0;
 			//evt.postcs;
+			});
 		};
 		~seq = seq;
 		// ~stream = ~seq.play(clock: ~clock, trace:true);
