@@ -163,8 +163,7 @@ fork {
 			evt[\overlaps] = 4;
 			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
 			evt[\allpdecayratio] = 4;
-			evt[\combed] = 1;
-
+			evt[\combed] = 0;
 			//evt.postcs;
 		};
 		~seq = seq;
