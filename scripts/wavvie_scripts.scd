@@ -10,11 +10,9 @@ TODO:
 * switch between external (live, RME) and internal mixers using a BusAllocator
 * interesting param map
 
-  * poss Martin MArrier's excellent PresetInterpolator
+  * poss Martin Marier's excellent PresetInterpolator
 
 * interesting rhythmn somehow
-* comb out grain noise
-* degreeToKey-style lookup for other things
 * random volume
 * smart accent
 * filtering for lve input
@@ -37,8 +35,6 @@ TODO:
   * per voice
 
     * overall "weirdness" param to control with trivial mapping
-    * record-head relative tracking
-    * record time
     * seed value
     * quantization
     * level
@@ -175,7 +171,7 @@ fork {
 		// ~stream = ~seq.play(clock: ~clock, trace:true);
 		~stream = ~seq.play(clock: ~clock);
 	});
-	{localstate.rec();}.defer(0.1);
+	{localstate.rec(10.0);}.defer(0.1);
 };
 )
 //~state.voiceStates[0].rec(30);
