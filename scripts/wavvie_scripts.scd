@@ -113,8 +113,8 @@ fork {
 		~seed=1;
 		~lfobasef = PSquama.lin([1,2]);
 		~jumps = PSquama.lin([1,2,4,8]);
-		~grains = PSquama.lin([1,2,4,8]/32);
-		~transps = PSquama.lin([1/2,1,2]);
+		~grains = PSquama.lin([1,2,4,8,16,32]/32);
+		~transps = PSquama.lin([-1,-2,1,2]);
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -155,7 +155,7 @@ fork {
 			evt[\lfo2amp]= -0.25;
 			evt[\lfo2grain] = 0;
 			evt[\lfo2pan] = 0.0;
-			evt[\posrate] = 0.125;
+			evt[\posrate] = 0.125 * (0.5.coin*2 -1);
 			evt[\timeago] = beat2sec.(~jumps.choose);
 			evt[\grainsize] = beat2sec.(~grains.choose);
 			evt[\windowRandRatio] = 0.0;
