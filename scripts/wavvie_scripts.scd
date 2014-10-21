@@ -131,7 +131,7 @@ fork {
 		sequencemaker = {
 			(50.rand+10).collect({16.0.rand.round(0.25)}).sort;
 		};
-		seq = PSWavvieSeq(
+		seq = PSWavvieBarSeq(
 			state: state,
 			parentEvent: ~parentevt);
 		seq.barcallback = {|seq|

@@ -2,11 +2,11 @@
 // Should probably be a pattern factory.
 // Additional features installed for my needs:
 // injecting tempo info into events
-// providing per-event and per-rep callbacks to mess with shit.
+// providing per-event and per-bar callbacks to mess with shit.
 // Future plans could include a state machine that skips around the sequence based on events
-// More general sequence that could be extracted from this would create stateful patterns that allowed per-event updates
+// A more general sequencer that could be extracted from this would create stateful patterns that allowed per-event updates
 
-PSWavvieSeq {
+PSWavvieBarSeq {
 	var <beatsPerBar;
 	var <>nBars;
 	var <maxLen;
@@ -22,7 +22,7 @@ PSWavvieSeq {
 	var <time=0.0;
 	var <pat;
 	var <stream;
-	//private var, made members for ease of debugging.
+	//private vars
 	var <nextbartime;
 	var <nextidxptr;
 	var <>delta;
@@ -32,13 +32,6 @@ PSWavvieSeq {
 	var <>clock;
 	var <>sharedRandData;
 	
-	*initClass{
-		StartUp.add({
-			this.loadSynthDefs;
-		});
-	}
-	*loadSynthDefs {
-	}
 	*new{|beatsPerBar=4,
 		nBars=4,
 		maxLen=1024,
@@ -169,5 +162,128 @@ PSWavvieSeq {
 			time = time + nextEv.delta;
 		});
 		^[timePoints, baseEvents];
+	}
+}
+//subclass schmubclass; I can simplify this later if it works
+PSWavvieEvtSeq {
+	var <beatsPerBar;
+	var <>nBars;
+	var <maxLen;
+	var <>baseEvent;
+	var <>parentEvent;
+	var <>state;
+	var <>barcallback;
+	var <>notecallback;
+	var <>debug;
+	var <bartime=0.0;
+	var <time=0.0;
+	var <pat;
+	var <stream;
+	//private vars
+	var <nextbartime;
+	var <>delta;
+	var <beatlen;
+	var <nextfirst=0;
+	var <>evt;
+	var <>clock;
+	var <>sharedRandData;
+	
+	*new{|beatsPerBar=4,
+		nBars=4,
+		maxLen=1024,
+		baseEvent,
+		parentEvent,
+		state,
+		barcallback,
+		notecallback,
+		debug=false|
+		^super.newCopyArgs(
+			beatsPerBar,
+			nBars,
+			maxLen,
+			baseEvent ?? (degree: 0),
+			parentEvent ?? (),
+			state ?? (),
+			barcallback,
+			notecallback,
+			debug,
+		).init;
+	}
+	init{
+		pat = Pspawner({|spawner|
+			//init
+			bartime = 0.0;
+			time = 0.0;
+			this.sharedRandData = thisThread.randData;
+			//iterate!
+			inf.do({
+				this.prAdvanceTime(spawner);
+			});
+		});
+	}
+	prAdvanceTime{|spawner|
+		//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
+		beatlen = nBars*beatsPerBar;
+		//set up the next iteration
+		nextbartime = bartime + delta;
+		(nextbartime > beatlen).if({
+			//next beat falls outside the bar. Wrap.
+			barcallback.notNil.if({
+				var rout = Routine({|seq| barcallback.value(seq).yield});
+				rout.randData = thisThread.randData;
+				rout.value(this);
+				this.sharedRandData = rout.randData;
+			});
+			nextfirst = nextbartime % beatlen;
+			delta = (beatlen + nextfirst - bartime) % beatlen;
+			bartime = nextfirst;
+		}, {
+			//this always plays all notes, at once if necessary; but we could skip ones if the seq changes instead?
+			bartime = bartime + delta;
+		});
+		time = time + delta;
+		
+		//Advance logical time
+		(delta>0).if({
+			spawner.seq(Rest(delta));
+		});
+		
+		// Create and schedule event:
+		// "proper" way:
+		// evt = baseEvent.copy.parent_(parentEvent);
+		// easier-to-debug way:
+		evt = parentEvent.copy.putAll(baseEvent);
+		evt['tempo'] = (clock ? TempoClock.default).tempo;
+		evt['bartime'] = bartime;
+		evt['time'] = time;
+		notecallback.notNil.if({
+			var rout = Routine({|evt, seq| notecallback.value(evt, seq).yield});
+			rout.randData = thisThread.randData;
+			evt = rout.value(evt, this);
+			this.sharedRandData = rout.randData;
+		});
+		//We may get back an event 
+		//- in which case we wish to play it just once
+		// otherwise we schedule it unquestioningly.
+		spawner.par(
+			evt.isKindOf(Event).if(
+				{P1event(evt)},
+				{evt})
+		);
+	}
+	play {|clock, protoEvent, quant, trace=false|
+		//This instance looks like a pattern, but in fact carries bundled state. Um.
+		var thispat = pat;
+		trace.if({thispat=pat.trace});
+		stream.notNil.if({stream.stop});
+		this.clock_(clock);
+		this.sharedRandData = thisThread.randData;
+		stream = thispat.play(clock, protoEvent, quant);
+		stream.routine.randData = this.sharedRandData;
+		^stream;
+	}
+	stop {
+		//should i implement other stream methods?
+		stream.notNil.if({stream.stop});
 	}
 }
