@@ -5,7 +5,6 @@ TODO:
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
-* GUI is needed
 * off switch for all notes (external gate?)
 * cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, RME) and internal mixers using a BusAllocator
@@ -15,12 +14,18 @@ TODO:
   * Or Wekinator
 
 * interesting rhythm somehow
-* random volume
-* smart accent
+
+  * so also a non-bar-oriented synth
+  * FSM sequencer
+  * smart accent
+
+* or bar oriented:
+
+  * GUI is needed
+  * decent Lemur template
+   * or NexusUI
+
 * pitch recording
-* FSM sequencer
-* decent Lemur template
-* or NexusUI
 * OSC triggering for:
 
   * overall
@@ -36,12 +41,11 @@ TODO:
   * per voice
 
     * overall "weirdness" param to control with trivial mapping
-    * seed value
+    * overall "intensity" param
+    * I kinda feel we wan to control marginals and correlation of params
     * quantization
     * level
-    * pan
-    * reverb mix
-    * transposition
+    * reverb mix?
     * attack/release
 */
 (
