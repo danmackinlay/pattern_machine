@@ -93,6 +93,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	lfo2amp=0,
 	lfo2grain=0,
 	lfo2pan=0,
+	lfo2del=0,
 	age2lfo=0,
 	allpdelayratio=0.125,
 	allpdecayratio=4,
@@ -162,14 +163,14 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		iter: 1
 	);
 	//comb out window noise, at least somewhat
-	combwet = (combed/2).sqrt;
-	combdry = (1-(combed/2)).sqrt;
+	combwet = (combed).sqrt;
+	combdry = (1-(combed)).sqrt;
 	sig = combdry*sig - DelayL.ar(sig, 1, grainsize*2, combwet.neg);
 	deltime = allpdelayratio*grainsize;
 	dectime = allpdecayratio*grainsize;
-	sig = AllpassN.ar(sig,
+	sig = AllpassC.ar(sig,
 		maxdelaytime: 1,
-		delaytime: deltime,
+		delaytime: deltime+(lfo2del*(lfo+1)),
 		decaytime: dectime);
 
 	Out.ar(out, Pan2.ar(sig, pan));
@@ -180,6 +181,8 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
-		\ir, \ir, \ir, \ir]
+		\ir, \ir, \ir, \ir,
+		\ir
+	]
 ).add;
 )

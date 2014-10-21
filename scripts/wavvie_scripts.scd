@@ -115,6 +115,8 @@ fork {
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8,16,32]/32);
 		~transps = PSquama.lin([-1,-2,1,2]);
+		~lfodel = 0.0;
+		~combed = 1;
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -138,7 +140,7 @@ fork {
 				thisThread.randSeed_(localstate[\seed]);
 			});
 			seq.timePoints = sequencemaker.value.postcs;
-			// nightmares of RND state inheritance! wach this:
+			// nightmares of RND state inheritance! watch this:
 			//[\seeding, localstate[\seed], thisThread.identityHash, thisThread.parent.identityHash, thisThread.parent.parent.identityHash,  seq.stream.routine.identityHash].postln;
 			//giving
 			//[ seeding, 1, 1151352501, -36163575, -734650457, -734650457 ]
@@ -155,6 +157,7 @@ fork {
 			evt[\lfo2amp]= -0.25;
 			evt[\lfo2grain] = 0;
 			evt[\lfo2pan] = 0.0;
+			evt[\lfo2del] = ~lfodel;
 			evt[\posrate] = 0.125 * (0.5.coin*2 -1);
 			evt[\timeago] = beat2sec.(~jumps.choose);
 			evt[\grainsize] = beat2sec.(~grains.choose);
@@ -165,7 +168,7 @@ fork {
 			evt[\overlaps] = 4;
 			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
 			evt[\allpdecayratio] = 4;
-			evt[\combed] = 0;
+			evt[\combed] = ~combed;
 			//evt.postcs;
 			});
 		};
@@ -179,6 +182,8 @@ fork {
 ~state.voiceStates[0].rec(10);
 ~state.voiceStates[0].seed;
 ~state.voiceStates[0].seed=1;
+~state.voiceStates[0].lfodel=0.0001;
+~state.voiceStates[0].combed=1.0;
 ~state.voiceStates[0].seq.stream.randSeed;
 
 ~state.voiceStates[0];
