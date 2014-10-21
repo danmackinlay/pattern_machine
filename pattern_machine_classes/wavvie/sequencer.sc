@@ -122,7 +122,14 @@ PSWavvieSeq {
 			evt = rout.value(evt, this);
 			this.sharedRandData = rout.randData;
 		});
-		spawner.par(P1event(evt));
+		//We may get back an event 
+		//- in which case we wish to play it just once
+		// otherwise we schedule it unquestioningly.
+		spawner.par(
+			evt.isKindOf(Event).if(
+				{P1event(evt)},
+				{evt})
+		);
 	}
 	timePoints_{|newTimePoints|
 		//needs infinte sentinel value after
