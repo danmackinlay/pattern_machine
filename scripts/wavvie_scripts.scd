@@ -44,7 +44,6 @@ TODO:
     * transposition
     * attack/release
 */
-
 (
 var state = ();
 ~state=state;
@@ -139,12 +138,7 @@ fork {
 			localstate[\seed].notNil.if({
 				thisThread.randSeed_(localstate[\seed]);
 			});
-			seq.timePoints = sequencemaker.value.postcs;
-			// nightmares of RND state inheritance! watch this:
-			//[\seeding, localstate[\seed], thisThread.identityHash, thisThread.parent.identityHash, thisThread.parent.parent.identityHash,  seq.stream.routine.identityHash].postln;
-			//giving
-			//[ seeding, 1, 1151352501, -36163575, -734650457, -734650457 ]
-			// we are THREE threads deep. Sigh. I just wanna pass around RNGs.
+			seq.timePoints = sequencemaker.value;
 		};
 		seq.notecallback = {|evt, seq|
 			localstate.use({

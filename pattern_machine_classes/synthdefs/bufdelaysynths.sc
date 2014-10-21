@@ -79,9 +79,7 @@ PSBufDelaySynthDefs {
 			pan=0, amp=1, gate=1,
 			interp=4,
 			attack=0.1, decay=0.0, sustainLevel=1.0, release=0.1, maxDur=inf;
-
 			var sig, env, baseTime, readTime, clippedGate, ramp, bufDur;
-
 			clippedGate = gate * Trig1.kr(gate, maxDur);
 			bufDur = BufDur.kr(bufnum)-SampleDur.ir;
 			env = EnvGen.kr(
