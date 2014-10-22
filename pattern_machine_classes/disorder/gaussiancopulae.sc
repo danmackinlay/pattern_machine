@@ -8,7 +8,7 @@ http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some
 
 I simulate uniform marginal variables from the stipulated 2d copula distribution
 see http://www.math.uni-leipzig.de/~tschmidt/TSchmidt_Copulas.pdf
-or, for exmpirical copulae, http://www.mathworks.com.au/products/statistics/examples.html?file=/products/demos/shipping/stats/copulademo.html#17
+or, for empirical copulae, http://www.mathworks.com.au/products/statistics/examples.html?file=/products/demos/shipping/stats/copulademo.html#17
 
 This turns out to be easiest for Gaussian, t-copulae and Marshall-Olkin, and
 only somewhat easy for some Archimedeans - specifically, Frank, Gumbel and Clayton.

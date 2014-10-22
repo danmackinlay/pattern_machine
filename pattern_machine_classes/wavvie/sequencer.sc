@@ -234,11 +234,9 @@ PSWavvieEvtSeq {
 				rout.value(this);
 				this.sharedRandData = rout.randData;
 			});
-			nextfirst = nextbartime % beatlen;
-			delta = (beatlen + nextfirst - bartime) % beatlen;
+			nextfirst = (bartime + delta ) % beatlen;
 			bartime = nextfirst;
 		}, {
-			//this always plays all notes, at once if necessary; but we could skip ones if the seq changes instead?
 			bartime = bartime + delta;
 		});
 		time = time + delta;

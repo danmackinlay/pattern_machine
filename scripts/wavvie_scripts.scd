@@ -3,11 +3,12 @@ Wavvie
 
 TODO:
 * Audit for zipper noise
-* switch from Event type Note to Grain, and avoid having to think about it. Actually, SC throws a tantrum.)
+* switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
 * off switch for all notes (external gate?)
-* cleanup is not working great- fails to allocate bus correctly.
 * switch between external (live, RME) and internal mixers using a BusAllocator
+* Multiple synths
+* copula params?
 * interesting param map
 
   * poss Martin Marier's excellent PresetInterpolator
@@ -113,13 +114,14 @@ fork {
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
-		~seed=1;
-		~lfobasef = PSquama.lin([1,2]);
+		~seed = 1;
+		~lfobasefs = PSquama.lin([1,2]);
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8,16,32]/32);
 		~transps = PSquama.lin([-1,-2,1,2]);
-		~lfodel = 0.0;
-		~combed = 1;
+		~lfo2del = 0.0;
+		~lfomodamp = 1/2;
+		~windowRandRatio = 0.01;
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	//[\foo, foo].postcs;
@@ -131,7 +133,6 @@ fork {
 	s.sync;
 
 	localstate.use({
-
 		sequencemaker = {
 			(50.rand+10).collect({16.0.rand.round(0.25)}).sort;
 		};
@@ -147,21 +148,22 @@ fork {
 		seq.notecallback = {|evt, seq|
 			localstate.use({
 			//evt.postcs;
-			evt[\lfobasef] = ~lfobasef.choose;
-			evt[\lfomodf] = beat2freq.([0.25, 0.125].choose);
-			evt[\lfomodamp] = 1/2;
+			evt[\lfobasefs] = beat2freq.(~lfobasefs.choose);
+			evt[\lfomodf] = beat2freq.(~lfobasefs.choose);
+			evt[\lfomodamp] = ~lfomodamp;
 			evt[\lfophase] = 0;
 			evt[\lfo2pos] = beat2sec.(0);
 			evt[\lfo2amp]= -0.25;
 			evt[\lfo2grain] = 0;
 			evt[\lfo2pan] = 0.0;
-			evt[\lfo2del] = ~lfodel;
+			evt[\lfo2del] = ~lfo2del;
 			evt[\posrate] = 0.125 * (0.5.coin*2 -1);
 			evt[\timeago] = beat2sec.(~jumps.choose);
 			evt[\grainsize] = beat2sec.(~grains.choose);
-			evt[\windowRandRatio] = 0.0;
+			evt[\windowRandRatio] = ~windowRandRatio;
 			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
+			evt[\pan] = 1.0.rand2;
 			evt[\pitchrate] = ~transps.choose;
 			evt[\overlaps] = 4;
 			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
@@ -180,7 +182,7 @@ fork {
 ~state.voiceStates[0].rec(10);
 ~state.voiceStates[0].seed;
 ~state.voiceStates[0].seed=1;
-~state.voiceStates[0].lfodel=0.0001;
+~state.voiceStates[0].lfo2del=0.001;
 ~state.voiceStates[0].combed=1.0;
 ~state.voiceStates[0].seq.stream.randSeed;
 
