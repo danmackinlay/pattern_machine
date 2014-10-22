@@ -115,7 +115,7 @@ fork {
 		~outbus = state.instbusallocator.alloc;
 		~controls = List.new;
 		~seed = 1;
-		~lfobasefs = PSquama.lin([1,2]);
+		~lfobasefs = PSquama.lin([1,2,3,4,6]);
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8,16,32]/32);
 		~transps = PSquama.lin([-1,-2,1,2]);
@@ -163,7 +163,7 @@ fork {
 			evt[\windowRandRatio] = ~windowRandRatio;
 			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
-			evt[\pan] = 1.0.rand2;
+			evt[\pan] = 0.8.rand2;
 			evt[\pitchrate] = ~transps.choose;
 			evt[\overlaps] = 4;
 			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
@@ -180,13 +180,11 @@ fork {
 };
 )
 ~state.voiceStates[0].rec(10);
-~state.voiceStates[0].seed;
 ~state.voiceStates[0].seed=1;
 ~state.voiceStates[0].lfo2del=0.001;
-~state.voiceStates[0].combed=1.0;
+~state.voiceStates[0].windowRandRatio=0.25;
+~state.voiceStates[0].combed=0.5;
 ~state.voiceStates[0].seq.stream.randSeed;
-
-~state.voiceStates[0];
 ~state.voiceStates[0].debugSpawn=false;
 ~state.bpm;
 ~state.bpm=120;
