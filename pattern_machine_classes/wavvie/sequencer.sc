@@ -5,6 +5,7 @@
 // providing per-event and per-bar callbacks to mess with shit.
 // Future plans could include a state machine that skips around the sequence based on events
 // A more general sequencer that could be extracted from this would create stateful patterns that allowed per-event updates
+// Can I do this more easily with Pdefs?
 
 PSWavvieBarSeq {
 	var <beatsPerBar;
