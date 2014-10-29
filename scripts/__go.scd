@@ -1,6 +1,7 @@
 Server.default = ~server = s = Dan.serverboot(\local, \builtin);
 Server.default = ~server = s = Dan.serverboot(\local, \rme);
 Server.default = ~server = s = Dan.serverboot(\local, \motu);
+Server.default = ~server = s = Dan.serverboot(\local, \jack);
 Server.default = ~server = s = Dan.serverboot(\internal, \builtin);
 Quarks.gui;
 s.dumpOSC(1);
