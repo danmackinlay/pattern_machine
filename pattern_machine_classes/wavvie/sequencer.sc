@@ -289,13 +289,11 @@ PSWavvieStreamer {
 	var <>notecallback;
 	var <>debug;
 	var <parentEvent;
-	var <bartime=0.0;
 	var <time=0.0;
 	//private vars
 	var <masterStream;
 	var <childStreams;
 	var <eventStreamPlayer;
-	var <nextbartime;
 	var <masterPat;
 	var <>delta;
 	var <beatlen;
@@ -330,7 +328,6 @@ PSWavvieStreamer {
 	spawnRout {|spawner|
 		//init
 		streamSpawner = spawner;
-		bartime = 0.0;
 		time = 0.0;
 		this.sharedRandData = thisThread.randData;
 		//iterate!
@@ -344,6 +341,9 @@ PSWavvieStreamer {
 				# nextpat, nextid = patternInbox.popFirst;
 				nextstream = streamSpawner.par(nextpat, 0.0);
 				nextid = nextid ?? {nextpat.identityHash};
+				//let streams know their names
+				nextstream = streamSpawner.par(
+					Pset(\sid, nextid, nextpat), 0.0);
 				childStreams[nextid].notNil.if( {
 					streamSpawner.suspend(childStreams[nextid]);
 					childStreams.removeAt(nextid);
@@ -366,10 +366,8 @@ PSWavvieStreamer {
 		patternOutbox.add(id);
 	}
 	decorateEvt{|evt|
-		//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
 		time = time + evt.delta;
 		evt['tempo'] = (clock ? TempoClock.default).tempo;
-		evt['bartime'] = bartime;
 		evt['time'] = time;
 		//Probably shouldn't bother calling for rests
 		notecallback.notNil.if({
@@ -399,7 +397,6 @@ PSWavvieStreamer {
 	stop {
 		//should i implement other stream methods?
 		masterStream.notNil.if({masterStream.stop});
-		
 	}
 	parentEvent_{|newParentEvent|
 		//you probably want the default event as parent,

@@ -17,21 +17,18 @@ fork {
 		debug: true);
 	p.play(trace:true);
 	3.wait;
-	t=p.add(Pbind(\degree, 0));
+	t=p.add(Pbind(\degree, 1, \delta, Prand([1/2,1,3/2],inf)));
+	t=p.add(Pbind(\degree, 5, \delta, Prand([1/2,1,3/2],inf)));
 }
 )
 (
 fork {
 	p=PSWavvieStreamer.new(
 		state: (things: \toremember),
-		notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+		notecallback: {|ev, seq| ev.degree=5.rand;[seq.clock.beats, ev, seq].postcs; ev;},
 		debug: true);
 	p.play(trace:true, evt: (degree: 0, stuff: \nonsense));
 	3.wait;
 	t=p.add(Pbind(\degree, 0));
 }
 )
-p.parentEvent.parent
-(degree: 0, stuff: \nonsense)
-
-Event.new.play
