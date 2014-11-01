@@ -303,8 +303,6 @@ PSWavvieStreamer {
 	var <>clock;
 	var <>sharedRandData;
 	var <streamSpawner;
-	var <patternInbox;
-	var <patternOutbox;
 	var <>streamcounter = 0;
 	
 	*new{|state,
@@ -321,8 +319,6 @@ PSWavvieStreamer {
 	}
 	init{
 		childStreams = IdentityDictionary.new;
-		patternInbox = LinkedList.new;
-		patternOutbox = LinkedList.new;
 		masterPat = Pspawner({|spawner|
 			this.spawnRout(spawner);
 		});
@@ -334,37 +330,32 @@ PSWavvieStreamer {
 		this.sharedRandData = thisThread.randData;
 		//iterate!
 		inf.do({
-			var nextpat, nextid, nextstream;
 			time.postln;
 			//Advance time
 			streamSpawner.wait(masterQuant.quant);
-			// handle queued operations
-			{patternInbox.isEmpty.not}.while({
-				# nextpat, nextid = patternInbox.popFirst;
-				nextid = nextid ?? {streamcounter = streamcounter + 1};
-				//let streams know their names
-				nextstream = streamSpawner.par(
-					Pset(\sid, nextid, nextpat), 0.0);
-				childStreams[nextid].notNil.if( {
-					streamSpawner.suspend(childStreams[nextid]);
-					childStreams.removeAt(nextid);
-				});
-				childStreams[nextid] = nextstream;
-			});
-			{patternOutbox.isEmpty.not}.while({
-				nextid = patternOutbox.popFirst;
-				childStreams[nextid] ?? {
-					streamSpawner.suspend(childStreams[nextid]);
-					childStreams.removeAt(nextid);
-				};
-			});
 		});
 	}
 	add {|pat, id|
-		patternInbox.add([pat, id]);
+		var nextstream;
+		id = id ?? {streamcounter = streamcounter + 1};
+		//let streams know their names
+		nextstream = streamSpawner.par(
+			Pset(\sid, id, pat), 0.0);
+		childStreams[id].notNil.if( {
+			streamSpawner.suspend(childStreams[id]);
+			childStreams.removeAt(id);
+		});
+		childStreams[id] = nextstream;
+		^id;
 	}
 	remove {|id|
-		patternOutbox.add(id);
+		childStreams[id].notNil.if({
+			streamSpawner.suspend(childStreams[id]);
+			childStreams.removeAt(id);
+		});
+	}
+	at {|id|
+		^childStreams[id];
 	}
 	decorateEvt{|evt|
 		time = time + evt.delta;
