@@ -280,7 +280,7 @@ PSWavvieEvtSeq {
 }
 //This guy manages a list of streams which can be dynamically added to
 
-//TODO: add at quantised time
+//TODO: add at specific quantised time
 //TODO: skip processing rests
 //TODO: insert metadata
 PSWavvieStreamer {
@@ -304,6 +304,8 @@ PSWavvieStreamer {
 	var <>clock;
 	var <>sharedRandData;
 	var <streamSpawner;
+	var <patternInbox;
+	var <patternOutbox;
 	
 	*new{|parentEvent,
 		state,
@@ -319,7 +321,9 @@ PSWavvieStreamer {
 		).init;
 	}
 	init{
-		childStreams = List.new;
+		childStreams = IdentityDictionary.new;
+		patternInbox = LinkedList.new;
+		patternOutbox = LinkedList.new;
 		masterPat = Pspawner({|spawner|
 			//init
 			streamSpawner = spawner;
@@ -328,19 +332,36 @@ PSWavvieStreamer {
 			this.sharedRandData = thisThread.randData;
 			//iterate!
 			inf.do({
+				var nextpat, nextid, nextstream;
 				time.postln;
+				//Advance time
 				streamSpawner.seq(Rest(masterQuant.quant));
+				// handle queued operations
+				{patternInbox.isEmpty.not}.while({
+					# nextpat, nextid = patternInbox.popFirst;
+					nextstream = streamSpawner.par(nextpat, 0.0);
+					nextid = nextid ?? {nextpat.identityHash};
+					childStreams[nextid].notNil.if( {
+						streamSpawner.suspend(childStreams[nextid]);
+						childStreams.removeAt(nextid);
+					});
+					childStreams[nextid] = nextstream;
+				});
+				{patternOutbox.isEmpty.not}.while({
+					nextid = patternOutbox.popFirst;
+					childStreams[nextid] ?? {
+						streamSpawner.suspend(childStreams[nextid]);
+						childStreams.removeAt(nextid);
+					};
+				});
 			});
 		});
 	}
-	add {|pat|
-		var newStream = streamSpawner.par(pat, 0.0);
-		childStreams.add(newStream);
-		^newStream;
+	add {|pat, id|
+		patternInbox.add([pat, id]);
 	}
-	remove {|stream|
-		streamSpawner.suspend(stream);
-		childStreams.remove(stream);
+	remove {|id|
+		patternOutbox.add(id);
 	}
 	decorateEvt{|evt|
 		//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
@@ -373,6 +394,7 @@ PSWavvieStreamer {
 	stop {
 		//should i implement other stream methods?
 		masterStream.notNil.if({masterStream.stop});
+		
 	}
 	parentEvent_{|newParentEvent|
 		parentEvent=newParentEvent;
