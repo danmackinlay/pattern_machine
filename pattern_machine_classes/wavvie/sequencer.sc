@@ -353,10 +353,10 @@ PSWavvieStreamer {
 			});
 			{patternOutbox.isEmpty.not}.while({
 				nextid = patternOutbox.popFirst;
-				childStreams[nextid] ?? {
+				childStreams[nextid].notNil.if({
 					streamSpawner.suspend(childStreams[nextid]);
 					childStreams.removeAt(nextid);
-				};
+				});
 			});
 		});
 	}
