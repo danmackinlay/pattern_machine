@@ -12,7 +12,6 @@ Pbind(
 (
 fork {
 	p=PSWavvieStreamer.new(
-		parentEvent: (degree: 0, stuff: \nonsense),
 		state: (things: \toremember),
 		notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
 		debug: true);
@@ -21,3 +20,18 @@ fork {
 	t=p.add(Pbind(\degree, 0));
 }
 )
+(
+fork {
+	p=PSWavvieStreamer.new(
+		state: (things: \toremember),
+		notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+		debug: true);
+	p.play(trace:true, evt: (degree: 0, stuff: \nonsense));
+	3.wait;
+	t=p.add(Pbind(\degree, 0));
+}
+)
+p.parentEvent.parent
+(degree: 0, stuff: \nonsense)
+
+Event.new.play

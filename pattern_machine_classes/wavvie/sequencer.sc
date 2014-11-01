@@ -284,11 +284,11 @@ PSWavvieEvtSeq {
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
 PSWavvieStreamer {
-	var <parentEvent;
 	var <>state;
 	var <>masterQuant;
 	var <>notecallback;
 	var <>debug;
+	var <parentEvent;
 	var <bartime=0.0;
 	var <time=0.0;
 	//private vars
@@ -307,18 +307,17 @@ PSWavvieStreamer {
 	var <patternInbox;
 	var <patternOutbox;
 	
-	*new{|parentEvent,
-		state,
+	*new{|state,
 		quant,
 		notecallback,
-		debug=false|
+		debug=false,
+		parentEvent|
 		^super.newCopyArgs(
-			parentEvent ?? Event.default,
 			state ?? (),
 			quant ?? 1.asQuant,
 			notecallback, //null fn
 			debug,
-		).init;
+		).init.parentEvent_(parentEvent ?? Event.default);
 	}
 	init{
 		childStreams = IdentityDictionary.new;
@@ -381,9 +380,12 @@ PSWavvieStreamer {
 		});
 		^evt;
 	}
-	play {|clock, protoEvent, quant, trace=false|
+	play {|clock, evt, quant, trace=false|
 		var thispat = masterPat;
-		protoEvent.notNil.if({parentEvent=protoEvent});
+		
+		evt.notNil.if({
+			this.parentEvent_(evt);
+		});
 		quant.notNil.if({masterQuant=quant});
 		masterStream.notNil.if({masterStream.stop});
 		thispat = masterPat.collect({|evt| this.decorateEvt(evt)});
@@ -400,7 +402,14 @@ PSWavvieStreamer {
 		
 	}
 	parentEvent_{|newParentEvent|
+		//you probably want the default event as parent,
+		// to ensure a default delta etc
+		//otherwise there will be confusing errors
+		//note that this updates the event. is that sane, or should we copy it?
+		if (newParentEvent.delta.isNil) {
+			newParentEvent.put(\parent, Event.default);
+		};
 		parentEvent=newParentEvent;
-		masterStream.notNil.if({masterStream.event=parentEvent});
+		masterStream.notNil.if({masterStream.event = parentEvent});
 	}
 }
