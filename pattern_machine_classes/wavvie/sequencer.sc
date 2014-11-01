@@ -278,3 +278,104 @@ PSWavvieEvtSeq {
 		stream.notNil.if({stream.stop});
 	}
 }
+//This guy manages a list of streams which can be dynamically added to
+
+//TODO: add at quantised time
+//TODO: skip processing rests
+//TODO: insert metadata
+PSWavvieStreamer {
+	var <parentEvent;
+	var <>state;
+	var <>masterQuant;
+	var <>notecallback;
+	var <>debug;
+	var <bartime=0.0;
+	var <time=0.0;
+	//private vars
+	var <masterStream;
+	var <childStreams;
+	var <eventStreamPlayer;
+	var <nextbartime;
+	var <masterPat;
+	var <>delta;
+	var <beatlen;
+	var <nextfirst=0;
+	var <>evt;
+	var <>clock;
+	var <>sharedRandData;
+	var <streamSpawner;
+	
+	*new{|parentEvent,
+		state,
+		quant,
+		notecallback,
+		debug=false|
+		^super.newCopyArgs(
+			parentEvent ?? (degree: 0),
+			state ?? (),
+			quant ?? 1.asQuant,
+			notecallback, //null fn
+			debug,
+		).init;
+	}
+	init{
+		childStreams = List.new;
+		masterPat = Pspawner({|spawner|
+			//init
+			streamSpawner = spawner;
+			bartime = 0.0;
+			time = 0.0;
+			this.sharedRandData = thisThread.randData;
+			//iterate!
+			inf.do({
+				time.postln;
+				streamSpawner.seq(Rest(masterQuant.quant));
+			});
+		});
+	}
+	add {|pat|
+		var newStream = streamSpawner.par(pat, 0.0);
+		childStreams.add(newStream);
+		^newStream;
+	}
+	remove {|stream|
+		streamSpawner.suspend(stream);
+		childStreams.remove(stream);
+	}
+	decorateEvt{|evt|
+		//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
+		time = time + evt.delta;
+		evt['tempo'] = (clock ? TempoClock.default).tempo;
+		evt['bartime'] = bartime;
+		evt['time'] = time;
+		//Probably shouldn't bother calling for rests
+		notecallback.notNil.if({
+			var rout = Routine({|evt, seq| notecallback.value(evt, this).yield});
+			rout.randData = thisThread.randData;
+			evt = rout.value(evt, this);
+			this.sharedRandData = rout.randData;
+		});
+		^evt;
+	}
+	play {|clock, protoEvent, quant, trace=false|
+		var thispat = masterPat;
+		protoEvent.notNil.if({parentEvent=protoEvent});
+		quant.notNil.if({masterQuant=quant});
+		masterStream.notNil.if({masterStream.stop});
+		thispat = masterPat.collect({|evt| this.decorateEvt(evt)});
+		trace.if({thispat=thispat.trace});
+		this.clock_(clock ? TempoClock.default);
+		this.sharedRandData = thisThread.randData;
+		masterStream = thispat.play(this.clock, parentEvent, quant);
+		masterStream.routine.randData = this.sharedRandData;
+		^masterStream;
+	}
+	stop {
+		//should i implement other stream methods?
+		masterStream.notNil.if({masterStream.stop});
+	}
+	parentEvent_{|newParentEvent|
+		parentEvent=newParentEvent;
+		masterStream.notNil.if({masterStream.event=parentEvent});
+	}
+}
