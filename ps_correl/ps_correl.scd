@@ -7,7 +7,7 @@
 var analNode, concatNode, soundSource, infilep, confilep, inBuf, conBuf;
 var soundAnalBus, transectBus;
 var analServer, plotter;
-var makeCLI,cli;
+var makeCLI, cli;
 var state = (
 	pscorrelpath: PS.pmpath +/+ "ps_correl",
 	infilep: "/Users/dan/src/sc/f_lustre/sounds/note_sweep.aif",
