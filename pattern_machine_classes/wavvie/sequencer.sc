@@ -169,7 +169,6 @@ PSWavvieBarSeq {
 PSWavvieEvtSeq {
 	var <beatsPerBar;
 	var <>nBars;
-	var <maxLen;
 	var <>baseEvent;
 	var <>parentEvent;
 	var <>state;
@@ -191,7 +190,6 @@ PSWavvieEvtSeq {
 	
 	*new{|beatsPerBar=4,
 		nBars=4,
-		maxLen=1024,
 		baseEvent,
 		parentEvent,
 		state,
@@ -201,7 +199,6 @@ PSWavvieEvtSeq {
 		^super.newCopyArgs(
 			beatsPerBar,
 			nBars,
-			maxLen,
 			baseEvent ?? (degree: 0),
 			parentEvent ?? (),
 			state ?? (),
