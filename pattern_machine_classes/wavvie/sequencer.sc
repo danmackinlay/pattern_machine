@@ -48,7 +48,7 @@ PSWavvieBarSeq {
 			beatsPerBar,
 			nBars,
 			maxLen,
-			baseEvents ?? [(degree: 0)],
+			baseEvents ?? [Event.default],
 			parentEvent ?? (),
 			state ?? (),
 			barcallback,
@@ -198,7 +198,7 @@ PSWavvieEvtSeq {
 		^super.newCopyArgs(
 			beatsPerBar,
 			nBars,
-			parentEvent ?? (degree: 0),
+			parentEvent ?? Event.default,
 			state ?? (),
 			barcallback,
 			notecallback,
@@ -280,22 +280,21 @@ PSWavvieEvtSeq {
 }
 //This guy manages a list of streams which can be dynamically added to
 
-//TODO: add at quantised time
+//TODO: add at specific quantised time
 //TODO: skip processing rests
-//TODO: insert metadata
+//TODO: check cleanup of stopped streams
+//TODO: could simplify spawning logic; spawner can be call out of routine no worries
 PSWavvieStreamer {
-	var <parentEvent;
 	var <>state;
 	var <>masterQuant;
 	var <>notecallback;
 	var <>debug;
-	var <bartime=0.0;
+	var <parentEvent;
 	var <time=0.0;
 	//private vars
 	var <masterStream;
 	var <childStreams;
 	var <eventStreamPlayer;
-	var <nextbartime;
 	var <masterPat;
 	var <>delta;
 	var <beatlen;
@@ -304,49 +303,72 @@ PSWavvieStreamer {
 	var <>clock;
 	var <>sharedRandData;
 	var <streamSpawner;
+	var <patternInbox;
+	var <patternOutbox;
+	var <>streamcounter = 0;
 	
-	*new{|parentEvent,
-		state,
+	*new{|state,
 		quant,
 		notecallback,
-		debug=false|
+		debug=false,
+		parentEvent|
 		^super.newCopyArgs(
-			parentEvent ?? (degree: 0),
 			state ?? (),
 			quant ?? 1.asQuant,
 			notecallback, //null fn
 			debug,
-		).init;
+		).init.parentEvent_(parentEvent ?? Event.default);
 	}
 	init{
-		childStreams = List.new;
+		childStreams = IdentityDictionary.new;
+		patternInbox = LinkedList.new;
+		patternOutbox = LinkedList.new;
 		masterPat = Pspawner({|spawner|
-			//init
-			streamSpawner = spawner;
-			bartime = 0.0;
-			time = 0.0;
-			this.sharedRandData = thisThread.randData;
-			//iterate!
-			inf.do({
-				time.postln;
-				streamSpawner.seq(Rest(masterQuant.quant));
+			this.spawnRout(spawner);
+		});
+	}
+	spawnRout {|spawner|
+		//init
+		streamSpawner = spawner;
+		time = 0.0;
+		this.sharedRandData = thisThread.randData;
+		//iterate!
+		inf.do({
+			var nextpat, nextid, nextstream;
+			time.postln;
+			//Advance time
+			streamSpawner.wait(masterQuant.quant);
+			// handle queued operations
+			{patternInbox.isEmpty.not}.while({
+				# nextpat, nextid = patternInbox.popFirst;
+				nextid = nextid ?? {streamcounter = streamcounter + 1};
+				//let streams know their names
+				nextstream = streamSpawner.par(
+					Pset(\sid, nextid, nextpat), 0.0);
+				childStreams[nextid].notNil.if( {
+					streamSpawner.suspend(childStreams[nextid]);
+					childStreams.removeAt(nextid);
+				});
+				childStreams[nextid] = nextstream;
+			});
+			{patternOutbox.isEmpty.not}.while({
+				nextid = patternOutbox.popFirst;
+				childStreams[nextid] ?? {
+					streamSpawner.suspend(childStreams[nextid]);
+					childStreams.removeAt(nextid);
+				};
 			});
 		});
 	}
-	add {|pat|
-		var newStream = streamSpawner.par(pat, 0.0);
-		childStreams.add(newStream);
-		^newStream;
+	add {|pat, id|
+		patternInbox.add([pat, id]);
 	}
-	remove {|stream|
-		streamSpawner.suspend(stream);
-		childStreams.remove(stream);
+	remove {|id|
+		patternOutbox.add(id);
 	}
 	decorateEvt{|evt|
-		//[\beatlen, beatlen, \bartime, bartime, \nextbartime, nextbartime].postln;
 		time = time + evt.delta;
 		evt['tempo'] = (clock ? TempoClock.default).tempo;
-		evt['bartime'] = bartime;
 		evt['time'] = time;
 		//Probably shouldn't bother calling for rests
 		notecallback.notNil.if({
@@ -357,9 +379,12 @@ PSWavvieStreamer {
 		});
 		^evt;
 	}
-	play {|clock, protoEvent, quant, trace=false|
+	play {|clock, evt, quant, trace=false|
 		var thispat = masterPat;
-		protoEvent.notNil.if({parentEvent=protoEvent});
+		
+		evt.notNil.if({
+			this.parentEvent_(evt);
+		});
 		quant.notNil.if({masterQuant=quant});
 		masterStream.notNil.if({masterStream.stop});
 		thispat = masterPat.collect({|evt| this.decorateEvt(evt)});
@@ -375,7 +400,14 @@ PSWavvieStreamer {
 		masterStream.notNil.if({masterStream.stop});
 	}
 	parentEvent_{|newParentEvent|
+		//you probably want the default event as parent,
+		// to ensure a default delta etc
+		//otherwise there will be confusing errors
+		//note that this updates the event. is that sane, or should we copy it?
+		if (newParentEvent.delta.isNil) {
+			newParentEvent.put(\parent, Event.default);
+		};
 		parentEvent=newParentEvent;
-		masterStream.notNil.if({masterStream.event=parentEvent});
+		masterStream.notNil.if({masterStream.event = parentEvent});
 	}
 }
