@@ -350,9 +350,9 @@ PSWavvieStreamer {
 		evt['time'] = time;
 		//Probably shouldn't bother calling for rests
 		notecallback.notNil.if({
-			var rout = Routine({|evt, seq| notecallback.value(evt, this).yield});
+			var rout = Routine({notecallback.value(evt, this).yield});
 			rout.randData = thisThread.randData;
-			evt = rout.value(evt, this);
+			evt = rout.value;
 			this.sharedRandData = rout.randData;
 		});
 		^evt;
