@@ -283,6 +283,7 @@ PSWavvieEvtSeq {
 //TODO: add at specific quantised time
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
+//TODO: could simplify spawning logic; spawner can be call out of routine no worries
 PSWavvieStreamer {
 	var <>state;
 	var <>masterQuant;
@@ -304,6 +305,7 @@ PSWavvieStreamer {
 	var <streamSpawner;
 	var <patternInbox;
 	var <patternOutbox;
+	var <>streamcounter = 0;
 	
 	*new{|state,
 		quant,
@@ -339,8 +341,7 @@ PSWavvieStreamer {
 			// handle queued operations
 			{patternInbox.isEmpty.not}.while({
 				# nextpat, nextid = patternInbox.popFirst;
-				nextstream = streamSpawner.par(nextpat, 0.0);
-				nextid = nextid ?? {nextpat.identityHash};
+				nextid = nextid ?? {streamcounter = streamcounter + 1};
 				//let streams know their names
 				nextstream = streamSpawner.par(
 					Pset(\sid, nextid, nextpat), 0.0);
