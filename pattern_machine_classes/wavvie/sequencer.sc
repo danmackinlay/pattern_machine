@@ -48,7 +48,7 @@ PSWavvieBarSeq {
 			beatsPerBar,
 			nBars,
 			maxLen,
-			baseEvents ?? [(degree: 0)],
+			baseEvents ?? [Event.default],
 			parentEvent ?? (),
 			state ?? (),
 			barcallback,
@@ -198,7 +198,7 @@ PSWavvieEvtSeq {
 		^super.newCopyArgs(
 			beatsPerBar,
 			nBars,
-			parentEvent ?? (degree: 0),
+			parentEvent ?? Event.default,
 			state ?? (),
 			barcallback,
 			notecallback,
@@ -313,7 +313,7 @@ PSWavvieStreamer {
 		notecallback,
 		debug=false|
 		^super.newCopyArgs(
-			parentEvent ?? (degree: 0),
+			parentEvent ?? Event.default,
 			state ?? (),
 			quant ?? 1.asQuant,
 			notecallback, //null fn

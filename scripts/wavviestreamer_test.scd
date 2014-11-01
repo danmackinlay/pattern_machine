@@ -18,7 +18,7 @@ fork {
 	debug: false);
 	p.play;
 	3.wait;
-	t=p.add(Pbind(\degree, Pseq([7,4,5],2)));
+	t=p.add(Pbind(\degree, 0));
 }
 )
 p.childStreams
