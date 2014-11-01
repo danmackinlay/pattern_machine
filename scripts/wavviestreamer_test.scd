@@ -17,8 +17,8 @@ fork {
 		debug: true);
 	p.play(trace:true);
 	3.wait;
-	t=p.add(Pbind(\degree, 1, \delta, Prand([1/2,1,3/2],inf)));
-	t=p.add(Pbind(\degree, 5, \delta, Prand([1/2,1,3/2],inf)));
+	t=p.add(Pbind(\degree, 1, \delta, 1), id: \a);
+	t=p.add(Pbind(\degree, 5, \delta, 1), id: \b, delta: 0.5);
 }
 )
 (
@@ -32,3 +32,4 @@ fork {
 	t=p.add(Pbind(\degree, 0));
 }
 )
+t

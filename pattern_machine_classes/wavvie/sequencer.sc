@@ -280,10 +280,8 @@ PSWavvieEvtSeq {
 }
 //This guy manages a list of streams which can be dynamically added to
 
-//TODO: add at specific quantised time
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
-//TODO: could simplify spawning logic; spawner can be call out of routine no worries
 PSWavvieStreamer {
 	var <>state;
 	var <>masterQuant;
@@ -335,12 +333,12 @@ PSWavvieStreamer {
 			streamSpawner.wait(masterQuant.quant);
 		});
 	}
-	add {|pat, id|
+	add {|pat, delta=0, id|
 		var nextstream;
 		id = id ?? {streamcounter = streamcounter + 1};
 		//let streams know their names
 		nextstream = streamSpawner.par(
-			Pset(\sid, id, pat), 0.0);
+			Pset(\sid, id, pat), delta);
 		childStreams[id].notNil.if( {
 			streamSpawner.suspend(childStreams[id]);
 			childStreams.removeAt(id);
