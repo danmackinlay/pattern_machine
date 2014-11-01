@@ -170,7 +170,6 @@ PSWavvieBarSeq {
 PSWavvieEvtSeq {
 	var <beatsPerBar;
 	var <>nBars;
-	var <>baseEvent;
 	var <>parentEvent;
 	var <>state;
 	var <>barcallback;
@@ -191,7 +190,6 @@ PSWavvieEvtSeq {
 	
 	*new{|beatsPerBar=4,
 		nBars=4,
-		baseEvent,
 		parentEvent,
 		state,
 		barcallback,
@@ -200,8 +198,7 @@ PSWavvieEvtSeq {
 		^super.newCopyArgs(
 			beatsPerBar,
 			nBars,
-			baseEvent ?? (degree: 0),
-			parentEvent ?? (),
+			parentEvent ?? (degree: 0),
 			state ?? (),
 			barcallback,
 			notecallback,
@@ -246,10 +243,7 @@ PSWavvieEvtSeq {
 		});
 		
 		// Create and schedule event:
-		// "proper" way:
-		// evt = baseEvent.copy.parent_(parentEvent);
-		// easier-to-debug way:
-		evt = parentEvent.copy.putAll(baseEvent);
+		evt = parentEvent.copy;
 		evt['tempo'] = (clock ? TempoClock.default).tempo;
 		evt['bartime'] = bartime;
 		evt['time'] = time;
