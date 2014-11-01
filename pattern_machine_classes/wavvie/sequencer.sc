@@ -112,9 +112,9 @@ PSWavvieBarSeq {
 		evt['time'] = time;
 		evt['idxptr'] = idxptr;
 		notecallback.notNil.if({
-			var rout = Routine({|evt, seq| notecallback.value(evt, seq).yield});
+			var rout = Routine({notecallback.value(evt, this).yield});
 			rout.randData = thisThread.randData;
-			evt = rout.value(evt, this);
+			evt = rout.value;
 			this.sharedRandData = rout.randData;
 		});
 		//We may get back an event 
@@ -248,9 +248,9 @@ PSWavvieEvtSeq {
 		evt['bartime'] = bartime;
 		evt['time'] = time;
 		notecallback.notNil.if({
-			var rout = Routine({|evt, seq| notecallback.value(evt, seq).yield});
+			var rout = Routine({ notecallback.value(evt, this).yield});
 			rout.randData = thisThread.randData;
-			evt = rout.value(evt, this);
+			evt = rout.value;
 			this.sharedRandData = rout.randData;
 		});
 		//We may get back an event 
