@@ -282,7 +282,7 @@ PSWavvieEvtSeq {
 
 //TODO: add at specific quantised time
 //TODO: skip processing rests
-//TODO: insert metadata
+//TODO: check cleanup of stopped streams
 PSWavvieStreamer {
 	var <parentEvent;
 	var <>state;

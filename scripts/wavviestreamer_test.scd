@@ -12,14 +12,12 @@ Pbind(
 (
 fork {
 	p=PSWavvieStreamer.new(
-	parentEvent: (degree: 0, stuff: \nonsense),
-	state: (things: \toremember),
-	notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
-	debug: false);
-	p.play;
+		parentEvent: (degree: 0, stuff: \nonsense),
+		state: (things: \toremember),
+		notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+		debug: true);
+	p.play(trace:true);
 	3.wait;
 	t=p.add(Pbind(\degree, 0));
 }
 )
-p.childStreams
-LinkedList
