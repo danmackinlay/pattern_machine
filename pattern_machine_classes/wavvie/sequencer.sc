@@ -325,35 +325,38 @@ PSWavvieStreamer {
 		patternInbox = LinkedList.new;
 		patternOutbox = LinkedList.new;
 		masterPat = Pspawner({|spawner|
-			//init
-			streamSpawner = spawner;
-			bartime = 0.0;
-			time = 0.0;
-			this.sharedRandData = thisThread.randData;
-			//iterate!
-			inf.do({
-				var nextpat, nextid, nextstream;
-				time.postln;
-				//Advance time
-				streamSpawner.seq(Rest(masterQuant.quant));
-				// handle queued operations
-				{patternInbox.isEmpty.not}.while({
-					# nextpat, nextid = patternInbox.popFirst;
-					nextstream = streamSpawner.par(nextpat, 0.0);
-					nextid = nextid ?? {nextpat.identityHash};
-					childStreams[nextid].notNil.if( {
-						streamSpawner.suspend(childStreams[nextid]);
-						childStreams.removeAt(nextid);
-					});
-					childStreams[nextid] = nextstream;
+			this.spawnRout(spawner);
+		});
+	}
+	spawnRout {|spawner|
+		//init
+		streamSpawner = spawner;
+		bartime = 0.0;
+		time = 0.0;
+		this.sharedRandData = thisThread.randData;
+		//iterate!
+		inf.do({
+			var nextpat, nextid, nextstream;
+			time.postln;
+			//Advance time
+			streamSpawner.wait(masterQuant.quant);
+			// handle queued operations
+			{patternInbox.isEmpty.not}.while({
+				# nextpat, nextid = patternInbox.popFirst;
+				nextstream = streamSpawner.par(nextpat, 0.0);
+				nextid = nextid ?? {nextpat.identityHash};
+				childStreams[nextid].notNil.if( {
+					streamSpawner.suspend(childStreams[nextid]);
+					childStreams.removeAt(nextid);
 				});
-				{patternOutbox.isEmpty.not}.while({
-					nextid = patternOutbox.popFirst;
-					childStreams[nextid] ?? {
-						streamSpawner.suspend(childStreams[nextid]);
-						childStreams.removeAt(nextid);
-					};
-				});
+				childStreams[nextid] = nextstream;
+			});
+			{patternOutbox.isEmpty.not}.while({
+				nextid = patternOutbox.popFirst;
+				childStreams[nextid] ?? {
+					streamSpawner.suspend(childStreams[nextid]);
+					childStreams.removeAt(nextid);
+				};
 			});
 		});
 	}
