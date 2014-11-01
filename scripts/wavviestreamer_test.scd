@@ -13,7 +13,7 @@ Pbind(
 fork {
 	p=PSWavvieStreamer.new(
 		state: (things: \toremember),
-		notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+		//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
 		debug: true);
 	p.play(trace:true);
 	3.wait;
@@ -32,4 +32,4 @@ fork {
 	t=p.add(Pbind(\degree, 0));
 }
 )
-t
+p.masterQuant

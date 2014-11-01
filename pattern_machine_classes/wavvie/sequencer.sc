@@ -282,6 +282,7 @@ PSWavvieEvtSeq {
 
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
+//TODO: check this starts on the correct beat.
 PSWavvieStreamer {
 	var <>state;
 	var <>masterQuant;
@@ -310,7 +311,7 @@ PSWavvieStreamer {
 		parentEvent|
 		^super.newCopyArgs(
 			state ?? (),
-			quant ?? 1.asQuant,
+			quant ?? [1,0,0].asQuant,
 			notecallback, //null fn
 			debug,
 		).init.parentEvent_(parentEvent ?? Event.default);
@@ -326,9 +327,13 @@ PSWavvieStreamer {
 		streamSpawner = spawner;
 		time = 0.0;
 		this.sharedRandData = thisThread.randData;
+		//Try to line up with clock (does this work?)
+		streamSpawner.wait(clock.timeToNextBeat(masterQuant.quant));
 		//iterate!
 		inf.do({
-			time.postln;
+			debug.if({
+				[\time, time, clock.beats].postln;
+			});
 			//Advance time
 			streamSpawner.wait(masterQuant.quant);
 		});
@@ -380,7 +385,7 @@ PSWavvieStreamer {
 		trace.if({thispat=thispat.trace});
 		this.clock_(clock ? TempoClock.default);
 		this.sharedRandData = thisThread.randData;
-		masterStream = thispat.play(this.clock, parentEvent, quant);
+		masterStream = thispat.play(this.clock, parentEvent, masterQuant);
 		masterStream.routine.randData = this.sharedRandData;
 		^masterStream;
 	}
