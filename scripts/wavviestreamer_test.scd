@@ -1,11 +1,3 @@
-Pattern
-Stream
-EventStreamPlayer
-q=1.asQuant
-q.quant;
-Pfunc
-PRoutine
-Spawner
 Pbind(
 	\degree, Pseq([1,2,3],2)
 ).collect({|in| in.postcs;}).play;
@@ -33,3 +25,4 @@ fork {
 }
 )
 p.masterQuant
+p.clock.beats
