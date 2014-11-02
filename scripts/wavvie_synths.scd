@@ -1,4 +1,3 @@
-//TODO: make most params init-rate
 //Grain candidates
 //Warp1;
 //GrainBuf
@@ -6,11 +5,11 @@
 
 (
 SynthDef.new(\ps_bufgrain_type_1__1x2, {
-	arg out=0,
+	arg gate=1,
+	out=0,
 	bufnum,
 	pan=0,
 	amp=1,
-	gate=1,
 	now=0.0,
 	timeago=0.0, //how far back from the end we wish to look
 	sustainDur=1,
