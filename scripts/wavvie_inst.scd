@@ -1,5 +1,6 @@
 {|state, i|
 	state.make({
+		~channel = PSWavvieChannel.new(state, );
 		~i=i;
 		state.voiceStates[i]=(state);
 		~sampleDur = state.sampleDur ? 30;

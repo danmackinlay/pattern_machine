@@ -1,5 +1,5 @@
 //Giggin' master group
-PSWavvieMaster : PSWavvieGroup {
+PSWavvieMaster : PSWavvieStrip {
 	
 }
 
