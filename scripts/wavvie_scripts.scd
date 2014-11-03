@@ -2,6 +2,7 @@
 Wavvie
 
 TODO:
+* might make more sense to, instead of having different mixer channels, to  mix at the pattern level for differnt samples?
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
@@ -50,17 +51,18 @@ TODO:
     * attack/release
 */
 (
-var state = ();
+var masterstrip, state = ();
 ~state=state;
 state.server = ~server;
-
-state.server.doWhenBooted({state.make({
-	~ninputs = 1;
-	~ninsts = 4;
-	~sampleDur = 60;
-	~bpm = 80;
-	~clock = TempoClock.new(~bpm/60.0);
-
+state.server.doWhenBooted({
+	masterstrip = PSWavvieStrip.new(
+		id: \wav,
+		numChannels: 8,
+		clock: TempoClock.new,
+		state: state);
+	CmdPeriod.doOnce({ masterstrip.free});
+	state.make({
+	~masterstrip = masterstrip;
 	//sample loading
 	~samples = PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur);
 	~samples.initFromDict((
@@ -95,9 +97,9 @@ state.server.doWhenBooted({state.make({
 			"paert-Magnificat-climax.aif",
 		],
 	));
-	CmdPeriod.doOnce({ state.samples.free });
+	masterstrip.addfreeable(state.samples);
 	s.sync;
-	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
+	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(strip);
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
 	//sync fails to handle the source setting properly
@@ -106,10 +108,10 @@ state.server.doWhenBooted({state.make({
 })});
 )
 (
-var sequencemaker, seq, beat2sec, sec2beat, beat2freq, freq2beat;
-var localstate, state = ~state, i = 0, foo;
+var inst, sequencemaker = PSWavvieStreamer.new;
 fork {
-	localstate = Event.new(n:60, proto: state, know: true);
+	inst = PSWavvieStrip.new(1, parent: masterstrip);
+	localstate = inst.state;
 	localstate.make({
 		~inbus = state.inbuses[0];
 		~outbus = state.instbusallocator.alloc;
@@ -124,12 +126,6 @@ fork {
 		~windowRandRatio = 0.01;
 	});
 	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
-	//[\foo, foo].postcs;
-	//todo move these functions somewhere general
-	beat2sec = {|beats| localstate.beatTime * beats};
-	sec2beat = {|secs| secs /(localstate.beatTime)};
-	beat2freq = {|beats| (localstate.beatTime * beats).reciprocal };
-	freq2beat = {|freq| (localstate.beatTime.reciprocal) / freq};
 	s.sync;
 
 	localstate.use({
