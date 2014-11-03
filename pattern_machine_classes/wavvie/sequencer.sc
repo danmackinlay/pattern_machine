@@ -373,21 +373,25 @@ PSWavvieStreamer {
 		});
 		^evt;
 	}
-	play {|clock, evt, quant, trace=false|
+	asStream {|trace=false|
 		var thispat = masterPat;
-		
-		evt.notNil.if({
-			this.parentEvent_(evt);
-		});
-		quant.notNil.if({masterQuant=quant});
 		masterStream.notNil.if({masterStream.stop});
 		thispat = masterPat.collect({|evt| this.decorateEvt(evt)});
 		trace.if({thispat=thispat.trace});
-		this.clock_(clock ? TempoClock.default);
 		this.sharedRandData = thisThread.randData;
-		masterStream = thispat.play(this.clock, parentEvent, masterQuant);
-		masterStream.routine.randData = this.sharedRandData;
+		masterStream = thispat.asStream;
 		^masterStream;
+	}
+	play {|clock, evt, quant, trace=false|
+		quant.notNil.if({masterQuant=quant});
+		evt.notNil.if({
+			this.parentEvent_(evt);
+		});	
+		this.clock_(clock ? TempoClock.default);
+		eventStreamPlayer = this.asStream(trace
+			).asEventStreamPlayer(evt).play(clock);
+		eventStreamPlayer.routine.randData = this.sharedRandData;
+		^eventStreamPlayer;
 	}
 	stop {
 		//should i implement other stream methods?
@@ -402,6 +406,6 @@ PSWavvieStreamer {
 			newParentEvent.put(\parent, Event.default);
 		};
 		parentEvent=newParentEvent;
-		masterStream.notNil.if({masterStream.event = parentEvent});
+		eventStreamPlayer.notNil.if({eventStreamPlayer.event = parentEvent});
 	}
 }
