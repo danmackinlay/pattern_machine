@@ -23,8 +23,8 @@ PSWavvieBarSeq {
 	var <bartime=0.0;
 	var <time=0.0;
 	var <pat;
-	var <stream;
 	//private vars
+	var <eventStreamPlayer;
 	var <nextbartime;
 	var <nextidxptr;
 	var <>delta;
@@ -135,16 +135,16 @@ PSWavvieBarSeq {
 		//This instance looks like a pattern, but in fact carries bundled state. Um.
 		var thispat = pat;
 		trace.if({thispat=pat.trace});
-		stream.notNil.if({stream.stop});
+		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 		this.clock_(clock);
 		this.sharedRandData = thisThread.randData;
-		stream = thispat.play(clock, protoEvent, quant);
-		stream.routine.randData = this.sharedRandData;
-		^stream;
+		eventStreamPlayer = thispat.play(clock, protoEvent, quant);
+		eventStreamPlayer.routine.randData = this.sharedRandData;
+		^eventStreamPlayer;
 	}
 	stop {
 		//should i implement other stream methods?
-		stream.notNil.if({stream.stop});
+		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 	}
 	seqFrom {|pattern, protoEvent|
 		//return dur beats of a pattern
@@ -178,7 +178,7 @@ PSWavvieEvtSeq {
 	var <bartime=0.0;
 	var <time=0.0;
 	var <pat;
-	var <stream;
+	var <eventStreamPlayer;
 	//private vars
 	var <nextbartime;
 	var <>delta;
@@ -266,16 +266,16 @@ PSWavvieEvtSeq {
 		//This instance looks like a pattern, but in fact carries bundled state. Um.
 		var thispat = pat;
 		trace.if({thispat=pat.trace});
-		stream.notNil.if({stream.stop});
+		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 		this.clock_(clock);
 		this.sharedRandData = thisThread.randData;
-		stream = thispat.play(clock, protoEvent, quant);
-		stream.routine.randData = this.sharedRandData;
-		^stream;
+		eventStreamPlayer = thispat.play(clock, protoEvent, quant);
+		eventStreamPlayer.routine.randData = this.sharedRandData;
+		^eventStreamPlayer;
 	}
 	stop {
 		//should i implement other stream methods?
-		stream.notNil.if({stream.stop});
+		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 	}
 }
 //This guy manages a list of streams which can be dynamically added to
@@ -291,9 +291,9 @@ PSWavvieStreamer {
 	var <parentEvent;
 	var <time=0.0;
 	//private vars
-	var <masterStream;
 	var <childStreams;
 	var <eventStreamPlayer;
+	var <masterStream;
 	var <masterPat;
 	var <>delta;
 	var <beatlen;
@@ -338,12 +338,12 @@ PSWavvieStreamer {
 			streamSpawner.wait(masterQuant.quant);
 		});
 	}
-	add {|pat, delta=0, id|
+	add {|newpat, delta=0, id|
 		var nextstream;
 		id = id ?? {streamcounter = streamcounter + 1};
 		//let streams know their names
 		nextstream = streamSpawner.par(
-			Pset(\sid, id, pat), delta);
+			Pset(\sid, id, newpat), delta);
 		childStreams[id].notNil.if( {
 			streamSpawner.suspend(childStreams[id]);
 			childStreams.removeAt(id);
@@ -373,25 +373,29 @@ PSWavvieStreamer {
 		});
 		^evt;
 	}
-	play {|clock, evt, quant, trace=false|
+	asStream {|trace=false|
 		var thispat = masterPat;
-		
-		evt.notNil.if({
-			this.parentEvent_(evt);
-		});
-		quant.notNil.if({masterQuant=quant});
 		masterStream.notNil.if({masterStream.stop});
 		thispat = masterPat.collect({|evt| this.decorateEvt(evt)});
 		trace.if({thispat=thispat.trace});
-		this.clock_(clock ? TempoClock.default);
 		this.sharedRandData = thisThread.randData;
-		masterStream = thispat.play(this.clock, parentEvent, masterQuant);
-		masterStream.routine.randData = this.sharedRandData;
+		masterStream = thispat.asStream;
 		^masterStream;
+	}
+	play {|clock, evt, quant, trace=false|
+		quant.notNil.if({masterQuant=quant});
+		evt.notNil.if({
+			this.parentEvent_(evt);
+		});	
+		this.clock_(clock ? TempoClock.default);
+		eventStreamPlayer = this.asStream(trace
+			).as(evt).play(clock);
+		eventStreamPlayer.routine.randData = this.sharedRandData;
+		^eventStreamPlayer;
 	}
 	stop {
 		//should i implement other stream methods?
-		masterStream.notNil.if({masterStream.stop});
+		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 	}
 	parentEvent_{|newParentEvent|
 		//you probably want the default event as parent,
@@ -402,6 +406,8 @@ PSWavvieStreamer {
 			newParentEvent.put(\parent, Event.default);
 		};
 		parentEvent=newParentEvent;
-		masterStream.notNil.if({masterStream.event = parentEvent});
+		eventStreamPlayer.notNil.if({
+			eventStreamPlayer.event = parentEvent
+		});
 	}
 }

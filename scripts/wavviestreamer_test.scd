@@ -25,4 +25,6 @@ fork {
 }
 )
 p.masterQuant
+
 p.clock.beats
+p.asEventStreamPlayer
