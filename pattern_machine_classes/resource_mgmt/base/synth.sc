@@ -1,13 +1,12 @@
 PSSynth {
-	var <pstrip;
+	var <psstrip;
 	
-	//must be called by pstrip
+	//must be called by psstrip
 	initPSSynth {arg str;
-		pstrip=str;
+		psstrip=str;
 		this.setup;
 	}
 
-	//override in subclasses
 	setup {
 	
 	}

@@ -7,7 +7,8 @@ PSStrip {
 	var <parent,<numChannels, <clock, <group,<bus,<state,<server;
 	var <sourcegroup, <fxgroup, <mixergroup;
 	var <freebus, <freegroup;
-	var <streams2stop, <stuff2free;
+	var <pssynths;
+	var <otherstuff2free;
 	var <clock;
 	classvar <idCount=0;
 	classvar <all;
@@ -42,8 +43,8 @@ PSStrip {
 	}		
 	initPSStrip { arg g,b,st;
 		all[id] = this;
-		streams2stop = Array.new;
-		stuff2free = Array.new;
+		pssynths = Array.new;
+		otherstuff2free = Array.new;
 		
 		freegroup=false;
 		
@@ -69,16 +70,23 @@ PSStrip {
 	}
 	children {
 		all.select { |strip, id| strip.parent == this };
-	}	
-	addPSSynths {
+	}
+	//add one (or more) synths
+	add {
 		arg ...pssynths;
 		pssynths.do({arg pssynth; 
 			pssynth.initPSSynth(this);
-			this.freeable(pssynth);
+			pssynths = pssynths.add(pssynth);
 		});
-	}	
+	}
+	removeAt {arg ind;
+		var removed;
+		removed=pssynths.removeAt(ind);
+		removed.free;
+	}
 	free{
-		stuff2free.do({arg stuff; stuff.free});
+		pssynths.do({arg stuff; stuff.free});
+		otherstuff2free.do({arg stuff; stuff.free});
 		if(freebus, {
 			bus.free;});
 		if(freegroup, {
@@ -86,7 +94,7 @@ PSStrip {
 	}
 	
 	freeable {|stuff|
-		stuff2free = stuff2free.add(stuff);
+		otherstuff2free = otherstuff2free.add(stuff);
 		^stuff;
 	}
 	
@@ -102,3 +110,4 @@ PSStrip {
 	beat2freq {|beats| ^(clock.tempo)/beats}
 	freq2beat {|freq| ^(clock.tempo) / freq}
 }
+
