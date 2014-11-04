@@ -35,9 +35,9 @@ PSStrip {
 		
 		^super.newCopyArgs(
 			id, parent, numChannels, clock
-		).initWavvieStrip(group,bus,state);
+		).initPSStrip(group,bus,state);
 	}		
-	initWavvieStrip { arg g,b,st;
+	initPSStrip { arg g,b,st;
 		all[id] = this;
 		streams2stop = Array.new;
 		stuff2free = Array.new;
@@ -83,12 +83,12 @@ PSStrip {
 		if(freegroup, {
 			group.free;});
 	}
-	
-/*	play {|patlike|
+	/*
+	play {|patlike|
 		var stream = patlike.play(clock: clock);
 		streams2stop = streams2stop.add(pat);
 	}
-*/	
+	*/
 	//utility conversions
 	beat2sec {|beats| ^beats/(clock.tempo)}
 	sec2beat {|secs| ^secs * (clock.tempo)}
