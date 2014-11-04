@@ -1,4 +1,4 @@
-// live sampling version
+// live sampling strip; has a buffer attached
 PSSamplingStrip : PSStrip {
 	var <recsynth;
 	*new {arg id, parent, numChannels, clock, group, bus, state;
@@ -11,15 +11,7 @@ PSSamplingStrip : PSStrip {
 		recsynth.set(\t_rec, dur);
 	}
 	initPSSamplingStrip {
-		recsynth = this.freeable((
-			instrument: \ps_bufwr_resumable__1x1,
-			in: ~inbus,
-			bufnum: ~loopbuf,
-			phasebus: ~loopphasebus,
-			fadetime: 0.05,
-			group: strip.sourcegroup,
-			addAction: \addToHead,
-			sendGate: false,//persist
-		).play);
+		recsynth = PSSamplingSynth();
+		this.add(recsynth);
 	}
 }
