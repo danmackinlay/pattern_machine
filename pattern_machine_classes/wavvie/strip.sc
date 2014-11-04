@@ -1,5 +1,5 @@
 //Manage a whole bunch of sequencing for my typical synth voice. 
-PSWavvieStrip {
+PSStrip {
 	var <id;
 	var <parent,<numChannels, <clock, <group,<bus,<state,<server;
 	var <sourcegroup, <fxgroup, <mixergroup;

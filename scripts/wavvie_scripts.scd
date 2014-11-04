@@ -55,7 +55,7 @@ var masterstrip, state = ();
 ~state=state;
 state.server = ~server;
 state.server.doWhenBooted({
-	masterstrip = PSWavvieStrip.new(
+	masterstrip = PSStrip.new(
 		id: \wav,
 		numChannels: 8,
 		clock: TempoClock.new,
@@ -108,9 +108,9 @@ state.server.doWhenBooted({
 })});
 )
 (
-var inst, sequencemaker = PSWavvieStreamer.new;
+var inst, sequencemaker = PSStreamer.new;
 fork {
-	inst = PSWavvieStrip.new(1, parent: masterstrip);
+	inst = PSStrip.new(1, parent: masterstrip);
 	localstate = inst.state;
 	localstate.make({
 		~inbus = state.inbuses[0];
@@ -132,7 +132,7 @@ fork {
 		sequencemaker = {
 			(50.rand+10).collect({16.0.rand.round(0.25)}).sort;
 		};
-		seq = PSWavvieBarSeq(
+		seq = PSBarSeq(
 			state: state,
 			parentEvent: ~parentevt);
 		seq.barcallback = {|seq|

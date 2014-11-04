@@ -1,7 +1,7 @@
 {|state, i|
 	state.make({
 		var strip;
-		strip = PSWavvieStrip.new(
+		strip = PSStrip.new(
 			i, parent:nil, numChannels:2, clock: nil, group:nil, bus:nil, state:state);
 		~strip = strip;
 		CmdPeriod.doOnce({ strip.cleanup;});

@@ -8,7 +8,7 @@
 
 // A lotof this could be simplified by using the clock; we are already stateful
 // Quant.timingOffset is the key method here
-PSWavvieBarSeq {
+PSBarSeq {
 	var <beatsPerBar;
 	var <>nBars;
 	var <maxLen;
@@ -283,7 +283,7 @@ PSWavvieEvtSeq {
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
 //TODO: check this starts on the correct beat.
-PSWavvieStreamer {
+PSStreamer {
 	var <>state;
 	var <>masterQuant;
 	var <>notecallback;
