@@ -1,4 +1,7 @@
-//Manage a whole bunch of sequencing for my typical synth voice. 
+//Manage my instruments in a stanadardised class-based way
+// So that I may have comprehensible tracebacks
+// and sensible scope
+// and no have "nil does not understand"
 PSStrip {
 	var <id;
 	var <parent,<numChannels, <clock, <group,<bus,<state,<server;
@@ -52,37 +55,41 @@ PSStrip {
 		sourcegroup=Group.head(group);
 		fxgroup=Group.tail(sourcegroup);
 		mixergroup=Group.tail(fxgroup);
-				
-		freebus=false; //don't free if bus passed in, responsibility of client code
-		bus= b ?? {
+		
+		b.isNil.if({
 			//must free eventually if not passed in
 			freebus=true;
-			Bus.audio(server,numChannels);
-		};//{Bus.new(\audio,0,numChannels,server)}; //defaults  
-		
-		this.initFX;
-		this.initSources;
-		
+			bus = Bus.audio(server,numChannels);
+		},{
+			freebus=false; //don't free if bus passed in code
+			bus= b;
+		});
+
 		//This would be where to make a mixer, if no bus was passed in.
 	}
 	children {
 		all.select { |strip, id| strip.parent == this };
-	}
-	
-	initFX {}
-	
-	initSources {}
-	
-	free {
-		streams2stop.do({arg stream; stream.stop});
+	}	
+	addPSSynths {
+		arg ...pssynths;
+		pssynths.do({arg pssynth; 
+			pssynth.initPSSynth(this);
+			this.freeable(pssynth);
+		});
+	}	
+	free{
 		stuff2free.do({arg stuff; stuff.free});
-				
 		if(freebus, {
 			bus.free;});
-		
 		if(freegroup, {
 			group.free;});
 	}
+	
+	freeable {|stuff|
+		stuff2free = stuff2free.add(stuff);
+		^stuff;
+	}
+	
 	/*
 	play {|patlike|
 		var stream = patlike.play(clock: clock);
@@ -94,10 +101,4 @@ PSStrip {
 	sec2beat {|secs| ^secs * (clock.tempo)}
 	beat2freq {|beats| ^(clock.tempo)/beats}
 	freq2beat {|freq| ^(clock.tempo) / freq}
-	
-	freeable {|stuff|
-		stuff2free = stuff2free.add(stuff);
-		^stuff;
-	}
-	
 }
