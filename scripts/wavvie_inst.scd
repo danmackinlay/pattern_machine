@@ -5,14 +5,12 @@
 			i, parent:nil, numChannels:2, clock: nil, group:nil, bus:nil, state:state);
 		~strip = strip;
 		CmdPeriod.doOnce({ strip.cleanup;});
-		~loopbuf = Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1);
-		strip.addFreeable({ state.loopbuf });
-		~modbus = Bus.control(~server,1);
-		strip.addFreeable({ state.modbus });
-		~loopphasebus = Bus.control(~server, 1);
-		strip.addFreeable({ state.loopphasebus });
+
+		~loopbuf = strip.freeable(Buffer.alloc(~server, ~server.sampleRate * ~sampleDur, 1));
+		~modbus = strip.freeable(Bus.control(~server,1));
+		~loopphasebus = strip.freeable(Bus.control(~server, 1));
 		s.sync;
-		~recsynth = (
+		~recsynth = strip.freeable((
 			instrument: \ps_bufwr_resumable__1x1,
 			in: ~inbus,
 			bufnum: ~loopbuf,
@@ -21,14 +19,13 @@
 			group: strip.sourcegroup,
 			addAction: \addToHead,
 			sendGate: false,//persist
-		).play;
-		~cleanupList.add({ state.recsynth.free });
+		).play);
 		//record input
 		~rec = {|self, dur=10.0|
 			self.recsynth.set(\t_rec, dur);
 		};
 		//channel fx
-		~reverb = (
+		~reverb = strip.freeable((
 			instrument: \ps_gverb__2x2,
 			group: strip.fxgroup,
 			server: ~server,
@@ -40,8 +37,7 @@
 			damping: 0.4,
 			revtime: 0.8,
 			roomsize: 170,
-		).play;
-		~cleanupList.add({ state.reverb.free });
+		).play);
 		//channel fx
 		~jack = (
 			instrument: \jack__2,

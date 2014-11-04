@@ -95,7 +95,7 @@ PSStrip {
 	beat2freq {|beats| ^(clock.tempo)/beats}
 	freq2beat {|freq| ^(clock.tempo) / freq}
 	
-	addFreeable {|stuff|
+	freeable {|stuff|
 		stuff2free = stuff2free.add(stuff);
 		^stuff;
 	}
