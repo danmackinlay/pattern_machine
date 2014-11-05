@@ -1,6 +1,6 @@
 PSSamplingSynth : PSSynth {
 	var <buffer, <phasebus, <recsynth, <freebus=false, <freebuf=false;
-	*new{arg buf 
+	*new{arg buf, pb;
 		^super.new.initPSSamplingSynth(buf, pb);
 	}
 	initPSSamplingSynth {arg buf, pb; 
@@ -12,10 +12,10 @@ PSSamplingSynth : PSSynth {
 	}
 	setup {
 		phasebus.isNil.if({
-			phasebus= Bus.control(server, 1);
+			phasebus= Bus.control(psstrip.server, 1);
 			freebus = true;
 		}, {
-			freebus = true;
+			freebus = false;
 		});
 		
 		recsynth = (

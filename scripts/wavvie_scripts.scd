@@ -18,7 +18,7 @@ TODO:
 * interesting rhythm somehow
 
   * so also a non-bar-oriented synth
-  * FSM sequencer
+  * FSM pattern
   * smart accent
 
 * or bar oriented:
@@ -64,7 +64,7 @@ state.server.doWhenBooted({
 	state.make({
 	~masterstrip = masterstrip;
 	//sample loading
-	~samples = PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur);
+	~samples = masterstrip.freeable(PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur));
 	~samples.initFromDict((
 		siren: [
 			"22370__druidus__Civil_Defence_Siren.wav",
@@ -97,7 +97,6 @@ state.server.doWhenBooted({
 			"paert-Magnificat-climax.aif",
 		],
 	));
-	masterstrip.addfreeable(state.samples);
 	s.sync;
 	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(strip);
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
@@ -125,7 +124,6 @@ fork {
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
 	});
-	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
 	s.sync;
 
 	localstate.use({
@@ -172,7 +170,7 @@ fork {
 		// ~stream = ~seq.play(clock: ~clock, trace:true);
 		~stream = ~seq.play(clock: ~clock);
 	});
-	{localstate.rec(10.0);}.defer(1.0);
+	{inst.rec(10.0);}.defer(1.0);
 };
 )
 ~state.voiceStates[0].rec(10);

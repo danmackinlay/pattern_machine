@@ -4,7 +4,7 @@
 // and no have "nil does not understand"
 PSStrip {
 	var <id;
-	var <parent,<numChannels, <clock, <group,<bus,<state,<server;
+	var <parent,<numChannels, <clock, <group,<bus,<inbus,<state,<server;
 	var <sourcegroup, <fxgroup, <mixergroup;
 	var <freebus, <freegroup;
 	var <pssynths;
@@ -20,7 +20,9 @@ PSStrip {
 			
 		});
 	}
-	*new {arg id, parent, numChannels, clock, group, bus, state;
+	//bus is output bus
+	//input can be different. How to specify?
+	*new {arg id, parent, numChannels, clock, group, bus, inbus, state;
 		id = id ?? {idCount = idCount + 1;};
 		all[id].notNil.if({
 			^all[id];
@@ -32,6 +34,7 @@ PSStrip {
 			clock ?? {clock = parent.clock};
 			group ?? {group = parent.group};
 			bus ?? {bus = parent.bus};
+			inbus ?? {inbus = parent.inbus};
 		});
 		numChannels ?? {numChannels = 1};
 		state ?? {state = Event.new(n:60, know: true)};

@@ -2,15 +2,14 @@
 // will only return if invoked in a forked thread
 {|strip| {
 	strip.state.make({
-	~inputgain = (
+	~inputgain = strip.freeable((
 		instrument: \limi__1x1,
-		pregain: (-6).dbamp,
-		out: ~extinbus,
+		pregain: (10).dbamp,
+		out: strip.inbus,
 		group: strip.sourcegroup,
-		server: ~server,
 		addAction: \addToHead,
 		sendGate: false,//persist
-	).play;
+	).play);
 
 	//In case I don't want to sing:
 	~sourcesounds = ~inbuses.collect({|bus, i| (
