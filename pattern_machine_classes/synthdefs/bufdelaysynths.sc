@@ -14,10 +14,6 @@ PSBufDelaySynthDefs {
 		//
 		//Delay-Ugen-free delays, using buffers
 		//
-		//write to delay only when triggered is on.
-		//needs control-rate phase, which means one-block jitter. Wevs.
-		//TODO: handle position with Phasor and rate-zeroing
-		//TODO: crossfade version using RecordBuf
 		SynthDef.new(\ps_bufwr_phased__1x1, {
 			arg in=0,
 			gate=1.0,
