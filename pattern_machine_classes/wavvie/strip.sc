@@ -115,7 +115,7 @@ PSSamplingStrip {
 				buf = bf;
 			});
 			jacksynth = this.freeable(Synth.new(
-				\jack__1,
+				"jack__%".format(numChannels),
 				(
 				in: inbus,
 				out: bus,
@@ -125,7 +125,7 @@ PSSamplingStrip {
 			));
 			//['jacksynth', jacksynth].postcs;
 			inputgainsynth = this.freeable(Synth.new(
-				\limi__1x1,
+				"limi__%x%".format(numChannels, numChannels),
 				(
 				pregain: 10.dbamp,
 				out: bus,
@@ -136,7 +136,7 @@ PSSamplingStrip {
 			//['inputgainsynth', inputgainsynth].postcs;
 			samples.notNil.if({
 				sourcesoundsynth = this.freeable(Synth.new(
-					\bufrd_or_live__1x1,
+					"bufrd_or_live__%x%".format(numChannels, numChannels),
 					(
 					looptime: this.beat2sec(16),
 					offset: 0.0,
@@ -152,7 +152,7 @@ PSSamplingStrip {
 				//['sourcesoundsynth', sourcesoundsynth].postcs;
 			});
 			recsynth = this.freeable(Synth.new(
-				\ps_bufwr_resumable__1x1,
+				"ps_bufwr_resumable__%x%".format(numChannels, numChannels),
 				(
 				in: bus,
 				bufnum: buffer,
@@ -273,7 +273,7 @@ PSStrip {
 			});
 
 			jacksynth = this.freeable(Synth.new(
-				\jack__1,
+				"jack__%x%".format(numChannels, numChannels),
 				(
 					in: bus,
 					out: outbus,
