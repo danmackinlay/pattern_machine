@@ -288,7 +288,7 @@ PSStrip {
 			});
 
 			jacksynth = this.freeable(Synth.new(
-				"jack__%x%".format(numChannels, numChannels),
+				"jack__%".format(numChannels),
 				(
 					in: bus,
 					out: outbus,
