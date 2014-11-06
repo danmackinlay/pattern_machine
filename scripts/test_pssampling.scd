@@ -13,15 +13,17 @@ fork {
 Server.default = Dan.serverboot(\local, \builtin);
 p=PSSamplingStrip.new(0);CmdPeriod.doOnce({ p.free;});
 p=PSSamplingStrip.new(1, Group.new);CmdPeriod.doOnce({ p.free;});
+ServerTreeGui.makeWindow(s);
 p.group;
-p.sourcegroup;
-p.fxgroup;
 p.jacksynth;
 p.recsynth;
 p.phasebus.index;
-p.recsynth.nodeID
+p.phasebus.index;
+p.inputgainsynth;
 p.inputgainsynth;
 p.otherstuff2free;
 Server.default.window
 s.tree
-Server.default.nodes
+Server.default.tree
+(a:2, b:3).getPairs
+ServerLog

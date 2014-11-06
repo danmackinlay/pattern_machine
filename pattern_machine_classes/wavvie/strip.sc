@@ -14,7 +14,6 @@ PSSamplingStrip {
 	var <samples;
 	var <server;
 	var <buffer;
-	var <sourcegroup, <fxgroup, <mixergroup;
 	var <otherstuff2free;
 	var <jacksynth, <recsynth, <inputgainsynth, <sourcesoundsynth;
 	
@@ -36,7 +35,6 @@ PSSamplingStrip {
 		});
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
-		[\AAA].postcs;
 		^super.newCopyArgs(
 			id, state, clock
 		).initPSSamplingStrip(group,bus,inbus,phasebus,buf,samples);
@@ -56,9 +54,6 @@ PSSamplingStrip {
 			}, {
 				group = gr;
 			});
-			sourcegroup=this.freeable(Group.head(group));
-			fxgroup=this.freeable(Group.after(sourcegroup));
-			mixergroup=this.freeable(Group.tail(fxgroup));
 			bs.isNil.if({
 				bus = this.freeable(Bus.audio(server,numChannels));
 			},{
@@ -89,50 +84,54 @@ PSSamplingStrip {
 			}, {
 				buf = bf;
 			});
-			jacksynth = this.freeable((
-				instrument: \jack__1,
+			jacksynth = this.freeable(Synth.new(
+				\jack__1,
+				(
 				in: inbus,
 				out: bus,
-				group: sourcegroup,
+				).getPairs,
+				target: group,
 				addAction: \addToHead,
-				sendGate: false,//persist
-			).postcs.play);
+			));
 		
-			inputgainsynth = this.freeable((
-				instrument: \limi__1x1,
+			inputgainsynth = this.freeable(Synth.new(
+				\limi__1x1,
+				(
 				pregain: 10.dbamp,
 				out: bus,
-				group: sourcegroup,
-				addAction: \addToTail,
-				sendGate: false,//persist
-			).postcs.play);
+				).getPairs,
+				target: jacksynth,
+				addAction: \addAfter,
+			));
 		
 			samples.notNil.if({
-				sourcesoundsynth = this.freeable((
-					instrument: \bufrd_or_live__1x1,
+				sourcesoundsynth = this.freeable(Synth.new(
+					\bufrd_or_live__1x1,
+					(
 					looptime: this.beat2sec(16),
 					offset: 0.0,
 					in: inbus,
 					out: bus,
-					group: inputgainsynth,
-					addAction: \addToHead,
 					bufnum: samples.at(0),
 					livefade: 0.0,
 					loop: 1,
-					sendGate: false,//persist
-				).postcs.play);
+					).getPairs,
+					target: inputgainsynth,
+					addAction: \addAfter,
+				));
 			});
 		
-			recsynth = this.freeable((
-				instrument: \ps_bufwr_resumable__1x1,
+			recsynth = this.freeable(Synth.new(
+				\ps_bufwr_resumable__1x1,
+				(
 				in: bus,
 				bufnum: buffer,
 				phasebus: \addToTail,
 				fadetime: 0.05,
-				group: fxgroup,
+				).getPairs,
+				target: group,
 				addAction: \addToTail,
-				sendGate: false,//persist
-			).postcs.play);
+			));
 		});
 	}
 	rec {|dur=10.0|
