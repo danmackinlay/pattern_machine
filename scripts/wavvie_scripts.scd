@@ -87,8 +87,12 @@ state.server.doWhenBooted({
 	});
 });
 )
-~state.wavvie.recstrip.phasebus;
-~state.wavvie.recstrip.inbus;
+~state.wavvie.phasebus;
+~state.wavvie.inbus;
+~state.wavvie.bus;
+~state.wavvie.outbus;
+~state.wavvie.rec(5);
+~state.wavvie.baseEvent;
 (
 var inst, sequencemaker = PSStreamer.new;
 fork {
