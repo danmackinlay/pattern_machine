@@ -92,7 +92,7 @@ PSSamplingStrip {
 		});
 		all[id] = this;
 		otherstuff2free = Array.new;		
-		server.makeBundle(0.0, { // nil executes ASAP
+		server.makeBundle(nil, { // nil executes ASAP
 			gr.isNil.if({
 				group  = this.freeable(Group.new(server));
 			}, {
@@ -269,7 +269,7 @@ PSStrip {
 		});
 		all[id] = this;
 		otherstuff2free = Array.new;		
-		server.makeBundle(0.0, { // nil executes ASAP
+		server.makeBundle(nil, { // nil executes ASAP
 			gr.isNil.if({
 				group  = this.freeable(Group.new(server));
 			}, {
@@ -381,7 +381,7 @@ PSMasterOut {
 		});
 		all[id] = this;
 		otherstuff2free = Array.new;
-		server.makeBundle(0.0, { // nil executes ASAP
+		server.makeBundle(nil, { // nil executes ASAP
 			gr.isNil.if({
 				group  = this.freeable(Group.addToTail(server)); //note default to tail here
 			}, {
