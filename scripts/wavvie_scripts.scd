@@ -50,60 +50,29 @@ TODO:
     * reverb mix?
     * attack/release
 */
+Server.default = Dan.serverboot(\local, \builtin);
+ServerTreeGui.makeWindow(s);
+
 (
-var masterstrip, state = ();
+var masterstrip, samples, state = (
+	sampleDur: 60.0,
+	server: Server.default,
+);
 ~state=state;
-state.server = ~server;
 state.server.doWhenBooted({
-	masterstrip = PSMasterStrip.new(
-		id: \wav,
-		numChannels: 8,
-		clock: TempoClock.new,
-		state: state);
-	CmdPeriod.doOnce({ masterstrip.free});
-	state.make({
-	~masterstrip = masterstrip;
-	//sample loading
-	~samples = masterstrip.freeable(PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur));
-	~samples.initFromDict((
-		siren: [
-			"22370__druidus__Civil_Defence_Siren.wav",
-			"24347__fonogeno__Police_sirens-short.wav",
-			//"30476__LG__Dutch_air_raid_warning_02.wav",
-			"43807__daveincamas__WW2AirplaneFlyover.wav",
-		],
-		people: [
-			"actors-laughing.wav",
-			//"tortureguy-3.wav",
-			"actors-siren.wav",
-			"actors-tuning.wav",
-		],
-		desolation: [
-			"varese_on_a_lathe.wav",
-			//"whistling-wind.wav",
-			//"seagull-walk.wav",
-			"10334_batchku_burning_iceberg.aiff",
-		],
-		tuneful: [
-			"Unknown_Lead_Vocal.wav",
-			"NS-wind-chimes-002-denoise-edit.wav",
-			"CONCERTOFORCLARINETP2-solo.wav",
-			//"uc-ezchord.wav",
-		],
-		choral: [
-			"angelite_legend_mmm.aif",
-			"huunhuurtu_angelite_legend_build.wav",
-			"namgyal.aif",
-			"paert-Magnificat-climax.aif",
-		],
-	));
-	s.sync;
+	var wavvie, samples;
+	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
+	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	//sync fails to handle the source setting properly
-	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
-	{state.sourcesounds[0].set(\bufnum,state.samples.key(\tuneful,0))}.defer(1);
-})});
+	wavvie = PSWavvie.new(id: \wav1, state:state, samples: samples);
+	CmdPeriod.doOnce({ wavvie.free});
+	state.make({
+		~wavvie = wavvie;
+		~samples = wavvie;
+		s.sync;
+	});
+});
 )
 (
 var inst, sequencemaker = PSStreamer.new;
