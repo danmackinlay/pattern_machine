@@ -70,7 +70,16 @@ PSSamplingStrip {
 			});
 		});
 		^this.new(
-			id, state, clock, group, bus, inbus, phasebus, buf, samples, proto
+			id:id,
+			state:state,
+			clock:clock,
+			group:group,
+			bus:bus,
+			inbus:inbus,
+			phasebus:phasebus,
+			buf:buf,
+			samples:samples,
+			proto:proto
 		);
 	}
 	
@@ -240,7 +249,13 @@ PSStrip {
 			});
 		});
 		^this.new(
-			id, state, clock, group, bus, outbus, proto
+			id:id,
+			state:state,
+			clock:clock,
+			group:group,
+			bus:bus,
+			outbus:outbus,
+			proto:proto
 		);
 	}
 	
