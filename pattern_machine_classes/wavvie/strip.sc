@@ -7,6 +7,7 @@ PSSamplingStrip {
 	var <id;
 	var <state;
 	var <clock;
+	var <proto;
 	var <group;
 	var <numChannels=1; //later I can do stereo.
 	var <inbus, <bus, <phasebus;
@@ -28,7 +29,7 @@ PSSamplingStrip {
 	}
 	//bus is private bus for general mangling. inbus presumed shared.
 	*new {
-		arg id, state, clock, group, bus, inbus, phasebus, buf, samples;
+		arg id, state, clock, group, bus, inbus, phasebus, buf, samples, proto;
 		id = id ?? {idCount = idCount + 1;};
 		all[id].notNil.if({
 			^all[id];
@@ -36,9 +37,43 @@ PSSamplingStrip {
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
-			id, state, clock
+			id, state, clock, proto
 		).initPSSamplingStrip(group,bus,inbus,phasebus,buf,samples);
 	}
+	*newFrom {
+		arg proto, id, state, clock, group, bus, inbus, phasebus, buf, samples;
+		//shorthand: copy init args from a
+		proto.notNil.if({
+			state.isNil.if({
+				state = proto.tryPerform(\state);
+			});
+			clock.isNil.if({
+				clock = proto.tryPerform(\clock);
+			});
+			group.isNil.if({
+				group = proto.tryPerform(\group);
+			});
+			bus.isNil.if({
+				bus = proto.tryPerform(\bus);
+			});
+			inbus.isNil.if({
+				inbus = proto.tryPerform(\inbus);
+			});
+			phasebus.isNil.if({
+				phasebus = proto.tryPerform(\phasebus);
+			});
+			buf.isNil.if({
+				buf = proto.tryPerform(\buf);
+			});
+			samples.isNil.if({
+				samples = proto.tryPerform(\samples);
+			});
+		});
+		^this.new(
+			id, state, clock, group, bus, inbus, phasebus, buf, samples, proto
+		);
+	}
+	
 	initPSSamplingStrip {
 		arg gr,bs,ib,pb,bf,samps;
 		gr.notNil.if({
@@ -54,6 +89,7 @@ PSSamplingStrip {
 			}, {
 				group = gr;
 			});
+			
 			bs.isNil.if({
 				bus = this.freeable(Bus.audio(server,numChannels));
 			},{
@@ -66,12 +102,6 @@ PSSamplingStrip {
 				phasebus = pb;
 			});
 
-			ib.isNil.if({
-				inbus = this.freeable(Bus.audio(server, numChannels));
-			}, {
-				inbus = ib;
-			});
-			
 			ib.isNil.if({
 				inbus = this.freeable(Bus.audio(server, numChannels));
 			}, {
@@ -121,7 +151,6 @@ PSSamplingStrip {
 				));
 				//['sourcesoundsynth', sourcesoundsynth].postcs;
 			});
-		
 			recsynth = this.freeable(Synth.new(
 				\ps_bufwr_resumable__1x1,
 				(
@@ -148,12 +177,7 @@ PSSamplingStrip {
 		^stuff;
 	}
 	
-	/*
-	play {|patlike|
-		var stream = patlike.play(clock: clock);
-		streams2stop = streams2stop.add(pat);
 	}
-	*/
 	//utility conversions
 	beat2sec {|beats| ^beats/(clock.tempo)}
 	sec2beat {|secs| ^secs * (clock.tempo)}
