@@ -5,7 +5,7 @@
 // Does this work atm?
 PSSamplingStrip {
 	var <id;
-	var <parent, <numChannels, <clock, <group;
+	var <numChannels, <clock, <group;
 	var <bus, <inbus, <phasebus, <state;
 	var <samples;
 	var <server;
@@ -25,26 +25,17 @@ PSSamplingStrip {
 	}
 	//bus is output bus
 	*new {
-		arg id, parent, numChannels, clock, group, bus, inbus, phasebus, state, samples;
+		arg id, numChannels, clock, group, bus, inbus, phasebus, state, samples;
 		id = id ?? {idCount = idCount + 1;};
 		all[id].notNil.if({
 			^all[id];
-		});
-		parent.notNil.if({
-			numChannels ?? {numChannels = parent.numChannels};
-			state = Event.new(n:60, parent: parent.state, know: true
-				).putAll(state ? ());
-			clock ?? {clock = parent.clock};
-			group ?? {group = parent.group};
-			bus ?? {bus = parent.bus};
-			inbus ?? {inbus = parent.inbus};
 		});
 		numChannels ?? {numChannels = 1};
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		
 		^super.newCopyArgs(
-			id, parent, numChannels, clock
+			id, numChannels, clock
 		).initPSSamplingStrip(group,bus,inbus,phasebus,state, samples);
 	}
 	initPSSamplingStrip {
@@ -118,9 +109,6 @@ PSSamplingStrip {
 	}
 	rec {|dur=10.0|
 		recsynth.set(\t_rec, dur);
-	}
-	children {
-		all.select { |strip, id| strip.parent == this };
 	}
 	free {
 		otherstuff2free.do({arg stuff; stuff.free});
