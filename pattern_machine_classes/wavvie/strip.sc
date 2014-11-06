@@ -89,51 +89,51 @@ PSSamplingStrip {
 			}, {
 				buf = bf;
 			});
-		});
-		jacksynth = this.freeable((
-			instrument: \jack__1,
-			in: inbus,
-			out: bus,
-			group: sourcegroup,
-			addAction: \addToHead,
-			sendGate: false,//persist
-		).postcs.play);
-		
-		inputgainsynth = this.freeable((
-			instrument: \limi__1x1,
-			pregain: 10.dbamp,
-			out: bus,
-			group: sourcegroup,
-			addAction: \addToTail,
-			sendGate: false,//persist
-		).postcs.play);
-		
-		samples.notNil.if({
-			sourcesoundsynth = this.freeable((
-				instrument: \bufrd_or_live__1x1,
-				looptime: this.beat2sec(16),
-				offset: 0.0,
+			jacksynth = this.freeable((
+				instrument: \jack__1,
 				in: inbus,
 				out: bus,
-				group: inputgainsynth,
+				group: sourcegroup,
 				addAction: \addToHead,
-				bufnum: samples.at(0),
-				livefade: 0.0,
-				loop: 1,
+				sendGate: false,//persist
+			).postcs.play);
+		
+			inputgainsynth = this.freeable((
+				instrument: \limi__1x1,
+				pregain: 10.dbamp,
+				out: bus,
+				group: sourcegroup,
+				addAction: \addToTail,
+				sendGate: false,//persist
+			).postcs.play);
+		
+			samples.notNil.if({
+				sourcesoundsynth = this.freeable((
+					instrument: \bufrd_or_live__1x1,
+					looptime: this.beat2sec(16),
+					offset: 0.0,
+					in: inbus,
+					out: bus,
+					group: inputgainsynth,
+					addAction: \addToHead,
+					bufnum: samples.at(0),
+					livefade: 0.0,
+					loop: 1,
+					sendGate: false,//persist
+				).postcs.play);
+			});
+		
+			recsynth = this.freeable((
+				instrument: \ps_bufwr_resumable__1x1,
+				in: bus,
+				bufnum: buffer,
+				phasebus: \addToTail,
+				fadetime: 0.05,
+				group: fxgroup,
+				addAction: \addToTail,
 				sendGate: false,//persist
 			).postcs.play);
 		});
-		
-		recsynth = this.freeable((
-			instrument: \ps_bufwr_resumable__1x1,
-			in: bus,
-			bufnum: buffer,
-			phasebus: \addToTail,
-			fadetime: 0.05,
-			group: fxgroup,
-			addAction: \addToTail,
-			sendGate: false,//persist
-		).postcs.play);
 	}
 	rec {|dur=10.0|
 		recsynth.set(\t_rec, dur);

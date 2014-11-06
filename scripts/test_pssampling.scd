@@ -10,14 +10,18 @@ fork {
 	));
 	s.sync;
 };
-Server.default = ~server = s = Dan.serverboot(\local, \builtin);
+Server.default = Dan.serverboot(\local, \builtin);
 p=PSSamplingStrip.new(0);CmdPeriod.doOnce({ p.free;});
 p=PSSamplingStrip.new(1, Group.new);CmdPeriod.doOnce({ p.free;});
 p.group;
 p.sourcegroup;
 p.fxgroup;
 p.jacksynth;
+p.recsynth;
 p.phasebus.index;
 p.recsynth.nodeID
 p.inputgainsynth;
 p.otherstuff2free;
+Server.default.window
+s.tree
+Server.default.nodes
