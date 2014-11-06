@@ -18,8 +18,5 @@ p.group;
 p.jacksynth;
 p.recsynth;
 p.phasebus.index;
-p.phasebus.index;
-p.inputgainsynth;
 p.inputgainsynth;
 p.otherstuff2free;
-s.tree
