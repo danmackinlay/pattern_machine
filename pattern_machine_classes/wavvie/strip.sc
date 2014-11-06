@@ -314,7 +314,7 @@ PSStrip {
 	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 
-PSMasterInternalMixer {
+PSMasterOut {
 	var <id;
 	var <state;
 	var <clock;
@@ -347,7 +347,7 @@ PSMasterInternalMixer {
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
 			id, state, clock, proto
-		).initPSStrip(group,bus,outbus);
+		).initPSMasterOut(group,bus,outbus);
 	}
 	*newFrom {
 		arg proto, id, state, clock, group, bus, outbus;
@@ -371,7 +371,7 @@ PSMasterInternalMixer {
 		);
 	}
 	
-	initPSStrip {
+	initPSMasterOut {
 		arg gr,bs,ob;
 		gr.notNil.if({
 			server = gr.server;
@@ -379,7 +379,7 @@ PSMasterInternalMixer {
 			server = Server.default;
 		});
 		all[id] = this;
-		otherstuff2free = Array.new;		
+		otherstuff2free = Array.new;
 		server.makeBundle(0.0, { // nil executes ASAP
 			gr.isNil.if({
 				group  = this.freeable(Group.addToTail(server)); //note default to tail here
@@ -419,6 +419,7 @@ PSMasterInternalMixer {
 	beat2freq {|beats| ^(clock.tempo)/beats}
 	freq2beat {|freq| ^(clock.tempo) / freq}
 }
+
 PSMasterExternalMixer {
 	
 }
