@@ -14,7 +14,7 @@ PSSamplingStrip {
 	var <samples;
 	var <server;
 	var <buffer;
-	var <group, <sourcegroup, <fxgroup, <mixergroup;
+	var <sourcegroup, <fxgroup, <mixergroup;
 	var <otherstuff2free;
 	var <jacksynth, <recsynth, <inputgainsynth, <sourcesoundsynth;
 	
