@@ -93,7 +93,7 @@ PSSamplingStrip {
 				target: group,
 				addAction: \addToHead,
 			));
-		
+			//['jacksynth', jacksynth].postcs;
 			inputgainsynth = this.freeable(Synth.new(
 				\limi__1x1,
 				(
@@ -103,7 +103,7 @@ PSSamplingStrip {
 				target: jacksynth,
 				addAction: \addAfter,
 			));
-		
+			//['inputgainsynth', inputgainsynth].postcs;
 			samples.notNil.if({
 				sourcesoundsynth = this.freeable(Synth.new(
 					\bufrd_or_live__1x1,
@@ -119,6 +119,7 @@ PSSamplingStrip {
 					target: inputgainsynth,
 					addAction: \addAfter,
 				));
+				//['sourcesoundsynth', sourcesoundsynth].postcs;
 			});
 		
 			recsynth = this.freeable(Synth.new(
@@ -132,6 +133,7 @@ PSSamplingStrip {
 				target: group,
 				addAction: \addToTail,
 			));
+			//['recsynth', recsynth].postcs;
 		});
 	}
 	rec {|dur=10.0|

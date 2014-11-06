@@ -22,8 +22,4 @@ p.phasebus.index;
 p.inputgainsynth;
 p.inputgainsynth;
 p.otherstuff2free;
-Server.default.window
 s.tree
-Server.default.tree
-(a:2, b:3).getPairs
-ServerLog
