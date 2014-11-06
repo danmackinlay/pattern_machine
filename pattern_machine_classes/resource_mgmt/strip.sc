@@ -143,7 +143,8 @@ PSSamplingStrip {
 				addAction: \addAfter,
 			));
 			//['inputgainsynth', inputgainsynth].postcs;
-			samples.notNil.if({
+			samps.notNil.if({
+				samples = samps;
 				sourcesoundsynth = this.freeable(Synth.new(
 					"bufrd_or_live__%x%".format(numChannels, numChannels),
 					(
