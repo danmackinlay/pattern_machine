@@ -5,14 +5,18 @@
 // Does this work atm?
 PSSamplingStrip {
 	var <id;
-	var <numChannels, <clock, <group;
-	var <bus, <inbus, <phasebus, <state;
+	var <state;
+	var <clock;
+	var <group;
+	var <numChannels=1; //later I can do stereo.
+	var <inbus, <bus, <phasebus;
+	var <buf;
 	var <samples;
 	var <server;
 	var <buffer;
-	var <sourcegroup, <fxgroup, <mixergroup;
+	var <group, <sourcegroup, <fxgroup, <mixergroup;
 	var <otherstuff2free;
-	var <recsynth, <inputgainsynth, <sourcesoundsynth;
+	var <jacksynth, <recsynth, <inputgainsynth, <sourcesoundsynth;
 	
 	classvar <idCount=0;
 	classvar <all;
@@ -23,89 +27,124 @@ PSSamplingStrip {
 			all = IdentityDictionary.new;
 		});
 	}
-	//bus is output bus
+	//bus is private bus for general mangling. inbus presumed shared.
 	*new {
-		arg id, numChannels, clock, group, bus, inbus, phasebus, state, samples;
+		arg id, state, clock, group, bus, inbus, phasebus, buf, samples;
 		id = id ?? {idCount = idCount + 1;};
 		all[id].notNil.if({
 			^all[id];
 		});
-		numChannels ?? {numChannels = 1};
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
-		
+		[\AAA].postcs;
 		^super.newCopyArgs(
-			id, numChannels, clock
-		).initPSSamplingStrip(group,bus,inbus,phasebus,state, samples);
+			id, state, clock
+		).initPSSamplingStrip(group,bus,inbus,phasebus,buf,samples);
 	}
 	initPSSamplingStrip {
-		arg g,b,ib,pb, st, samps;
+		arg gr,bs,ib,pb,bf,samps;
+		[\init].postcs;
+		gr.notNil.if({
+			[\gr1, gr].postcs;
+			server = gr.server;
+		}, {
+			[\gr2, gr].postcs;
+			server = Server.default;
+		});
+		[\server, server, server.sampleRate].postcs;
 		all[id] = this;
-		otherstuff2free = Array.new;
+		otherstuff2free = Array.new;		
+		server.makeBundle(0.0, { // nil executes ASAP
+			gr.isNil.if({
+				//group  = this.freeable(Group.new(server));
+				group = Group.new(server);
+				this.freeable(group);
+				[\gg1, gr, group].postcs;
+			}, {
+				group = gr;
+				[\gg2, gr, group].postcs;
+			});			
+			[\group, group].postcs;
+			sourcegroup=this.freeable(Group.head(group));
+			[\sourcegroup, sourcegroup].postcs;
+			fxgroup=this.freeable(Group.after(sourcegroup));
+			mixergroup=this.freeable(Group.tail(fxgroup));
+			bs.isNil.if({
+				bus = this.freeable(Bus.audio(server,numChannels));
+			},{
+				bus = bs;
+			});
 		
-		g.isNil.if({
-			group  = this.freeable(Group.new);
-		}, {
-			group = g;
-		});
-		
-		server=group.server;
-		
-		sourcegroup=Group.head(group);
-		fxgroup=Group.tail(sourcegroup);
-		mixergroup=Group.tail(fxgroup);
-		
-		b.isNil.if({
-			bus = this.freeable(Bus.audio(server,numChannels));
-		},{
-			bus= b;
-		});
-		
-		pb.isNil.if({
-			phasebus = this.freeable(Bus.control(server, 1));
-		}, {
-			phasebus = pb;
-		});
+			pb.isNil.if({
+				phasebus = this.freeable(Bus.control(server, 1));
+			}, {
+				phasebus = pb;
+			});
 
-		ib.isNil.if({
-			inbus = this.freeable(Bus.control(server, 1));
-		}, {
-			inbus = ib;
+			ib.isNil.if({
+				inbus = this.freeable(Bus.audio(server, numChannels));
+			}, {
+				inbus = ib;
+			});
+			
+			ib.isNil.if({
+				inbus = this.freeable(Bus.audio(server, numChannels));
+			}, {
+				inbus = ib;
+			});
+			bf.isNil.if({
+				buf  = this.freeable(
+					Buffer.new(server, server.sampleRate * 60.0)
+				);
+			}, {
+				buf = bf;
+			});
+			
+		});
+		jacksynth = this.freeable((
+			instrument: \jack__1,
+			in: inbus,
+			out: bus,
+			group: sourcegroup,
+			addAction: \addToHead,
+			sendGate: false,//persist
+		).postcs.play);
+		
+		inputgainsynth = this.freeable((
+			instrument: \limi__1x1,
+			pregain: 10.dbamp,
+			out: bus,
+			group: sourcegroup,
+			addAction: \addToTail,
+			sendGate: false,//persist
+		).postcs.play);
+		
+		samples.notNil.if({
+			sourcesoundsynth = this.freeable((
+				instrument: \bufrd_or_live__1x1,
+				looptime: this.beat2sec(16),
+				offset: 0.0,
+				in: inbus,
+				out: bus,
+				group: inputgainsynth,
+				addAction: \addToHead,
+				bufnum: samples.at(0),
+				livefade: 0.0,
+				loop: 1,
+				sendGate: false,//persist
+			).postcs.play);
 		});
 		
 		recsynth = this.freeable((
 			instrument: \ps_bufwr_resumable__1x1,
 			in: bus,
 			bufnum: buffer,
-			phasebus: phasebus,
+			phasebus: \addToTail,
 			fadetime: 0.05,
-			group: sourcegroup,
-			addAction: \addToTail
+			group: fxgroup,
+			addAction: \addToTail,
 			sendGate: false,//persist
 		).postcs.play);
-		otherstuff2free = otherstuff2free.add(recsynth);
-		inputgainsynth = this.freeable((
-			instrument: \limi__1x1,
-			pregain: 10.dbamp,
-			out: bus,
-			group: sourcegroup,
-			addAction: \addToHead,
-			sendGate: false,//persist
-		).postcs.play);
-		sourcesoundsynth = this.freeable((
-			instrument: \bufrd_or_live__1x1,
-			looptime: this.beat2sec(16),
-			offset: 0.0,
-			in: inbus,
-			out: bus,
-			group: inputgainsynth,
-			addAction: \addBefore,
-			bufnum: samples.default,
-			livefade: 0.0,
-			loop: 1,
-			sendGate: false,//persist
-		).postcs.play);
-		//This would be where to make a mixer, if no bus was passed in.
 	}
 	rec {|dur=10.0|
 		recsynth.set(\t_rec, dur);
@@ -139,24 +178,3 @@ PSMasterInternalMixer {
 PSMasterExternalMixer {
 	
 }
-/*
-~limiter = (
-	instrument: \limi__2x2,
-	out: ~masteroutbus,
-	group: strip.mixergroup,
-	server: ~server,
-	addAction: \addToTail,
-	sendGate: false,//persist
-).play;
-CmdPeriod.doOnce({ state.limiter.free });
-
-~listeners = ~instbuses.collect({|bus| (
-	instrument: \jack__2,
-	in: bus,
-	out: ~masteroutbus,
-	group: strip.mixergroup,
-	server: ~server,
-	addAction: \addToHead,
-	sendGate: false,//persist
-).play;});
-*/
