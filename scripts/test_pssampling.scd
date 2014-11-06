@@ -12,15 +12,12 @@ fork {
 };
 Server.default = ~server = s = Dan.serverboot(\local, \builtin);
 p=PSSamplingStrip.new(0);CmdPeriod.doOnce({ p.free;});
+p=PSSamplingStrip.new(1, Group.new);CmdPeriod.doOnce({ p.free;});
 p.group;
 p.sourcegroup;
 p.fxgroup;
-p.jacksynth
+p.jacksynth;
 p.phasebus.index;
-p.recsynth
+p.recsynth.nodeID
 p.inputgainsynth;
 p.otherstuff2free;
-CmdPeriod
-Buffer.new(
-	s.makeBundle(0.0, {l=Bus.control(s,1)});
-l

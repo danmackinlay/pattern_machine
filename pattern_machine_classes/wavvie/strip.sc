@@ -43,30 +43,20 @@ PSSamplingStrip {
 	}
 	initPSSamplingStrip {
 		arg gr,bs,ib,pb,bf,samps;
-		[\init].postcs;
 		gr.notNil.if({
-			[\gr1, gr].postcs;
 			server = gr.server;
 		}, {
-			[\gr2, gr].postcs;
 			server = Server.default;
 		});
-		[\server, server, server.sampleRate].postcs;
 		all[id] = this;
 		otherstuff2free = Array.new;		
 		server.makeBundle(0.0, { // nil executes ASAP
 			gr.isNil.if({
-				//group  = this.freeable(Group.new(server));
-				group = Group.new(server);
-				this.freeable(group);
-				[\gg1, gr, group].postcs;
+				group  = this.freeable(Group.new(server));
 			}, {
 				group = gr;
-				[\gg2, gr, group].postcs;
-			});			
-			[\group, group].postcs;
+			});
 			sourcegroup=this.freeable(Group.head(group));
-			[\sourcegroup, sourcegroup].postcs;
 			fxgroup=this.freeable(Group.after(sourcegroup));
 			mixergroup=this.freeable(Group.tail(fxgroup));
 			bs.isNil.if({
@@ -99,7 +89,6 @@ PSSamplingStrip {
 			}, {
 				buf = bf;
 			});
-			
 		});
 		jacksynth = this.freeable((
 			instrument: \jack__1,
