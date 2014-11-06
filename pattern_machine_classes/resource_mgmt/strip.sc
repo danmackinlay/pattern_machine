@@ -165,7 +165,7 @@ PSSamplingStrip {
 				(
 				in: bus,
 				bufnum: buffer,
-				phasebus: \addToTail,
+				phasebus: phasebus,
 				fadetime: 0.05,
 				).getPairs,
 				target: group,
