@@ -2,14 +2,18 @@
 // So that I may have comprehensible tracebacks
 // and sensible scope
 // and no have "nil does not understand"
-PSStrip {
+PSSamplingStrip {
 	var <id;
-	var <parent,<numChannels, <clock, <group,<bus,<inbus,<state,<server;
+	var <parent, <numChannels, <clock, <group;
+	var <bus, <inbus, <phasebus, <state;
+	var <samples;
+	var <server;
+	var <buffer;
 	var <sourcegroup, <fxgroup, <mixergroup;
-	var <freebus, <freegroup;
-	var <pssynths;
+	var <freebus, <freegroup, <freebuf;
 	var <otherstuff2free;
-	var <clock;
+	var <recsynth, <inputgainsynth, <sourcesoundsynth;
+	
 	classvar <idCount=0;
 	classvar <all;
 	
@@ -17,12 +21,11 @@ PSStrip {
 		StartUp.add({
 			//this.loadSynthDefs;
 			all = IdentityDictionary.new;
-			
 		});
 	}
 	//bus is output bus
-	//input can be different. How to specify?
-	*new {arg id, parent, numChannels, clock, group, bus, inbus, state;
+	*new {
+		arg id, parent, numChannels, clock, group, bus, inbus, phasebus, state, samples;
 		id = id ?? {idCount = idCount + 1;};
 		all[id].notNil.if({
 			^all[id];
@@ -34,7 +37,6 @@ PSStrip {
 			clock ?? {clock = parent.clock};
 			group ?? {group = parent.group};
 			bus ?? {bus = parent.bus};
-			inbus ?? {inbus = parent.inbus};
 		});
 		numChannels ?? {numChannels = 1};
 		state ?? {state = Event.new(n:60, know: true)};
@@ -42,11 +44,11 @@ PSStrip {
 		
 		^super.newCopyArgs(
 			id, parent, numChannels, clock
-		).initPSStrip(group,bus,state);
-	}		
-	initPSStrip { arg g,b,st;
+		).initPSSamplingStrip(group,bus,inbus,phasebus,state, samples);
+	}
+	initPSSamplingStrip {
+		arg g,b,ib,pb, st, samps;
 		all[id] = this;
-		pssynths = Array.new;
 		otherstuff2free = Array.new;
 		
 		freegroup=false;
@@ -68,32 +70,62 @@ PSStrip {
 			freebus=false; //don't free if bus passed in code
 			bus= b;
 		});
-
+		
+		phasebus.isNil.if({
+			phasebus= Bus.control(server, 1);
+			freebus = true;
+		}, {
+			freebus = false;
+		});
+		
+		recsynth = (
+			instrument: \ps_bufwr_resumable__1x1,
+			in: bus,
+			bufnum: buffer,
+			phasebus: phasebus,
+			fadetime: 0.05,
+			group: sourcegroup,
+			addAction: \addToTail
+			sendGate: false,//persist
+		).postcs.play;
+		inputgainsynth = (
+			instrument: \limi__1x1,
+			pregain: 10.dbamp,
+			out: bus,
+			group: sourcegroup,
+			addAction: \addToHead,
+			sendGate: false,//persist
+		).postcs.play;
+		sourcesoundsynth = (
+			instrument: \bufrd_or_live__1x1,
+			looptime: this.beat2sec(16),
+			offset: 0.0,
+			in: inbus,
+			out: bus,
+			group: inputgainsynth,
+			addAction: \addBefore,
+			bufnum: samples.default,
+			livefade: 0.0,
+			loop: 1,
+			sendGate: false,//persist
+		).postcs.play;
 		//This would be where to make a mixer, if no bus was passed in.
+	}
+	rec {|dur=10.0|
+		recsynth.set(\t_rec, dur);
 	}
 	children {
 		all.select { |strip, id| strip.parent == this };
 	}
-	//add one (or more) synths
-	add {
-		arg ...pssynths;
-		pssynths.do({arg pssynth; 
-			pssynth.initPSSynth(this);
-			pssynths = pssynths.add(pssynth);
-		});
-	}
-	removeAt {arg ind;
-		var removed;
-		removed=pssynths.removeAt(ind);
-		removed.free;
-	}
-	free{
-		pssynths.do({arg stuff; stuff.free});
+	free {
 		otherstuff2free.do({arg stuff; stuff.free});
 		if(freebus, {
 			bus.free;});
 		if(freegroup, {
 			group.free;});
+		recsynth.free;
+		freebus.if({phasebus.free;});
+		freebuf.if({buffer.free;});
 	}
 	
 	freeable {|stuff|
@@ -114,3 +146,7 @@ PSStrip {
 	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 
+//Giggin' master group
+PSMaster {
+	
+}
