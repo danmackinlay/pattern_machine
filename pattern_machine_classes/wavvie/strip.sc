@@ -1,7 +1,8 @@
 //Manage my instruments in a stanadardised class-based way
 // So that I may have comprehensible tracebacks
 // and sensible scope
-// and no have "nil does not understand"
+// and not have "nil does not understand" as my only error
+// Does this work atm?
 PSSamplingStrip {
 	var <id;
 	var <parent, <numChannels, <clock, <group;
@@ -10,7 +11,6 @@ PSSamplingStrip {
 	var <server;
 	var <buffer;
 	var <sourcegroup, <fxgroup, <mixergroup;
-	var <freebus, <freegroup, <freebuf;
 	var <otherstuff2free;
 	var <recsynth, <inputgainsynth, <sourcesoundsynth;
 	
@@ -37,6 +37,7 @@ PSSamplingStrip {
 			clock ?? {clock = parent.clock};
 			group ?? {group = parent.group};
 			bus ?? {bus = parent.bus};
+			inbus ?? {inbus = parent.inbus};
 		});
 		numChannels ?? {numChannels = 1};
 		state ?? {state = Event.new(n:60, know: true)};
@@ -51,10 +52,11 @@ PSSamplingStrip {
 		all[id] = this;
 		otherstuff2free = Array.new;
 		
-		freegroup=false;
-		
-		//server=s ?? {Server.default};
-		group=g ?? {freegroup=true; Group.new;};
+		g.isNil.if({
+			group  = this.freeable(Group.new);
+		}, {
+			group = g;
+		});
 		
 		server=group.server;
 		
@@ -63,22 +65,24 @@ PSSamplingStrip {
 		mixergroup=Group.tail(fxgroup);
 		
 		b.isNil.if({
-			//must free eventually if not passed in
-			freebus=true;
-			bus = Bus.audio(server,numChannels);
+			bus = this.freeable(Bus.audio(server,numChannels));
 		},{
-			freebus=false; //don't free if bus passed in code
 			bus= b;
 		});
 		
-		phasebus.isNil.if({
-			phasebus= Bus.control(server, 1);
-			freebus = true;
+		pb.isNil.if({
+			phasebus = this.freeable(Bus.control(server, 1));
 		}, {
-			freebus = false;
+			phasebus = pb;
+		});
+
+		ib.isNil.if({
+			inbus = this.freeable(Bus.control(server, 1));
+		}, {
+			inbus = ib;
 		});
 		
-		recsynth = (
+		recsynth = this.freeable((
 			instrument: \ps_bufwr_resumable__1x1,
 			in: bus,
 			bufnum: buffer,
@@ -87,16 +91,17 @@ PSSamplingStrip {
 			group: sourcegroup,
 			addAction: \addToTail
 			sendGate: false,//persist
-		).postcs.play;
-		inputgainsynth = (
+		).postcs.play);
+		otherstuff2free = otherstuff2free.add(recsynth);
+		inputgainsynth = this.freeable((
 			instrument: \limi__1x1,
 			pregain: 10.dbamp,
 			out: bus,
 			group: sourcegroup,
 			addAction: \addToHead,
 			sendGate: false,//persist
-		).postcs.play;
-		sourcesoundsynth = (
+		).postcs.play);
+		sourcesoundsynth = this.freeable((
 			instrument: \bufrd_or_live__1x1,
 			looptime: this.beat2sec(16),
 			offset: 0.0,
@@ -108,7 +113,7 @@ PSSamplingStrip {
 			livefade: 0.0,
 			loop: 1,
 			sendGate: false,//persist
-		).postcs.play;
+		).postcs.play);
 		//This would be where to make a mixer, if no bus was passed in.
 	}
 	rec {|dur=10.0|
@@ -119,13 +124,6 @@ PSSamplingStrip {
 	}
 	free {
 		otherstuff2free.do({arg stuff; stuff.free});
-		if(freebus, {
-			bus.free;});
-		if(freegroup, {
-			group.free;});
-		recsynth.free;
-		freebus.if({phasebus.free;});
-		freebuf.if({buffer.free;});
 	}
 	
 	freeable {|stuff|
@@ -147,6 +145,30 @@ PSSamplingStrip {
 }
 
 //Giggin' master group
-PSMaster {
+PSMasterInternalMixer {
 	
 }
+PSMasterExternalMixer {
+	
+}
+/*
+~limiter = (
+	instrument: \limi__2x2,
+	out: ~masteroutbus,
+	group: strip.mixergroup,
+	server: ~server,
+	addAction: \addToTail,
+	sendGate: false,//persist
+).play;
+CmdPeriod.doOnce({ state.limiter.free });
+
+~listeners = ~instbuses.collect({|bus| (
+	instrument: \jack__2,
+	in: bus,
+	out: ~masteroutbus,
+	group: strip.mixergroup,
+	server: ~server,
+	addAction: \addToHead,
+	sendGate: false,//persist
+).play;});
+*/

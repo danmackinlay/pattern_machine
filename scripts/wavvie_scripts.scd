@@ -55,7 +55,7 @@ var masterstrip, state = ();
 ~state=state;
 state.server = ~server;
 state.server.doWhenBooted({
-	masterstrip = PSStrip.new(
+	masterstrip = PSMasterStrip.new(
 		id: \wav,
 		numChannels: 8,
 		clock: TempoClock.new,
@@ -98,7 +98,6 @@ state.server.doWhenBooted({
 		],
 	));
 	s.sync;
-	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(strip);
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
 	//sync fails to handle the source setting properly
