@@ -123,6 +123,16 @@ PSWavvie {
 		^stuff;
 	}
 	
+	baseEvent {
+		^state.putAll((
+			out: bus,
+			group: midgroup,
+			now: recstrip.phasebus.asMap,
+			bufnum: recstrip.buf,
+			addAction: \addToTail, 
+		));
+	}
+	
 	//utility conversions
 	beat2sec {|beats| ^beats/(clock.tempo)}
 	sec2beat {|secs| ^secs * (clock.tempo)}

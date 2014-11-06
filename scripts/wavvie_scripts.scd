@@ -50,9 +50,8 @@ TODO:
     * reverb mix?
     * attack/release
 */
-Server.default = Dan.serverboot(\local, \builtin);
 ServerTreeGui.makeWindow(s);
-
+Server.default = Dan.serverboot(\local, \builtin);
 (
 var masterstrip, samples, state = (
 	sampleDur: 60.0,
@@ -60,20 +59,36 @@ var masterstrip, samples, state = (
 );
 ~state=state;
 state.server.doWhenBooted({
-	var wavvie, samples;
+	var wavvie, samples, streamer;
+	[\aaa].postcs;
 	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
+	[\bbb].postcs;
 	wavvie = PSWavvie.new(id: \wav1, state:state, samples: samples);
+	[\wavvie, wavvie].postcs;
 	CmdPeriod.doOnce({ wavvie.free});
 	state.make({
 		~wavvie = wavvie;
 		~samples = wavvie;
 		s.sync;
+		/*
+		streamer = PSStreamer.new(
+			state: state,
+			//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+			debug: true).parentEvent_(wavvie.baseEvent);
+		streamer.play(trace:true);
+		~streamer = streamer;
+		3.wait;
+		t=p.add(Pbind(\degree, 1, \delta, 1), id: \a);
+		t=p.add(Pbind(\degree, 5, \delta, 1), id: \b, delta: 0.5);
+		*/
 	});
 });
 )
+~state.wavvie.recstrip.phasebus;
+~state.wavvie.recstrip.inbus;
 (
 var inst, sequencemaker = PSStreamer.new;
 fork {
