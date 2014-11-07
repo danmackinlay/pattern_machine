@@ -349,7 +349,8 @@ PSStreamer {
 			streamSpawner.wait(masterQuant.quant);
 		});
 	}
-	add {|newpat, delta=0, id|
+	add {
+		arg newpat, delta=0, id;
 		var nextstream;
 		id = id ?? {streamcounter = streamcounter + 1};
 		//let streams know their names
@@ -357,7 +358,7 @@ PSStreamer {
 			Pset(
 				\scount, Pseries.new,
 				Pset(
-					\sid, id, newpat
+					\sid, id, newpat.asPattern
 				), delta
 			)
 		);
