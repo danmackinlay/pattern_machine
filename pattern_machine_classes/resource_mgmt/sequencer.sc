@@ -165,6 +165,11 @@ PSBarSeq {
 		});
 		^[timePoints, baseEvents];
 	}
+	//utility conversions
+	beat2sec {|beats| ^beats/(clock.tempo)}
+	sec2beat {|secs| ^secs * (clock.tempo)}
+	beat2freq {|beats| ^(clock.tempo)/beats}
+	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 //subclass schmubclass; I can simplify this later if it works
 PSWavvieEvtSeq {
@@ -277,6 +282,11 @@ PSWavvieEvtSeq {
 		//should i implement other stream methods?
 		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 	}
+	//utility conversions
+	beat2sec {|beats| ^beats/(clock.tempo)}
+	sec2beat {|secs| ^secs * (clock.tempo)}
+	beat2freq {|beats| ^(clock.tempo)/beats}
+	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 //This guy manages a list of streams which can be dynamically added to
 
@@ -417,6 +427,12 @@ PSStreamer {
 			eventStreamPlayer.event = parentEvent
 		});
 	}
+	//utility conversions
+	beat2sec {|beats| ^beats/(clock.tempo)}
+	sec2beat {|secs| ^secs * (clock.tempo)}
+	beat2freq {|beats| ^(clock.tempo)/beats}
+	freq2beat {|freq| ^(clock.tempo) / freq}
+}
 //convenience override to the global state passed in.
 PSNoteCallback {
 	var <localstate;
