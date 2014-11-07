@@ -424,6 +424,13 @@ PSStreamer {
 		//should i implement other stream methods?
 		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 	}
+	stopChildren {
+		childStreams.do({
+			arg stream, id;
+			streamSpawner.suspend(stream);
+			childStreams.removeAt(id);
+		});
+	}
 	protoEvent_{
 		arg newProtoEvent;
 		parentEvent = Event.new(8, nil, newProtoEvent, true
