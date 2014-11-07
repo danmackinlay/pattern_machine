@@ -212,13 +212,13 @@ PSWavvie {
 	}
 	baseEvent {
 		//Do I really want to return all state? Can be a messy dict.
-		^state.putAll((
+		^(
 			out: bus,
 			group: midgroup,
 			now: phasebus.asMap,
 			bufnum: buf,
 			addAction: \addToTail, 
-		));
+		);
 	}
 	////debugging nice
 	printOn { |stream|

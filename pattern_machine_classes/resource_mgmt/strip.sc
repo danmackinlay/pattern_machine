@@ -2,7 +2,7 @@
 // So that I may have comprehensible tracebacks
 // and sensible scope
 // and not have "nil does not understand" as my only error
-// Does this work atm?
+// Does it make sense to attach a clock here? Generally patterns will not be aware this guy exists.
 PSMasterOut {
 	var <id;
 	var <state;
