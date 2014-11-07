@@ -200,6 +200,7 @@ PSWavvie {
 		otherstuff2free = otherstuff2free.add(stuff);
 		^stuff;
 	}
+	// acting synthish
 	asTarget {
 		^midgroup;
 	}
@@ -218,6 +219,10 @@ PSWavvie {
 			bufnum: buf,
 			addAction: \addToTail, 
 		));
+	}
+	////debugging nice
+	printOn { |stream|
+		stream << this.class.asString <<"(id:" << id.asString << ")";
 	}
 	
 	//utility conversions

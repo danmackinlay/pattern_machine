@@ -110,6 +110,9 @@ PSMasterOut {
 	asBus {
 		^bus;
 	}
+	printOn { |stream|
+		stream << this.class.asString <<"(id:" << id.asString << ")";
+	}
 	//utility conversions
 	beat2sec {|beats| ^beats/(clock.tempo)}
 	sec2beat {|secs| ^secs * (clock.tempo)}

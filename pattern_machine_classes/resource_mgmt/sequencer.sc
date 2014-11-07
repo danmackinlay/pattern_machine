@@ -283,6 +283,8 @@ PSWavvieEvtSeq {
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
 //TODO: check this starts on the correct beat.
+//TODO: removeAt to remove after sequential order?
+//TODO: I'd also like a per-sequence counter, ideally
 PSStreamer {
 	var <>state;
 	var <>masterQuant;
