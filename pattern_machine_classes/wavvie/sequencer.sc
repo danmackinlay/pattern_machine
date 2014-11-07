@@ -401,11 +401,11 @@ PSWavvieStreamer {
 		//you probably want the default event as parent,
 		// to ensure a default delta etc
 		//otherwise there will be confusing errors
-		//note that this updates the event. is that sane, or should we copy it?
-		if (newParentEvent.delta.isNil) {
+		newParentEvent = newParentEvent.copy;
+		if (newParentEvent.delta.isNil) { //uh oh missing standard method
 			newParentEvent.put(\parent, Event.default);
 		};
-		parentEvent=newParentEvent;
+		parentEvent = newParentEvent;
 		eventStreamPlayer.notNil.if({
 			eventStreamPlayer.event = parentEvent
 		});
