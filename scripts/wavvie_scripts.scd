@@ -60,34 +60,36 @@ var masterstrip, samples, state = (
 ~state=state;
 state.server.doWhenBooted({
 	var wavvie, samples, streamer;
-	[\aaa].postcs;
 	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	[\bbb].postcs;
 	wavvie = PSWavvie.new(id: \wav1, state:state, samples: samples);
-	[\wavvie, wavvie].postcs;
 	CmdPeriod.doOnce({ wavvie.free});
 	state.make({
 		~wavvie = wavvie;
-		~samples = wavvie;
+		~samples = samples;
 		s.sync;
-		/*
+
 		streamer = PSStreamer.new(
 			state: state,
 			//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
-			debug: true).parentEvent_(wavvie.baseEvent);
+			debug: true);
+		streamer.parentEvent_(wavvie.baseEvent.putAll((
+
+			windowRandRatio: 0.01,
+		)));
 		streamer.play(trace:true);
+		CmdPeriod.doOnce({ streamer.free});
 		~streamer = streamer;
 		3.wait;
-		t=p.add(Pbind(\degree, 1, \delta, 1), id: \a);
-		t=p.add(Pbind(\degree, 5, \delta, 1), id: \b, delta: 0.5);
-		*/
+		t=streamer.add(Pbind(\degree, 1, \delta, 1), id: \a);
+		t=streamer.add(Pbind(\degree, 5, \delta, 1), id: \b, delta: 0.5);
 	});
 });
 )
-~state.wavvie.phasebus;
+~state.wavvie.baseEvent;
+~state.streamer.parentEvent;
 ~state.wavvie.inbus;
 ~state.wavvie.bus;
 ~state.wavvie.outbus;
@@ -99,10 +101,6 @@ fork {
 	inst = PSStrip.new(1, parent: masterstrip);
 	localstate = inst.state;
 	localstate.make({
-		~inbus = state.inbuses[0];
-		~outbus = state.instbusallocator.alloc;
-		~controls = List.new;
-		~seed = 1;
 		~lfobasefs = PSquama.lin([1,2,3,4,6]);
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8,16,32]/32);
