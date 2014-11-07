@@ -200,8 +200,17 @@ PSWavvie {
 		otherstuff2free = otherstuff2free.add(stuff);
 		^stuff;
 	}
-	
+	asTarget {
+		^midgroup;
+	}
+	asGroup {
+		^midgroup;
+	}
+	asBus {
+		^bus;
+	}
 	baseEvent {
+		//Do I really want to return all state? Can be a messy dict.
 		^state.putAll((
 			out: bus,
 			group: midgroup,
