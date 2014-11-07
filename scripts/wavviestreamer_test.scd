@@ -28,3 +28,7 @@ p.masterQuant
 
 p.clock.beats
 p.asEventStreamPlayer
+
+p=Pbind(\dur, 1).trace.play(protoEvent:(a:2));
+p.parentEvent_((\b:4));
+p.parentEvent_((\a:4));
