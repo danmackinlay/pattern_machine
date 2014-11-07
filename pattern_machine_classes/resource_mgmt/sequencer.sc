@@ -405,7 +405,6 @@ PSStreamer {
 		masterStream.notNil.if({masterStream.stop});
 		thispat = masterPat.collect({|evt| this.decorateEvt(evt)});
 		trace.if({thispat=thispat.trace});
-		this.sharedRandData = thisThread.randData;
 		masterStream = thispat.asStream;
 		^masterStream;
 	}
@@ -413,10 +412,11 @@ PSStreamer {
 		quant.notNil.if({masterQuant=quant});
 		evt.notNil.if({
 			this.protoEvent_(evt);
-		});	
+		});
 		this.clock_(clock ? TempoClock.default);
-		eventStreamPlayer = this.asStream(trace
-			).asEventStreamPlayer(parentEvent ? Event.default).play(clock);
+		this.sharedRandData = thisThread.randData;
+		eventStreamPlayer = this.asStream(trace:trace
+			).asEventStreamPlayer(protoEvent ? Event.default).play(clock);
 		eventStreamPlayer.routine.randData = this.sharedRandData;
 		^eventStreamPlayer;
 	}
