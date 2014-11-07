@@ -390,8 +390,10 @@ PSStreamer {
 			tempo: (clock ? TempoClock.default).tempo,
 			time: time,
 		));
-		//Probably shouldn't bother calling for rests
-		notecallback.notNil.if({
+		//We allow any non-rests to be decorate
+		//You shouldn't change delta, so
+		//rests really should not be touched anyway.
+		((notecallback.notNil).and(event.isRest.not)).if({
 			var rout = Routine({notecallback.value(evt, state, this).yield});
 			rout.randData = thisThread.randData;
 			evt = rout.value;
