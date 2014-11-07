@@ -20,7 +20,6 @@ PSWavvie {
 	
 	*initClass {
 		StartUp.add({
-			//this.loadSynthDefs;
 			all = IdentityDictionary.new;
 		});
 	}
@@ -41,8 +40,8 @@ PSWavvie {
 	}
 	*removeAt {
 		arg id;
-		var prev = this.at(id);
-		all.removeAt[id];
+		var prev = all.at(id);
+		all.removeAt(id);
 		prev.tryPerform(\free);
 	}
 	*newFrom {

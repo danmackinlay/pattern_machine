@@ -42,8 +42,8 @@ PSMasterOut {
 	}
 	*removeAt {
 		arg id;
-		var prev = this.at(id);
-		all.removeAt[id];
+		var prev = all.at(id);
+		all.removeAt(id);
 		prev.tryPerform(\free);
 	}
 	*newFrom {
