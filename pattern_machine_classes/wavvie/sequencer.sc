@@ -389,7 +389,7 @@ PSWavvieStreamer {
 		});	
 		this.clock_(clock ? TempoClock.default);
 		eventStreamPlayer = this.asStream(trace
-			).as(evt).play(clock);
+			).asEventStreamPlayer(parentEvent ? Event.default).play(clock);
 		eventStreamPlayer.routine.randData = this.sharedRandData;
 		^eventStreamPlayer;
 	}
