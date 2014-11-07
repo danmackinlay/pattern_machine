@@ -115,7 +115,7 @@ PSWavvie {
 				bus = bs;
 			});
 			ib.isNil.if({
-				inbus = this.freeable(Bus.audio(server, numChannels));
+				inbus = this.freeable(Bus.audio(server, 1));
 			}, {
 				inbus = ib;
 			});
