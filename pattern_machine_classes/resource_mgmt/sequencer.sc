@@ -300,7 +300,6 @@ PSWavvieEvtSeq {
 //TODO: skip processing rests
 //TODO: check cleanup of stopped streams
 //TODO: check this starts on the correct beat.
-//TODO: removeAt to remove after sequential order?
 PSStreamer {
 	var <>state;
 	var <>masterQuant;
@@ -377,7 +376,7 @@ PSStreamer {
 		childStreams[id] = nextstream;
 		^id;
 	}
-	remove {|id|
+	removeAt {|id|
 		childStreams[id].notNil.if({
 			streamSpawner.suspend(childStreams[id]);
 			childStreams.removeAt(id);
