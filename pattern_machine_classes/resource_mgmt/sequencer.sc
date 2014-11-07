@@ -112,7 +112,7 @@ PSBarSeq {
 		evt['time'] = time;
 		evt['idxptr'] = idxptr;
 		notecallback.notNil.if({
-			var rout = Routine({notecallback.value(evt, this).yield});
+			var rout = Routine({notecallback.value(evt, state, this).yield});
 			rout.randData = thisThread.randData;
 			evt = rout.value;
 			this.sharedRandData = rout.randData;
@@ -225,7 +225,7 @@ PSWavvieEvtSeq {
 		(nextbartime > beatlen).if({
 			//next beat falls outside the bar. Wrap.
 			barcallback.notNil.if({
-				var rout = Routine({|seq| barcallback.value(seq).yield});
+				var rout = Routine({|seq| barcallback.value(seq, state).yield});
 				rout.randData = thisThread.randData;
 				rout.value(this);
 				this.sharedRandData = rout.randData;
@@ -248,7 +248,7 @@ PSWavvieEvtSeq {
 		evt['bartime'] = bartime;
 		evt['time'] = time;
 		notecallback.notNil.if({
-			var rout = Routine({ notecallback.value(evt, this).yield});
+			var rout = Routine({ notecallback.value(evt, state, this).yield});
 			rout.randData = thisThread.randData;
 			evt = rout.value;
 			this.sharedRandData = rout.randData;
@@ -373,7 +373,7 @@ PSStreamer {
 		evt['time'] = time;
 		//Probably shouldn't bother calling for rests
 		notecallback.notNil.if({
-			var rout = Routine({notecallback.value(evt, this).yield});
+			var rout = Routine({notecallback.value(evt, state, this).yield});
 			rout.randData = thisThread.randData;
 			evt = rout.value;
 			this.sharedRandData = rout.randData;
@@ -416,5 +416,17 @@ PSStreamer {
 		eventStreamPlayer.notNil.if({
 			eventStreamPlayer.event = parentEvent
 		});
+	}
+//convenience override to the global state passed in.
+PSNoteCallback {
+	var <localstate;
+	var <>callbackfn;
+	*new {
+		arg state, callbackfn;
+		^super.newCopyArgs(state, callbackfn);
+	}
+	value {
+		arg evt, state, seq;
+		^evt.make(callbackfn.value(evt, localstate, seq));
 	}
 }
