@@ -25,11 +25,11 @@ PSMasterOut {
 			all = IdentityDictionary.new;
 		});
 	}
-	//Bus is regarded as an insert, I.e. I will be playing ReplaceOut synths here
+	//Bus is regarded as an insert, i.e. I will be playing ReplaceOut synths here
 	*new {
 		arg id, state, clock, group, bus, outbus, proto;
 		id = id ?? {idCount = idCount + 1;};
-		this.at(id).tryPerform(\free);
+		this.removeAt(id);
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
@@ -39,6 +39,12 @@ PSMasterOut {
 	*at {
 		arg id;
 		^all[id];
+	}
+	*removeAt {
+		arg id;
+		var prev = this.at(id);
+		all.removeAt[id];
+		prev.tryPerform(\free);
 	}
 	*newFrom {
 		arg proto, id, state, clock, group, bus, outbus;

@@ -28,7 +28,7 @@ PSWavvie {
 	*new {
 		arg id, state, clock, group, bus, inbus, outbus, phasebus, samples, buf, proto;
 		id = id ?? {idCount = idCount + 1;};
-		this.at(id).tryPerform(\free);
+		this.removeAt(id);
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
@@ -38,6 +38,12 @@ PSWavvie {
 	*at {
 		arg id;
 		^all[id];
+	}
+	*removeAt {
+		arg id;
+		var prev = this.at(id);
+		all.removeAt[id];
+		prev.tryPerform(\free);
 	}
 	*newFrom {
 		arg proto, id, state, clock, group, bus, inbus, outbus, phasebus, samples, buf;
