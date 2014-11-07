@@ -29,14 +29,16 @@ PSMasterOut {
 	*new {
 		arg id, state, clock, group, bus, outbus, proto;
 		id = id ?? {idCount = idCount + 1;};
-		all[id].notNil.if({
-			^all[id];
-		});
+		this.at(id).tryPerform(\free);
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
 			id, state, clock, proto
 		).initPSMasterOut(group,bus,outbus);
+	}
+	*at {
+		arg id;
+		^all[id];
 	}
 	*newFrom {
 		arg proto, id, state, clock, group, bus, outbus;

@@ -28,14 +28,16 @@ PSWavvie {
 	*new {
 		arg id, state, clock, group, bus, inbus, outbus, phasebus, samples, buf, proto;
 		id = id ?? {idCount = idCount + 1;};
-		all[id].notNil.if({
-			^all[id];
-		});
+		this.at(id).tryPerform(\free);
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
 			id, state, clock, proto
 		).initPSWavvie(group,bus,inbus,outbus,phasebus,samples,buf);
+	}
+	*at {
+		arg id;
+		^all[id];
 	}
 	*newFrom {
 		arg proto, id, state, clock, group, bus, inbus, outbus, phasebus, samples, buf;
@@ -195,7 +197,6 @@ PSWavvie {
 	free {
 		otherstuff2free.do({arg stuff; stuff.free});
 	}
-	
 	freeable {|stuff|
 		otherstuff2free = otherstuff2free.add(stuff);
 		^stuff;
