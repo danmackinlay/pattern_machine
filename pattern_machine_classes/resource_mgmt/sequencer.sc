@@ -284,7 +284,6 @@ PSWavvieEvtSeq {
 //TODO: check cleanup of stopped streams
 //TODO: check this starts on the correct beat.
 //TODO: removeAt to remove after sequential order?
-//TODO: I'd also like a per-sequence counter, ideally
 PSStreamer {
 	var <>state;
 	var <>masterQuant;
@@ -345,7 +344,13 @@ PSStreamer {
 		id = id ?? {streamcounter = streamcounter + 1};
 		//let streams know their names
 		nextstream = streamSpawner.par(
-			Pset(\sid, id, newpat), delta);
+			Pset(
+				\scount, Pseries.new,
+				Pset(
+					\sid, id, newpat
+				), delta
+			)
+		);
 		childStreams[id].notNil.if( {
 			streamSpawner.suspend(childStreams[id]);
 			childStreams.removeAt(id);
