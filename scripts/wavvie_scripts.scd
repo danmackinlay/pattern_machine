@@ -52,55 +52,43 @@ TODO:
 */
 ServerTreeGui.makeWindow(s);
 Server.default = Dan.serverboot(\local, \builtin);
+
 (
 var masterstrip, samples, state = (
 	sampleDur: 60.0,
 	server: Server.default,
 );
 ~state=state;
-state.server.doWhenBooted({
+state.server.waitForBoot({
 	var wavvie, samples, streamer;
 	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
+	[\samples, samples].postcs;
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	wavvie = PSWavvie.new(id: \wav1, state:state, samples: samples);
+	[\synths].postcs;
+	wavvie = PSWavvie.new(state:state, samples: samples);
 	CmdPeriod.doOnce({ wavvie.free});
+	[\wavvie, wavvie].postcs;
+	streamer = PSStreamer.new(
+		state: state,
+		//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+		//debug: true
+	);
+	//streamer.parentEvent_(wavvie.baseEvent); //Not necessarily the best way
+	streamer.play(
+		//trace: true
+	);
+	[\streamer, streamer].postcs;
+	CmdPeriod.doOnce({ streamer.free});
+
 	state.make({
 		~wavvie = wavvie;
 		~samples = samples;
-		s.sync;
-
-		streamer = PSStreamer.new(
-			state: state,
-			//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
-			debug: true);
-		streamer.parentEvent_(wavvie.baseEvent.putAll((
-
-			windowRandRatio: 0.01,
-		)));
-		streamer.play(trace:true);
-		CmdPeriod.doOnce({ streamer.free});
 		~streamer = streamer;
-		3.wait;
-		t=streamer.add(Pbind(\degree, 1, \delta, 1), id: \a);
-		t=streamer.add(Pbind(\degree, 5, \delta, 1), id: \b, delta: 0.5);
-	});
-});
-)
-~state.wavvie.baseEvent;
-~state.streamer.parentEvent;
-~state.wavvie.inbus;
-~state.wavvie.bus;
-~state.wavvie.outbus;
-~state.wavvie.rec(5);
-~state.wavvie.baseEvent;
-(
-var inst, sequencemaker = PSStreamer.new;
-fork {
-	inst = PSStrip.new(1, parent: masterstrip);
-	localstate = inst.state;
-	localstate.make({
+		s.sync;
+		{wavvie.rec(10.0);}.defer(1.0);
+		~combed = 0.0;
 		~lfobasefs = PSquama.lin([1,2,3,4,6]);
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8,16,32]/32);
@@ -109,38 +97,42 @@ fork {
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
 	});
-	s.sync;
 
-	localstate.use({
-		sequencemaker = {
-			(50.rand+10).collect({16.0.rand.round(0.25)}).sort;
-		};
-		seq = PSBarSeq(
-			state: state,
-			parentEvent: ~parentevt);
-		seq.barcallback = {|seq|
-			localstate[\seed].notNil.if({
-				thisThread.randSeed_(localstate[\seed]);
-			});
-			seq.timePoints = sequencemaker.value;
-		};
-		seq.notecallback = {|evt, seq|
-			localstate.use({
+});
+//~state.streamer.clock.tempo
+//t=~state.streamer.add(Pbind(\degree, 1, \delta, 1), id: \a);
+
+/*
+TODO NOW:
+
+1. create new short lived sequences based on current params
+2. create evolving long-lived sequences
+*/
+)
+(
+	~state.streamer.add((
+		instrument: \ps_bufgrain_type_2__1x2,
+		type: \note,
+		dur: 1,
+		sendGate: false,
+	).asPattern);
+
+	~state.streamer.notecallback = {|evt, state, streamer|
+		state.use({
 			//evt.postcs;
-			evt[\lfobasefs] = beat2freq.(~lfobasefs.choose);
-			evt[\lfomodf] = beat2freq.(~lfobasefs.choose);
+			evt[\lfobasefs] = streamer.beat2freq(~lfobasefs.choose);
+			evt[\lfomodf] = streamer.beat2freq(~lfobasefs.choose);
 			evt[\lfomodamp] = ~lfomodamp;
 			evt[\lfophase] = 0;
-			evt[\lfo2pos] = beat2sec.(0);
 			evt[\lfo2amp]= -0.25;
 			evt[\lfo2grain] = 0;
 			evt[\lfo2pan] = 0.0;
 			evt[\lfo2del] = ~lfo2del;
 			evt[\posrate] = 0.125 * (0.5.coin*2 -1);
-			evt[\timeago] = beat2sec.(~jumps.choose);
-			evt[\grainsize] = beat2sec.(~grains.choose);
+			evt[\timeago] = streamer.beat2sec(~jumps.choose);
+			evt[\grainsize] = streamer.beat2sec(~grains.choose);
 			evt[\windowRandRatio] = ~windowRandRatio;
-			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
+			evt[\sustainDur] = streamer.beat2sec(2.pow((-2).rrand(4)));
 			evt[\db] = -10.0;
 			evt[\pan] = 0.8.rand2;
 			evt[\pitchrate] = ~transps.choose;
@@ -149,27 +141,24 @@ fork {
 			evt[\allpdecayratio] = 4;
 			evt[\combed] = ~combed;
 			//evt.postcs;
-			});
-		};
-		~seq = seq;
-		// ~stream = ~seq.play(clock: ~clock, trace:true);
-		~stream = ~seq.play(clock: ~clock);
-	});
-	{inst.rec(10.0);}.defer(1.0);
-};
+			evt;
+		});
+		[\AAAAAA, evt.asCompileString[..30], ].postcs;
+		[\parent, evt.parent.asCompileString[..30]].postcs;
+		[\legato, evt.legato].postcs;
+		[\sustain, evt.sustain].postcs;
+		evt;
+	};
 )
-~state.voiceStates[0].rec(10);
-~state.voiceStates[0].seed=1;
-~state.voiceStates[0].lfo2del=0.001;
-~state.voiceStates[0].windowRandRatio=0.25;
-~state.voiceStates[0].combed=0.5;
-~state.voiceStates[0].seq.stream.randSeed;
-~state.voiceStates[0].debugSpawn=false;
-~state.bpm;
-~state.bpm=120;
-~state.updateTempo.();
-~state.tempo;
-~state.voiceStates[0].loopbuf.plot;
+~state.wavvie.baseEvent;
+~state.wavvie.id;
+PSWavvie(\wav1);
+~state.streamer.parentEvent;
+~state.wavvie.inbus;
+~state.wavvie.bus;
+~state.wavvie.outbus;
+~state.wavvie.rec(5);
+~state.wavvie.baseEvent;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
@@ -192,3 +181,13 @@ fork {
 ).play;
 )
 ~spy.free;
+(
+n=PSNoteCallback((a:1), {
+	arg evt, seq;
+	~b = seq.state.a + 1;
+});
+)
+Pattern
+(
+(degree: 1).asPattern.trace.play(protoEvent: (b:1))
+)
