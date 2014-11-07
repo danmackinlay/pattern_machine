@@ -389,7 +389,7 @@ PSStreamer {
 		});	
 		this.clock_(clock ? TempoClock.default);
 		eventStreamPlayer = this.asStream(trace
-			).asEventStreamPlayer(evt).play(clock);
+			).asEventStreamPlayer(parentEvent ? Event.default).play(clock);
 		eventStreamPlayer.routine.randData = this.sharedRandData;
 		^eventStreamPlayer;
 	}
