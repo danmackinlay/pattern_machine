@@ -14,6 +14,7 @@ PSBarSeq {
 	var <maxLen;
 	var <>baseEvents;
 	var <>parentEvent;
+	var <>protoEvent;
 	var <>state;
 	var <>barcallback;
 	var <>notecallback;
@@ -30,7 +31,7 @@ PSBarSeq {
 	var <>delta;
 	var <beatlen;
 	var <nextfirst=0;
-	var <>evt;
+	var <evt; //debugger
 	var <>clock;
 	var <>sharedRandData;
 	
@@ -39,6 +40,7 @@ PSBarSeq {
 		maxLen=1024,
 		baseEvents,
 		parentEvent,
+		protoEvent,
 		state,
 		barcallback,
 		notecallback,
@@ -48,9 +50,10 @@ PSBarSeq {
 			beatsPerBar,
 			nBars,
 			maxLen,
-			baseEvents ?? [Event.default],
-			parentEvent ?? (),
-			state ?? (),
+			baseEvents ?? {[()]},
+			parentEvent ?? {()},
+			protoEvent ? Event.default,
+			state ?? {()},
 			barcallback,
 			notecallback,
 			debug,
@@ -76,7 +79,7 @@ PSBarSeq {
 		beatlen = nBars*beatsPerBar;
 		//set up the next iteration
 		nextidxptr = idxptr + 1;
-		nextbartime = timePoints[nextidxptr] ?? inf;
+		nextbartime = timePoints[nextidxptr] ? inf;
 		(nextbartime > beatlen).if({
 			//next beat falls outside the bar. Wrap.
 			barcallback.notNil.if({
@@ -103,10 +106,9 @@ PSBarSeq {
 		});
 		
 		// Create and schedule event:
-		// "proper" way:
-		// evt = baseEvents.wrapAt(idxptr).copy.parent_(parentEvent);
 		// easier-to-debug way:
-		evt = parentEvent.copy.putAll(baseEvents.wrapAt(idxptr));
+		evt = Event.new(8, nil, protoEvent, true
+			).putAll(parentEvent, baseEvents.wrapAt(idxptr));
 		evt['tempo'] = (clock ? TempoClock.default).tempo;
 		evt['bartime'] = bartime;
 		evt['time'] = time;
@@ -175,6 +177,7 @@ PSBarSeq {
 PSWavvieEvtSeq {
 	var <beatsPerBar;
 	var <>nBars;
+	var <>protoEvent;
 	var <>parentEvent;
 	var <>state;
 	var <>barcallback;
@@ -189,12 +192,13 @@ PSWavvieEvtSeq {
 	var <>delta;
 	var <beatlen;
 	var <nextfirst=0;
-	var <>evt;
+	var <evt; //debugger
 	var <>clock;
 	var <>sharedRandData;
 	
 	*new{|beatsPerBar=4,
 		nBars=4,
+		protoEvent,
 		parentEvent,
 		state,
 		barcallback,
@@ -203,8 +207,9 @@ PSWavvieEvtSeq {
 		^super.newCopyArgs(
 			beatsPerBar,
 			nBars,
-			parentEvent ?? Event.default,
-			state ?? (),
+			protoEvent ?? {Event.default},
+			parentEvent ?? {()},
+			state ? {()},
 			barcallback,
 			notecallback,
 			debug,
@@ -248,10 +253,11 @@ PSWavvieEvtSeq {
 		});
 		
 		// Create and schedule event:
-		evt = parentEvent.copy;
-		evt['tempo'] = (clock ? TempoClock.default).tempo;
-		evt['bartime'] = bartime;
-		evt['time'] = time;
+		evt = Event.new(8, nil, protoEvent, true).putAll(parentEvent, (
+			tempo: (clock ? TempoClock.default).tempo,
+			bartime: bartime,
+			time: time,
+		));
 		notecallback.notNil.if({
 			var rout = Routine({ notecallback.value(evt, state, this).yield});
 			rout.randData = thisThread.randData;
@@ -264,7 +270,8 @@ PSWavvieEvtSeq {
 		spawner.par(
 			evt.isKindOf(Event).if(
 				{P1event(evt)},
-				{evt})
+				{evt}
+			)
 		);
 	}
 	play {|clock, protoEvent, quant, trace=false|
@@ -300,6 +307,7 @@ PSStreamer {
 	var <>notecallback;
 	var <>debug;
 	var <parentEvent;
+	var <protoEvent;
 	var <time=0.0;
 	//private vars
 	var <childStreams;
@@ -309,8 +317,8 @@ PSStreamer {
 	var <>delta;
 	var <beatlen;
 	var <nextfirst=0;
-	var <>evt;
 	var <>clock;
+	var <evt; //debugger
 	var <>sharedRandData;
 	var <streamSpawner;
 	var <>streamcounter = 0;
@@ -321,11 +329,11 @@ PSStreamer {
 		debug=false,
 		parentEvent|
 		^super.newCopyArgs(
-			state ?? (),
-			quant ?? [1,0,0].asQuant,
+			state ?? {()},
+			quant ?? {[1,0,0].asQuant},
 			notecallback, //null fn
 			debug,
-		).init.parentEvent_(parentEvent ?? Event.default);
+		).init.parentEvent_(parentEvent ? Event.default);
 	}
 	init{
 		childStreams = IdentityDictionary.new;
@@ -378,10 +386,11 @@ PSStreamer {
 	at {|id|
 		^childStreams[id];
 	}
-	decorateEvt{|evt|
-		time = time + evt.delta;
-		evt['tempo'] = (clock ? TempoClock.default).tempo;
-		evt['time'] = time;
+	decorateEvt{|event|
+		evt = parentEvent.copy.putAll(event, (
+			tempo: (clock ? TempoClock.default).tempo,
+			time: time,
+		));
 		//Probably shouldn't bother calling for rests
 		notecallback.notNil.if({
 			var rout = Routine({notecallback.value(evt, state, this).yield});
@@ -389,6 +398,7 @@ PSStreamer {
 			evt = rout.value;
 			this.sharedRandData = rout.randData;
 		});
+		time = time + evt.delta;
 		^evt;
 	}
 	asStream {|trace=false|
@@ -403,7 +413,7 @@ PSStreamer {
 	play {|clock, evt, quant, trace=false|
 		quant.notNil.if({masterQuant=quant});
 		evt.notNil.if({
-			this.parentEvent_(evt);
+			this.protoEvent_(evt);
 		});	
 		this.clock_(clock ? TempoClock.default);
 		eventStreamPlayer = this.asStream(trace
@@ -415,18 +425,18 @@ PSStreamer {
 		//should i implement other stream methods?
 		eventStreamPlayer.notNil.if({eventStreamPlayer.stop});
 	}
-	parentEvent_{|newParentEvent|
-		//you probably want the default event as parent,
-		// to ensure a default delta etc
-		//otherwise there will be confusing errors
-		newParentEvent = newParentEvent.copy;
-		if (newParentEvent.delta.isNil) { //uh oh missing standard method
-			newParentEvent.put(\parent, Event.default);
-		};
-		parentEvent = newParentEvent;
+	protoEvent_{
+		arg newProtoEvent;
+		parentEvent = Event.new(8, nil, newProtoEvent, true
+			).putAll(parentEvent);
+		protoEvent = newProtoEvent;
 		eventStreamPlayer.notNil.if({
-			eventStreamPlayer.event = parentEvent
+			eventStreamPlayer.event = protoEvent;
 		});
+	}
+	parentEvent_{
+		arg newParentEvent;
+		parentEvent = newParentEvent;
 	}
 	//utility conversions
 	beat2sec {|beats| ^beats/(clock.tempo)}
