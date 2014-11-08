@@ -3,7 +3,7 @@ Pbind(
 ).collect({|in| in.postcs;}).play;
 (
 fork {
-	p=PSWavvieStreamer.new(
+	p=PSStreamer.new(
 		state: (things: \toremember),
 		//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
 		debug: true);
@@ -15,7 +15,7 @@ fork {
 )
 (
 fork {
-	p=PSWavvieStreamer.new(
+	p=PSStreamer.new(
 		state: (things: \toremember),
 		notecallback: {|ev, seq| ev.degree=5.rand;[seq.clock.beats, ev, seq].postcs; ev;},
 		debug: true);
@@ -25,5 +25,10 @@ fork {
 }
 )
 p.masterQuant
+
 p.clock.beats
 p.asEventStreamPlayer
+
+p=Pbind(\dur, 1).trace.play(protoEvent:(a:2));
+p.parentEvent_((\b:4));
+p.parentEvent_((\a:4));

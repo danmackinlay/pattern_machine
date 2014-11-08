@@ -19,7 +19,7 @@ PSMCCore {
 		});
 	}
 	*synthName {|numChannels=1|
-		^(nameBase ++ "__" ++ numChannels.asString);
+		^(nameBase ++ "__%").format(numChannels);
 	}
 	*n {|numChannels=1|
 		//convenience alias for synthName

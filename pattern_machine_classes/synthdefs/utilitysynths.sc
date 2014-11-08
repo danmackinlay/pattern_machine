@@ -85,7 +85,6 @@ PSUtilitySynthDefs {
 		//I do this often enough for it to deserve a synthdef.
 		SynthDef.new(\playbuf_or_live__1x1,
 			{|out=0,
-				in=0,
 				bufnum,
 				loop=1.0,
 				gate=1,
@@ -103,21 +102,20 @@ PSUtilitySynthDefs {
 			livefade = VarLag.kr(
 				in: livefade.linlin(0.0,1.0,-1.0,1.0),
 				time: fadetime, warp: \linear);
-			sig = XFade2.ar(sig, In.ar(in), livefade);
+			sig = XFade2.ar(sig, In.ar(out), livefade);
 			env = EnvGen.kr(
 				Env.asr(attackTime:0.05, releaseTime:0.05, curve: \sine),
 				levelScale: 1,
 				gate: gate,
 				doneAction: 2
 			);
-			Out.ar(out, sig*env);
+			ReplaceOut.ar(out, sig*env);
 		}).add;
-		//a version which plays live input or looped buffer in sync to clock;
+		//a version which plays live input or looped buffer
 		//this could also be declicked
 		//todo: loop audio as well
 		SynthDef.new(\bufrd_or_live__1x1,
 			{|out=0,
-				in=0,
 				bufnum,
 				gate=1,
 				rate=1,
@@ -145,14 +143,14 @@ PSUtilitySynthDefs {
 			livefade = VarLag.kr(
 				in: livefade.linlin(0.0,1.0,-1.0,1.0),
 				time: fadetime, warp: \linear);
-			sig = XFade2.ar(sig, In.ar(in), livefade);
+			sig = XFade2.ar(sig, In.ar(out), livefade);
 			env = EnvGen.kr(
 				Env.asr(attackTime:0.05, releaseTime:0.05, curve: \sine),
 				levelScale: 1,
 				gate: gate,
 				doneAction: 2
 			);
-			Out.ar(out, sig*env);
+			ReplaceOut.ar(out, sig*env);
 		}).add;
 		SynthDef(\rec_or_live__1, {|bufnum=0, in=0|
 			RecordBuf.ar(In.ar(in),bufnum:bufnum, loop:0, doneAction:2);

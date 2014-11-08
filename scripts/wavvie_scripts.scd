@@ -2,12 +2,11 @@
 Wavvie
 
 TODO:
+* might make more sense to, instead of having different mixer channels, to  mix at the pattern level for different samples.
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
-* off switch for all notes (external gate?)
-* switch between external (live, RME) and internal mixers using a BusAllocator
-* Multiple synths
+* switch between external (live, RME) and internal mixers
 * copula params?
 * interesting param map
 
@@ -17,7 +16,7 @@ TODO:
 * interesting rhythm somehow
 
   * so also a non-bar-oriented synth
-  * FSM sequencer
+  * FSM pattern
   * smart accent
 
 * or bar oriented:
@@ -49,72 +48,46 @@ TODO:
     * reverb mix?
     * attack/release
 */
+
+ServerTreeGui.makeWindow(s);
+Server.default = Dan.serverboot(\local, \builtin);
 (
-var state = ();
+var masterstrip, samples, server, state;
+server = Server.default;
+state = (
+	sampleDur: 60.0,
+	server: server,
+	patthandles: List.new,
+	inbus: server.inputBus.subBus(0,1),
+	outbus: server.outputBus.subBus(0,2),
+);
 ~state=state;
-state.server = ~server;
-
-state.server.doWhenBooted({state.make({
-	~ninputs = 1;
-	~ninsts = 4;
-	~sampleDur = 60;
-	~bpm = 80;
-	~clock = TempoClock.new(~bpm/60.0);
-
-	//sample loading
-	~samples = PSSamples.new(basePath: PS.scsamplepath, dur: ~sampleDur);
-	~samples.initFromDict((
-		siren: [
-			"22370__druidus__Civil_Defence_Siren.wav",
-			"24347__fonogeno__Police_sirens-short.wav",
-			//"30476__LG__Dutch_air_raid_warning_02.wav",
-			"43807__daveincamas__WW2AirplaneFlyover.wav",
-		],
-		people: [
-			"actors-laughing.wav",
-			//"tortureguy-3.wav",
-			"actors-siren.wav",
-			"actors-tuning.wav",
-		],
-		desolation: [
-			"varese_on_a_lathe.wav",
-			//"whistling-wind.wav",
-			//"seagull-walk.wav",
-			"10334_batchku_burning_iceberg.aiff",
-		],
-		tuneful: [
-			"Unknown_Lead_Vocal.wav",
-			"NS-wind-chimes-002-denoise-edit.wav",
-			"CONCERTOFORCLARINETP2-solo.wav",
-			//"uc-ezchord.wav",
-		],
-		choral: [
-			"angelite_legend_mmm.aif",
-			"huunhuurtu_angelite_legend_build.wav",
-			"namgyal.aif",
-			"paert-Magnificat-climax.aif",
-		],
-	));
-	CmdPeriod.doOnce({ state.samples.free });
-	s.sync;
-	this.executeFile(PS.scriptpath +/+ "basic_mixer_setup.scd").value(state);
+state.server.waitForBoot({
+	var wavvie, samples, streamer;
+	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
+	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	//sync fails to handle the source setting properly
-	//~sourcesounds[0].set(\bufnum,~samples.key(\choral,0));
-	{state.sourcesounds[0].set(\bufnum,state.samples.key(\tuneful,0))}.defer(1);
-})});
-)
-(
-var sequencemaker, seq, beat2sec, sec2beat, beat2freq, freq2beat;
-var localstate, state = ~state, i = 0, foo;
-fork {
-	localstate = Event.new(n:60, proto: state, know: true);
-	localstate.make({
-		~inbus = state.inbuses[0];
-		~outbus = state.instbusallocator.alloc;
-		~controls = List.new;
-		~seed = 1;
+	wavvie = PSWavvie.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
+	CmdPeriod.doOnce({ wavvie.free});
+	streamer = PSStreamer.new(
+		state: state,
+		//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
+		//debug: true
+	);
+	//streamer.parentEvent_(Event.default.putAll(wavvie.baseEvent));
+	streamer.play(
+		//trace: true
+	);
+	CmdPeriod.doOnce({ streamer.free});
+
+	state.make({
+		~wavvie = wavvie;
+		~samples = samples;
+		~streamer = streamer;
+		s.sync;
+		{wavvie.rec(10.0);}.defer(1.0);
+		~combed = 0.0;
 		~lfobasefs = PSquama.lin([1,2,3,4,6]);
 		~jumps = PSquama.lin([1,2,4,8]);
 		~grains = PSquama.lin([1,2,4,8,16,32]/32);
@@ -123,84 +96,93 @@ fork {
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
 	});
-	foo =  this.executeFile(PS.scriptpath +/+ "wavvie_inst.scd").value(localstate, i);
-	//[\foo, foo].postcs;
-	//todo move these functions somewhere general
-	beat2sec = {|beats| localstate.beatTime * beats};
-	sec2beat = {|secs| secs /(localstate.beatTime)};
-	beat2freq = {|beats| (localstate.beatTime * beats).reciprocal };
-	freq2beat = {|freq| (localstate.beatTime.reciprocal) / freq};
-	s.sync;
 
-	localstate.use({
-		sequencemaker = {
-			(50.rand+10).collect({16.0.rand.round(0.25)}).sort;
-		};
-		seq = PSWavvieBarSeq(
-			state: state,
-			parentEvent: ~parentevt);
-		seq.barcallback = {|seq|
-			localstate[\seed].notNil.if({
-				thisThread.randSeed_(localstate[\seed]);
-			});
-			seq.timePoints = sequencemaker.value;
-		};
-		seq.notecallback = {|evt, seq|
-			localstate.use({
-			//evt.postcs;
-			evt[\lfobasefs] = beat2freq.(~lfobasefs.choose);
-			evt[\lfomodf] = beat2freq.(~lfobasefs.choose);
-			evt[\lfomodamp] = ~lfomodamp;
-			evt[\lfophase] = 0;
-			evt[\lfo2pos] = beat2sec.(0);
-			evt[\lfo2amp]= -0.25;
-			evt[\lfo2grain] = 0;
-			evt[\lfo2pan] = 0.0;
-			evt[\lfo2del] = ~lfo2del;
-			evt[\posrate] = 0.125 * (0.5.coin*2 -1);
-			evt[\timeago] = beat2sec.(~jumps.choose);
-			evt[\grainsize] = beat2sec.(~grains.choose);
-			evt[\windowRandRatio] = ~windowRandRatio;
-			evt[\sustainDur] = beat2sec.(2.pow((-2).rrand(4)));
-			evt[\db] = -10.0;
-			evt[\pan] = 0.8.rand2;
-			evt[\pitchrate] = ~transps.choose;
-			evt[\overlaps] = 4;
-			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
-			evt[\allpdecayratio] = 4;
-			evt[\combed] = ~combed;
-			//evt.postcs;
-			});
-		};
-		~seq = seq;
-		// ~stream = ~seq.play(clock: ~clock, trace:true);
-		~stream = ~seq.play(clock: ~clock);
-	});
-	{localstate.rec(10.0);}.defer(1.0);
-};
+});
 )
-~state.voiceStates[0].rec(10);
-~state.voiceStates[0].seed=1;
-~state.voiceStates[0].lfo2del=0.001;
-~state.voiceStates[0].windowRandRatio=0.25;
-~state.voiceStates[0].combed=0.5;
-~state.voiceStates[0].seq.stream.randSeed;
-~state.voiceStates[0].debugSpawn=false;
-~state.bpm;
-~state.bpm=120;
-~state.updateTempo.();
-~state.tempo;
-~state.voiceStates[0].loopbuf.plot;
+(
+	~state.streamer.notecallback = #{|evt, state, streamer|
+		evt.use({
+			//evt.postcs;
+			~lfobasefs = streamer.beat2freq(state.lfobasefs.choose);
+			~lfomodf = streamer.beat2freq(state.lfobasefs.choose);
+			~lfomodamp = state.lfomodamp;
+			~lfophase = 0;
+			~lfo2amp= -0.25;
+			~lfo2grain = 0;
+			~lfo2pan = 0.0;
+			~lfo2del = state.lfo2del;
+			~posrate = 0.125 * (0.5.coin*2 -1);
+			~timeago = streamer.beat2sec(state.jumps.choose);
+			~grainsize = streamer.beat2sec(state.grains.choose);
+			~windowRandRatio = state.windowRandRatio;
+			~sustainDur = streamer.beat2sec(2.pow((-2).rrand(4)));
+			~db = -10.0;
+			~pan = 0.8.rand2;
+			~pitchrate = state.transps.choose;
+			~overlaps = 4;
+			~allpdelayratio = 0.173; //enharmonic sounds better
+			~allpdecayratio = 4;
+			~combed = state.combed;
+			evt.postcs;
+			//evt;
+		});
+		evt;
+	};
+	~state.patthandles.add(~state.streamer.add(
+		(~state.wavvie.baseEvent.putAll((
+			instrument: \ps_bufgrain_type_2__1x2,
+			type: \note,
+			dur: 1,
+			sendGate: false,
+		))).asPattern
+	));
+)
+(
+	~state.patthandles.add(~state.streamer.add((
+		instrument: \default,
+		type: \note,
+		dur: 1,
+	).asPattern));
+)
+~state.wavvie.rec(10.0);
+~state.wavvie.baseEvent;
+~state.wavvie.buf.query;
+~state.wavvie.buf.updateInfo;
+~state.wavvie.buf.plot;
+~state.wavvie.buf.numFrames
+~state.wavvie.buf.sampleRate
+~state.wavvie.buf.numChannels
+~state.wavvie.phasebus.get
+
+~state.patthandles;
+~state.streamer.removeAt(2);
+~state.streamer.childStreams;
+~state.streamer.stopChildren;
+//~state.streamer.clock.tempo
+//t=~state.streamer.add(Pbind(\degree, 1, \delta, 1), id: \a);
+
+/*
+TODO NOW:
+
+1. create new short lived sequences based on current params
+2. create evolving long-lived sequences
+*/
+
+
+~state.wavvie.id;
+~state.streamer.parentEvent;
+~state.streamer.stopChildren;
+~state.wavvie.inbus;
+~state.wavvie.bus;
+~state.wavvie.outbus;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\choral,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\siren,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\desolation,0));
-
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
-~state.voiceStates[0].parentevt[\group];
 (
 ~spy = (
 	instrument: \jack__1,
@@ -213,3 +195,13 @@ fork {
 ).play;
 )
 ~spy.free;
+(
+n=PSNoteCallback((a:1), {
+	arg evt, seq;
+	~b = seq.state.a + 1;
+});
+)
+Pattern
+(
+(degree: 1).asPattern.trace.play(protoEvent: (b:1))
+)
