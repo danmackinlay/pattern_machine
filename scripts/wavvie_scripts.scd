@@ -2,13 +2,11 @@
 Wavvie
 
 TODO:
-* might make more sense to, instead of having different mixer channels, to  mix at the pattern level for differnt samples?
+* might make more sense to, instead of having different mixer channels, to  mix at the pattern level for different samples.
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
-* off switch for all notes (external gate?)
-* switch between external (live, RME) and internal mixers using a BusAllocator
-* Multiple synths
+* switch between external (live, RME) and internal mixers
 * copula params?
 * interesting param map
 
