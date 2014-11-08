@@ -131,7 +131,7 @@ PSWavvie {
 			});
 			bf.isNil.if({
 				buf  = this.freeable(
-					Buffer.new(server, server.sampleRate * 60.0, 1)
+					Buffer.alloc(server, server.sampleRate * 60.0, 1)
 				);
 			}, {
 				buf = bf;
