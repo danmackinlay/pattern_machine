@@ -54,9 +54,14 @@ ServerTreeGui.makeWindow(s);
 Server.default = Dan.serverboot(\local, \builtin);
 
 (
-var masterstrip, samples, state = (
+var masterstrip, samples, server, state;
+server = Server.default;
+state = (
 	sampleDur: 60.0,
-	server: Server.default,
+	server: server,
+	patthandles: List.new,
+	inbus: server.inputBus.subBus(0,1),
+	outbus: server.outputBus.subBus(0,2),
 );
 ~state=state;
 state.server.waitForBoot({
@@ -67,7 +72,7 @@ state.server.waitForBoot({
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
 	[\synths].postcs;
-	wavvie = PSWavvie.new(state:state, samples: samples);
+	wavvie = PSWavvie.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
 	CmdPeriod.doOnce({ wavvie.free});
 	[\wavvie, wavvie].postcs;
 	streamer = PSStreamer.new(
