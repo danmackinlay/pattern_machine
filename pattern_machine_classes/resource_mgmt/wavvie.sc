@@ -1,4 +1,7 @@
-//A particular sampling doohickey
+//A particular sampling doohickey;
+//No sample path between mono input and stereo output;
+//that comes from resampling the sample buffer.
+
 PSWavvie {
 	var <id;
 	var <state;
@@ -7,7 +10,7 @@ PSWavvie {
 	var <group;
 	var <headgroup, <midgroup, <tailgroup;
 	var <numChannels=2;// internal/output channels that is.
-	var <bus, <inbus, <outbus, <phasebus;
+	var <bus, <listenbus, <inbus, <outbus, <phasebus;
 	var <buf;
 	var <samples;
 	var <server;
@@ -25,14 +28,14 @@ PSWavvie {
 	}
 	//inbus and outbus presumed shared. other mangling happens within.
 	*new {
-		arg id, state, clock, group, bus, inbus, outbus, phasebus, samples, buf, proto;
+		arg id, state, clock, group, bus, listenbus, inbus, outbus, phasebus, samples, buf, proto;
 		id = id ?? {idCount = idCount + 1;};
 		this.removeAt(id);
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
 			id, state, clock, proto
-		).initPSWavvie(group,bus,inbus,outbus,phasebus,samples,buf);
+		).initPSWavvie(group,bus,listenbus,inbus,outbus,phasebus,samples,buf);
 	}
 	*at {
 		arg id;
@@ -45,7 +48,7 @@ PSWavvie {
 		prev.tryPerform(\free);
 	}
 	*newFrom {
-		arg proto, id, state, clock, group, bus, inbus, outbus, phasebus, samples, buf;
+		arg proto, id, state, clock, group, bus, listenbus, inbus, outbus, phasebus, samples, buf;
 		//shorthand: copy init args from a
 		proto.notNil.if({
 			state.isNil.if({
@@ -57,12 +60,16 @@ PSWavvie {
 			group.isNil.if({
 				group = proto.tryPerform(\group);
 			});
-			//Don't ever claim the private bus
+			//Don't ever claim the private output bus
 			/*bus.isNil.if({
 				bus = proto.tryPerform(\bus);
 			});*/
-			inbus.isNil.if({
+			//don't ever claim the private input bus
+			/*inbus.isNil.if({
 				inbus = proto.tryPerform(\inbus);
+			});*/
+			listenbus.isNil.if({
+				listenbus = proto.tryPerform(\listenbus);
 			});
 			outbus.isNil.if({
 				outbus = proto.tryPerform(\outbus);
@@ -83,6 +90,7 @@ PSWavvie {
 			clock:clock,
 			group:group,
 			bus:bus,
+			listenbus: listenbus,
 			inbus:inbus,
 			outbus:outbus,
 			phasebus:phasebus,
@@ -92,7 +100,7 @@ PSWavvie {
 		);
 	}
 	initPSWavvie {
-		arg gr,bs,ib,ob,pb,samps,bf;
+		arg gr,bs,lb,ib,ob,pb,samps,bf;
 		gr.notNil.if({
 			server = gr.server;
 		}, {
@@ -113,6 +121,11 @@ PSWavvie {
 				bus = this.freeable(Bus.audio(server,numChannels));
 			},{
 				bus = bs;
+			});
+			lb.isNil.if({
+				listenbus = this.freeable(Bus.audio(server, 1));
+			}, {
+				listenbus = lb;
 			});
 			ib.isNil.if({
 				inbus = this.freeable(Bus.audio(server, 1));
@@ -139,8 +152,8 @@ PSWavvie {
 			injacksynth = this.freeable(Synth.new(
 				"jack__1",
 				(
-				in: inbus,
-				out: bus,
+				in: listenbus,
+				out: inbus,
 				).getPairs,
 				target: headgroup,
 				addAction: \addToHead,
@@ -150,7 +163,7 @@ PSWavvie {
 				"limi__1x1",
 				(
 				pregain: 10.dbamp,
-				out: bus,
+				out: inbus,
 				).getPairs,
 				target: injacksynth,
 				addAction: \addAfter,
@@ -163,8 +176,7 @@ PSWavvie {
 					(
 					looptime: this.beat2sec(16),
 					offset: 0.0,
-					in: inbus,
-					out: bus,
+					out: inbus,
 					bufnum: samples.at(0),
 					livefade: 0.0,
 					loop: 1,
@@ -177,7 +189,7 @@ PSWavvie {
 			recsynth = this.freeable(Synth.new(
 				"ps_bufwr_resumable__1x1",
 				(
-				in: bus,
+				in: inbus,
 				bufnum: buf,
 				phasebus: phasebus,
 				fadetime: 0.05,
@@ -185,6 +197,7 @@ PSWavvie {
 				target: headgroup,
 				addAction: \addToTail,
 			));
+			//note no connection to the outside world
 			outjacksynth = this.freeable(Synth.new(
 				"jack__%".format(numChannels),
 				(
