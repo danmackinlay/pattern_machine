@@ -2,7 +2,7 @@
 //No sample path between mono input and stereo output;
 //that comes from resampling the sample buffer.
 
-PSWavvie {
+PSSamplingStrip {
 	var <id;
 	var <state;
 	var <clock;
@@ -35,7 +35,7 @@ PSWavvie {
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
 			id, state, clock, proto
-		).initPSWavvie(group,bus,listenbus,inbus,outbus,phasebus,samples,buf);
+		).initPSSamplingStrip(group,bus,listenbus,inbus,outbus,phasebus,samples,buf);
 	}
 	*at {
 		arg id;
@@ -99,7 +99,7 @@ PSWavvie {
 			proto: proto
 		);
 	}
-	initPSWavvie {
+	initPSSamplingStrip {
 		arg gr,bs,lb,ib,ob,pb,samps,bf;
 		gr.notNil.if({
 			server = gr.server;

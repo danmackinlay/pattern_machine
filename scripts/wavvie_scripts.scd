@@ -63,30 +63,28 @@ state = (
 );
 ~state=state;
 state.server.waitForBoot({
-	var wavvie, samples, streamer;
+	var samplingstrip, samples, streamer;
 	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	wavvie = PSWavvie.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
-	CmdPeriod.doOnce({ wavvie.free});
+	samplingstrip = PSWavvie.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
+	CmdPeriod.doOnce({ samplingstrip.free});
 	streamer = PSStreamer.new(
 		state: state,
-		//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
-		//debug: true
 	);
-	//streamer.parentEvent_(Event.default.putAll(wavvie.baseEvent));
+	//streamer.parentEvent_(Event.default.putAll(samplingstrip.baseEvent));
 	streamer.play(
 		//trace: true
 	);
 	CmdPeriod.doOnce({ streamer.free});
 
 	state.make({
-		~wavvie = wavvie;
+		~samplingstrip = samplingstrip;
 		~samples = samples;
 		~streamer = streamer;
 		s.sync;
-		{wavvie.rec(10.0);}.defer(1.0);
+		{samplingstrip.rec(10.0);}.defer(1.0);
 		~combed = 0.0;
 		~lfobasefs = PSquama.lin([1,2,3,4,6]);
 		~jumps = PSquama.lin([1,2,4,8]);
@@ -129,7 +127,7 @@ state.server.waitForBoot({
 		evt;
 	};
 	~state.patthandles.add(~state.streamer.add(
-		(~state.wavvie.baseEvent.putAll((
+		(~state.samplingstrip.baseEvent.putAll((
 			instrument: \ps_bufgrain_type_2__1x2,
 			type: \note,
 			dur: 1,

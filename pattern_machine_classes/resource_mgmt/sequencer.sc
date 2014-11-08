@@ -174,7 +174,7 @@ PSBarSeq {
 	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 //subclass schmubclass; I can simplify this later if it works
-PSWavvieEvtSeq {
+PSEvtSeq {
 	var <beatsPerBar;
 	var <>nBars;
 	var <>protoEvent;
