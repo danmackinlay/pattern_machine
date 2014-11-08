@@ -50,9 +50,9 @@ TODO:
     * reverb mix?
     * attack/release
 */
+
 ServerTreeGui.makeWindow(s);
 Server.default = Dan.serverboot(\local, \builtin);
-
 (
 var masterstrip, samples, server, state;
 server = Server.default;
@@ -68,23 +68,19 @@ state.server.waitForBoot({
 	var wavvie, samples, streamer;
 	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
-	[\samples, samples].postcs;
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	[\synths].postcs;
 	wavvie = PSWavvie.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
 	CmdPeriod.doOnce({ wavvie.free});
-	[\wavvie, wavvie].postcs;
 	streamer = PSStreamer.new(
 		state: state,
 		//notecallback: {|ev, seq| [seq.clock.beats, ev, seq].postcs; ev;},
 		//debug: true
 	);
-	//streamer.parentEvent_(wavvie.baseEvent); //Not necessarily the best way
+	//streamer.parentEvent_(Event.default.putAll(wavvie.baseEvent));
 	streamer.play(
 		//trace: true
 	);
-	[\streamer, streamer].postcs;
 	CmdPeriod.doOnce({ streamer.free});
 
 	state.make({
@@ -104,6 +100,20 @@ state.server.waitForBoot({
 	});
 
 });
+~state.wavvie.rec(10.0);
+~state.wavvie.baseEvent;
+~state.wavvie.buf.query;
+~state.wavvie.buf.updateInfo;
+~state.wavvie.buf.plot;
+~state.wavvie.buf.numFrames
+~state.wavvie.buf.sampleRate
+~state.wavvie.buf.numChannels
+~state.wavvie.phasebus.get
+
+~state.patthandles;
+~state.streamer.removeAt(2);
+~state.streamer.childStreams;
+~state.streamer.stopChildren;
 //~state.streamer.clock.tempo
 //t=~state.streamer.add(Pbind(\degree, 1, \delta, 1), id: \a);
 
@@ -155,25 +165,21 @@ TODO NOW:
 		evt;
 	};
 )
-~state.wavvie.baseEvent;
+
 ~state.wavvie.id;
-PSWavvie(\wav1);
 ~state.streamer.parentEvent;
+~state.streamer.stopChildren;
 ~state.wavvie.inbus;
 ~state.wavvie.bus;
 ~state.wavvie.outbus;
-~state.wavvie.rec(5);
-~state.wavvie.baseEvent;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\choral,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\siren,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\desolation,0));
-
 ~state.samples.at(0);
 ~state.samples.key(\people,0);
-~state.voiceStates[0].parentevt[\group];
 (
 ~spy = (
 	instrument: \jack__1,
