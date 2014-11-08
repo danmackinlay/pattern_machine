@@ -100,6 +100,52 @@ state.server.waitForBoot({
 	});
 
 });
+)
+(
+	~state.streamer.notecallback = #{|evt, state, streamer|
+		evt.use({
+			//evt.postcs;
+			~lfobasefs = streamer.beat2freq(state.lfobasefs.choose);
+			~lfomodf = streamer.beat2freq(state.lfobasefs.choose);
+			~lfomodamp = state.lfomodamp;
+			~lfophase = 0;
+			~lfo2amp= -0.25;
+			~lfo2grain = 0;
+			~lfo2pan = 0.0;
+			~lfo2del = state.lfo2del;
+			~posrate = 0.125 * (0.5.coin*2 -1);
+			~timeago = streamer.beat2sec(state.jumps.choose);
+			~grainsize = streamer.beat2sec(state.grains.choose);
+			~windowRandRatio = state.windowRandRatio;
+			~sustainDur = streamer.beat2sec(2.pow((-2).rrand(4)));
+			~db = -10.0;
+			~pan = 0.8.rand2;
+			~pitchrate = state.transps.choose;
+			~overlaps = 4;
+			~allpdelayratio = 0.173; //enharmonic sounds better
+			~allpdecayratio = 4;
+			~combed = state.combed;
+			evt.postcs;
+			//evt;
+		});
+		evt;
+	};
+	~state.patthandles.add(~state.streamer.add(
+		(~state.wavvie.baseEvent.putAll((
+			instrument: \ps_bufgrain_type_2__1x2,
+			type: \note,
+			dur: 1,
+			sendGate: false,
+		))).asPattern
+	));
+)
+(
+	~state.patthandles.add(~state.streamer.add((
+		instrument: \default,
+		type: \note,
+		dur: 1,
+	).asPattern));
+)
 ~state.wavvie.rec(10.0);
 ~state.wavvie.baseEvent;
 ~state.wavvie.buf.query;
@@ -123,48 +169,7 @@ TODO NOW:
 1. create new short lived sequences based on current params
 2. create evolving long-lived sequences
 */
-)
-(
-	~state.streamer.add((
-		instrument: \ps_bufgrain_type_2__1x2,
-		type: \note,
-		dur: 1,
-		sendGate: false,
-	).asPattern);
 
-	~state.streamer.notecallback = {|evt, state, streamer|
-		state.use({
-			//evt.postcs;
-			evt[\lfobasefs] = streamer.beat2freq(~lfobasefs.choose);
-			evt[\lfomodf] = streamer.beat2freq(~lfobasefs.choose);
-			evt[\lfomodamp] = ~lfomodamp;
-			evt[\lfophase] = 0;
-			evt[\lfo2amp]= -0.25;
-			evt[\lfo2grain] = 0;
-			evt[\lfo2pan] = 0.0;
-			evt[\lfo2del] = ~lfo2del;
-			evt[\posrate] = 0.125 * (0.5.coin*2 -1);
-			evt[\timeago] = streamer.beat2sec(~jumps.choose);
-			evt[\grainsize] = streamer.beat2sec(~grains.choose);
-			evt[\windowRandRatio] = ~windowRandRatio;
-			evt[\sustainDur] = streamer.beat2sec(2.pow((-2).rrand(4)));
-			evt[\db] = -10.0;
-			evt[\pan] = 0.8.rand2;
-			evt[\pitchrate] = ~transps.choose;
-			evt[\overlaps] = 4;
-			evt[\allpdelayratio] = 0.173; //enharmonic sounds better
-			evt[\allpdecayratio] = 4;
-			evt[\combed] = ~combed;
-			//evt.postcs;
-			evt;
-		});
-		[\AAAAAA, evt.asCompileString[..30], ].postcs;
-		[\parent, evt.parent.asCompileString[..30]].postcs;
-		[\legato, evt.legato].postcs;
-		[\sustain, evt.sustain].postcs;
-		evt;
-	};
-)
 
 ~state.wavvie.id;
 ~state.streamer.parentEvent;
