@@ -71,7 +71,7 @@ state.server.waitForBoot({
 	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	samplingstrip = PSWavvie.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
+	samplingstrip = PSSamplingStrip.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
 	CmdPeriod.doOnce({ samplingstrip.free});
 	streamer = PSStreamer.new(
 		state: state,
@@ -97,7 +97,6 @@ state.server.waitForBoot({
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
 	});
-
 });
 )
 (
@@ -146,16 +145,14 @@ state.server.waitForBoot({
 	).asPattern));
 )
 ~state.samplingstrip.rec(10.0);
+~state.samplingstrip.sourceBuf(3);
+~state.samplingstrip.sourceBuf(\tuneful,0);
+~state.samplingstrip.sourceBuf(\choral,0);
+~state.samplingstrip.sourceBuf(\people,0);
+~state.samplingstrip.sourceBuf(\siren,0);
+~state.samplingstrip.sourceBuf(\desolation,0);
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
-
-~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
-~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
-~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\choral,0));
-~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\siren,0));
-~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\desolation,0));
-~state.samples.at(0);
-~state.samples.key(\people,0);
 (
 ~spy = (
 	instrument: \jack__1,
@@ -168,13 +165,3 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
-(
-n=PSNoteCallback((a:1), {
-	arg evt, seq;
-	~b = seq.state.a + 1;
-});
-)
-Pattern
-(
-(degree: 1).asPattern.trace.play(protoEvent: (b:1))
-)

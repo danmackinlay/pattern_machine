@@ -212,6 +212,10 @@ PSSamplingStrip {
 	rec {|dur=10.0|
 		recsynth.set(\t_rec, dur);
 	}
+	sourceBuf {
+		arg ...selector;
+		sourcesoundsynth.set(\bufnum, samples.at(*selector));
+	}
 	free {
 		otherstuff2free.do({arg stuff; stuff.free});
 	}
