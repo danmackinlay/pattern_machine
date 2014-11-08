@@ -2,7 +2,10 @@
 Wavvie
 
 TODO:
-* might make more sense to, instead of having different mixer channels, to  mix at the pattern level for different samples.
+
+* create new short lived sequences based on current params
+* create evolving long-lived sequences
+* might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
@@ -142,37 +145,9 @@ state.server.waitForBoot({
 		dur: 1,
 	).asPattern));
 )
-~state.wavvie.rec(10.0);
-~state.wavvie.baseEvent;
-~state.wavvie.buf.query;
-~state.wavvie.buf.updateInfo;
-~state.wavvie.buf.plot;
-~state.wavvie.buf.numFrames
-~state.wavvie.buf.sampleRate
-~state.wavvie.buf.numChannels
-~state.wavvie.phasebus.get
-
-~state.patthandles;
+~state.samplingstrip.rec(10.0);
 ~state.streamer.removeAt(2);
-~state.streamer.childStreams;
 ~state.streamer.stopChildren;
-//~state.streamer.clock.tempo
-//t=~state.streamer.add(Pbind(\degree, 1, \delta, 1), id: \a);
-
-/*
-TODO NOW:
-
-1. create new short lived sequences based on current params
-2. create evolving long-lived sequences
-*/
-
-
-~state.wavvie.id;
-~state.streamer.parentEvent;
-~state.streamer.stopChildren;
-~state.wavvie.inbus;
-~state.wavvie.bus;
-~state.wavvie.outbus;
 
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\tuneful,0));
 ~state.sourcesounds[0].set(\bufnum, ~state.samples.key(\people,0));
