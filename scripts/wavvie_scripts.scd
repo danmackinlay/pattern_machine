@@ -4,8 +4,12 @@ Wavvie
 TODO:
 
 * stereo movement in these damn synths
+* use state only to hold new spawning parameters; then I can pass them in without fear
+* detect note onsets for sequencing purposes, and index by onset
+* pitch recording
 * some kind of better notion of what sampling a bar means
 * cue scrubbing of sample buffer
+* manual tuning of transpositions
 * create pattern factories with dynamic scale lookup
 * create new short lived sequences based on current params
 * create evolving long-lived sequences
@@ -14,46 +18,26 @@ TODO:
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
 * switch between external (live, RME) and internal mixers
-* copula params?
-* interesting param map
-
-  * poss Martin Marier's excellent PresetInterpolator
-  * Or Wekinator
-
 * interesting rhythm somehow
-
   * so also a non-bar-oriented synth
   * FSM pattern
   * smart accent
-
 * or bar oriented:
-
   * GUI is needed
   * decent Lemur template
    * or NexusUI
-
-* pitch recording
+* interesting param map
+  * poss Martin Marier's excellent PresetInterpolator
+  * Or Wekinator
 * OSC triggering for:
-
-  * overall
-  * gestures
-
-  * live in
-
-    * sample source
-    * tempo overall
-
-      * tap sync?
-
-  * per voice
-
-    * overall "weirdness" param to control with trivial mapping
-    * overall "intensity" param
-    * I kinda feel we wan to control marginals and correlation of params
-    * quantization
-    * level
-    * reverb mix?
-    * attack/release
+  * overall "weirdness" param to control with trivial mapping
+  * overall "intensity" param
+  * I kinda feel we wan to control marginals and correlation of params
+  * copula params?
+  * quantization
+  * level
+  * reverb mix?
+  * attack/release
 */
 
 ServerTreeGui.makeWindow(s);
@@ -171,3 +155,4 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
+
