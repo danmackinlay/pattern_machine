@@ -59,8 +59,12 @@ PSSamples {
 		buf.readChannel(fullpath, channels: Array.series(chans));
 		^ind;
 	}
-	at {|ind|
-		^sampleBufArray[ind];
+	at {
+		arg ...args;
+		args.size.switch(
+			1, {^sampleBufArray[args[0]]},
+			2, {^this.key(args[0], args[1])},
+		);
 	}
 	key {|key, ind|
 		^sampleBufArray[sampleBufKeys[key].wrapAt(ind)];

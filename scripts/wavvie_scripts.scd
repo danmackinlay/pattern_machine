@@ -3,7 +3,6 @@ Wavvie
 
 TODO:
 
-* fix PSSamples first
 * create pattern factories with dynamic scale lookup
 * create new short lived sequences based on current params
 * create evolving long-lived sequences
@@ -156,7 +155,7 @@ state.server.waitForBoot({
 ~state.samplingstrip.sourceBuf(\desolation,0);
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
-~state.samples.at(\tuneful, 0);
+~state.samples.at(\tuneful, 2);
 (
 ~spy = (
 	instrument: \jack__1,
