@@ -6,7 +6,8 @@
 * proper nice machine listening granulation
 * general Python OSC serving framework, with talkback to server and client, and multiple different paths.
 * mine metal percussion for peak distribution
-  * overview: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
+  * overview of assumption-free methods: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
+  * but see also Sethares' "A Bell, A Rock, A Crystal" and the analysis of the spectral structure of manufactured gongs and bells
   * "MTT" method
     * https://github.com/glyg/peak_detection
     * http://www.nature.com/nmeth/journal/v5/n8/full/nmeth.1233.html
@@ -51,6 +52,7 @@
   * annealing/Gibbs distribution style process
   * Der/Zahedi/Bertschinger/Ay-style information sensorimotor loop
 * rhythms
+  * recurrent neural networks like http://arxiv.org/abs/1308.0850
   * hawkes process
 * sync oscillator system
   * continuous Kuramoto, possibly on a graph

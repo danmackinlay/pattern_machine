@@ -3,6 +3,8 @@ Wavvie
 
 TODO:
 
+* fix PSSamples first
+* create pattern factories with dynamic scale lookup
 * create new short lived sequences based on current params
 * create evolving long-lived sequences
 * might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.
@@ -144,15 +146,17 @@ state.server.waitForBoot({
 		dur: 1,
 	).asPattern));
 )
+~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(10.0);
 ~state.samplingstrip.sourceBuf(3);
-~state.samplingstrip.sourceBuf(\tuneful,0);
+~state.samplingstrip.sourceBuf(\tuneful,2);
 ~state.samplingstrip.sourceBuf(\choral,0);
 ~state.samplingstrip.sourceBuf(\people,0);
 ~state.samplingstrip.sourceBuf(\siren,0);
 ~state.samplingstrip.sourceBuf(\desolation,0);
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
+~state.samples.at(\tuneful, 0);
 (
 ~spy = (
 	instrument: \jack__1,
@@ -165,3 +169,4 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
+Dissonance
