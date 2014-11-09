@@ -3,6 +3,9 @@ Wavvie
 
 TODO:
 
+* stereo movement in these damn synths
+* some kind of better notion of what sampling a bar means
+* cue scrubbing of sample buffer
 * create pattern factories with dynamic scale lookup
 * create new short lived sequences based on current params
 * create evolving long-lived sequences
@@ -124,7 +127,7 @@ state.server.waitForBoot({
 			~allpdelayratio = 0.173; //enharmonic sounds better
 			~allpdecayratio = 4;
 			~combed = state.combed;
-			evt.postcs;
+			//evt.postcs;
 			//evt;
 		});
 		evt;
@@ -168,4 +171,3 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
-Dissonance
