@@ -1,4 +1,4 @@
-//Handy constructors for Patterns that I would like to be a little tidier.
+//Handy psudopatterns for Patterns that I would like to be a little tidier.
 PSwrand {
 	*new {|weightedList, repeats=1|
 		var expressions = Array.new(weightedList.size/2);
@@ -62,5 +62,55 @@ PContext : Pattern {
 	storeArgs { ^[state, key, default] }
 	asStream {
 		^FuncStream.new({state.at(key) ? default})
+	}
+}
+PMarkovChain : Pattern {
+	/* Ignores input; outputs a Markov sequence of 1st order,
+	which is the only non-bullshit order.
+	*/
+	var <>probs; //transition matrix
+	var <>halt; //stop value. defaults to nil, which never happens
+	var <>state; //current/inital state
+	var <states;
+	*new { arg probs, halt, state=0;
+		//normalise here?
+		^super.newCopyArgs(
+			probs.collect({|row| row.normalizeSum}),
+			halt,
+			state
+		).initPMarkov;
+	}
+	//create random markov chain.
+	//If i were a wanker, I might parameterise in terms of entropy rate.
+	*random {
+		arg nstates=4, disorder=0.25, ordertype=\static, halt, state=0;
+		var order, probs;
+		order = Array.series(nstates);
+		ordertype.switch(
+			\static, nil,
+			\inc, {order = (order+1) % nstates},
+			\chaos, {order = order.scramble},
+			{"unknown ordertype '%'".format(ordertype.asString).throw}
+		);
+		probs = order.collect({
+			arg dest, rownum;
+			var disordered, ordered = 0.dup(nstates);
+			ordered[dest] = 1;
+			disordered = Array.rand(nstates, 0.0, 1.0);
+			((disorder * disordered) + ((1-disorder) * ordered)).normalizeSum;
+		});
+		^this.new(probs, halt, state);
+	}
+	initPMarkov {
+		states = Array.series(probs.size);
+	}
+	storeArgs { ^[probs, halt, state]}
+	embedInStream { arg inval;
+		//we more or less ignore the input value.
+		({state != halt}).while({
+			state = states.wchoose(probs[state]);
+			inval = state.embedInStream(inval);
+		});
+		^inval;
 	}
 }
