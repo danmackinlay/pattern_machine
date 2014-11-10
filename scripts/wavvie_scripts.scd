@@ -6,6 +6,11 @@ TODO:
 * stereo movement in these damn synths
 * use state only to hold new spawning parameters; then I can pass them in without fear
 * detect note onsets for sequencing purposes, and index by onset
+  * Coyote is from BatUgens, purely time-domain. Looks elegant, though I've had a couple of Batugens explode on me
+  * Onsets is included in the distro, pure FFT, multiple methods
+* OnsetsDS is the Dan Stowell thingy; (circumstantially looks to be the prototype for Onsets)
+  * PV_HainsworthFoote and  PV_JensenAndersen are too.
+  * SLOnset is a Nick Collins joint, so likely to be a little, uh, sporadic
 * pitch recording
 * some kind of better notion of what sampling a bar means
 * cue scrubbing of sample buffer
