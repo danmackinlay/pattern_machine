@@ -5,7 +5,6 @@ PSSamplingStrip {
 	var <id;
 	var <state;
 	var <clock;
-	var <proto;
 	var <group;
 	var <headgroup, <midgroup, <tailgroup;
 	var <numChannels=2;// internal/output channels that is.
@@ -27,13 +26,13 @@ PSSamplingStrip {
 	}
 	//inbus and outbus presumed shared. other mangling happens within.
 	*new {
-		arg id, state, clock, group, bus, listenbus, inbus, outbus, phasebus, samples, audiobuf, proto;
+		arg id, state, clock, group, bus, listenbus, inbus, outbus, phasebus, samples, audiobuf;
 		id = id ?? {idCount = idCount + 1;};
 		this.removeAt(id);
 		state ?? {state = Event.new(n:60, know: true)};
 		clock ?? {clock = TempoClock.default};
 		^super.newCopyArgs(
-			id, state, clock, proto
+			id, state, clock
 		).initPSSamplingStrip(group,bus,listenbus,inbus,outbus,phasebus,samples,audiobuf);
 	}
 	*at {
@@ -45,58 +44,6 @@ PSSamplingStrip {
 		var prev = all.at(id);
 		all.removeAt(id);
 		prev.tryPerform(\free);
-	}
-	*newFrom {
-		arg proto, id, state, clock, group, bus, listenbus, inbus, outbus, phasebus, samples, audiobuf;
-		//shorthand: copy init args from a
-		proto.notNil.if({
-			state.isNil.if({
-				state = proto.tryPerform(\state);
-			});
-			clock.isNil.if({
-				clock = proto.tryPerform(\clock);
-			});
-			group.isNil.if({
-				group = proto.tryPerform(\group);
-			});
-			//Don't ever claim the private output bus
-			/*bus.isNil.if({
-				bus = proto.tryPerform(\bus);
-			});*/
-			//don't ever claim the private input bus
-			/*inbus.isNil.if({
-				inbus = proto.tryPerform(\inbus);
-			});*/
-			listenbus.isNil.if({
-				listenbus = proto.tryPerform(\listenbus);
-			});
-			outbus.isNil.if({
-				outbus = proto.tryPerform(\outbus);
-			});
-			phasebus.isNil.if({
-				phasebus = proto.tryPerform(\phasebus);
-			});
-			samples.isNil.if({
-				samples = proto.tryPerform(\samples);
-			});
-			audiobuf.isNil.if({
-				audiobuf = proto.tryPerform(\audiobuf);
-			});
-		});
-		^this.new(
-			id:id,
-			state:state,
-			clock:clock,
-			group:group,
-			bus:bus,
-			listenbus: listenbus,
-			inbus:inbus,
-			outbus:outbus,
-			phasebus:phasebus,
-			samples:samples,
-			audiobuf: audiobuf,
-			proto: proto
-		);
 	}
 	setupBundle {
 		arg gr,bs,lb,ib,ob,pb,samps,bf;
