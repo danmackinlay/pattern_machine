@@ -204,3 +204,51 @@ PSSamplingStrip {
 	beat2freq {|beats| ^(clock.tempo)/beats}
 	freq2beat {|freq| ^(clock.tempo) / freq}
 }
+PSAnalysingSamplingStrip : PSSamplingStrip {
+	var <analbufs;
+
+	//inbus and outbus presumed shared. other mangling happens within.
+	*new {
+		arg id, state, clock, group, bus, listenbus, inbus, outbus, phasebus, samples, audiobuf, analbufs, nanalbufs;
+		id = id ?? {idCount = idCount + 1;};
+		this.removeAt(id);
+		state ?? {state = Event.new(n:60, know: true)};
+		clock ?? {clock = TempoClock.default};
+		^super.newCopyArgs(
+			id, state, clock
+		).initPSAnalysingSamplingStrip(group,bus,listenbus,inbus,outbus,phasebus,samples,audiobuf, analbufs, nanalbufs);
+	}
+	setupBundle {
+		arg gr,bs,lb,ib,ob,pb,samps,bf, abfs, nabfs;
+		super.setupBundle(gr,bs,lb,ib,ob,pb,samps,bf);
+		abfs.isNil.if({
+			analbufs = Buffer.allocConsecutive(nabfs, server, server.controlRate * 60.0, 1).collect(
+				{|buf| this.freeable(buf)}
+			);
+		}, {
+			analbufs = abfs;
+		});
+	}
+	initPSAnalysingSamplingStrip {
+		arg gr,bs,lb,ib,ob,pb,samps,bf,abfs;
+		gr.notNil.if({
+			server = gr.server;
+		}, {
+			server = Server.default;
+		});
+		all[id] = this;
+		otherstuff2free = Array.new;
+		server.makeBundle(nil, {
+			this.setupBundle(gr,bs,lb,ib,ob,pb,samps,bf, abfs);
+		});
+	}
+	baseEvent {
+		//Do I really want to return all state? Can be a messy dict.
+		var evt = super.baseEvent;
+		analbufs.do({|buf, i|
+			evt[\anabuf++i] = buf
+		});
+		^evt;
+	}
+	
+}
