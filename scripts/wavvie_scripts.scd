@@ -53,7 +53,6 @@ server = Server.default;
 state = (
 	sampleDur: 60.0,
 	server: server,
-	patthandles: List.new,
 	inbus: server.inputBus.subBus(0,1),
 	outbus: server.outputBus.subBus(0,2),
 );
@@ -82,10 +81,10 @@ state.server.waitForBoot({
 		s.sync;
 		{samplingstrip.rec(10.0);}.defer(1.0);
 		~combed = 0.0;
-		~lfobasefs = PSquama.lin([1,2,3,4,6]);
-		~jumps = PSquama.lin([1,2,4,8]);
-		~grains = PSquama.lin([1,2,4,8,16,32]/32);
-		~transps = PSquama.lin([-1,-2,1,2]);
+		~lfobasefs = [1,2,3,4,6];
+		~jumps = [1,2,4,8];
+		~grains = [1,2,4,8,16,32]/32;
+		~transps = [-1,-2,1,2];
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
@@ -116,27 +115,21 @@ state.server.waitForBoot({
 			~allpdelayratio = 0.173; //enharmonic sounds better
 			~allpdecayratio = 4;
 			~combed = state.combed;
-			//evt.postcs;
 			//evt;
 		});
+		evt.postcs;
 		evt;
 	};
-	~state.patthandles.add(~state.streamer.add(
-		(~state.samplingstrip.baseEvent.putAll((
+	~state.streamer.add(
+		~state.samplingstrip.baseEvent.asPattern <> ((
 			instrument: \ps_bufgrain_type_2__1x2,
 			type: \note,
 			dur: 1,
 			sendGate: false,
-		))).asPattern
-	));
+		).asPattern)
+	);
 )
-(
-	~state.patthandles.add(~state.streamer.add((
-		instrument: \default,
-		type: \note,
-		dur: 1,
-	).asPattern));
-)
+
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(10.0);
 ~state.samplingstrip.sourceBuf(3);
