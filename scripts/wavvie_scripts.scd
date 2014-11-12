@@ -84,28 +84,7 @@ state.server.waitForBoot({
 	});
 	state.streamer.notecallback = #{|evt, state, streamer|
 		evt.use({
-			//evt.postcs;
-			~lfobasef = state.lfobasefs.choose;
-			~lfomodf = state.lfobasefs.choose;
-			~lfomodamp = state.lfomodamp;
-			~lfophase = 0;
-			~lfo2amp= -0.25;
-			~lfo2grain = 0;
-			~lfo2pan = 0.0;
-			~lfo2del = state.lfo2del;
-			~posrate = 0.125 * (0.5.coin*2 -1);
-			~timeago = state.jumps.choose;
-			~grainsize = state.grains.choose;
-			~windowRandRatio = state.windowRandRatio;
-			~sustainDur = 2.pow((-2).rrand(4));
-			~db = -10.0;
-			~pan = 0.8.rand2;
-			~pitchrate = state.transps.choose;
-			~overlaps = 4;
-			~allpdelayratio = 0.173; //enharmonic sounds better
-			~allpdecayratio = 4;
-			~combed = state.combed;
-			//evt;
+			//nothing ATM
 		});
 		evt.postcs;
 		evt;
@@ -118,12 +97,31 @@ state.server.waitForBoot({
 		~state.samplingstrip.basePattern <> Pbind(
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
-			\dur, Pfunc({state[\param]+1}),
 			\sendGate, false,
+			\lfobasef, Prand(state.lfobasefs, inf),
+			\lfomodf, Prand(state.lfobasefs, inf),
+			\lfomodamp, state.lfomodamp,
+			\lfophase, 0,
+			\lfo2amp, -0.25,
+			\lfo2grain, 0,
+			\lfo2pan, 0.0,
+			\lfo2del, state.lfo2del,
+			\posrate, 0.125 * (0.5.coin*2 -1),
+			\timeago, Prand(state.jumps, inf),
+			\grainsize, Prand(state.grains, inf),
+			\windowRandRatio, state.windowRandRatio,
+			\sustainDur, Pfunc({2.pow((-2).rrand(4))}),
+			\db, -10.0,
+			\pan, 0.8.rand2,
+			\pitchrate, Prand(state.transps, inf),
+			\overlaps, 4,
+			\allpdelayratio, 0.173,  //enharmonic sounds better
+			\allpdecayratio, 4,
+			\combed, state.combed,
 		)
 	);
 )
-
+5.exprand
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(10.0);
 ~state.samplingstrip.sourceBuf(3);
