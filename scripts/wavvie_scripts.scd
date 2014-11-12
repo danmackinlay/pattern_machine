@@ -3,8 +3,9 @@ Wavvie
 
 TODO:
 
+* why does stopChildren seem broken? pfft.
 * stereo movement in these damn synths
-* use state only to hold new spawning parameters; then I can pass them in without fear
+* use state only to hold new *spawning* parameters; then I can pass them in without fear
 * detect note onsets for sequencing purposes, and index by onset
   * Coyote is from BatUgens, purely time-domain. Looks elegant, though I've had a couple of Batugens explode on me
   * Onsets is included in the distro, pure FFT, multiple methods
@@ -34,15 +35,6 @@ TODO:
 * interesting param map
   * poss Martin Marier's excellent PresetInterpolator
   * Or Wekinator
-* OSC triggering for:
-  * overall "weirdness" param to control with trivial mapping
-  * overall "intensity" param
-  * I kinda feel we wan to control marginals and correlation of params
-  * copula params?
-  * quantization
-  * level
-  * reverb mix?
-  * attack/release
 */
 
 ServerTreeGui.makeWindow(s);
