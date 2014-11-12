@@ -3,7 +3,6 @@ Wavvie
 
 TODO:
 
-* why does stopChildren seem broken? pfft.
 * stereo movement in these damn synths
 * use state only to hold new *spawning* parameters; then I can pass them in without fear
 * detect note onsets for sequencing purposes, and index by onset

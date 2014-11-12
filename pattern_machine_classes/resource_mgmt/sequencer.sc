@@ -430,6 +430,9 @@ PSStreamer {
 		childStreams.do({
 			arg stream, id;
 			streamSpawner.suspend(stream);
+		});
+		childStreams.keys.do({
+			arg id;
 			childStreams.removeAt(id);
 		});
 	}
