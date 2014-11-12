@@ -1,11 +1,8 @@
 //A stateful stream (or pattern, or stream/pattern factory, i haven't decided) that plays a sequence
-// Should probably be a pattern factory.
 // Additional features installed for my needs:
 // injecting tempo info into events
 // providing per-event and per-bar callbacks to mess with shit.
-// Future plans could include a state machine that skips around the sequence based on events
 // Can I do this more easily with Pdefs?
-
 // A lotof this could be simplified by using the clock; we are already stateful
 // Quant.timingOffset is the key method here
 PSBarSeq {
@@ -390,7 +387,7 @@ PSStreamer {
 			tempo: (clock ? TempoClock.default).tempo,
 			time: time,
 		));
-		//We allow any non-rests to be decorate
+		//We allow any non-rests to get decorated
 		//You shouldn't change delta, so
 		//rests really should not be touched anyway.
 		((notecallback.notNil).and(event.isRest.not)).if({

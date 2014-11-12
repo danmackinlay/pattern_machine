@@ -3,8 +3,8 @@ Wavvie
 
 TODO:
 
-* stereo movement in these damn synths
-* use state only to hold new *spawning* parameters; then I can pass them in without fear
+* stereo movement within a note
+* fake decay
 * detect note onsets for sequencing purposes, and index by onset
   * Coyote is from BatUgens, purely time-domain. Looks elegant, though I've had a couple of Batugens explode on me
   * Onsets is included in the distro, pure FFT, multiple methods
@@ -16,7 +16,6 @@ TODO:
 * cue scrubbing of sample buffer
 * manual tuning of transpositions
 * create pattern factories with dynamic scale lookup
-* create new short lived sequences based on current params
 * create evolving long-lived sequences
 * might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.
 * Audit for zipper noise
@@ -121,7 +120,6 @@ state.server.waitForBoot({
 		)
 	);
 )
-5.exprand
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(10.0);
 ~state.samplingstrip.sourceBuf(3);
@@ -133,6 +131,8 @@ state.server.waitForBoot({
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
+
+
 (
 ~spy = (
 	instrument: \jack__1,
