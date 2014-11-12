@@ -98,6 +98,7 @@ state.server.waitForBoot({
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
+			\degree, PGeomN(0, 0.8),
 			\lfobasef, Prand(state.lfobasefs, inf),
 			\lfomodf, Prand(state.lfobasefs, inf),
 			\lfomodamp, state.lfomodamp,

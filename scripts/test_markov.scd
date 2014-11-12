@@ -26,4 +26,6 @@ probs = order.collect({
 });
 )
 
-shuffle
+PGeomN(3, 0.9).asStream.nextN(20);
+PGeomN(Pn(3, inf), 0.9).asStream.nextN(20);
+Pbind(\delta, PGeomN(1, 0.9), \degree, 0).trace.play;
