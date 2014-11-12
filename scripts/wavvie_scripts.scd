@@ -96,8 +96,8 @@ state.server.waitForBoot({
 	~state.streamer.notecallback = #{|evt, state, streamer|
 		evt.use({
 			//evt.postcs;
-			~lfobasefs = streamer.beat2freq(state.lfobasefs.choose);
-			~lfomodf = streamer.beat2freq(state.lfobasefs.choose);
+			~lfobasef = state.lfobasefs.choose;
+			~lfomodf = state.lfobasefs.choose;
 			~lfomodamp = state.lfomodamp;
 			~lfophase = 0;
 			~lfo2amp= -0.25;
@@ -105,10 +105,10 @@ state.server.waitForBoot({
 			~lfo2pan = 0.0;
 			~lfo2del = state.lfo2del;
 			~posrate = 0.125 * (0.5.coin*2 -1);
-			~timeago = streamer.beat2sec(state.jumps.choose);
-			~grainsize = streamer.beat2sec(state.grains.choose);
+			~timeago = state.jumps.choose;
+			~grainsize = state.grains.choose;
 			~windowRandRatio = state.windowRandRatio;
-			~sustainDur = streamer.beat2sec(2.pow((-2).rrand(4)));
+			~sustainDur = 2.pow((-2).rrand(4));
 			~db = -10.0;
 			~pan = 0.8.rand2;
 			~pitchrate = state.transps.choose;

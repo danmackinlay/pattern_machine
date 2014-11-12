@@ -6,26 +6,32 @@
 (
 SynthDef.new(\ps_bufgrain_type_1__1x2, {
 	arg gate=1,
+	now=0.0,
 	out=0,
 	bufnum,
 	pan=0,
 	amp=1,
-	now=0.0,
 	timeago=0.0, //how far back from the end we wish to look
 	sustainDur=1,
 	pitchrate=1.0,
 	posrate=1.0,
-	grainsize=0.1,
+	grainsize=0.125,
 	windowRandRatio=0.1,
 	overlaps=2,
 	interp=2,
-	attack=0.1, release=0.1;
+	attack=0.1, release=0.1,
+	tempo=1.0;
 
 	var sig,
 		env,
 		baseTime,
 		readTime,
 		bufDur;
+		
+	timeago = timeago / tempo;
+	sustainDur = sustainDur / tempo;
+	grainsize = grainsize / tempo;
+	
 	bufDur = BufDur.kr(bufnum);
 	baseTime = Latch.kr(now, gate);
 	//readTime = (baseTime - timeago +
@@ -66,26 +72,33 @@ SynthDef.new(\ps_bufgrain_type_1__1x2, {
 		iter: 1
 	);
 	Out.ar(out, Pan2.ar(sig, pan));
-}).add;
+}, [
+		nil, nil, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir, \ir, \ir, \ir,
+		\ir
+	]
+).add;
 SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	arg gate=1,
-	now=0.0,
+	now=0.0, //time - always in seconds, not beats
 	out=0,
 	bufnum,
 	pan=0,
 	amp=1,
-	timeago=0.0, //how far back from the end we wish to look
+	timeago=0.0, //how far back from the end we wish to look, in beats
 	sustainDur=1,
 	pitchrate=1.0,
 	posrate=1.0,
-	grainsize=0.1,
+	grainsize=0.125, // in beats
 	overlaps=2,
 	windowRandRatio=0.1,
 	interp=2,
 	attack=0.01,
 	//release=0.1,
 	lfobasef=1,
-	lfomodf=2.5,
+	lfomodf=2.5, //LFO freq, in beats
 	lfomodamp=0.5,
 	lfophase=0.25,//cos, lfomodamp-depending
 	lfo2pos=0,
@@ -96,7 +109,8 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	age2lfo=0,
 	allpdelayratio=0.125,
 	allpdecayratio=4,
-	combed=0.5;
+	combed=0.5,
+	tempo=1.0;
 
 	var sig,
 		env,
@@ -110,6 +124,12 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		combwet,
 		combdry;
 
+	lfomodf = lfomodf * tempo;
+	lfobasef = lfobasef * tempo;
+	timeago = timeago / tempo;
+	sustainDur = sustainDur / tempo;
+	grainsize = grainsize / tempo;
+	
 	bufDur = BufDur.kr(bufnum);
 	baseTime = Latch.kr(now, gate);
 	//TODO: LFOs on
@@ -181,7 +201,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
 		\ir, \ir, \ir, \ir,
-		\ir
+		\ir, \ir
 	]
 ).add;
 )
