@@ -359,12 +359,12 @@ PSStreamer {
 		id = id ?? {streamcounter = streamcounter + 1};
 		//let streams know their names
 		nextstream = streamSpawner.par(
-			Pset(
+			Pbindf(
+				newpat.asPattern,
 				\scount, Pseries.new,
-				Pset(
-					\sid, id, newpat.asPattern
-				), delta
-			)
+				\sid, id,
+				\ltime, Plocaltime.new
+			), delta
 		);
 		childStreams[id].notNil.if( {
 			streamSpawner.suspend(childStreams[id]);
