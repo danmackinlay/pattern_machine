@@ -1,6 +1,6 @@
 // support non-integer Scale+Tuning-like things for e.g. delay times and ratios etc, that don't naturally look like MIDI.
-// will need to extend Integer, SimpleNumber etc
 // TODO: make *blending* exponential for the exp version
+// TODO: make this suit the ControlSpec interface; subclass even
 
 //exp version
 PSquama {
