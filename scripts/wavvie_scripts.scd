@@ -80,11 +80,9 @@ state.server.waitForBoot({
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
+		~param = 1;
 	});
-});
-)
-(
-	~state.streamer.notecallback = #{|evt, state, streamer|
+	state.streamer.notecallback = #{|evt, state, streamer|
 		evt.use({
 			//evt.postcs;
 			~lfobasef = state.lfobasefs.choose;
@@ -112,13 +110,17 @@ state.server.waitForBoot({
 		evt.postcs;
 		evt;
 	};
+});
+)
+(
+	var state = ~state;
 	~state.streamer.add(
-		~state.samplingstrip.basePattern <> ((
-			instrument: \ps_bufgrain_type_2__1x2,
-			type: \note,
-			dur: 1,
-			sendGate: false,
-		).asPattern)
+		~state.samplingstrip.basePattern <> Pbind(
+			\instrument, \ps_bufgrain_type_2__1x2,
+			\type, \note,
+			\dur, Pfunc({state[\param]+1}),
+			\sendGate, false,
+		)
 	);
 )
 
