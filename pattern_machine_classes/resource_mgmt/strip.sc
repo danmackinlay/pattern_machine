@@ -118,6 +118,16 @@ PSMasterOut {
 	asBus {
 		^bus;
 	}
+	baseEvent {
+		^(
+			out: bus,
+			group: group,
+			addAction: \addToTail, 
+		);
+	}
+	basePattern {
+		^this.baseEvent.asPattern;
+	}
 	printOn { |stream|
 		stream << this.class.asString <<"(id:" << id.asString << ")";
 	}

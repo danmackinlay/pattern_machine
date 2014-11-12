@@ -184,7 +184,6 @@ PSSamplingStrip {
 		^bus;
 	}
 	baseEvent {
-		//Do I really want to return all state? Can be a messy dict.
 		^(
 			out: bus,
 			group: midgroup,
@@ -192,6 +191,9 @@ PSSamplingStrip {
 			bufnum: audiobuf,
 			addAction: \addToTail, 
 		);
+	}
+	basePattern {
+		^this.baseEvent.asPattern;
 	}
 	////debugging nice
 	printOn { |stream|
@@ -243,7 +245,6 @@ PSAnalysingSamplingStrip : PSSamplingStrip {
 		});
 	}
 	baseEvent {
-		//Do I really want to return all state? Can be a messy dict.
 		var evt = super.baseEvent;
 		analbufs.do({|buf, i|
 			evt[\anabuf++i] = buf

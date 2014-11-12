@@ -121,7 +121,7 @@ state.server.waitForBoot({
 		evt;
 	};
 	~state.streamer.add(
-		~state.samplingstrip.baseEvent.asPattern <> ((
+		~state.samplingstrip.basePattern <> ((
 			instrument: \ps_bufgrain_type_2__1x2,
 			type: \note,
 			dur: 1,
