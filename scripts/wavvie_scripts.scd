@@ -3,6 +3,11 @@ Wavvie
 
 TODO:
 
+* visualisation; something minimal.
+  * if server synths, straight SendReply
+    * but needs reverse mapping (boring)
+  * generically, .collect on a pattern
+    * but for live notes needs understanding of EventStreamCleanup, which looks grim
 * stereo movement within a note
 * fake decay
 * detect note onsets for sequencing purposes, and index by onset
