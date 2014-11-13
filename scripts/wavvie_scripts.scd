@@ -2,12 +2,19 @@
 Wavvie
 
 TODO:
-
-* visualisation; something minimal.
-  * if server synths, straight SendReply
-    * but needs reverse mapping (boring)
-  * generically, .collect on a pattern
-    * but for live notes needs understanding of EventStreamCleanup, which looks grim
+* create pattern factories with dynamic scale lookup
+* by the way, looks like Pfset or esp Pproto could realy clean up resource allocation
+* interesting rhythm somehow
+  * so also a non-bar-oriented synth
+  * FSM pattern
+  * smart accent
+* or bar oriented:
+  * GUI is needed
+  * decent Lemur template
+   * or NexusUI
+* interesting param map
+  * poss Martin Marier's excellent PresetInterpolator
+  * Or Wekinator
 * stereo movement within a note
 * fake decay
 * detect note onsets for sequencing purposes, and index by onset
@@ -20,24 +27,18 @@ TODO:
 * some kind of better notion of what sampling a bar means
 * cue scrubbing of sample buffer
 * manual tuning of transpositions
-* create pattern factories with dynamic scale lookup
 * create evolving long-lived sequences
 * might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
 * switch between external (live, RME) and internal mixers
-* interesting rhythm somehow
-  * so also a non-bar-oriented synth
-  * FSM pattern
-  * smart accent
-* or bar oriented:
-  * GUI is needed
-  * decent Lemur template
-   * or NexusUI
-* interesting param map
-  * poss Martin Marier's excellent PresetInterpolator
-  * Or Wekinator
+* visualisation; something minimal.
+  * if server synths, straight SendReply
+    * but needs reverse mapping (boring)
+* but could also have some light spectral analysis built in (3 band?)
+  * generically, .collect on a pattern
+    * but for live notes needs understanding of EventStreamCleanup, which looks grim
 */
 
 ServerTreeGui.makeWindow(s);
