@@ -74,6 +74,7 @@ state.server.waitForBoot({
 		~lfobasefs = [1,2,3,4,6];
 		~jumps = [1,2,4,8];
 		~grains = [1,2,4,8,16,32]/32;
+		~deltas = [1,2,4,8]/8;
 		~transps = [-1,-2,1,2];
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
@@ -96,7 +97,7 @@ state.server.waitForBoot({
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
-			\degree, PGeomN(0, 0.8),
+			\degree, PGeomN(0, 0.9),
 			\lfobasef, Prand(state.lfobasefs, inf),
 			\lfomodf, Prand(state.lfobasefs, inf),
 			\lfomodamp, state.lfomodamp,
@@ -106,7 +107,14 @@ state.server.waitForBoot({
 			\lfo2pan, 0.0,
 			\lfo2del, state.lfo2del,
 			\posrate, 0.125 * (0.5.coin*2 -1),
-			\timeago, Prand(state.jumps, inf),
+			\timeago, PMarkovChain.random(
+				disorder:0.2,
+				ordertype: \static,
+				expressions: state.jumps),
+			\delta, PMarkovChain.random(
+				disorder:0.2,
+				ordertype: \static,
+				expressions: state.deltas),
 			\grainsize, Prand(state.grains, inf),
 			\windowRandRatio, state.windowRandRatio,
 			\sustainDur, Pfunc({2.pow((-2).rrand(4))}),
