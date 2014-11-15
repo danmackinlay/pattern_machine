@@ -94,6 +94,10 @@ state.server.waitForBoot({
 		evt.postcs;
 		evt;
 	};
+	state.streamer.tickcallback = #{|time, state, streamer|
+		[\localtime, time].postcs;
+	};
+
 });
 )
 (
@@ -146,7 +150,6 @@ state.server.waitForBoot({
 ~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
 
-
 (
 ~spy = (
 	instrument: \jack__1,
@@ -159,4 +162,4 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
-
+ 

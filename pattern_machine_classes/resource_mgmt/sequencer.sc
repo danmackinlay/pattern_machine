@@ -301,6 +301,7 @@ PSStreamer {
 	var <>state;
 	var <>masterQuant;
 	var <>notecallback;
+	var <>tickcallback;
 	var <>debug;
 	var <parentEvent;
 	var <protoEvent;
@@ -322,12 +323,14 @@ PSStreamer {
 	*new{|state,
 		quant,
 		notecallback,
+		tickcallback,
 		debug=false,
 		parentEvent|
 		^super.newCopyArgs(
 			state ?? {()},
 			quant ?? {[1,0,0].asQuant},
 			notecallback, //null fn
+			tickcallback,
 			debug,
 		).init.parentEvent_(parentEvent ? Event.default);
 	}
@@ -351,6 +354,12 @@ PSStreamer {
 			});
 			//Advance time
 			streamSpawner.wait(masterQuant.quant);
+			tickcallback.notNil.if({
+				var rout = Routine({tickcallback.value(time, state, this).yield});
+				rout.randData = thisThread.randData;
+				evt = rout.value;
+				this.sharedRandData = rout.randData;
+			});
 		});
 	}
 	add {
