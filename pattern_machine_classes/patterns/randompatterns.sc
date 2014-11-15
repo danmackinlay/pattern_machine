@@ -1,3 +1,8 @@
+/* Ignores input; outputs a Markov chain of 1st order,
+which is the only non-bullshit order.
+
+TODO allow a non-deterministic first step; 'tis traditional, and handy.
+*/
 PMarkovChain : Pattern {
 	/* Ignores input; outputs a Markov chain of 1st order,
 	which is the only non-bullshit order.
@@ -21,8 +26,12 @@ PMarkovChain : Pattern {
 	// could also choose uniform probs
 	// could go for sparsity. wevs.
 	*random {
-		arg nstates=4, disorder=0.25, ordertype=\static, halt, state=0, expressions;
-		var order, probs;
+		arg nstates=4, disorder=0.25, ordertype=\static, halt, state=0, expressions, seed;
+		var order, probs, prevRndState;
+		seed.notNil.if({
+			prevRndState = thisThread.randData;
+			thisThread.randSeed = seed;
+		});
 		//if we give expressions then nstates can be implicit.
 		expressions.notNil.if({
 			nstates = expressions.size;
@@ -40,6 +49,9 @@ PMarkovChain : Pattern {
 			ordered[dest] = 1;
 			disordered = Array.rand(nstates, 0.0, 1.0);
 			((disorder * disordered) + ((1-disorder) * ordered)).normalizeSum;
+		});
+		seed.notNil.if({
+			thisThread.randData = prevRndState;
 		});
 		^this.new(probs, halt, state, expressions);
 	}
