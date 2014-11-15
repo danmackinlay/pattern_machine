@@ -343,10 +343,10 @@ PSStreamer {
 	spawnRout {|spawner|
 		//init
 		streamSpawner = spawner;
-		time = 0.0;
 		this.sharedRandData = thisThread.randData;
 		//Try to line up with clock (does this work?)
 		streamSpawner.wait(clock.timeToNextBeat(masterQuant.quant));
+		time = 0.0;
 		//iterate!
 		inf.do({
 			debug.if({
