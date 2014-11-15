@@ -100,6 +100,15 @@ state.server.waitForBoot({
 
 });
 )
+// how to manage these complicated events factories? via PresetInterpolator?
+// but a lot fo the stuff is not interpolable, e.g. diff numbers of markov states
+// perhaps can interpolate just the cont values?
+// Or markov action can jump over such values?
+// but we would like several qualitatively different notes types
+// and how to make live?
+// stutter-edit style one-preset-per-note stuff?
+// But where then the live state lookup business
+// random perturbation?
 (
 	var state = ~state;
 	~state.streamer.add(
@@ -107,7 +116,7 @@ state.server.waitForBoot({
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
-			\degree, PGeomN(0, 0.9),
+			\degree, PGeomN(0, 0.9), //only to terminate
 			\lfobasef, Prand(state.lfobasefs, inf),
 			\lfomodf, Prand(state.lfobasefs, inf),
 			\lfomodamp, state.lfomodamp,
