@@ -3,10 +3,9 @@ Wavvie
 
 TODO:
 * create pattern factories with dynamic scale lookup
-* by the way, looks like Pfset or esp Pproto could realy clean up resource allocation
-* interesting rhythm somehow
-  * so also a non-bar-oriented synth
-  * FSM pattern
+* by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
+* interesting rhythm
+* bar-free
   * smart accent
 * or bar oriented:
   * GUI is needed
@@ -20,12 +19,13 @@ TODO:
 * detect note onsets for sequencing purposes, and index by onset
   * Coyote is from BatUgens, purely time-domain. Looks elegant, though I've had a couple of Batugens explode on me
   * Onsets is included in the distro, pure FFT, multiple methods
-* OnsetsDS is the Dan Stowell thingy; (circumstantially looks to be the prototype for Onsets)
+  * OnsetsDS is the Dan Stowell thingy; (circumstantially looks to be the prototype for Onsets)
   * PV_HainsworthFoote and  PV_JensenAndersen are too.
   * SLOnset is a Nick Collins joint, so likely to be a little, uh, sporadic
 * pitch recording
 * some kind of better notion of what sampling a bar means
-* cue scrubbing of sample buffer
+* cue (i.e. preview) scrubbing of sample buffer
+* click track for recording sync
 * manual tuning of transpositions
 * create evolving long-lived sequences
 * might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.

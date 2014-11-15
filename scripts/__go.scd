@@ -16,4 +16,4 @@ MIDIClient.init;
 MIDIFunc.trace(false);
 MIDIClient.sources;
 MIDIClient.init;
-		MIDIIn.connectAll;
+MIDIIn.connectAll;
