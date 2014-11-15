@@ -12,3 +12,8 @@ ServerTreeGui.makeWindow(s);
 StartUp.run;
 PS.go.();
 PS.kill.();
+MIDIClient.init;
+MIDIFunc.trace(false);
+MIDIClient.sources;
+MIDIClient.init;
+		MIDIIn.connectAll;
