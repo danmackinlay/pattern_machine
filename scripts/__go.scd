@@ -17,3 +17,4 @@ MIDIFunc.trace(false);
 MIDIClient.sources;
 MIDIClient.init;
 MIDIIn.connectAll;
+SCDoc.indexAllDocuments;
