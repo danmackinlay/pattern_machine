@@ -109,6 +109,14 @@ state.server.waitForBoot({
 // stutter-edit style one-preset-per-note stuff?
 // But where then the live state lookup business
 // random perturbation?
+/*
+
+Summary: control via
+1) midi triggering of evolved notes
+2) half-preset interpolated params
+3) some kind of clever designed parameterisation? Specify correlation prob?
+*/
+
 (
 	var state = ~state;
 	~state.streamer.add(

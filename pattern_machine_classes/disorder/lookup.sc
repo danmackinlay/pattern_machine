@@ -1,6 +1,9 @@
 // support non-integer Scale+Tuning-like things for e.g. delay times and ratios etc, that don't naturally look like MIDI.
 // TODO: make *blending* exponential for the exp version
 // TODO: make this suit the ControlSpec interface; subclass even
+//    Does ArrayWarp already get us this behaviour?
+
+// Martin Marier's Preset class does a lot of this work.
 
 //exp version
 PSquama {

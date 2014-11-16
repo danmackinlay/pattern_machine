@@ -1,7 +1,6 @@
 * interface
   * https://github.com/triss/duplex-nexus-osc
   * Lemur
-  * nice sequencer interface for curlique
   * circular sequencer
 * proper nice machine listening granulation
 * general Python OSC serving framework, with talkback to server and client, and multiple different paths.
@@ -20,7 +19,7 @@
     * http://basic.northwestern.edu/publications/peakdetection/
   * or maybe even filter the spectral peaks using http://wiki.scipy.org/Cookbook/SavitzkyGolay
   * (more noise oriented?) https://gist.github.com/sixtenbe/1178136
-* Generalise reverb to Gerzon m-dimensional allpass 
+* Generalise reverb to Gerzon m-dimensional MIMO allpass 
   * https://en.wikipedia.org/wiki/Unitary_operator
   * https://ccrma.stanford.edu/~jos/pasp/Gerzon_Nested_MIMO_Allpass.html
 * Less suspicious nested allpass than DoubleNestedAllpass
@@ -39,7 +38,7 @@
     * stable attactors, with friction
     * hamiltonians, orbits?
 * control RME mixer from supercollider
-* accumulate energy in varous spectral bins and trigger thigns based on their levels
+* accumulate energy in varous spectral bins and trigger things based on their levels
 * notestream app, streaming chords in different patterns to different midi channels (to ableton?)
 * you can constrain a synth genome for evolution by only effecting downstream oscs. both f and a should be effected. 
 * random param mapping thing
@@ -48,12 +47,11 @@
   * sparse correlation
   * physical models as input
   * random sparse physical models as input
-  * When does random physics produce partial order?
   * annealing/Gibbs distribution style process
   * Der/Zahedi/Bertschinger/Ay-style information sensorimotor loop
 * rhythms
   * recurrent neural networks like http://arxiv.org/abs/1308.0850
-  * hawkes process
+  * hawkes process (with repression?)
 * sync oscillator system
   * continuous Kuramoto, possibly on a graph
   * or Strogatz/Perkel/Haken-style pulse-sync, possibly on a graph
@@ -63,11 +61,11 @@
   * http://www.scholarpedia.org/article/Pulse_coupled_oscillators
   * nice brownian calc treatment: http://www.math.uiuc.edu/~rdeville/research/nk.pdf suggests N!=4 and neirest neighbour networks
   * left-field idea: work using decaying harmonics through feedback - macroscopic karplus-strong.
-  * left-field idea: bayesian synchronisers, with a loss function that favours harmonic ratios of the correct answer near their own fundamental; this should be realtively easy
   * any of these would be interesting with driving noise and arbitrary topologies. See also MIMO allpass.
 * find some way of interpreting a call-and-response composition like Stockhausen's Stimmung, but for laptops
 * tuvasynth - roaming resonant filters on vocal-like samples (formant filters?)
 * grab bag
+  * particle filters for synth param matching
   * execute scsynth NRT from python (and vice versa?)
   * Faust plugin to define Faust modules for numpy (already exists in octave version)
   * remixer where grains scrub the buffer at different rates but each mutes itself according to its dissonance
