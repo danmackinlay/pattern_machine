@@ -1,19 +1,32 @@
 /*
 Wavvie
-
 TODO:
 * create pattern factories with dynamic scale lookup
 * by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
-* interesting rhythm
+* interesting rhythm. Just partition the bar somehow? give notes some kind of flaky releveance to their successors?
+  * i kind of want to learn (from data), and then reproduce, my stochastic autocorrelation structure. Is that tenable with enveloped recurrence time and midi and such? I think so. maybe even with a dissonance kernel. It's not very much different than constructing a sequence with the specified spectrum. Obvious question: is there an inverse autocorrelative transform?
+    Model: chord choices are i.i.d given the recurrence, or autocorrelation, structure.
 * bar-free
   * smart accent
 * or bar oriented:
   * GUI is needed
   * decent Lemur template
    * or NexusUI
+* fucksake, let's just make some markov interval selections, k?
+* or record a library midi patterns from my keyboard even
 * interesting param map
-  * poss Martin Marier's excellent PresetInterpolator
+  * poss Martin Marier's excellent PresetInterpolator in mmExtension
+  * or Marje Baalman's predecessor, ParameterSpace in SenseWorld
   * Or Wekinator
+  * Or multivariate logistic regression against different possible parameterisations to construct a basis set of axes.
+    If we assumed monotonicity, this would be quite easy using, e.g. multiple linear regression.
+    Or, random construction of a sparse basis, by e.g. random projection, which work for statisticians why not us?
+    But I think this probably also requires a lot of work to make it sound comprehensible.
+    NN gesture recogniser woudl actually be very nice, but I can't be arse training such a net
+
+* ArrayWarp should extend mm's Array warp (in Autogui) by subclassing and do two things:
+  * allow exponential interpolation
+  * accept a parameters indicating what proprotion of the range should be interpolated and what quantized.
 * stereo movement within a note
 * fake decay
 * detect note onsets for sequencing purposes, and index by onset
@@ -40,7 +53,6 @@ TODO:
   * generically, .collect on a pattern
     * but for live notes needs understanding of EventStreamCleanup, which looks grim
 */
-
 ServerTreeGui.makeWindow(s);
 Server.default = Dan.serverboot(\local, \builtin);
 (
