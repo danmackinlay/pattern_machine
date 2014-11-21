@@ -55,7 +55,12 @@ TODO:
 * I could slowly, live, learn the relationship between different sample params and dissonance in SC3
 * I could set up my kuramoto network (would even be natural on the server - could even multiplex the output of ainsgle synth into 24, or at least 16, subsynths)
 * how do i get deterministic repetition?
-* I could make a param space and then search in similarity in a subset of dimensions. AFter all, I really only want to expand the variance in a few at a time
+* I could make a param space and then search in similarity in a subset of dimensions. After all, I really only want to expand the variance in a few at a time
+* OK, overarching vision here
+1. create a meta-preset, giving whole ranges of parameters
+2. map a controller to various sub-ranges and quantisations and a correlator driven by markov states
+3. OR create many presets from these and Markov between them (or even assign them to the keyboard)
+
 */
 
 ServerTreeGui.makeWindow(s);
