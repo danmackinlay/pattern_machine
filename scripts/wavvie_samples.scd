@@ -25,7 +25,8 @@
 			"Unknown_Lead_Vocal.wav",
 			"NS-wind-chimes-002-denoise-edit.wav",
 			"CONCERTOFORCLARINETP2-solo.wav",
-			//"uc-ezchord.wav",
+			"draingiggitsolo.wav",
+			"draingigvoxsolo.wav",
 		],
 		choral: [
 			"angelite_legend_mmm.aif",
