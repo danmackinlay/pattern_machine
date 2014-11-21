@@ -9,16 +9,17 @@ PMarkovChain : Pattern {
 	*/
 	var <>probs; //transition matrix
 	var <>halt; //stop value. defaults to nil, which never happens
-	var <>state; //current/inital state
-	var <>expressions; //how are our Markov states expressed? defaults to state index number.
-	var <stateidx;
-	*new { arg probs, halt, state=0, expressions;
+	var <>expressions; //how are our Markov states expressed? defaults to state number
+	var <>initState; //inital state 
+	var <>state; //current state
+	var <stateidx; //index numbers
+	*new { arg probs, halt, expressions, initState=0;
 		//normalise here?
 		^super.newCopyArgs(
 			probs.collect({|row| row.normalizeSum}),
 			halt,
-			state,
-			expressions
+			expressions,
+			initState
 		).initPMarkov;
 	}
 	//create random markov chain.
@@ -26,17 +27,22 @@ PMarkovChain : Pattern {
 	// could also choose uniform probs
 	// could go for sparsity. wevs.
 	*random {
-		arg nstates=4, disorder=0.25, ordertype=\static, halt, state=0, expressions, seed;
+		arg nstates=4, disorder=0.25, ordertype=\static, halt, initState=\rand, expressions, seed;
 		var order, probs, prevRndState;
 		seed.notNil.if({
 			prevRndState = thisThread.randData;
 			thisThread.randSeed = seed;
+		});
+		//If we give nstates but set expressions to special \unit, they are mapped onto 0,1
+		(expressions==\unit).if({
+			expressions = Array.series(nstates)/(nstates-1);
 		});
 		//if we give expressions then nstates can be implicit.
 		expressions.notNil.if({
 			nstates = expressions.size;
 		});
 		order = Array.series(nstates);
+		//Some basic most-common-transition-types
 		ordertype.switch(
 			\static, nil,
 			\inc, {order = (order+1) % nstates},
@@ -53,7 +59,14 @@ PMarkovChain : Pattern {
 		seed.notNil.if({
 			thisThread.randData = prevRndState;
 		});
-		^this.new(probs, halt, state, expressions);
+		//initstate can be a scalar, a function or a special \rand symbol, meaning "boom"
+		(initState==\rand).if({
+			initState = {nstates.rand};
+		});
+		initState.isNil.if({
+			initState = 0;
+		});
+		^this.new(probs, halt, expressions, initState);
 	}
 	initPMarkov {
 		stateidx = Array.series(probs.size);
@@ -61,8 +74,12 @@ PMarkovChain : Pattern {
 			expressions = stateidx;
 		});
 	}
-	storeArgs { ^[probs, halt, state, expressions]}
+	storeArgs { ^[probs, halt, expressions, initState, state]}
+	//TODO generate my own routine and just pull values from this when embedding;
+	//otherwise not much point exposing a writeable state.
+	//OTOH since RNGs are thread- and hence routine-local, this breaks seedability
 	embedInStream { arg inval;
+		state = initState.value;
 		//we more or less ignore the input value.
 		({state != halt}).while({
 			state = stateidx.wchoose(probs[state]);
@@ -72,7 +89,7 @@ PMarkovChain : Pattern {
 	}
 }
 
-//emebed geometrically truncated input sequence
+//embed geometrically truncated input sequence
 PGeomN : FilterPattern {
 	var <>successProb;
 	
