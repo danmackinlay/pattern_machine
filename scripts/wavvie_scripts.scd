@@ -52,7 +52,12 @@ TODO:
 * but could also have some light spectral analysis built in (3 band?)
   * generically, .collect on a pattern
     * but for live notes needs understanding of EventStreamCleanup, which looks grim
+* I could slowly, live, learn the relationship between different sample params and dissonance in SC3
+* I could set up my kuramoto network (would even be natural on the server - could even multiplex the output of ainsgle synth into 24, or at least 16, subsynths)
+* how do i get deterministic repetition?
+* I could make a param space and then search in similarity in a subset of dimensions. AFter all, I really only want to expand the variance in a few at a time
 */
+
 ServerTreeGui.makeWindow(s);
 Server.default = Dan.serverboot(\local, \builtin);
 (
@@ -90,10 +95,10 @@ state.server.waitForBoot({
 		{samplingstrip.rec(10.0);}.defer(1.0);
 		~combed = 0.0;
 		~lfobasefs = [1,2,3,4,6];
-		~jumps = [1,2,4,8];
+		~jumps = [1,2,3,4,8];
 		~grains = [1,2,4,8,16,32]/32;
 		~deltas = [1,2,4,8]/8;
-		~transps = [-1,-2,1,2];
+		~transps = [1/2,1,2];
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
@@ -113,7 +118,7 @@ state.server.waitForBoot({
 });
 )
 // how to manage these complicated events factories? via PresetInterpolator?
-// but a lot fo the stuff is not interpolable, e.g. diff numbers of markov states
+// but a lot of the stuff is not interpolable, e.g. diff numbers of markov states
 // perhaps can interpolate just the cont values?
 // Or markov action can jump over such values?
 // but we would like several qualitatively different notes types
@@ -136,7 +141,7 @@ Summary: control via
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
-			\degree, PGeomN(0, 0.9), //only to terminate
+			\degree, PGeomN(0, 0.95), //hack to terminate after random time
 			\lfobasef, Prand(state.lfobasefs, inf),
 			\lfomodf, Prand(state.lfobasefs, inf),
 			\lfomodamp, state.lfomodamp,
@@ -151,7 +156,7 @@ Summary: control via
 				ordertype: \static,
 				expressions: state.jumps),
 			\delta, PMarkovChain.random(
-				disorder:0.2,
+				disorder:0.5,
 				ordertype: \static,
 				expressions: state.deltas),
 			\grainsize, Prand(state.grains, inf),
@@ -168,9 +173,9 @@ Summary: control via
 	);
 )
 ~state.samplingstrip.rec(1.0);
-~state.samplingstrip.rec(10.0);
+~state.samplingstrip.rec(60.0);
 ~state.samplingstrip.sourceBuf(3);
-~state.samplingstrip.sourceBuf(\tuneful,2);
+~state.samplingstrip.sourceBuf(\tuneful,4);
 ~state.samplingstrip.sourceBuf(\choral,0);
 ~state.samplingstrip.sourceBuf(\people,0);
 ~state.samplingstrip.sourceBuf(\siren,0);
@@ -178,7 +183,7 @@ Summary: control via
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
-
+~state.jumps=[1,4,8,10,12,16];
 (
 ~spy = (
 	instrument: \jack__1,
