@@ -1,34 +1,11 @@
 /*
 Wavvie
 TODO:
-* create pattern factories with dynamic scale lookup
+1. Misc shit
 * by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
-* interesting rhythm. Just partition the bar somehow? give notes some kind of flaky releveance to their successors?
-  * i kind of want to learn (from data), and then reproduce, my stochastic autocorrelation structure. Is that tenable with enveloped recurrence time and midi and such? I think so. maybe even with a dissonance kernel. It's not very much different than constructing a sequence with the specified spectrum. Obvious question: is there an inverse autocorrelative transform?
-    Model: chord choices are i.i.d given the recurrence, or autocorrelation, structure.
-* bar-free
-  * smart accent
-* or bar oriented:
-  * GUI is needed
-  * decent Lemur template
-   * or NexusUI
-* fucksake, let's just make some markov interval selections, k?
-* or record a library midi patterns from my keyboard even
-* interesting param map
-  * poss Martin Marier's excellent PresetInterpolator in mmExtension
-  * or Marje Baalman's predecessor, ParameterSpace in SenseWorld
-  * Or Wekinator
-  * Or multivariate logistic regression against different possible parameterisations to construct a basis set of axes.
-    If we assumed monotonicity, this would be quite easy using, e.g. multiple linear regression.
-    Or, random construction of a sparse basis, by e.g. random projection, which work for statisticians why not us?
-    But I think this probably also requires a lot of work to make it sound comprehensible.
-    NN gesture recogniser woudl actually be very nice, but I can't be arse training such a net
-
 * ArrayWarp should extend mm's Array warp (in Autogui) by subclassing and do two things:
   * allow exponential interpolation
-  * accept a parameters indicating what proprotion of the range should be interpolated and what quantized.
-* stereo movement within a note
-* fake decay
+  * accept a parameters indicating what proportion of the range should be interpolated and what quantized.
 * detect note onsets for sequencing purposes, and index by onset
   * Coyote is from BatUgens, purely time-domain. Looks elegant, though I've had a couple of Batugens explode on me
   * Onsets is included in the distro, pure FFT, multiple methods
@@ -53,13 +30,41 @@ TODO:
   * generically, .collect on a pattern
     * but for live notes needs understanding of EventStreamCleanup, which looks grim
 * I could slowly, live, learn the relationship between different sample params and dissonance in SC3
+
+2. Note timbre management
+* interesting param map
+  * poss Martin Marier's excellent PresetInterpolator in mmExtension
+  * or Marje Baalman's predecessor, ParameterSpace in SenseWorld
+  * Or Wekinator
+  * Or multivariate logistic regression against different possible parameterisations to construct a basis set of axes.
+    If we assumed monotonicity, this would be quite easy using, e.g. multiple linear regression.
+    Or, random construction of a sparse basis, by e.g. random projection, which work for statisticians why not us?
+    But I think this probably also requires a lot of work to make it sound comprehensible.
+    NN gesture recogniser woudl actually be very nice, but I can't be arse training such a net
+* stereo movement within a note
+* fake decay
+* I could make a param space and then search in similarity in a subset of dimensions. After all, I really only want to expand the variance in a few at a time
+* create a meta-preset, giving whole ranges of parameters
+* map a controller to various sub-ranges and quantisations and a correlator driven by markov states
+* OR create many presets from these and Markov between them (or even assign them to the keyboard)
+* some kind of clever designed parameterisation? Specify correlation prob?
+
+3. Sequence management
+* interesting rhythm. Just partition the bar somehow? give notes some kind of flaky releveance to their successors?
+  * i kind of want to learn (from data), and then reproduce, my stochastic autocorrelation structure. Is that tenable with enveloped recurrence time and midi and such? I think so. maybe even with a dissonance kernel. It's not very much different than constructing a sequence with the specified spectrum. Obvious question: is there an inverse autocorrelative transform?
+    Model: chord choices are i.i.d given the recurrence, or autocorrelation, structure.
+* bar-free
+  * smart accent
+* or bar oriented:
+  * GUI is needed
+  * decent Lemur template
+   * or NexusUI
+* fucksake, let's just make some markov interval selections, k?
+* or record a library midi patterns from my keyboard even
 * I could set up my kuramoto network (would even be natural on the server - could even multiplex the output of ainsgle synth into 24, or at least 16, subsynths)
 * how do i get deterministic repetition?
-* I could make a param space and then search in similarity in a subset of dimensions. After all, I really only want to expand the variance in a few at a time
-* OK, overarching vision here
-1. create a meta-preset, giving whole ranges of parameters
-2. map a controller to various sub-ranges and quantisations and a correlator driven by markov states
-3. OR create many presets from these and Markov between them (or even assign them to the keyboard)
+* create a meta-preset, giving whole ranges of parameters
+* how to control this shit?
 
 */
 
@@ -122,22 +127,6 @@ state.server.waitForBoot({
 
 });
 )
-// how to manage these complicated events factories? via PresetInterpolator?
-// but a lot of the stuff is not interpolable, e.g. diff numbers of markov states
-// perhaps can interpolate just the cont values?
-// Or markov action can jump over such values?
-// but we would like several qualitatively different notes types
-// and how to make live?
-// stutter-edit style one-preset-per-note stuff?
-// But where then the live state lookup business
-// random perturbation?
-/*
-
-Summary: control via
-1) midi triggering of evolved notes
-2) half-preset interpolated params
-3) some kind of clever designed parameterisation? Specify correlation prob?
-*/
 
 (
 	var state = ~state;
