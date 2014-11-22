@@ -30,7 +30,7 @@ TODO:
   * generically, .collect on a pattern
     * but for live notes needs understanding of EventStreamCleanup, which looks grim
 * I could slowly, live, learn the relationship between different sample params and dissonance in SC3
-
+*
 2. Note timbre management
 * interesting param map
   * poss Martin Marier's excellent PresetInterpolator in mmExtension
@@ -79,6 +79,7 @@ state = (
 	inbus: server.inputBus.subBus(0,1),
 	outbus: server.outputBus.subBus(0,2),
 );
+
 ~state=state;
 state.server.waitForBoot({
 	var samplingstrip, samples, streamer;
@@ -114,6 +115,15 @@ state.server.waitForBoot({
 		~windowRandRatio = 0.01;
 		~param = 1;
 	});
+	//clean way to set non-OSC actions? right now have to comeback afterwards and add
+	state[\timbralparams] = (
+		combed: Parameter(name: "combed", value:0),
+		octave: Parameter(name: "octave", value:0.5, spec: ControlSpec(-1,1,step:1)),
+		timeago: Parameter(name: "timeago", value:0.0, spec: ControlSpec(1,32, step:1)),
+	);
+	state[\defaulttimbre] = Preset(
+		params:state[\timbralparams].values,
+		name: "DefaultTimbre");
 	state.streamer.notecallback = #{|evt, state, streamer|
 		evt.use({
 			//nothing ATM
