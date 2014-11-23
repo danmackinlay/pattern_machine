@@ -61,10 +61,17 @@ TODO:
    * or NexusUI
 * fucksake, let's just make some markov interval selections, k?
 * or record a library midi patterns from my keyboard even
-* I could set up my kuramoto network (would even be natural on the server - could even multiplex the output of ainsgle synth into 24, or at least 16, subsynths)
+* I could set up my kuramoto network (would even be natural on the server - could even multiplex the output of single synth into 24, or at least 16, subsynths)
 * how do i get deterministic repetition?
 * create a meta-preset, giving whole ranges of parameters
 * how to control this shit?
+* Baalman's ParameterSpace and Marier's PresetInterpolator are both very nice, but
+  * Parameterspace is too coupled to the 2d schtick
+  * Marier's presumes highly specific binding logic and sorta wants you use Interpolator
+  * both have lovely GUIs though, which is a serious plus if you had GUI programming as much as I do.
+  * neither support general Hilbert space operations, which i think is essential.
+  * to extend or rewrite?
+  * PresetSpace here we come
 
 */
 
