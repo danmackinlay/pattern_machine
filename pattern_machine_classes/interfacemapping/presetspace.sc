@@ -23,6 +23,9 @@ PresetSpace {
 	initPresetSpace {
 		this.enforcePresetSanity;
 	}
+	nParams {
+		^params.size;
+	}
 	enforcePresetSanity {
 		presets.do({
 			//count params?
@@ -73,27 +76,25 @@ PresetSpace {
 	}
 }
 //A vector in preset space; basically a vector with named entries
-PSPreset {
+//Should I subclass array? yes,then it woudl be very simple
+PSPreset[slot] : Array {
 	var <>presetSpace;
 	var <>name;
 	var <vals;
 	
 	//probably shouldn't call this yourself.
-	/construct it from the parent why not
+	//construct it from the parent why not
 	*new {
 		arg presetSpace, name, vals;
-		var newPreset = super.newCopyArgs(
-			nil,
-			name,
-			vals ? [],
-		).initPSPreset;
+		var nParams = 8, newPreset;
+		presetSpace.notNil.if({nParams=presetSpace.nParams});
+		newPreset = super.new(nParams);
+		newPreset.name_(name);
+		newPreset.presetSpace_(presetSpace);
 		presetSpace.notNil.if({
-			presetSpace.addPreset(this);
+			presetSpace.addPreset(newPreset);
 		});
 		^newPreset;
-	}
-	initPSPreset{
-		//nothing right now
 	}
 	//called when attached to a PSPresetSpace
 	attach {
@@ -107,7 +108,7 @@ PSPreset {
 			});
 		})
 	}
-	//could creat accessors here but booooring
+	//could create accessors here but booooring
 }
 // 
 PSParam {
