@@ -22,21 +22,37 @@ PSParamSpace {
 	nParams {
 		^params.size;
 	}
-	unmappedDef{
+	paramNames {
+		^params.collect(_.name);
+	}
+	default {
 		arg nameOrNum;
-		var param = this.at(nameOrNum);
-		^param.unmap(param.default);
+		^this.at(nameOrNum).default;
 	}
 	//preset vector factory
+	//Array of correct length, but all nils
 	newPreset {
-		^Array.new(this.nParams)
+		^Array.fill(this.nParams)
 	}
 	newPresetDefault {
-		^Array.new(this.nParams, {|i| this.unmappedDef(i)})
+		^Array.fill(this.nParams, {|i| this.default(i)})
 	}
+	newPresetZeros {
+		^Array.fill(this.nParams, 0)
+	}
+	newPresetOnes {
+		^Array.fill(this.nParams, 1)
+	}
+	//like Array.fill but we additionally pass in the param object
 	newPresetFill {
 		arg fn;
-		^Array.fill(this.nParams, fn)
+		var newPreset = this.newPreset;
+		this.nParams.do({
+			arg i;
+			[\fillin, i, params[i]].postcs;
+			newPreset[i] = fn.value(i, params[i]);
+		});
+		^newPreset;
 	}
 	newParam {
 		arg name, spec, value, action;
@@ -55,12 +71,16 @@ PSParamSpace {
 		arg param;
 		params.includes(param).if({
 			//not sure if this does the right thing w/r/t identity/equality
-			"param already incldued".warn;
+			("param % already included".format(param.name)).warn;
+			^this;
+		});
+		this.paramNames.includes(param.name).if({
+			("param % already included".format(param.name)).warn;
 			^this;
 		});
 		paramCounter = paramCounter + 1;
 		param.name.isNil.if({
-			param.name_(\param_ ++ paramCounter);
+			param.prName_(\param_ ++ paramCounter);
 		});
 		param.paramSpace = this;
 		params = params.add(param);
@@ -74,6 +94,32 @@ PSParamSpace {
 		});
 	}
 	storeArgs { ^[name, params, paramCounter] }
+	presetFromEvent{
+		arg evt;
+		var paramNames = this.paramNames;
+		^this.newPresetFill({
+			arg i, param;
+			[\fromev, i, param, paramNames[i]].postcs;
+			param.unmap(evt[paramNames[i]]);
+		});
+	}
+	eventFromPreset{
+		arg vec;
+		var evt;
+		evt = Event.new(this.nParams);
+		vec.do({
+			arg val, i;
+			var param = params[i];
+			evt[param.name] = param.map(val);
+		});
+		^evt
+	}
+	map {
+		arg vec;
+	}
+	unmap {
+		arg vec;
+	}
 }
 // 
 PSParam {
@@ -97,6 +143,25 @@ PSParam {
 			paramSpace.addParam(this);
 		});
 		^this;
+	}
+	prName_{
+		arg newName;
+		name = newName.asSymbol;
+	}
+	//quasi-passthru to spec, except unmapped values are prime for us.
+	default {
+		^spec.unmap(spec.default);
+	}
+	defaultMapped {
+		spec.default;
+	}
+	map {
+		arg val;
+		^spec.map(val)
+	}
+	unmap {
+		arg val;
+		^spec.unmap(val)
 	}
 	storeArgs { ^[name, spec, value, action] }
 }
