@@ -3,7 +3,7 @@ Wavvie
 TODO:
 1. Misc shit
 * by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
-* ArrayWarp should extend mm's Array warp (in Autogui) by subclassing and do two things:
+* ArrayWarp should extend mm's ArrayWarp (in Autogui) by subclassing and do two things:
   * allow exponential interpolation
   * accept a parameters indicating what proportion of the range should be interpolated and what quantized.
 * detect note onsets for sequencing purposes, and index by onset
@@ -32,16 +32,22 @@ TODO:
 * I could slowly, live, learn the relationship between different sample params and dissonance in SC3
 *
 2. Note timbre management
+* consider adding a new EventType which has my requisite transforms in;
+  In particular it could do certain perturbations in values depending on other parameters.
 * interesting param map
   * poss Martin Marier's excellent PresetInterpolator in mmExtension
   * or Marje Baalman's predecessor, ParameterSpace in SenseWorld
   * Or Wekinator
   * Or multivariate logistic regression against different possible parameterisations to construct a basis set of axes.
     If we assumed monotonicity, this would be quite easy using, e.g. multiple linear regression.
-    Or, random construction of a sparse basis, by e.g. random projection, which work for statisticians why not us?
+    Or, random construction of a sparse basis, by e.g. random projection, which works for statisticians why not us?
     But I think this probably also requires a lot of work to make it sound comprehensible.
-    NN gesture recogniser woudl actually be very nice, but I can't be arse training such a net
+    NN gesture recogniser would actually be very nice, but I can't be arsed training such a net
 * stereo movement within a note
+* interesting perturbations
+  * gaussian copula
+  * linear addition
+  * a fold transform, pref like some kind of pregresively wierder devils' staircase. maybe some kind of nicer map.
 * fake decay
 * I could make a param space and then search in similarity in a subset of dimensions. After all, I really only want to expand the variance in a few at a time
 * create a meta-preset, giving whole ranges of parameters
@@ -71,7 +77,7 @@ TODO:
   * both have lovely GUIs though, which is a serious plus if you had GUI programming as much as I do.
   * neither support general Hilbert space operations, which i think is essential.
   * to extend or rewrite?
-  * PresetSpace here we come
+  * PSParamSpace here we come
 
 */
 
@@ -187,7 +193,7 @@ state.server.waitForBoot({
 ~state.samplingstrip.rec(60.0);
 ~state.samplingstrip.sourceBuf(3);
 ~state.samplingstrip.sourceBuf(\tuneful,4);
-~state.samplingstrip.sourceBuf(\choral,0);
+~state.samplingstrip.sourceBuf(\choral,1);
 ~state.samplingstrip.sourceBuf(\people,0);
 ~state.samplingstrip.sourceBuf(\siren,0);
 ~state.samplingstrip.sourceBuf(\desolation,0);
