@@ -49,18 +49,16 @@ PSParamSpace {
 		var newPreset = this.newPreset;
 		this.nParams.do({
 			arg i;
-			[\fillin, i, params[i]].postcs;
 			newPreset[i] = fn.value(i, params[i]);
 		});
 		^newPreset;
 	}
 	newParam {
-		arg name, spec, value, action;
+		arg name, spec, action;
 		//note we don't set the paramspace in the first step
 		var newParam = PSParam.new(
 			name: name,
 			spec: spec,
-			value: value,
 			action: action, //should i ditch actions? hard to serialise, opaque.
 		);
 		//paramspace will be set here
@@ -99,7 +97,6 @@ PSParamSpace {
 		var paramNames = this.paramNames;
 		^this.newPresetFill({
 			arg i, param;
-			[\fromev, i, param, paramNames[i]].postcs;
 			param.unmap(evt[paramNames[i]]);
 		});
 	}
@@ -116,24 +113,30 @@ PSParamSpace {
 	}
 	map {
 		arg vec;
+		^vec.collect({
+			arg v, i;
+			params[i].map(v)
+		})
 	}
 	unmap {
 		arg vec;
+		^vec.collect({
+			arg v, i;
+			params[i].unmap(v)
+		})
 	}
 }
 // 
 PSParam {
 	var <name;
 	var <spec;
-	var <value; //should I just ignore this, or only use it for "special" Params?
 	var <action;
 	var <>paramSpace;
 	*new {
-		arg name, spec, value, action, paramSpace;
+		arg name, spec, action, paramSpace;
 		^super.newCopyArgs(
 			name,
 			spec.asSpec,
-			value,
 			FunctionList.new.addFunc(action),
 			paramSpace,
 		).initPSParam;
@@ -144,6 +147,7 @@ PSParam {
 		});
 		^this;
 	}
+	//pseudo-private because if you change two names to the same, weird stuff will happen
 	prName_{
 		arg newName;
 		name = newName.asSymbol;
@@ -163,5 +167,5 @@ PSParam {
 		arg val;
 		^spec.unmap(val)
 	}
-	storeArgs { ^[name, spec, value, action] }
+	storeArgs { ^[name, spec, action] }
 }
