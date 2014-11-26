@@ -3,8 +3,6 @@
 // TODO: make this suit the ControlSpec interface; subclass even
 //    Does ArrayWarp already get us this behaviour?
 
-// Martin Marier's Preset class does a lot of this work.
-
 //exp version
 PSquama {
 	var <tuning;
