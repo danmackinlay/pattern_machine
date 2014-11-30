@@ -1,12 +1,10 @@
+//Library-like, terse method namespace
 PS {
 	classvar <>data;
-// *initClass {
-// 		data = IdentityDictionary.new;
-// 	}
-	*set {|key, val|
+	*put {|key, val|
 		this.addUniqueMethod(key, {val});
 	}
-	*unset{|key|
+	*remove{|key|
 		this.removeUniqueMethod(key);
 	}
 }

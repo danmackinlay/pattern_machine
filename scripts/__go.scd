@@ -1,8 +1,8 @@
-Server.default = Dan.serverboot(\local, \builtin);
-Server.default = Dan.serverboot(\local, \rme);
-Server.default = Dan.serverboot(\local, \motu);
-Server.default = Dan.serverboot(\local, \jack);
-Server.default = Dan.serverboot(\internal, \builtin);
+Server.default = PS.serverboot(\local, \builtin);
+Server.default = PS.serverboot(\local, \rme);
+Server.default = PS.serverboot(\local, \motu);
+Server.default = PS.serverboot(\local, \jack);
+Server.default = PS.serverboot(\internal, \builtin);
 Quarks.gui;
 s.dumpOSC(1);
 OSCdef.trace(true);
