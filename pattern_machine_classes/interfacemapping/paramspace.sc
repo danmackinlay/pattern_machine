@@ -1,4 +1,8 @@
-//define a vector space on [0,1]^n
+/*
+ ***************
+ define a vector space on [0,1]^n
+TODO: easy paramspace exploration
+*/
 
 //This maps between numerical vectors and actions
 PSParamSpace {
@@ -6,7 +10,8 @@ PSParamSpace {
 	var <params;
 	var <paramCounter;
 	var <presetCounter;
-	//Unless you are restoring from disk or somesuch, you probably wish only to pass in the name, and MAYBE params
+	//Unless you are restoring from disk or somesuch,
+	//you probably wish only to pass in the name, and MAYBE params
 	*new {
 		arg name, params, paramCounter;
 		params = params ? Array.new;

@@ -72,7 +72,7 @@ TODO:
 * create a meta-preset, giving whole ranges of parameters
 * how to control this shit?
 * Baalman's ParameterSpace and Marier's PresetInterpolator are both very nice, but
-  * Parameterspace is too coupled to the 2d schtick
+  * ParameterSpace is too coupled to the 2d schtick
   * Marier's presumes highly specific binding logic and sorta wants you use Interpolator
   * both have lovely GUIs though, which is a serious plus if you had GUI programming as much as I do.
   * neither support general Hilbert space operations, which i think is essential.
