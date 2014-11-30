@@ -2,6 +2,8 @@
  ***************
  define a vector space on [0,1]^n
 TODO: easy paramspace exploration
+TODO: Instr-style tree-based library?
+TODO: YAML serialization.
 */
 
 //This maps between numerical vectors and actions
@@ -9,7 +11,6 @@ PSParamSpace {
 	var <name;
 	var <params;
 	var <paramCounter;
-	var <presetCounter;
 	//Unless you are restoring from disk or somesuch,
 	//you probably wish only to pass in the name, and MAYBE params
 	*new {
@@ -173,4 +174,36 @@ PSParam {
 		^spec.unmap(val)
 	}
 	storeArgs { ^[name, spec, action] }
+}
+PSPresetLib {
+	var <paramSpace;
+	var <presets;
+	var <presetCounter;
+	
+	*new { arg paramSpace, presets;
+		var res = this.at(key);
+		if(res.isNil) {
+			res = this.prNew(item).prAdd(key);
+		} {
+			if(item.notNil) { res.source = item }
+		}
+		^res
+	}
+	store {
+		arg name, preset;
+		
+	}
+}
+PSParamexplorer {
+	var <paramSpace;
+	var <cursor;
+	
+	*new {
+		arg paramSpace, presetlib, cursor;
+		
+		
+	}
+	store {
+		arg name, cursor;
+	}
 }
