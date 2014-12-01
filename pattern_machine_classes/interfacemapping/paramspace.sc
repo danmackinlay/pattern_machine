@@ -84,7 +84,7 @@ PSParamSpace {
 		});
 		paramCounter = paramCounter + 1;
 		param.name.isNil.if({
-			param.prName_(\param_ ++ paramCounter);
+			param.prName_((\param_ ++ paramCounter).asSymbol);
 		});
 		param.paramSpace = this;
 		params = params.add(param);
