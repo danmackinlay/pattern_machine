@@ -179,20 +179,44 @@ PSPresetLib {
 	var <paramSpace;
 	var <presets;
 	var <presetCounter;
+	var <presetMeta;
 	
-	*new { arg paramSpace, presets;
-		var res = this.at(key);
-		if(res.isNil) {
-			res = this.prNew(item).prAdd(key);
-		} {
-			if(item.notNil) { res.source = item }
-		}
-		^res
+	*new {
+		arg paramSpace, presets, presetCounter;
+		^super.newCopyArgs(
+			paramSpace,
+			presets,
+			presetCounter).initPSPreset;
+	}
+	initPSPreset {
+		presets = presets ?? {IdentityDictionary.new};
+		presetCounter = presetCounter ?? {presets.size};
 	}
 	store {
 		arg name, preset;
+		name = name ?? {(\preset__++presetCounter).asSymbol};
+		
+		presets[name] = preset;
+		presetCount = presetCounter + 1;
+	}
+	remove {
+		arg name;
+		nameOrNum.isSymbol.if({
+			^presets[nameOrNum];
+		}, {
+			^presets.select({|p| p.name==nameOrNum})[0];
+		});
 		
 	}
+	at {
+		arg name;
+		nameOrNum.isSymbol.if({
+			^presets[nameOrNum];
+		}, {
+			^presets.select({|p| p.name==nameOrNum})[0];
+		});
+	}
+	
 }
 PSParamexplorer {
 	var <paramSpace;
