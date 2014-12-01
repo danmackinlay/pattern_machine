@@ -1,3 +1,6 @@
+/*
+Various handy modulo linearl or modulo log-linear operations
+*/
 + SimpleNumber {
 	//floor, for non-integer factors
 	roundDown {|val|
