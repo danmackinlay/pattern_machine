@@ -1,0 +1,3 @@
++ Array {
+	asPSParam { ^PSParam( *this ) }
+}

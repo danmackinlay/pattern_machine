@@ -18,7 +18,7 @@ PSParamSpace {
 		params = params ? Array.new;
 		^super.newCopyArgs(
 			name ? \paramspace,
-			params,
+			params.collect(_.asPSParam),
 			paramCounter ? params.size,
 		).initPSParamSpace;
 	}
@@ -174,60 +174,70 @@ PSParam {
 		^spec.unmap(val)
 	}
 	storeArgs { ^[name, spec, action] }
+	asPSParam { ^this }
 }
-PSPresetLib {
+PSParamwalker {
 	var <paramSpace;
-	var <presets;
-	var <presetCounter;
-	var <presetMeta;
-	
+	var <pos;
+	var <savedPresets;
+	var <speed;
+	var <accelMag;
+	var <vel;
+	var <history;
+	var <>nHistory;
+
 	*new {
-		arg paramSpace, presets, presetCounter;
+		arg paramSpace,
+			pos,
+			savedPresets,
+			speed=0.1,
+			accelMag=0.1,
+			vel,
+			history,
+			nHistory=100;
+		pos = pos ?? {paramSpace.newPresetDefault};
 		^super.newCopyArgs(
 			paramSpace,
-			presets,
-			presetCounter).initPSPreset;
-	}
-	initPSPreset {
-		presets = presets ?? {IdentityDictionary.new};
-		presetCounter = presetCounter ?? {presets.size};
-	}
-	store {
-		arg name, preset;
-		name = name ?? {(\preset__++presetCounter).asSymbol};
-		
-		presets[name] = preset;
-		presetCount = presetCounter + 1;
-	}
-	remove {
-		arg name;
-		nameOrNum.isSymbol.if({
-			^presets[nameOrNum];
-		}, {
-			^presets.select({|p| p.name==nameOrNum})[0];
-		});
-		
-	}
-	at {
-		arg name;
-		nameOrNum.isSymbol.if({
-			^presets[nameOrNum];
-		}, {
-			^presets.select({|p| p.name==nameOrNum})[0];
-		});
-	}
-	
-}
-PSParamexplorer {
-	var <paramSpace;
-	var <cursor;
-	
-	*new {
-		arg paramSpace, presetlib, cursor;
-		
-		
+			pos,
+			savedPresets ?? [],
+			accelMag,
+			vel ?? paramSpace.newPresetOnes,
+			LinkedList.newFrom(history ? []),
+			nHistory,
+		).initPSParamwalk;
 	}
 	store {
-		arg name, cursor;
+		arg state;
+		savedPresets = savedPresets.add(state ? pos);
+	}
+	step {
+		history.push(pos);
+		{history.size>nHistory}.while({
+			history.popFirst;
+		});
+		this.renewState;
+	}
+	back {
+		arg n=1;
+		n.do({
+			pos = history.pop;
+		});
+	}
+	jump {
+		vel = {0.0.gaussian}.dup(vel.size);
+		pos = {1.0.rand}.dup(vel.size);
+		this.renewState;
+	}
+	renewState {
+		var accel = {0.0.gaussian}.dup(vel.size);
+		accel = accelMag * accel /(accel.squared.sum.sqrt);
+		vel = (vel + accel);
+		vel = (vel * speed)/(vel.squared.sum.sqrt);
+		pos = pos + vel;
+		//reflect
+		pos.do({|v,i| ((v-v.clip(0,1)) != 0).if({
+			vel[i] = vel[i].neg;
+		})});
+		pos = pos.clip(0,1);
 	}
 }
