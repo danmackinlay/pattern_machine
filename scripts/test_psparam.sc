@@ -15,6 +15,10 @@ p.newPresetDefault;
 p.newPreset;
 p.map([0.5, 0.5, 0.5, 0.5]);
 p.unmap([0.5, 0.5, 0.5, 1.5]);
+(
 p = PSParamSpace(\dan, [[\a], [\b]]);
-p.params.postcs;
+p.params;
 w = PSParamwalker.new(p);
+w.step;
+)
+w.nHistory

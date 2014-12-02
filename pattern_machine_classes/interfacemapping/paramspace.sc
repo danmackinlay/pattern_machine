@@ -206,6 +206,7 @@ PSParamwalker {
 			paramSpace,
 			pos,
 			savedPresets ?? [],
+			speed,
 			accelMag,
 			vel ?? paramSpace.newPresetOnes,
 			nHistory,
@@ -224,8 +225,8 @@ PSParamwalker {
 		savedPresets = savedPresets.add(state ? pos);
 	}
 	step {
-		history.push(pos);
-		{history.size>nHistory}.while({
+		history.add(pos);
+		{(history.size)>nHistory}.while({
 			history.popFirst;
 		});
 		this.renewState;
