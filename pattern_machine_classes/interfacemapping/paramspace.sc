@@ -290,3 +290,20 @@ PSParamwalker {
 		paramSpace.enact(pos);
 	}
 }
+//Cartography for your presets
+//should this do MDS or something?
+//Or pseudo-random correlate interpolation?2
+PSParamAtlas {
+	var presets;
+	readFile {
+		arg fileName;
+		presets = fileName.parseYAMLFile;
+	}
+	writeFile {
+		arg fileName;
+		File.use(fileName, "w", {
+			arg file;
+			file.write(JSON.stringify(presets));
+		});
+	}
+}
