@@ -21,4 +21,7 @@ p.params;
 w = PSParamwalker.new(p);
 w.step;
 )
-w.nHistory
+w.history;
+w.back(3);
+w.event;
+w.enact;

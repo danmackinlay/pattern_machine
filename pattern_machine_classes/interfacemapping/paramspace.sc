@@ -120,6 +120,14 @@ PSParamSpace {
 		});
 		^evt
 	}
+	enact {
+		arg vec;
+		vec.do({
+			arg val, i;
+			var param = params[i];
+			param.enact(val);
+		});
+	}
 	map {
 		arg vec;
 		^vec.collect({
@@ -181,6 +189,10 @@ PSParam {
 		arg val;
 		^spec.unmap(val)
 	}
+	enact {
+		arg val;
+		action.value(spec.map(val), val);
+	}
 }
 PSParamwalker {
 	var <paramSpace;
@@ -220,16 +232,41 @@ PSParamwalker {
 	printOn { arg stream;
 		stream << this.class.asString <<"(" << paramSpace.asString << ", " << pos.asString <<" )";
 	}
-	snapshot {
-		arg state;
-		savedPresets = savedPresets.add(state ? pos);
+	save {
+		arg i, state;
+		state = state ? pos;
+		i.isNil.if({
+			savedPresets = savedPresets.add(state);
+			i = savedPresets.size;
+		}, {
+			savedPresets[i] = state;
+		});
+		^i
+	}
+	load {
+		arg i;
+		pos = savedPresets[i];
 	}
 	step {
+		var nDims, accel, scaleFactor;
+		//track history
 		history.add(pos);
 		{(history.size)>nHistory}.while({
 			history.popFirst;
 		});
-		this.renewState;
+		//handle position updates
+		nDims = vel.size;
+		scaleFactor = nDims.sqrt;
+		accel = {0.0.gaussian}.dup(vel.size);
+		accel = accelMag * accel * scaleFactor/(accel.squared.sum.sqrt);
+		vel = (vel + accel);
+		vel = (vel * speed * scaleFactor)/(vel.squared.sum.sqrt);
+		pos = pos + vel;
+		//sticky-reflect off walls
+		pos.do({|v,i| ((v-v.clip(0,1)) != 0).if({
+			vel[i] = vel[i].neg;
+		})});
+		pos = pos.clip(0,1);
 	}
 	back {
 		arg n=1;
@@ -240,18 +277,16 @@ PSParamwalker {
 	jump {
 		vel = {0.0.gaussian}.dup(vel.size);
 		pos = {1.0.rand}.dup(vel.size);
-		this.renewState;
+		this.step;
 	}
-	renewState {
-		var accel = {0.0.gaussian}.dup(vel.size);
-		accel = accelMag * accel /(accel.squared.sum.sqrt);
-		vel = (vel + accel);
-		vel = (vel * speed)/(vel.squared.sum.sqrt);
-		pos = pos + vel;
-		//reflect
-		pos.do({|v,i| ((v-v.clip(0,1)) != 0).if({
-			vel[i] = vel[i].neg;
-		})});
-		pos = pos.clip(0,1);
+	setFromEvent{
+		arg evt;
+		pos = paramSpace.presetFromEvent(evt);
+	}
+	event {
+		^paramSpace.eventFromPreset(pos);
+	}
+	enact {
+		paramSpace.enact(pos);
 	}
 }
