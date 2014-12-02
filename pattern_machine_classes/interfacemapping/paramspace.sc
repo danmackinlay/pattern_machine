@@ -25,6 +25,10 @@ PSParamSpace {
 	initPSParamSpace {
 		//nothing atm
 	}
+	storeArgs { ^[name, params, paramCounter]}
+	printOn { arg stream;
+		stream << this.class.asString <<"(" << name << ", " << params.asString <<" )";
+	}
 	nParams {
 		^params.size;
 	}
@@ -97,7 +101,6 @@ PSParamSpace {
 			^params.select({|p| p.name==nameOrNum})[0];
 		});
 	}
-	storeArgs { ^[name, params, paramCounter] }
 	presetFromEvent{
 		arg evt;
 		var paramNames = this.paramNames;
@@ -153,6 +156,11 @@ PSParam {
 		});
 		^this;
 	}
+	storeArgs { ^[name, spec, action] }
+	printOn { arg stream;
+		stream << this.class.asString <<"(" << name << ", " << spec <<" )";
+	}
+	asPSParam { ^this }
 	//pseudo-private because if you change two names to the same, weird stuff will happen
 	prName_{
 		arg newName;
@@ -173,8 +181,6 @@ PSParam {
 		arg val;
 		^spec.unmap(val)
 	}
-	storeArgs { ^[name, spec, action] }
-	asPSParam { ^this }
 }
 PSParamwalker {
 	var <paramSpace;
@@ -183,8 +189,8 @@ PSParamwalker {
 	var <speed;
 	var <accelMag;
 	var <vel;
-	var <history;
 	var <>nHistory;
+	var <history;
 
 	*new {
 		arg paramSpace,
@@ -193,8 +199,8 @@ PSParamwalker {
 			speed=0.1,
 			accelMag=0.1,
 			vel,
-			history,
-			nHistory=100;
+			nHistory=100,
+			history;
 		pos = pos ?? {paramSpace.newPresetDefault};
 		^super.newCopyArgs(
 			paramSpace,
@@ -202,11 +208,18 @@ PSParamwalker {
 			savedPresets ?? [],
 			accelMag,
 			vel ?? paramSpace.newPresetOnes,
-			LinkedList.newFrom(history ? []),
 			nHistory,
-		).initPSParamwalk;
+			LinkedList.newFrom(history ? []),
+		).initPSParamwalker;
 	}
-	store {
+	initPSParamwalker {
+		//nowt, for the minute
+	}
+	storeArgs { ^[paramSpace, pos, savedPresets, speed, accelMag, vel, nHistory] }
+	printOn { arg stream;
+		stream << this.class.asString <<"(" << paramSpace.asString << ", " << pos.asString <<" )";
+	}
+	snapshot {
 		arg state;
 		savedPresets = savedPresets.add(state ? pos);
 	}
