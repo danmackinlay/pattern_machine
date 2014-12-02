@@ -213,4 +213,8 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
- 
+ArrayWarp.new([0,1], [1,1,4]).makeWindow
+Warp.warps
+c=ControlSpec.new(0.5,2);
+c.warp=ArrayWarp(c, [1,3,5]);
+c.map(0.7)
