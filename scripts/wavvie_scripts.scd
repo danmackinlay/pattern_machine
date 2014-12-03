@@ -213,8 +213,16 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
-ArrayWarp.new([0,1], [1,1,4]).makeWindow
-Warp.warps
-c=ControlSpec.new(0.5,2);
-c.warp=ArrayWarp(c, [1,3,5]);
-c.map(0.7)
+c=PSArrayControlSpec([1,3,5])
+c.map(0.0);
+c.map(0.2);
+c.map(0.5);
+c.map(0.9);
+c.clipLo;
+c.clipHi;
+c.maxval;
+c.minval;
+c.unitToIndex(0.1)
+c.unitToIndex(0.5)
+c.unitToIndex(1.0)
+c.warp.map(0.5)

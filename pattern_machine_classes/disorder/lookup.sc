@@ -89,3 +89,74 @@ PSquamaLin : PSquama {
 		^shadowtuning.blendAt(degree) + (octaveStep*octave)
 	}
 }
+//I don't subclass Warp but ControlSpec, because Warps are isomorphism [0,1] to [0,1] stretched post hoc using "min" and "max", which is not natural for e.g. bar steps
+// should I sort the steps?
+// should I apply warp to interpolation?
+// TODO: make this a little simpler and more consistent by constraining to the steps thing AFTER all warping
+PSArrayControlSpec : ControlSpec {
+	var <steps;
+	var <>interp;
+	*new {
+		arg steps, interp=0.0, warp='lin', step=0.0, default, units, grid;
+		^super.new(minval: 0,
+			maxval: steps.size-1,
+			warp: warp,
+			step: step, //should I ignore step?
+			default: default,
+			units: units,
+			grid: grid
+		).steps_(steps.asArray).interp_(interp.asFloat);
+	}
+	*newFrom { arg similar;
+		^this.new(similar.steps, similar.interp, similar.warp.asSpecifier,
+			similar.step, similar.default, similar.units)
+	}
+
+	storeArgs { ^[steps, interp, warp.asSpecifier, step, default, units] }
+
+	//NB not robust against mutable lists. oh well.
+	steps_ {
+		arg v;
+		steps = v;
+		this.updateRanges;
+		this.changed(\steps);
+	}
+	init {
+		warp = warp.asWarp(this);
+	}
+	updateRanges {
+		minval = 0;
+		maxval = steps.size-1;
+		clipLo = steps.minItem;
+		clipHi = steps.maxItem;
+	}
+	//maps unit to array lookup index
+	//interpolation should happen here
+	unitToIndex {
+		arg value;
+		interp.asBoolean.if({
+			^steps.size * value;
+		}, {
+			^(steps.size * value).round.min(steps.size);
+		});
+	}
+	indexToUnit {
+		arg value;
+		interp.asBoolean.if({
+			^value / (steps.size);
+		}, {
+			^value.round / (steps.size);
+		});
+	}
+	constrain { arg value;
+		// should this constrain to list values?
+		^value.asFloat.clip(clipLo, clipHi).round(step)
+	}
+	map { arg value;
+		^steps.blendAt(this.unitToIndex(warp.map(value.clip(0.0, 1.0))));
+	}
+	unmap { arg value;
+		// maps a value from spec range to [0..1]
+		^warp.unmap(this.indexToUnit(steps.indexInBetween(value.clip(clipLo, clipHi))));
+	}
+}
