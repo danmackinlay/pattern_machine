@@ -138,34 +138,24 @@ PSArrayControlSpec : ControlSpec {
 		clipLo = steps.minItem;
 		clipHi = steps.maxItem;
 	}
-	//maps unit to array lookup index
-	//interpolation should happen here
-	unitToIndex {
-		arg value;
-		interp.asBoolean.if({
-			^steps.size * value;
-		}, {
-			^(steps.size * value).round.min(steps.size);
-		});
-	}
-	//maps unit to array lookup index
-	indexToUnit {
-		arg value;
-		interp.asBoolean.if({
-			^value / (steps.size);
-		}, {
-			^value.round(1) / (steps.size);
-		});
-	}
+	// should this constrain to list values?
 	constrain { arg value;
-		// should this constrain to list values?
-		^value.asFloat.clip(clipLo, clipHi)
+		^value.asFloat.clip(clipLo, clipHi).nearestInList(step)
 	}
-	map { arg value;
-		^steps.blendAt(this.unitToIndex(warp.map(value.clip(0.0, 1.0))));
+	map { arg val;
+		var indx;
+		indx = warp.map(val.clip(0.0, 1.0));
+		interp.asBoolean.not.if({
+			indx = indx.round(1);
+		});
+		^steps.blendAt(indx);
 	}
-	unmap { arg value;
+	unmap { arg indx;
+		var val = steps.indexInBetween(val.clip(clipLo, clipHi));
 		// maps a value from spec range to [0..1]
-		^warp.unmap(this.indexToUnit(steps.indexInBetween(value.clip(clipLo, clipHi))));
+		interp.asBoolean.not.if({
+			val = val.round(1/(steps.size-1));
+		});
+		^warp.unmap(val);
 	}
 }
