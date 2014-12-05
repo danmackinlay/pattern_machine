@@ -213,7 +213,8 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
-c=PSArrayControlSpec([1,3,5])
+c.asCompileString;
+c=PSArrayControlSpec([1,3,5], interp: 0.0)
 c.map(0.0);
 c.map(0.2);
 c.map(0.5);
@@ -226,3 +227,9 @@ c.unitToIndex(0.1)
 c.unitToIndex(0.5)
 c.unitToIndex(1.0)
 c.warp.map(0.5)
+(
+p = PSParamSpace(\dan, [[\a], [\b]]);
+p.params;
+w = PSParamwalker.new(p);
+w.step;
+)

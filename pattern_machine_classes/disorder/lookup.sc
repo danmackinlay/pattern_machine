@@ -89,19 +89,27 @@ PSquamaLin : PSquama {
 		^shadowtuning.blendAt(degree) + (octaveStep*octave)
 	}
 }
-//I don't subclass Warp but ControlSpec, because Warps are isomorphism [0,1] to [0,1] stretched post hoc using "min" and "max", which is not natural for e.g. bar steps
-// should I sort the steps?
-// should I apply warp to interpolation?
-// TODO: make this a little simpler and more consistent by constraining to the steps thing AFTER all warping
+/*
+I don't subclass Warp but ControlSpec,
+because Warps are isomorphisms [0,1] to [0,1] stretched post hoc using "min" and "max",
+which is not natural for e.g. bar steps
+although one could make it work by modifying the two in sync
+Should I sort the steps? 
+Mostly doesn't make sense without
+Should I apply warp to interpolation? I feel I should.
+TODO: make this a little simpler and more consistent by constraining to the steps thing AFTER all warping
+TODO: implement partial interpolation
+TODO: implement unmap
+*/
 PSArrayControlSpec : ControlSpec {
 	var <steps;
 	var <>interp;
 	*new {
-		arg steps, interp=0.0, warp='lin', step=0.0, default, units, grid;
+		arg steps, interp=0.0, warp='lin', default, units, grid;
 		^super.new(minval: 0,
 			maxval: steps.size-1,
 			warp: warp,
-			step: step, //should I ignore step?
+			step: 0.0,
 			default: default,
 			units: units,
 			grid: grid
@@ -109,15 +117,15 @@ PSArrayControlSpec : ControlSpec {
 	}
 	*newFrom { arg similar;
 		^this.new(similar.steps, similar.interp, similar.warp.asSpecifier,
-			similar.step, similar.default, similar.units)
+			similar.default, similar.units, similar.grid)
 	}
 
-	storeArgs { ^[steps, interp, warp.asSpecifier, step, default, units] }
+	storeArgs { ^[steps, interp, warp.asSpecifier, default, units, grid] }
 
-	//NB not robust against mutable lists. oh well.
+	//NB not robust against mutation of collection. oh well.
 	steps_ {
 		arg v;
-		steps = v;
+		steps = v.asArray;
 		this.updateRanges;
 		this.changed(\steps);
 	}
@@ -140,17 +148,18 @@ PSArrayControlSpec : ControlSpec {
 			^(steps.size * value).round.min(steps.size);
 		});
 	}
+	//maps unit to array lookup index
 	indexToUnit {
 		arg value;
 		interp.asBoolean.if({
 			^value / (steps.size);
 		}, {
-			^value.round / (steps.size);
+			^value.round(1) / (steps.size);
 		});
 	}
 	constrain { arg value;
 		// should this constrain to list values?
-		^value.asFloat.clip(clipLo, clipHi).round(step)
+		^value.asFloat.clip(clipLo, clipHi)
 	}
 	map { arg value;
 		^steps.blendAt(this.unitToIndex(warp.map(value.clip(0.0, 1.0))));
