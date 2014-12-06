@@ -1,0 +1,5 @@
++ SequenceableCollection {
+	asLookupSpec {
+		^PSLookupSpec( *this )
+	}
+}

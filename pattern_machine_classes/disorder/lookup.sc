@@ -101,7 +101,7 @@ TODO: make this a little simpler and more consistent by constraining to the step
 TODO: implement partial interpolation
 TODO: implement unmap
 */
-PSArrayControlSpec : ControlSpec {
+PSLookupSpec : ControlSpec {
 	var <steps;
 	var <>interp;
 	*new {
