@@ -213,16 +213,24 @@ state.server.waitForBoot({
 ).play;
 )
 ~spy.free;
+
+//should this even be structured in terms of mean/covariance/deviation?
+//That could be its own meta-param constructothing
+//Then I would be learning a linear regression against a control param, basically.
+//Could be nice.
+//But then shoudl I be learning a gaussian cluster thing in that case?
+//Also can I store params in multiple slots?
 (
 p = PSParamSpace(\dan);
-p.newParam(\x);
-p.newParam(\y);
-p.newParam;
-p.newParam(\z, [1,5,\exp]);
-)
-(
-p = PSParamSpace(\dan, [[\a], [\b]]);
-p.params;
+p.newParam(\lfobasef, PSLookupSpec([1,2,3,4,6]));
+p.newParam(\timeago, PSLookupSpec([1,2,3,4,8]));
+p.newParam(\grainsize, PSLookupSpec([1,2,4,8,16,32]/32));
+p.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
+p.newParam(\transp, PSLookupSpec([1/2,1,2]);
+p.newParam(\lfomodamp, [0,1,\db]));
+p.newParam(\lfomodamp, [0,1,\db]));
 w = PSParamwalker.new(p);
 w.step;
 )
+
+
