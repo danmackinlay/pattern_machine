@@ -1,4 +1,4 @@
-Server.default = PS.serverboot(\local, \builtin);
+Server.default = PS.serverboot.value(\local, \builtin);
 Server.default = PS.serverboot(\local, \rme);
 Server.default = PS.serverboot(\local, \motu);
 Server.default = PS.serverboot(\local, \jack);
