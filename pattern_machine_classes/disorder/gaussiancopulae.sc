@@ -4,6 +4,9 @@ TODO: remove dependence on overloading - operator in boolean.sc
 TODO: switch to simpler less accurate algorithm
 http://www.ccsenet.org/journal/index.php/jmr/article/view/5818 for some alternatives,
 http://www.ams.org/journals/mcom/1968-22-101/S0025-5718-1968-0223070-2/ for some more
+or http://www.cs.unm.edu/~jmk/cs531/NormalCDF.pdf
+or http://eric.ed.gov/?id=ED064395
+or http://www.johndcook.com/blog/normal_cdf_inverse/
 
 
 I simulate uniform marginal variables from the stipulated 2d copula distribution

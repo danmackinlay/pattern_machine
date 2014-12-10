@@ -14,6 +14,7 @@ PS.go.();
 PS.kill.();
 MIDIClient.init;
 MIDIFunc.trace(false);
+MIDIFunc.trace(true);
 MIDIClient.sources;
 MIDIClient.init;
 MIDIIn.connectAll;

@@ -86,7 +86,8 @@ Could do various things here;
 
 * Generalized additive models.
 * nonparametric propensity scores
-* What now seems most natural: linear self-excited (discrete hawkes) processes, where we regress a *rate* kernel and possibly interaction terms (which must be positive but at least we can do logartithmic regression). See Branching process below.
+* What now seems most natural: linear self-excited (discrete hawkes) processes, where we regress a *rate* kernel and possibly interaction terms (which must be positive but at least we can do logarithmic regression).
+  
 * but what I tried was logistic regression of self against past
 
 This might be quicker with [SGD](http://scikit-learn.org/stable/modules/sgd.html#sgd):
@@ -113,9 +114,9 @@ But it is non-sparse regression in
 (tones ⨉ wavelengths ⨉ 2 (for phase)) ^ interactions.
 SGD?
 Expectation maximisation?
+Could do a kernel-recurrence relation a la Wheatley.
 
-OTOH could do a kernel-recurrence relation a la Wheatley.
-
+* Reynaud-Bouret, P., & Schbath, S. (2010). Adaptive estimation for Hawkes processes; application to genome analysis. *The Annals of Statistics*, 38(5), 2781–2822. `DOI <http://dx.doi.org/10.1214/10-AOS806>`__. `Online <http://projecteuclid.org/euclid.aos/1279638540>`__. 
 * Or regress against something time-bound, perhaps...
   * decaying sinusoidal impulses? but with what period? likely several harmonics of note length.
   * What decay? No idea. Even several superposed decays could be natural. Would have to fit term decay, which would not be linear
