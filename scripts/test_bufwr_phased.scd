@@ -43,4 +43,4 @@ state.server.doWhenBooted {~state.make({
 	).trace.play(~clock);
 });};
 )
-~state.server = Dan.serverboot(prox:\local, device:\builtin);
+~state.server = PS.serverboot.(prox:\local, device:\builtin);

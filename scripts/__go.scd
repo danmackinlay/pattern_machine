@@ -1,8 +1,8 @@
-Server.default = PS.serverboot.value(\local, \builtin);
-Server.default = PS.serverboot(\local, \rme);
-Server.default = PS.serverboot(\local, \motu);
-Server.default = PS.serverboot(\local, \jack);
-Server.default = PS.serverboot(\internal, \builtin);
+Server.default = PS.serverboot.(\local, \builtin);
+Server.default = PS.serverboot.(\local, \rme);
+Server.default = PS.serverboot.(\local, \motu);
+Server.default = PS.serverboot.(\local, \jack);
+Server.default = PS.serverboot.(\internal, \builtin);
 Quarks.gui;
 s.dumpOSC(1);
 OSCdef.trace(true);
@@ -19,3 +19,17 @@ MIDIClient.sources;
 MIDIClient.init;
 MIDIIn.connectAll;
 SCDoc.indexAllDocuments;
+
+~state.jumps=[1,4,8,10,12,16];
+(
+~spy = (
+	instrument: \jack__1,
+	in: ~state.inbuses[0],
+	out: ~state.masteroutbus.subBus(0,1),
+	group: ~state.outputgroup,
+	server: ~state.server,
+	addAction: \addToTail,
+	sendGate: false,//persist
+).play;
+)
+~spy.free;

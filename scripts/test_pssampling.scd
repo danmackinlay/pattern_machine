@@ -10,7 +10,7 @@ fork {
 	));
 	s.sync;
 };
-Server.default = Dan.serverboot(\local, \builtin);
+Server.default = PS.serverboot.(\local, \builtin);
 p=PSSamplingStrip.new(0);CmdPeriod.doOnce({ p.free;});
 p=PSSamplingStrip.new(1, Group.new);CmdPeriod.doOnce({ p.free;});
 ServerTreeGui.makeWindow(s);

@@ -82,7 +82,7 @@ TODO:
 */
 
 ServerTreeGui.makeWindow(s);
-Server.default = Dan.serverboot(\local, \builtin);
+Server.default = PS.serverboot.(\local, \builtin);
 (
 var masterstrip, samples, server, state;
 server = Server.default;
