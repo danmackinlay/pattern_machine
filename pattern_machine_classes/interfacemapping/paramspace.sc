@@ -113,14 +113,24 @@ PSParamSpace {
 	}
 	eventFromPreset{
 		arg vec;
-		var evt;
-		evt = Event.new(this.nParams);
+		var evt = Event.new(this.nParams);
 		vec.do({
 			arg val, i;
 			var param = params[i];
 			evt[param.name] = param.map(val);
 		});
 		^evt
+	}
+	pairsFromPreset {
+		arg vec;
+		var pairs = Array.new(this.nParams);
+		vec.do({
+			arg val, i;
+			var param = params[i];
+			pairs[2*i] = param.name;
+			pairs[2*i+1] = param.map(val);
+		});
+		^pairs
 	}
 	enact {
 		arg vec;
@@ -281,15 +291,29 @@ PSParamwalker {
 		pos = {1.0.rand}.dup(vel.size);
 		this.step;
 	}
-	setFromEvent{
-		arg evt;
+	setFromEvent{ arg evt;
 		pos = paramSpace.presetFromEvent(evt);
 	}
 	event {
 		^paramSpace.eventFromPreset(pos);
 	}
+	pairs {
+		^paramSpace.pairsFromPreset(pos);
+	}
 	enact {
 		paramSpace.enact(pos);
+	}
+	evtRoutineFunc {
+		^{inf.do({this.step; this.event.yield;})}
+	}
+	pairsRoutineFunc {
+		^{inf.do({this.step; this.event.yield;})}
+	}
+	asStream {
+		^Routine(this.evtRoutineFunc)
+	}
+	asPattern {
+		^Prout(this.pairsRoutineFunc)
 	}
 }
 //Cartography for your presets
