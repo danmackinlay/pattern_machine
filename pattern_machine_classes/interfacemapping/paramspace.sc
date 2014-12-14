@@ -209,6 +209,8 @@ PSParam {
 		action.value(spec.map(val), val);
 	}
 }
+//incremental param perturber
+//TODO:  handle a dynamic subset of the paramspace's vars
 PSParamwalker {
 	var <paramSpace;
 	var <pos;

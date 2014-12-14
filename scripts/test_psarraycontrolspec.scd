@@ -14,3 +14,5 @@ c.unitToIndex(0.1)
 c.unitToIndex(0.5)
 c.unitToIndex(1.0)
 c.warp.map(0.5)
+ControlSpec(0.001,1.0,\exp).map(0.8);
+Warp.warps

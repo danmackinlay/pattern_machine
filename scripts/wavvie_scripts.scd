@@ -121,13 +121,8 @@ state.server.waitForBoot({
 		~streamer = streamer;
 		s.sync;
 		{samplingstrip.rec(10.0);}.defer(1.0);
-		~combed = 0.0;
-		~jumps = [1,2,3,4,8];
-		~grains = [1,2,4,8,16,32]/32;
-		~deltas = [1,2,4,8]/8;
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
-		~windowRandRatio = 0.01;
 		~param = 1;
 	});
 	//clean way to set non-OSC actions? right now have to comeback afterwards and add
@@ -135,8 +130,8 @@ state.server.waitForBoot({
 		evt.use({
 			//nothing ATM
 		});
-		evt.postcs;
-		state.paramwalker.post;
+		//evt.postcs;
+		//state.paramwalker.post;
 		evt;
 	};
 	state.streamer.tickcallback = #{|time, state, streamer|
@@ -157,8 +152,19 @@ state.server.waitForBoot({
 	paramspace.newParam(\grainsize, PSLookupSpec([1,2,4,8,16,32]/32));
 	paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
 	paramspace.newParam(\pitchrate, PSLookupSpec([1/2,1,2]));
-	paramspace.newParam(\flag, PSLookupSpec([1/2,1,2]));
-	paramspace.newParam(\lfomodamp, [0,1,\db]);
+	paramspace.newParam(\combed, [0.001, 1.0,\exp]);
+	paramspace.newParam(\lfomodamp, \db);
+	paramspace.newParam(\pan, \pan);
+	paramspace.newParam(\windowRandRatio, [0.0,1.0]);
+	paramspace.newParam(\allpdelayratio, [0.1,1.0]);
+	paramspace.newParam(\allpdecayratio, [1,8,\exp]);
+	paramspace.newParam(\lfo2amp, [0.001, 1.0,\exp]);
+	paramspace.newParam(\lfo2grain, [0.001, 1.0,\exp]);
+	paramspace.newParam(\lfo2pan, [0.001, 1.0,\exp]);
+	paramspace.newParam(\lfo2del, [0.001, 1.0,\exp]);
+	paramspace.newParam(\sustainDur, [0.25, 16]);
+
+
 	state.paramwalker = paramwalker = PSParamwalker.new(
 		paramspace,
 		speed: 0,
@@ -170,22 +176,13 @@ state.server.waitForBoot({
 			\sendGate, false,
 			//\degree, PGeomN(0, 0.95), //hack to terminate after random time
 			\lfophase, 0,
-			\lfo2amp, -0.25,
-			\lfo2grain, 0,
-			\lfo2pan, 0.0,
-			\lfo2del, state.lfo2del,
 			\posrate, 0.125 * (0.5.coin*2 -1),
-			\windowRandRatio, state.windowRandRatio,
-			\sustainDur, Pfunc({2.pow((-2).rrand(4))}),
 			\db, -10.0,
-			\pan, 0.8.rand2,
 			\overlaps, 4,
-			\allpdelayratio, 0.173,  //enharmonic sounds better
-			\allpdecayratio, 4,
-			\combed, state.combed,
 		)
 	);
 )
+
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(60.0);
 ~state.samplingstrip.sourceBuf(3);
@@ -199,4 +196,5 @@ state.server.waitForBoot({
 ~state.samples.at(\tuneful, 2);
 ~state.paramwalker.vel;
 ~state.paramwalker.step;
+~state.paramwalker.speed=0.3;
 PSParamwalker.new(~state.paramspace);
