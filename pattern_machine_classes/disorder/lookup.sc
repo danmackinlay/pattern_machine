@@ -66,7 +66,7 @@ PSquama {
 	choose {
 		^this.tuning.choose;
 	}
-	
+
 	== { arg that;
 		^this.compareObject(that, #[\tuning, \octaveStep])
 	}
@@ -94,7 +94,7 @@ I don't subclass Warp but ControlSpec,
 because Warps are isomorphisms [0,1] to [0,1] stretched post hoc using "min" and "max",
 which is not natural for e.g. bar steps
 although one could make it work by modifying the two in sync
-Should I sort the steps? 
+Should I sort the steps?
 Mostly doesn't make sense without
 Should I apply warp to interpolation? I feel I should.
 TODO: make this a little simpler and more consistent by constraining to the steps thing AFTER all warping
@@ -109,7 +109,7 @@ PSLookupSpec : ControlSpec {
 			maxval: steps.size-1,
 			warp: warp,
 			step: 0.0,
-			default: default,
+			default: default ? steps[0],
 			units: units,
 			grid: grid
 		).steps_(steps.asArray).interp_(interp.asFloat);
@@ -120,7 +120,7 @@ PSLookupSpec : ControlSpec {
 	}
 
 	storeArgs { ^[steps, interp, warp.asSpecifier, default, units, grid] }
-
+	
 	//NB not robust against mutation of collection. oh well.
 	steps_ {
 		arg v;

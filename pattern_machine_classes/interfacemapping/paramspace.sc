@@ -63,6 +63,7 @@ PSParamSpace {
 		});
 		^newPreset;
 	}
+	//create and bind a param
 	newParam {
 		arg name, spec, action;
 		//note we don't set the paramspace in the first step
@@ -73,8 +74,9 @@ PSParamSpace {
 		);
 		//paramspace will be set here
 		this.addParam(newParam);
-		^newParam;
+		//^newParam;
 	}
+	//bind an existing param to me
 	addParam {
 		arg param;
 		params.includes(param).if({
