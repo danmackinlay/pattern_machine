@@ -200,19 +200,6 @@ state.server.waitForBoot({
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
-~state.jumps=[1,4,8,10,12,16];
-(
-~spy = (
-	instrument: \jack__1,
-	in: ~state.inbuses[0],
-	out: ~state.masteroutbus.subBus(0,1),
-	group: ~state.outputgroup,
-	server: ~state.server,
-	addAction: \addToTail,
-	sendGate: false,//persist
-).play;
-)
-~spy.free;
 
 //should this even be structured in terms of mean/covariance/deviation?
 //That could be its own meta-param constructothing
