@@ -98,8 +98,7 @@ Should I sort the steps?
 Mostly doesn't make sense without
 Should I apply warp to interpolation? I feel I should.
 TODO: make this a little simpler and more consistent by constraining to the steps thing AFTER all warping
-TODO: implement partial interpolation
-TODO: implement unmap
+TODO: implement partial interpolation, inc unmap
 */
 PSLookupSpec : ControlSpec {
 	var <steps;
@@ -142,20 +141,20 @@ PSLookupSpec : ControlSpec {
 	constrain { arg value;
 		^value.asFloat.clip(clipLo, clipHi).nearestInList(step)
 	}
-	map { arg val;
+	map { arg unmapped;
 		var indx;
-		indx = warp.map(val.clip(0.0, 1.0));
+		indx = warp.map(unmapped.clip(0.0, 1.0));
 		interp.asBoolean.not.if({
 			indx = indx.round(1);
 		});
 		^steps.blendAt(indx);
 	}
-	unmap { arg indx;
-		var val = steps.indexInBetween(val.clip(clipLo, clipHi));
+	unmap { arg mapped;
 		// maps a value from spec range to [0..1]
+		var indx = steps.indexInBetween(mapped.clip(clipLo, clipHi));
 		interp.asBoolean.not.if({
-			val = val.round(1/(steps.size-1));
+			indx = indx.round(1/(steps.size-1));
 		});
-		^warp.unmap(val);
+		^warp.unmap(indx);
 	}
 }
