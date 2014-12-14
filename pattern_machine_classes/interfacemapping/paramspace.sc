@@ -188,7 +188,7 @@ PSParam {
 	}
 	//quasi-passthru to spec, except unmapped values are prime for us.
 	default {
-		^spec.unmap(spec.default);
+		^spec.unmap(spec.default).asFloat;
 	}
 	defaultMapped {
 		spec.default;
@@ -210,7 +210,7 @@ PSParamwalker {
 	var <paramSpace;
 	var <pos;
 	var <savedPresets;
-	var <speed;
+	var <>speed;
 	var <accelMag;
 	var <vel;
 	var <>nHistory;
@@ -259,26 +259,38 @@ PSParamwalker {
 		arg i;
 		pos = savedPresets[i];
 	}
-	step {
-		var nDims, accel, scaleFactor;
-		//track history
+	//record current values in history
+	remember {
 		history.add(pos);
 		{(history.size)>nHistory}.while({
 			history.popFirst;
 		});
-		//handle position updates
-		nDims = vel.size;
-		scaleFactor = nDims.sqrt;
-		accel = {0.0.gaussian}.dup(vel.size);
-		accel = accelMag * accel * scaleFactor/(accel.squared.sum.sqrt);
-		vel = (vel + accel);
-		vel = (vel * speed * scaleFactor)/(vel.squared.sum.sqrt);
-		pos = pos + vel;
+	}
+	//rescale vel to unity
+	normalizeVel {
+		vel = vel/(vel.squared.sum.sqrt);
+	}
+	// clip pos and reflect vel if nec.
+	normalizePos{
 		//sticky-reflect off walls
 		pos.do({|v,i| ((v-v.clip(0,1)) != 0).if({
 			vel[i] = vel[i].neg;
 		})});
 		pos = pos.clip(0,1);
+	}
+	//random step
+	step {
+		var nDims, accel, scaleFactor;
+		//random position perturbation
+		nDims = vel.size;
+		scaleFactor = nDims.sqrt;
+		accel = {0.0.gaussian}.dup(vel.size);
+		accel = accelMag * accel * scaleFactor/(accel.squared.sum.sqrt);
+		vel = (vel + accel);
+		this.normalizeVel;
+		pos = pos + (vel * speed * scaleFactor);
+		this.normalizePos;
+		this.remember;
 	}
 	back {
 		arg n=1;
@@ -286,10 +298,16 @@ PSParamwalker {
 			pos = history.pop;
 		});
 	}
+	pos_ {
+		arg vec;
+		pos = vec;
+		this.remember;
+	}
 	jump {
 		vel = {0.0.gaussian}.dup(vel.size);
 		pos = {1.0.rand}.dup(vel.size);
-		this.step;
+		this.normalizeVel;
+		this.remember;
 	}
 	setFromEvent{ arg evt;
 		pos = paramSpace.presetFromEvent(evt);
