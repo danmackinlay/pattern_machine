@@ -168,7 +168,7 @@ PSParam {
 	}
 	storeArgs { ^[name, spec, action] }
 	printOn { arg stream;
-		stream << this.class.asString <<"(" << name << ", " << spec <<" )";
+		stream << this.class.asString <<"(" << name << " )";
 	}
 	asPSParam { ^this }
 	//pseudo-private because if you change two names to the same, weird stuff will happen
@@ -232,7 +232,7 @@ PSParamwalker {
 	}
 	storeArgs { ^[paramSpace, pos, savedPresets, speed, accelMag, vel, nHistory] }
 	printOn { arg stream;
-		stream << this.class.asString <<"(" << paramSpace.asString << ", " << pos.asString <<" )";
+		stream << this.class.asString <<"(" << paramSpace.name << ", " << pos.asString <<" )";
 	}
 	save {
 		arg i, state;
