@@ -84,7 +84,11 @@ TODO:
 ServerTreeGui.makeWindow(s);
 Server.default = PS.serverboot.(\local, \builtin);
 (
-var masterstrip, samples, server, state;
+var masterstrip,
+	samples,
+	server,
+	state;
+
 server = Server.default;
 state = (
 	sampleDur: 60.0,
@@ -118,70 +122,63 @@ state.server.waitForBoot({
 		s.sync;
 		{samplingstrip.rec(10.0);}.defer(1.0);
 		~combed = 0.0;
-		~lfobasefs = [1,2,3,4,6];
 		~jumps = [1,2,3,4,8];
 		~grains = [1,2,4,8,16,32]/32;
 		~deltas = [1,2,4,8]/8;
-		~transps = [1/2,1,2];
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
 		~windowRandRatio = 0.01;
 		~param = 1;
 	});
 	//clean way to set non-OSC actions? right now have to comeback afterwards and add
-	state[\timbralparams] = (
-		combed: Parameter(name: "combed", value:0),
-		octave: Parameter(name: "octave", value:0.5, spec: ControlSpec(-1,1,step:1)),
-		timeago: Parameter(name: "timeago", value:0.0, spec: ControlSpec(1,32, step:1)),
-	);
-	state[\defaulttimbre] = Preset(
-		params:state[\timbralparams].values,
-		name: "DefaultTimbre");
 	state.streamer.notecallback = #{|evt, state, streamer|
 		evt.use({
 			//nothing ATM
 		});
 		evt.postcs;
+		state.paramwalker.post;
 		evt;
 	};
 	state.streamer.tickcallback = #{|time, state, streamer|
-		[\localtime, time].postcs;
+		//[\localtime, time].postcs;
 	};
-
 });
 )
-
 (
-	var state = ~state;
+	var state = ~state, paramspace, paramwalker;
+	state.paramspace = paramspace = PSParamSpace(\wavviebasic);
+	//should this even be structured in terms of mean/covariance/deviation?
+	//That could be its own meta-param constructothing
+	//Then I would be learning a linear regression against a control param, basically.
+	//Could be nice.
+	//Also can I store params in multiple slots?
+	paramspace.newParam(\lfomodf, PSLookupSpec([1,2,3,4,6]));
+	paramspace.newParam(\timeago, PSLookupSpec([1,2,3,4,8]));
+	paramspace.newParam(\grainsize, PSLookupSpec([1,2,4,8,16,32]/32));
+	paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
+	paramspace.newParam(\pitchrate, PSLookupSpec([1/2,1,2]));
+	paramspace.newParam(\flag, PSLookupSpec([1/2,1,2]));
+	paramspace.newParam(\lfomodamp, [0,1,\db]);
+	state.paramwalker = paramwalker = PSParamwalker.new(
+		paramspace,
+		speed: 0,
+	);
 	~state.streamer.add(
-		~state.samplingstrip.basePattern <> Pbind(
+		~state.samplingstrip.basePattern <> paramwalker.asPattern <> Pbind(
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
-			\degree, PGeomN(0, 0.95), //hack to terminate after random time
-			\lfobasef, Prand(state.lfobasefs, inf),
-			\lfomodf, Prand(state.lfobasefs, inf),
-			\lfomodamp, state.lfomodamp,
+			//\degree, PGeomN(0, 0.95), //hack to terminate after random time
 			\lfophase, 0,
 			\lfo2amp, -0.25,
 			\lfo2grain, 0,
 			\lfo2pan, 0.0,
 			\lfo2del, state.lfo2del,
 			\posrate, 0.125 * (0.5.coin*2 -1),
-			\timeago, PMarkovChain.random(
-				disorder:0.2,
-				ordertype: \static,
-				expressions: state.jumps),
-			\delta, PMarkovChain.random(
-				disorder:0.5,
-				ordertype: \static,
-				expressions: state.deltas),
-			\grainsize, Prand(state.grains, inf),
 			\windowRandRatio, state.windowRandRatio,
 			\sustainDur, Pfunc({2.pow((-2).rrand(4))}),
 			\db, -10.0,
 			\pan, 0.8.rand2,
-			\pitchrate, Prand(state.transps, inf),
 			\overlaps, 4,
 			\allpdelayratio, 0.173,  //enharmonic sounds better
 			\allpdecayratio, 4,
@@ -200,24 +197,6 @@ state.server.waitForBoot({
 ~state.streamer.removeAt(2);
 ~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
-
-//should this even be structured in terms of mean/covariance/deviation?
-//That could be its own meta-param constructothing
-//Then I would be learning a linear regression against a control param, basically.
-//Could be nice.
-//But then shoudl I be learning a gaussian cluster thing in that case?
-//Also can I store params in multiple slots?
-(
-p = PSParamSpace(\dan);
-p.newParam(\lfobasef, PSLookupSpec([1,2,3,4,6]));
-p.newParam(\timeago, PSLookupSpec([1,2,3,4,8]));
-p.newParam(\grainsize, PSLookupSpec([1,2,4,8,16,32]/32));
-p.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
-p.newParam(\transp, PSLookupSpec([1/2,1,2]);
-p.newParam(\lfomodamp, [0,1,\db]));
-p.newParam(\lfomodamp, [0,1,\db]));
-w = PSParamwalker.new(p);
-w.step;
-)
-
-
+~state.paramwalker.vel;
+~state.paramwalker.step;
+PSParamwalker.new(~state.paramspace);
