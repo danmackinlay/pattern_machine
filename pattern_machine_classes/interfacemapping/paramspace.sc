@@ -103,6 +103,9 @@ PSParamSpace {
 			^params.select({|p| p.name==nameOrNum})[0];
 		});
 	}
+	keys {
+		^params.collect({arg param; param.name})
+	}
 	presetFromEvent{
 		arg evt;
 		var paramNames = this.paramNames;
@@ -321,17 +324,17 @@ PSParamwalker {
 	enact {
 		paramSpace.enact(pos);
 	}
-	evtRoutineFunc {
-		^{inf.do({this.step; this.event.yield;})}
-	}
-	pairsRoutineFunc {
-		^{inf.do({this.step; this.event.yield;})}
-	}
-	asStream {
-		^Routine(this.evtRoutineFunc)
-	}
-	asPattern {
-		^Prout(this.pairsRoutineFunc)
+	asStream { ^Routine({ arg inval; this.embedInStream(inval) }) }
+	embedInStream { arg event;
+		while {
+			event.notNil;
+		}{
+			var modEvent;
+			this.step;
+			modEvent = event.copy.putAll(this.event);
+			event = modEvent.yield;
+		}
+		^event;
 	}
 }
 //Cartography for your presets
