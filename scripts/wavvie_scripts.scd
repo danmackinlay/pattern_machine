@@ -147,27 +147,29 @@ state.server.waitForBoot({
 	//Then I would be learning a linear regression against a control param, basically.
 	//Could be nice.
 	//Also can I store params in multiple slots?
-	paramspace.newParam(\lfomodf, PSLookupSpec([1,2,3,4,6]));
+	paramspace.newParam(\lfomodf, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\timeago, PSLookupSpec([1,2,3,4,8]));
 	paramspace.newParam(\grainsize, PSLookupSpec([1,2,4,8,16,32]/32));
-	paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
 	paramspace.newParam(\pitchrate, PSLookupSpec([1/2,1,2]));
 	paramspace.newParam(\combed, [0.001, 1.0,\exp]);
-	paramspace.newParam(\lfomodamp, \db);
+	paramspace.newParam(\lfomodamp, [0.001, 1.0, \exp]);
 	paramspace.newParam(\pan, \pan);
 	paramspace.newParam(\windowRandRatio, [0.0,1.0]);
 	paramspace.newParam(\allpdelayratio, [0.1,1.0]);
 	paramspace.newParam(\allpdecayratio, [1,8,\exp]);
-	paramspace.newParam(\lfo2amp, [0.001, 1.0,\exp]);
-	paramspace.newParam(\lfo2grain, [0.001, 1.0,\exp]);
-	paramspace.newParam(\lfo2pan, [0.001, 1.0,\exp]);
-	paramspace.newParam(\lfo2del, [0.001, 1.0,\exp]);
+	paramspace.newParam(\lfo2amp, [0.001, 1.0, \exp]);
+	paramspace.newParam(\lfo2grain, [0.001, 1.0, \exp]);
+	paramspace.newParam(\lfo2pan, [0.001, 1.0, \exp]);
+	paramspace.newParam(\lfo2del, [0.00001, 0.01, \exp]);
+	paramspace.newParam(\posrate, PSLookupSpec([-1,-1/2,-1/4,0,1/4,1/2,1]));
+	//ignored
+	paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
 	paramspace.newParam(\sustainDur, [0.25, 16]);
 
 
 	state.paramwalker = paramwalker = PSParamwalker.new(
 		paramspace,
-		speed: 0,
+		speed: 0.05,
 	);
 	~state.streamer.add(
 		~state.samplingstrip.basePattern <> paramwalker.asPattern <> Pbind(
@@ -176,9 +178,10 @@ state.server.waitForBoot({
 			\sendGate, false,
 			//\degree, PGeomN(0, 0.95), //hack to terminate after random time
 			\lfophase, 0,
-			\posrate, 0.125 * (0.5.coin*2 -1),
 			\db, -10.0,
 			\overlaps, 4,
+			\delta,1,
+			\sustainDur, 2,
 		)
 	);
 )
@@ -195,6 +198,9 @@ state.server.waitForBoot({
 ~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
 ~state.paramwalker.vel;
-~state.paramwalker.step;
-~state.paramwalker.speed=0.3;
+~state.paramwalker.accelMag;
+~state.paramwalker.speed;
+~state.paramwalker.pos;
+~state.paramwalker.speed=0.1;
+~state.paramwalker.event
 PSParamwalker.new(~state.paramspace);
