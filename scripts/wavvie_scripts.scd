@@ -149,11 +149,12 @@ state.server.waitForBoot({
 	//Also can I store params in multiple slots?
 	paramspace.newParam(\lfomodf, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\lfobasef, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
+//these ned to be different phases
 	paramspace.newParam(\lfomodamp, [0.001, 1.0, \exp]);
-	paramspace.newParam(\lfo2amp, [0.001, 1.0, \exp]);
-	paramspace.newParam(\lfo2grain, [0.001, 1.0, \exp]);
-	paramspace.newParam(\lfo2pan, [0.001, 1.0, \exp]);
-	paramspace.newParam(\lfo2del, [0.00001, 0.01, \exp]);
+	paramspace.newParam(\lfo2amp, [-0.1, 0.1, \invphi]);
+	paramspace.newParam(\lfo2grain, [-0.1, 0.1, \invphi]);
+	paramspace.newParam(\lfo2pan, [-0.1, 0.1, \invphi]);
+	paramspace.newParam(\lfo2del, [-0.01, 0.01, \invphi]);
 	paramspace.newParam(\timeago, PSLookupSpec([1,2,3,4,8,12,16]));
 	paramspace.newParam(\grainsize, PSLookupSpec([1,2,4,8,16,32]/32));
 	paramspace.newParam(\pitchrate, PSLookupSpec([1/2,1,2]));

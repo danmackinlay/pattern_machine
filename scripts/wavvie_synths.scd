@@ -122,11 +122,13 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		deltime,
 		dectime,
 		combwet,
-		combdry;
+		combdry,
+		lforangeScale;
 
 	lfomodf = lfomodf * tempo;
 	lfobasef = lfobasef * tempo;
 	timeago = timeago / tempo;
+	lforangeScale = (lfobasef.reciprocal).min(1);
 	sustainDur = sustainDur / tempo;
 	grainsize = grainsize / tempo;
 	
@@ -145,7 +147,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 		modfreq: lfomodf,
 		pmindex: lfomodamp * pi * 2,
 		modphase: lfophase * pi * 2,
-		mul: lfobasef.reciprocal);
+	);
 
 	readTime = ((Phasor.kr(
 		trig: gate,
@@ -156,7 +158,7 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	) +
 		(baseTime - timeago)
 	) +
-		(lfo * lfo2pos)
+		(lfo * lfo2pos * lforangeScale)
 	).wrap(0, bufDur);
 	env = EnvGen.kr(
 		Env.perc(
