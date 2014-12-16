@@ -144,7 +144,8 @@ SynthDef.new(\ps_bufgrain_type_2__1x2, {
 	lfo = PMOsc.kr(carfreq: lfobasef,
 		modfreq: lfomodf,
 		pmindex: lfomodamp * pi * 2,
-		modphase: lfophase * pi * 2);
+		modphase: lfophase * pi * 2,
+		mul: lfobasef.reciprocal);
 
 	readTime = ((Phasor.kr(
 		trig: gate,
