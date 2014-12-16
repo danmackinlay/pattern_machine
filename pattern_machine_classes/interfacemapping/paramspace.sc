@@ -338,21 +338,21 @@ PSParamwalker {
 		}
 		^event;
 	}
-}
-//Cartography for your presets
-//should this do MDS or something?
-//Or pseudo-random correlate interpolation?2
-PSParamAtlas {
-	var presets;
+	gui {
+		
+	}
 	readFile {
-		arg fileName;
-		presets = fileName.parseYAMLFile;
+		arg fileName, presetData;
+		presetData = fileName.parseYAMLFile;
+		savedPresets = presetData[\presets];
 	}
 	writeFile {
-		arg fileName;
+		arg fileName, presetData;
+		presetData = IdentityDictionary.new;
+		presetData[\presets] = savedPresets;
 		File.use(fileName, "w", {
 			arg file;
-			file.write(JSON.stringify(presets));
+			file.write(JSON.stringify(presetData));
 		});
 	}
 }

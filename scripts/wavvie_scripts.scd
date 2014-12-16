@@ -2,6 +2,7 @@
 Wavvie
 TODO:
 1. Misc shit
+* I really woudl like some modulateable indexes to the grains's synth params
 * by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
 * ArrayWarp should extend mm's ArrayWarp (in Autogui) by subclassing and do two things:
   * allow exponential interpolation
@@ -18,6 +19,7 @@ TODO:
 * click track for recording sync
 * manual tuning of transpositions
 * create evolving long-lived sequences
+* Do same using a conditional branching process
 * might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.
 * Audit for zipper noise
 * switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
@@ -149,7 +151,6 @@ state.server.waitForBoot({
 	//Also can I store params in multiple slots?
 	paramspace.newParam(\lfomodf, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\lfobasef, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
-	//these need to be different phases
 	paramspace.newParam(\lfomodamp, [0.001, 1.0, \exp]);
 	paramspace.newParam(\lfo2amp, [-0.1, 0.1]);
 	paramspace.newParam(\lfo2grain, [-0.1, 0.1]);
@@ -165,9 +166,8 @@ state.server.waitForBoot({
 	paramspace.newParam(\allpdecayratio, [1,8,\exp]);
 	paramspace.newParam(\posrate, PSLookupSpec([-1,-1/2,-1/4,0,1/4,1/2,1]));
 	//ignored
-	paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
-	paramspace.newParam(\sustainDur, [0.25, 16]);
-
+	//paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
+	//paramspace.newParam(\sustainDur, [0.25, 16]);
 
 	state.paramwalker = paramwalker = PSParamwalker.new(
 		paramspace,
@@ -187,7 +187,6 @@ state.server.waitForBoot({
 		)
 	);
 )
-
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(60.0);
 ~state.samplingstrip.sourceBuf(3);
@@ -204,5 +203,6 @@ state.server.waitForBoot({
 ~state.paramwalker.speed;
 ~state.paramwalker.pos;
 ~state.paramwalker.speed=0.1;
-~state.paramwalker.event
-PSParamwalker.new(~state.paramspace);
+~state.paramwalker.event;
+~state.paramwalker.writeFile(PS.pmpath +/+ "presets/wavvie.json");
+~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
