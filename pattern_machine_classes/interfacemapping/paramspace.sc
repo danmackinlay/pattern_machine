@@ -250,19 +250,16 @@ PSParamwalker {
 		stream << this.class.asString <<"(" << paramSpace.name << ", " << pos.asString <<" )";
 	}
 	save {
-		arg i, state;
-		state = state ? pos;
-		i.isNil.if({
-			savedPresets = savedPresets.add(state);
-			i = savedPresets.size;
-		}, {
-			savedPresets[i] = state;
-		});
-		^i
+		arg meta;
+		savedPresets = savedPresets.add(
+			IdentityDictionary.newFrom(
+				(preset: pos)
+			).putAll(meta)
+		);
 	}
 	load {
 		arg i;
-		pos = savedPresets[i];
+		pos = savedPresets[i].preset;
 	}
 	//record current values in history
 	remember {
@@ -357,34 +354,3 @@ PSParamwalker {
 	}
 }
 
-//I could even give up privlegeing thing and jsut have a bunch of index dictionaries
-PSIndexedThings {
-	var <things;
-	var <metadata;
-	var <defaults;
-	var <counter;
-	*new {
-		arg things, metadata;
-		^super.newCopyArgs(
-			presets,
-			metadata,
-			defaults).initPSIndexedThings;
-	}
-	initPSIndexedThings {
-		things = IdentityDictionary.newFrom(things ? ());
-		metadata = metadata ? IdentityDictionary.new;
-		defaults = defauts ? IdentityDictionary.new;
-		counter = things.keys.maxItem ? 0;
-	}
-	addMetaDataType { 
-		arg name, default;
-		metadata[name] = IdentityDictionary.new;
-	}
-	at{arg addr;
-	}
-	addThing {
-		arg thing, meta;
-	}
-	findAll {
-	}
-}
