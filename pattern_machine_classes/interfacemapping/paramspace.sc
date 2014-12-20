@@ -357,8 +357,34 @@ PSParamwalker {
 	}
 }
 
+//I could even give up privlegeing thing and jsut have a bunch of index dictionaries
+PSIndexedThings {
+	var <things;
+	var <metadata;
+	var <defaults;
+	var <counter;
+	*new {
+		arg things, metadata;
+		^super.newCopyArgs(
+			presets,
+			metadata,
+			defaults).initPSIndexedThings;
 	}
+	initPSIndexedThings {
+		things = IdentityDictionary.newFrom(things ? ());
+		metadata = metadata ? IdentityDictionary.new;
+		defaults = defauts ? IdentityDictionary.new;
+		counter = things.keys.maxItem ? 0;
 	}
+	addMetaDataType { 
+		arg name, default;
+		metadata[name] = IdentityDictionary.new;
 	}
+	at{arg addr;
+	}
+	addThing {
+		arg thing, meta;
+	}
+	findAll {
 	}
 }
