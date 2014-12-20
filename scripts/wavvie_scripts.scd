@@ -11,7 +11,7 @@ TODO:
   * Coyote is from BatUgens, purely time-domain. Looks elegant, though I've had a couple of Batugens explode on me
   * Onsets is included in the distro, pure FFT, multiple methods
   * OnsetsDS is the Dan Stowell thingy; (circumstantially looks to be the prototype for Onsets)
-  * PV_HainsworthFoote and  PV_JensenAndersen are too.
+  * PV_HainsworthFoote and PV_JensenAndersen are too.
   * SLOnset is a Nick Collins joint, so likely to be a little, uh, sporadic
 * pitch recording
 * some kind of better notion of what sampling a bar means
@@ -182,7 +182,7 @@ state.server.waitForBoot({
 			\lfophase, 0,
 			\db, -10.0,
 			\overlaps, 4,
-			\delta,1,
+			\delta, 1,
 			\sustainDur, 2,
 		)
 	);
@@ -206,3 +206,4 @@ state.server.waitForBoot({
 ~state.paramwalker.event;
 ~state.paramwalker.writeFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
+~state.gui;
