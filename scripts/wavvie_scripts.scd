@@ -207,3 +207,12 @@ state.server.waitForBoot({
 ~state.paramwalker.writeFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.gui;
+
+p=PHawkes(nChildren: Pexp(0.99), wait: Pwhite(0,1), mark: Prand([-1,1],inf), protoEvent: (degree:0));
+p=PHawkes(nChildren: 2, wait: Pwhite(0.0,1.0), mark: 1, protoEvent:(degree:0));
+p.asStream.nextN(10);
+(Pbind(\degree, Pkey(\mark)) <> p).play;
+Pexp(0.9).asStream.nextN(10).mean
+q=p.asHawkesStream;
+q.priorityQ.
+p.play
