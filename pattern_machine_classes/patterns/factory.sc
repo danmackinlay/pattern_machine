@@ -1,5 +1,3 @@
-//short lived patterns that I like
-
 //turns some metaparams into a larger number of event lookup params, possibly by random copulae,
 // or random convex combinations
 // Side queston: what are the distributions of random simplicial combinations? or even random general convex combinations?

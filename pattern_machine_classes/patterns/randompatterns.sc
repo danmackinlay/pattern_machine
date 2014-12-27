@@ -89,31 +89,4 @@ PMarkovChain : Pattern {
 	}
 }
 
-//embed geometrically truncated input sequence
-PGeomN : FilterPattern {
-	var <>successProb;
-	
-	*new { arg pattern, successProb;
-		//normalise here?
-		^super.newCopyArgs(pattern, successProb);
-	}
-	storeArgs { ^[pattern, successProb]}
-	embedInStream { 
-		arg origin;
-		var next, in, stream;
-		//[\successProb, successProb].postcs;
-		//[\origin, origin].postcs;
-		in = origin;
-		stream = pattern.asStream;
-		{successProb.coin}.while({
-			next = stream.next(in);
-			//[\next, next].postcs;
-			//in ?? { ^origin  }; //exit on nil
-			in = next.yield;
-			//[\in, in].postcs;
-		}, {
-			^origin;
-		});
-		^origin;
-	}
-}
+
