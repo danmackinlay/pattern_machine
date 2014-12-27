@@ -34,7 +34,7 @@ Pexp : Pattern {
 	}
 }
 
-//embed geometrically truncated input sequence
+//embed a geometric number of times
 PGeomN : FilterPattern {
 	var <>successProb;
 	

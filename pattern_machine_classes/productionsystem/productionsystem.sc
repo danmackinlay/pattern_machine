@@ -208,8 +208,9 @@ PSProductionSystem {
 		stream << "], ";
 		stream << ")";
 	}
-	//delegate pattern-like business to the root rule (called \root per default)
+	//behave like pattern:
 	asStream { ^Routine({ arg inval; this.embedInStream(inval) }) }
+	//delegate pattern-like business to the root rule (called \root per default)
 	embedInStream{|inval|
 		^this.root.embedInStream(inval);
 	}

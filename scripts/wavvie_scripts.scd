@@ -208,11 +208,26 @@ state.server.waitForBoot({
 ~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.gui;
 
-p=PHawkes(nChildren: Pexp(0.99), wait: Pwhite(0,1), mark: Prand([-1,1],inf), protoEvent: (degree:0));
-p=PHawkes(nChildren: 2, wait: Pwhite(0.0,1.0), mark: 1, protoEvent:(degree:0));
+p=PEndo(nChildren: Pexp(0.99), wait: Pwhite(0,1), mark: Prand([-1,1],inf), protoEvent: (degree:0));
+p=PEndo(nChildren: 2, wait: Pwhite(0.0,1.0), mark: 1, protoEvent:(degree:0));
 p.asStream.nextN(10);
 (Pbind(\degree, Pkey(\mark)) <> p).play;
 Pexp(0.9).asStream.nextN(10).mean
-q=p.asHawkesStream;
+q=p.asEndoStream;
 q.priorityQ.
 p.play
+
+
+p=PEndoExo(nChildren: Pexp(0.99), wait: Pwhite(0,1), mark: Prand([-1,1],inf), pattern: Pbind(\degree, 0));
+p=PEndoExo(nChildren: 2, wait: Pwhite(0.0,1.0), mark: 1, pattern: Pbind(\degree, 0));
+p.asStream.nextN(10);
+(Pbind(\degree, Pkey(\mark)) <> p).play;
+q=p.asEndoExoStream;
+q.priorityQ.topPriority
+q.priorityQ.notEmpty
+p.play
+TempoClock.default.play(p.asStream);
+p.pattern
+p.nChildren
+p.asEndoExoStream.nChildren
+Pbind(\degree, 0).play;
