@@ -131,19 +131,21 @@ EndoStream {
 	}
 }
 
-PEndoExo : FilterPattern {
+PEndoExo : Pattern {
+	var <>exoPattern;
 	var <>nChildren;
 	var <>wait;
 	var <>mark;
 	var <>accum;
 	var <>startMark;
-	*new { arg pattern, 
+	*new { arg exoPattern, 
 			nChildren,
 			wait,
 			mark,
 			accum=false,
 			startMark;
-		^super.new(pattern).nChildren_(nChildren
+		^super.new.exoPattern_(exoPattern
+			).nChildren_(nChildren
 			).wait_(wait
 			).mark_(mark
 			).accum_(accum
@@ -153,47 +155,42 @@ PEndoExo : FilterPattern {
 	initPEndoExo {
 		
 	}
+	storeArgs { ^[exoPattern, nChildren, wait, mark, accum, startMark]}
+
 	asStream {
-		^Routine({ | ev | this.embedInStream(ev) })
+		^this.asEndoExoStream
 	}
-	storeArgs { ^[nChildren, wait, mark, accum, startMark, pattern]}
 
 	asEndoExoStream {
-		^EndoExoStream(nChildren,
+		^EndoExoStream.new(
+			nChildren,
 			wait,
 			mark,
 			accum,
 			startMark,
-			pattern,
+			exoPattern,
 		)
-	}
-
-	embedInStream { | inevent, cleanup |
-		^this.asEndoExoStream.embedInStream(
-			inevent,
-			cleanup ?? { EventStreamCleanup.new }
-		);
 	}
 }
 
-EndoExoStream {
+EndoExoStream : Stream {
 	var <>nChildren;
 	var <>wait;
 	var <>mark;
 	var <>accum;
 	var <>startMark;
-	var <>stream;
 	var <>priorityQ;
 	var <>now;
-	var <>stream;
+	var <>event;
+	var <>exoStream;
 	
-	*new { |nChildren, wait, mark, accum, startMark, pattern|
+	*new { |nChildren, wait, mark, accum, startMark, exoPattern|
 		^super.new.nChildren_(nChildren.asStream
 			).wait_(wait.asStream
 			).mark_(mark.asStream
 			).accum_(accum
 			).startMark_(startMark
-			).stream_(pattern.asStream
+			).exoStream_(exoPattern.asStream
 		).init;
 	}
 
@@ -202,27 +199,29 @@ EndoExoStream {
 		priorityQ = PriorityQueue.new;
 		now = 0;
 	}
-	//returns next event even stitched from incoming streams
-	//sub events will be synthesized from this
 	next { |event, startMark|
-		var nextEvent = stream.next(event);
+		var nextEv = exoStream.next(event);
 		var nextNChildren = nChildren.next(event);
 		var nextWait = wait.next(event);
 		var nextMark = startMark ?? {mark.next(event)};
-		((nextEvent.notNil).and(nextWait.notNil).and(nextMark.notNil).and(nextNChildren.notNil)).if({
-			nextEvent = nextEvent.copy.putAll(
+		((nextEv.notNil).and(nextWait.notNil).and(nextMark.notNil).and(nextNChildren.notNil)).if({
+			^nextEv.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
 				mark: nextMark
-			);
 			\next.postln;
 			nextEvent.postcs;
 			^nextEvent;
+			))
 		}, {
 			^nil
 		});
 	}
 
+	asStream {
+		^Routine({ | ev | this.embedInStream(ev) })
+	}
+	
 	embedInStream { | inevent, cleanup|
 		var outevent, event, nexttime, nextEvent;
 		event = this.next(inevent, startMark);
