@@ -35,7 +35,7 @@ Pexp : Pattern {
 }
 
 //embed a geometric number of times
-PGeomN : FilterPattern {
+PGeomRep : FilterPattern {
 	var <>successProb;
 	
 	*new { arg pattern, successProb;
