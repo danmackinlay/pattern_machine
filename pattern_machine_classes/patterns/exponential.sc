@@ -1,3 +1,7 @@
+/*
+ * Boilerplate for various RVs-as-patterns
+ */
+
 //Exponential RV (Rate parameterisation)
 PexpR : Pattern {
 	var <>lambda, <>length;
@@ -10,14 +14,14 @@ PexpR : Pattern {
 		length.value(inval).do({
 			var inlambda = lambdaStr.next(inval);
 			inlambda ?? {^inval};
-			inval = (0.0.rrand(1.0).log.neg/inlambda).yield; //supposedly excludes endpoints
+			inval = inlambda.expR.yield; 
 		});
 		^inval;
 	}
 }
 
 //Exponential RV (Scale parameterisation)
-Pexp : Pattern {
+PexpS : Pattern {
 	var <>beta, <>length;
 	*new{arg beta = 1, length = inf;
 		^super.newCopyArgs(beta, length);
@@ -28,7 +32,7 @@ Pexp : Pattern {
 		length.value(inval).do({
 			var inbeta = betaStr.next(inval);
 			inbeta ?? {^inval};
-			inval = (0.0.rrand(1.0).log.neg*inbeta).yield; 
+			inval = inbeta.expS.yield; 
 		});
 		^inval;
 	}
@@ -46,37 +50,26 @@ PGeomP : Pattern {
 		length.value(inval).do({
 			var inp = pStr.next(inval);
 			inp ?? {^inval};
-			inval = (0.0.rrand(1.0).log.neg/((1-inp).log.neg)).yield;
+			inval = p.geomP.yield;
 		});
 		^inval;
 	}
 }
 
-//embed a geometric number of times
-PGeomRep : FilterPattern {
-	var <>successProb;
-	
-	*new { arg pattern, successProb;
-		//normalise here?
-		^super.newCopyArgs(pattern, successProb);
+//Geometric RV (mean parameterisation)
+PGeomM : Pattern {
+	var <>mean, <>length;
+	*new{arg mean = 1, length = inf;
+		^super.newCopyArgs(mean, length);
 	}
-	storeArgs { ^[pattern, successProb]}
-	embedInStream { 
-		arg origin;
-		var next, in, stream;
-		//[\successProb, successProb].postcs;
-		//[\origin, origin].postcs;
-		in = origin;
-		stream = pattern.asStream;
-		{successProb.coin}.while({
-			next = stream.next(in);
-			//[\next, next].postcs;
-			//in ?? { ^origin  }; //exit on nil
-			in = next.yield;
-			//[\in, in].postcs;
-		}, {
-			^origin;
+	storeArgs{ ^[mean, length] }
+	embedInStream{ arg inval;
+		var meanStr = mean.asStream;
+		length.value(inval).do({
+			var inmean = meanStr.next(inval);
+			inval = inmean.geomM.yield;
 		});
-		^origin;
+		^inval;
 	}
 }
+
