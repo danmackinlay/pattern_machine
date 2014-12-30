@@ -96,6 +96,7 @@ EndoStream {
 			priorityQ.put(now, event);
 		});
 		
+		///based on the EndoExo one, this entire section has highly suspect logic.
 		cleanup ?? { cleanup = EventStreamCleanup.new };
 
 		while({
@@ -193,7 +194,7 @@ EndoExoStream  {
 		priorityQ = PriorityQueue.new;
 		now = 0;
 	}
-	nextProto { |event, exo=true|
+	nextExo { |event|
 		var nextEv,
 			nextNChildren,
 			nextWait,
@@ -201,26 +202,14 @@ EndoExoStream  {
 		event = event.copy;
 		nextEv = exoStream.next(event);
 		nextNChildren = nChildren.next(event);
-		//logic gets convoluted here, since we only pull the incoming streams as
+		// logic gets convoluted here, since we only pull the incoming streams as
 		// needed and we want to allow any of them to terminate the stream.
 		// in principle, I guess we do.
 		// why do I care?
 		// help.
-		exo.if({
-			nextWait = nextEv.wait ?? nextEv.delta ?? 1;
-			nextMark = nextEv.mark ?? {mark.next(event)};
-		}, {
-			var maybeMark = mark.next(event);
-			nextWait = wait.next(event);
-			accum.if({
-				nextMark !? {
-					nextMark = nextEv.mark + maybeMark
-				};
-			}, {
-				nextMark = maybeMark
-			});
-		});
-		\extranexty.postln;
+		nextWait = nextEv.wait ?? nextEv.delta ?? 1;
+		nextMark = nextEv.mark ?? {mark.next(event)};
+		\exoextranexty.postln;
 		[\event, event].postcs;
 		[\exoStream, exoStream].postcs;
 		[\nextEv, nextEv].postcs;
@@ -237,7 +226,50 @@ EndoExoStream  {
 				nChildren: nextNChildren,
 				wait: nextWait,
 				mark: nextMark,
-				exo: exo,
+				exo: true,
+			))
+		}, {
+			^nil
+		});
+	}
+	nextEndo { |event|
+		var nextEv,
+			nextNChildren,
+			nextWait,
+			nextMark,
+			maybeMark;
+		event = event.copy;
+		nextNChildren = nChildren.next(event);
+		//logic gets convoluted here, since we only pull the incoming streams as
+		// needed and we want to allow any of them to terminate the stream.
+		// in principle, I guess we do.
+		// why do I care?
+		// help.
+		maybeMark = mark.next(event);
+		nextWait = wait.next(event);
+		accum.if({
+			nextMark !? {
+				nextMark = event.mark + maybeMark
+			};
+		}, {
+			nextMark = maybeMark
+		});
+		\endoextranexty.postln;
+		[\event, event].postcs;
+		[\exoStream, exoStream].postcs;
+		[\nextNChildren, nextNChildren].postcs;
+		[\nextWait, nextWait].postcs;
+		[\nextMark, nextMark].postcs;
+		((
+			nextWait.notNil
+			).and(nextMark.notNil
+			).and(nextNChildren.notNil)
+		).if({
+			^event.copy.putAll((
+				nChildren: nextNChildren,
+				wait: nextWait,
+				mark: nextMark,
+				exo: false,
 			))
 		}, {
 			^nil
@@ -249,50 +281,51 @@ EndoExoStream  {
 	}
 	
 	embedInStream { | inevent, cleanup|
-		var outevent, event, nexttime, nextEvent;
+		var outevent, event, nexttime, nextExo, nextEvent;
 		[\inny1, inevent].postcs;
 		
-		event = this.nextProto(inevent);
-		event.notNil.if({
-			priorityQ.put(now, event);
+		nextExo = this.nextExo(inevent);
+		nextExo.notNil.if({
+			priorityQ.put(now, nextExo);
 		});
 		
 		cleanup ?? { cleanup = EventStreamCleanup.new };
-		[\inny2, event].postcs;
+		[\inny2, nextExo].postcs;
 		
 		while({
 			priorityQ.notEmpty
 		},{
-			nextEvent = this.nextProto(event);
-			\nexty.postln;
-			nextEvent.postcs;
-			
-			nextEvent.notNil.if({
-				priorityQ.put(now + (nextEvent.wait), nextEvent)
+			var step;
+			nexttime = priorityQ.topPriority ? now;
+			nextEvent = priorityQ.pop.asEvent;
+			step = nexttime - now;
+			step.postcs;
+			(step >0 ).if({
+				Event.silent(step).yield;
+				now = nexttime;
 			});
-			outevent = priorityQ.pop.asEvent;
-			outevent.isNil.if({
+			\nexty.postln;
+			nextEvent.isNil.if({
 				\empty.postln;
-				outevent.postcs;
+				nextEvent.postcs;
 				//out event was nil, so we are done. go home.
 				priorityQ.clear;
-				^cleanup.exit(event);
+				^cleanup.exit(inevent);
 			}, {
 				//outevent  existed, so we emit it and queue its children
 				\nonempty.postln;
-				outevent.postcs;
+				nextEvent.postcs;
 				// requeue stream
-				outevent.nChildren.do({
-					nextEvent = this.nextProto(event, exo:false);
-					nextEvent.notNil.if({
-						priorityQ.put(now + (nextEvent.wait), nextEvent);
+				nextEvent.nChildren.do({
+					var nextEndo;
+					nextEndo = this.nextEndo(nextEvent, exo:false);
+					nextEndo.notNil.if({
+						priorityQ.put(now + (nextEndo.wait), nextEndo);
 					});
 				});
-				nexttime = priorityQ.topPriority ? now;
-				outevent.put(\delta, nexttime - now);
-				cleanup.update(outevent);
-				event = outevent.yield;
-				now = nexttime;
+				nextEvent.put(\delta, 0);
+				cleanup.update(nextEvent);
+				inevent = nextEvent.yield;
 			});
 		});
 		^event;
