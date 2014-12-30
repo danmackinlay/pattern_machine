@@ -74,7 +74,7 @@ EndoStream {
 		priorityQ = PriorityQueue.new;
 		now = 0;
 	}
-	next { |event, startMark|
+	nextProto { |event, startMark|
 		var nextNChildren = nChildren.next(event);
 		var nextWait = wait.next(event);
 		var nextMark = startMark ?? {mark.next(event)};
@@ -158,7 +158,7 @@ PEndoExo : Pattern {
 	storeArgs { ^[exoPattern, nChildren, wait, mark, accum, startMark]}
 
 	asStream {
-		^this.asEndoExoStream
+		^Routine({ | ev | this.asEndoExoStream.embedInStream(ev) })
 	}
 
 	asEndoExoStream {
@@ -173,7 +173,7 @@ PEndoExo : Pattern {
 	}
 }
 
-EndoExoStream : Stream {
+EndoExoStream  {
 	var <>nChildren;
 	var <>wait;
 	var <>mark;
@@ -199,11 +199,16 @@ EndoExoStream : Stream {
 		priorityQ = PriorityQueue.new;
 		now = 0;
 	}
-	next { |event, startMark|
-		var nextEv = exoStream.next(event);
-		var nextNChildren = nChildren.next(event);
-		var nextWait = wait.next(event);
-		var nextMark = startMark ?? {mark.next(event)};
+	nextProto { |event, startMark|
+		var nextEv,
+			nextNChildren,
+			nextWait,
+			nextMark;
+		event = event.copy;
+		nextEv = exoStream.next(event);
+		nextNChildren = nChildren.next(event);
+		nextWait = wait.next(event);
+		nextMark = startMark ?? {mark.next(event)};
 		\extranexty.postln;
 		[\event, event].postcs;
 		[\startMark, startMark].postcs;
@@ -231,7 +236,7 @@ EndoExoStream : Stream {
 		var outevent, event, nexttime, nextEvent;
 		[\inny1, inevent].postcs;
 		
-		event = this.next(inevent, startMark);
+		event = this.nextProto(inevent, startMark);
 		event.notNil.if({
 			priorityQ.put(now, event);
 		});
@@ -242,7 +247,7 @@ EndoExoStream : Stream {
 		while({
 			priorityQ.notEmpty
 		},{
-			nextEvent = this.next(event);
+			nextEvent = this.nextProto(event);
 			\nexty.postln;
 			nextEvent.postcs;
 			
@@ -260,10 +265,9 @@ EndoExoStream : Stream {
 				//outevent  existed, so we emit it and queue its children
 				\nonempty.postln;
 				outevent.postcs;
-				cleanup.update(outevent);
 				// requeue stream
 				outevent.nChildren.do({
-					nextEvent = this.next(event);
+					nextEvent = this.nextProto(event);
 					nextEvent.notNil.if({
 						accum.if({
 							nextEvent.mark_((outevent.mark) + (nextEvent.mark));
@@ -273,6 +277,7 @@ EndoExoStream : Stream {
 				});
 				nexttime = priorityQ.topPriority ? now;
 				outevent.put(\delta, nexttime - now);
+				cleanup.update(outevent);
 				event = outevent.yield;
 				now = nexttime;
 			});

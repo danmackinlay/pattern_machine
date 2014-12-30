@@ -217,9 +217,9 @@ q=p.asEndoStream;
 q.priorityQ.
 p.play
 
-p=PEndoExo(nChildren: Pexp(0.99), wait: Pwhite(0.0,1.0), mark: Prand([-1,1],inf), exoPattern: Pbind(\degree, 0));
+p=PEndoExo(nChildren: Pexp(0.9), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), exoPattern: Pbind(\degree, 0));
 p.asStream.nextN(3);
-(Pbind(\degree, Pkey(\mark)) <> p).play;
+(Pbind(\degree, Pkey(\mark)) <> p).trace.play;
 q=p.asEndoExoStream;
 q.exoStream.next(Event.default);
 q.next(Event.default);
