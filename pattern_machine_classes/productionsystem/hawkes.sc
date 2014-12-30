@@ -58,6 +58,7 @@ EndoStream {
 	var <>protoEvent;
 	var <>priorityQ;
 	var <>now;
+	var <>event;
 
 	*new { |nChildren, wait, mark, accum, startMark, protoEvent|
 		^super.new.nChildren_(nChildren.asStream
@@ -94,6 +95,7 @@ EndoStream {
 		event.notNil.if({
 			priorityQ.put(now, event);
 		});
+		
 		cleanup ?? { cleanup = EventStreamCleanup.new };
 
 		while({
