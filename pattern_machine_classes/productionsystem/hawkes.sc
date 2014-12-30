@@ -137,25 +137,22 @@ PEndoExo : Pattern {
 	var <>wait;
 	var <>mark;
 	var <>accum;
-	var <>startMark;
 	*new { arg exoPattern, 
 			nChildren,
 			wait,
 			mark,
-			accum=false,
-			startMark;
+			accum=false;
 		^super.new.exoPattern_(exoPattern
 			).nChildren_(nChildren
 			).wait_(wait
 			).mark_(mark
 			).accum_(accum
-			).startMark_(startMark
 		).initPEndoExo;
 	}
 	initPEndoExo {
 		
 	}
-	storeArgs { ^[exoPattern, nChildren, wait, mark, accum, startMark]}
+	storeArgs { ^[exoPattern, nChildren, wait, mark, accum]}
 
 	asStream {
 		^Routine({ | ev | this.asEndoExoStream.embedInStream(ev) })
@@ -167,7 +164,6 @@ PEndoExo : Pattern {
 			wait,
 			mark,
 			accum,
-			startMark,
 			exoPattern,
 		)
 	}
@@ -178,28 +174,26 @@ EndoExoStream  {
 	var <>wait;
 	var <>mark;
 	var <>accum;
-	var <>startMark;
 	var <>priorityQ;
 	var <>now;
 	var <>event;
 	var <>exoStream;
 	
-	*new { |nChildren, wait, mark, accum, startMark, exoPattern|
+	*new { |nChildren, wait, mark, accum, exoPattern|
 		^super.new.nChildren_(nChildren.asStream
 			).wait_(wait.asStream
 			).mark_(mark.asStream
 			).accum_(accum
-			).startMark_(startMark
 			).exoStream_(exoPattern.asStream
 		).init;
 	}
 
-	init { 
+	init {
 		var nextEvent;
 		priorityQ = PriorityQueue.new;
 		now = 0;
 	}
-	nextProto { |event, startMark|
+	nextProto { |event, exo=true|
 		var nextEv,
 			nextNChildren,
 			nextWait,
@@ -207,21 +201,43 @@ EndoExoStream  {
 		event = event.copy;
 		nextEv = exoStream.next(event);
 		nextNChildren = nChildren.next(event);
-		nextWait = wait.next(event);
-		nextMark = startMark ?? {mark.next(event)};
+		//logic gets convoluted here, since we only pull the incoming streams as
+		// needed and we want to allow any of them to terminate the stream.
+		// in principle, I guess we do.
+		// why do I care?
+		// help.
+		exo.if({
+			nextWait = nextEv.wait ?? nextEv.delta ?? 1;
+			nextMark = nextEv.mark ?? {mark.next(event)};
+		}, {
+			var maybeMark = mark.next(event);
+			nextWait = wait.next(event);
+			accum.if({
+				nextMark !? {
+					nextMark = nextEv.mark + maybeMark
+				};
+			}, {
+				nextMark = maybeMark
+			});
+		});
 		\extranexty.postln;
 		[\event, event].postcs;
-		[\startMark, startMark].postcs;
 		[\exoStream, exoStream].postcs;
 		[\nextEv, nextEv].postcs;
 		[\nextNChildren, nextNChildren].postcs;
 		[\nextWait, nextWait].postcs;
 		[\nextMark, nextMark].postcs;
-		((nextEv.notNil).and(nextWait.notNil).and(nextMark.notNil).and(nextNChildren.notNil)).if({
+		((
+			nextEv.notNil
+			).and(nextWait.notNil
+			).and(nextMark.notNil
+			).and(nextNChildren.notNil)
+		).if({
 			^nextEv.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
-				mark: nextMark
+				mark: nextMark,
+				exo: exo,
 			))
 		}, {
 			^nil
@@ -236,7 +252,7 @@ EndoExoStream  {
 		var outevent, event, nexttime, nextEvent;
 		[\inny1, inevent].postcs;
 		
-		event = this.nextProto(inevent, startMark);
+		event = this.nextProto(inevent);
 		event.notNil.if({
 			priorityQ.put(now, event);
 		});
@@ -267,11 +283,8 @@ EndoExoStream  {
 				outevent.postcs;
 				// requeue stream
 				outevent.nChildren.do({
-					nextEvent = this.nextProto(event);
+					nextEvent = this.nextProto(event, exo:false);
 					nextEvent.notNil.if({
-						accum.if({
-							nextEvent.mark_((outevent.mark) + (nextEvent.mark));
-						});
 						priorityQ.put(now + (nextEvent.wait), nextEvent);
 					});
 				});
