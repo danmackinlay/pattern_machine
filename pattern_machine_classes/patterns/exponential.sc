@@ -34,6 +34,24 @@ Pexp : Pattern {
 	}
 }
 
+//Geometric RV (prob parameterisation)
+PGeomP : Pattern {
+	var <>p, <>length;
+	*new{arg p = 1, length = inf;
+		^super.newCopyArgs(p, length);
+	}
+	storeArgs{ ^[p, length] }
+	embedInStream{ arg inval;
+		var pStr = p.asStream;
+		length.value(inval).do({
+			var inp = pStr.next(inval);
+			inp ?? {^inval};
+			inval = (0.0.rrand(1.0).log.neg/((1-inp).log.neg)).yield;
+		});
+		^inval;
+	}
+}
+
 //embed a geometric number of times
 PGeomRep : FilterPattern {
 	var <>successProb;
