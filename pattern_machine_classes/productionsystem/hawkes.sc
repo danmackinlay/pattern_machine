@@ -204,14 +204,19 @@ EndoExoStream : Stream {
 		var nextNChildren = nChildren.next(event);
 		var nextWait = wait.next(event);
 		var nextMark = startMark ?? {mark.next(event)};
+		\extranexty.postln;
+		[\event, event].postcs;
+		[\startMark, startMark].postcs;
+		[\exoStream, exoStream].postcs;
+		[\nextEv, nextEv].postcs;
+		[\nextNChildren, nextNChildren].postcs;
+		[\nextWait, nextWait].postcs;
+		[\nextMark, nextMark].postcs;
 		((nextEv.notNil).and(nextWait.notNil).and(nextMark.notNil).and(nextNChildren.notNil)).if({
 			^nextEv.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
 				mark: nextMark
-			\next.postln;
-			nextEvent.postcs;
-			^nextEvent;
 			))
 		}, {
 			^nil
@@ -224,24 +229,30 @@ EndoExoStream : Stream {
 	
 	embedInStream { | inevent, cleanup|
 		var outevent, event, nexttime, nextEvent;
+		[\inny1, inevent].postcs;
+		
 		event = this.next(inevent, startMark);
 		event.notNil.if({
 			priorityQ.put(now, event);
 		});
+		
 		cleanup ?? { cleanup = EventStreamCleanup.new };
-		\step1.postln;
+		[\inny2, event].postcs;
+		
 		while({
 			priorityQ.notEmpty
 		},{
-			\step2.postln;
 			nextEvent = this.next(event);
+			\nexty.postln;
+			nextEvent.postcs;
+			
 			nextEvent.notNil.if({
 				priorityQ.put(now + (nextEvent.wait), nextEvent)
 			});
 			outevent = priorityQ.pop.asEvent;
-			\step3.postln;
-			outevent.postcs;
 			outevent.isNil.if({
+				\empty.postln;
+				outevent.postcs;
 				//out event was nil, so we are done. go home.
 				priorityQ.clear;
 				^cleanup.exit(event);
