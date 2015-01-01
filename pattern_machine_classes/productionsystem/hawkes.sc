@@ -283,11 +283,9 @@ EndoExoStream  {
 	embedInStream { | inevent, cleanup|
 		var outevent, event, nexttime, nextExo, nextEvent;
 		[\inny1, inevent].postcs;
+		event = inevent;
 		
-		nextExo = this.nextExo(inevent);
-		nextExo.notNil.if({
-			priorityQ.put(now, nextExo);
-		});
+		priorityQ.put(now, \exosurrogate);
 		
 		cleanup ?? { cleanup = EventStreamCleanup.new };
 		[\inny2, nextExo].postcs;
@@ -297,7 +295,7 @@ EndoExoStream  {
 		},{
 			var step;
 			nexttime = priorityQ.topPriority ? now;
-			nextEvent = priorityQ.pop.asEvent;
+			nextEvent = priorityQ.pop;
 			step = nexttime - now;
 			step.postcs;
 			(step >0 ).if({
@@ -312,20 +310,24 @@ EndoExoStream  {
 				priorityQ.clear;
 				^cleanup.exit(inevent);
 			}, {
-				//outevent  existed, so we emit it and queue its children
-				\nonempty.postln;
+				//outevent existed, so we emit it and queue its children
+				\nonnil.postln;
+				(nextEvent === \exosurrogate).if({
+					nextEvent = this.nextExo(event);
+					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
+				});
 				nextEvent.postcs;
-				// requeue stream
+				// requeue substreams
 				nextEvent.nChildren.do({
 					var nextEndo;
-					nextEndo = this.nextEndo(nextEvent, exo:false);
+					nextEndo = this.nextEndo(event);
 					nextEndo.notNil.if({
 						priorityQ.put(now + (nextEndo.wait), nextEndo);
 					});
 				});
 				nextEvent.put(\delta, 0);
 				cleanup.update(nextEvent);
-				inevent = nextEvent.yield;
+				event = nextEvent.yield;
 			});
 		});
 		^event;

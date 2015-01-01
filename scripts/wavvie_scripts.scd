@@ -212,7 +212,7 @@ p=PEndo(nChildren: PGeomM(0.99), wait: Pwhite(0.0,1.0), mark: Prand([-1,1],inf),
 p.asStream.nextN(10);
 (Pbind(\degree, Pkey(\mark)) <> p).play;
 q=p.asEndoStream;
-p=PEndoExo(nChildren: PGeomM(0.01), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), exoPattern: Pbind(\degree, 0));
+p=PEndoExo(nChildren: PGeomM(0.99), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), exoPattern: Pbind(\degree, 0));
 p=PEndoExo(nChildren: 0, wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), exoPattern: Pbind(\degree, 0));
 p.play;
 (Pbind(\degree, Pkey(\mark)) <> p).trace.play;
@@ -223,3 +223,4 @@ q.priorityQ.topPriority
 q.priorityQ.notEmpty
 q.priorityQ.pop;
 
+\foo === \fobo
