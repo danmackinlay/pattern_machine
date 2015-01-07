@@ -16,4 +16,3 @@ PContext : Pattern {
 		^FuncStream.new({state.at(key) ? default})
 	}
 }
-

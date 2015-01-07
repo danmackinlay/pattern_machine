@@ -179,6 +179,7 @@ EndoExoStream  {
 	var <>now;
 	var <>event;
 	var <>exoStream;
+	var <>accumMark; 
 	
 	*new { |nChildren, wait, mark, accum, exoPattern|
 		^super.new.nChildren_(nChildren.asStream
@@ -209,6 +210,7 @@ EndoExoStream  {
 		// help.
 		nextWait = nextEv.wait ?? nextEv.delta ?? 1;
 		nextMark = nextEv.mark ?? {mark.next(event)};
+		accumMark = nextMark;
 		\exoextranexty.postln;
 		[\event, event].postcs;
 		[\exoStream, exoStream].postcs;
@@ -236,7 +238,6 @@ EndoExoStream  {
 		var nextEv,
 			nextNChildren,
 			nextWait,
-			nextMark,
 			maybeMark;
 		event = event.copy;
 		nextNChildren = nChildren.next(event);
@@ -245,30 +246,30 @@ EndoExoStream  {
 		// in principle, I guess we do.
 		// why do I care?
 		// help.
+		 
 		maybeMark = mark.next(event);
 		nextWait = wait.next(event);
+		
 		accum.if({
-			nextMark !? {
-				nextMark = event.mark + maybeMark
-			};
+			accumMark = accumMark + maybeMark
 		}, {
-			nextMark = maybeMark
+			accumMark = maybeMark
 		});
 		\endoextranexty.postln;
 		[\event, event].postcs;
 		[\exoStream, exoStream].postcs;
 		[\nextNChildren, nextNChildren].postcs;
 		[\nextWait, nextWait].postcs;
-		[\nextMark, nextMark].postcs;
+		[\accumMark, accumMark].postcs;
 		((
 			nextWait.notNil
-			).and(nextMark.notNil
+			).and(accumMark.notNil
 			).and(nextNChildren.notNil)
 		).if({
 			^event.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
-				mark: nextMark,
+				mark: accumMark,
 				exo: false,
 			))
 		}, {

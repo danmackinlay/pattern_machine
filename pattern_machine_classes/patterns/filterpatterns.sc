@@ -81,4 +81,3 @@ Pcutdur : FilterPattern {
 		}
 	}
 }
-
