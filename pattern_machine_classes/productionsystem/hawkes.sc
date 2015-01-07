@@ -294,14 +294,7 @@ EndoExoStream  {
 			priorityQ.notEmpty
 		},{
 			var step;
-			nexttime = priorityQ.topPriority ? now;
 			nextEvent = priorityQ.pop;
-			step = nexttime - now;
-			step.postcs;
-			(step >0 ).if({
-				Event.silent(step).yield;
-				now = nexttime;
-			});
 			\nexty.postln;
 			nextEvent.isNil.if({
 				\empty.postln;
@@ -317,7 +310,7 @@ EndoExoStream  {
 					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
 				});
 				nextEvent.postcs;
-				// requeue substreams
+				// requeue substream
 				nextEvent.nChildren.do({
 					var nextEndo;
 					nextEndo = this.nextEndo(event);
@@ -325,7 +318,11 @@ EndoExoStream  {
 						priorityQ.put(now + (nextEndo.wait), nextEndo);
 					});
 				});
-				nextEvent.put(\delta, 0);
+				nexttime = priorityQ.topPriority ? now;
+				step = nexttime - now;
+				[\step,step].postcs;
+				nextEvent.put(\delta, step);
+				now = nexttime;
 				cleanup.update(nextEvent);
 				event = nextEvent.yield;
 			});
