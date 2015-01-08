@@ -216,7 +216,7 @@ p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf
 p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:false, exoPattern: Pbind(\degree, Pn(0, inf)));
 p=PEndoExo(nChildren: 0, wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:true, exoPattern: Pbind(\degree, 0));
 p.trace.play;
-(Pbind(\degree, Pkey(\mark)) <> p).trace.play;
+(Pbind(\degree, Pkey(\mark)) <> p).trace .play;
 (Pbind(\degree, Pkey(\mark)) <> p).trace.play;
 q=p.asEndoExoStream;
 q.exoStream.next(Event.default);

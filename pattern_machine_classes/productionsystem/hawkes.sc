@@ -1,3 +1,5 @@
+//TODO: move accum logic into event keys rather than stream vars.
+
 PEndo : Pattern {
 	var <>nChildren; // eta param; keep it less than 1 if you know what's good for you.
 	var <>wait; //when to spawn
@@ -138,12 +140,13 @@ PEndoExo : Pattern {
 	var <>wait;
 	var <>mark;
 	var <>accum;
+	
 	*new { arg exoPattern, 
 			nChildren,
 			wait,
 			mark,
 			accum=false;
-		^super.new.exoPattern_(exoPattern
+		^super.new.exoPattern_(exoPattern ? Pn(Event.default,1)
 			).nChildren_(nChildren
 			).wait_(wait
 			).mark_(mark
@@ -202,15 +205,14 @@ EndoExoStream  {
 			nextMark;
 		event = event.copy;
 		nextEv = exoStream.next(event);
+		nextEv.isNil.if({^nil});
+		
+		// logic gets convoluted here
+		// pull the incoming streams as
+		// needed and allow any of them to terminate the stream.
 		nextNChildren = nChildren.next(event);
-		// logic gets convoluted here, since we only pull the incoming streams as
-		// needed and we want to allow any of them to terminate the stream.
-		// in principle, I guess we do.
-		// why do I care?
-		// help.
 		nextWait = nextEv.wait ?? nextEv.delta ?? 1;
 		nextMark = nextEv.mark ?? {mark.next(event)};
-		accumMark = nextMark;
 		\exoextranexty.postln;
 		[\event, event].postcs;
 		[\exoStream, exoStream].postcs;
@@ -218,12 +220,11 @@ EndoExoStream  {
 		[\nextNChildren, nextNChildren].postcs;
 		[\nextWait, nextWait].postcs;
 		[\nextMark, nextMark].postcs;
-		((
-			nextEv.notNil
-			).and(nextWait.notNil
+		((nextWait.notNil
 			).and(nextMark.notNil
 			).and(nextNChildren.notNil)
 		).if({
+			accumMark = nextMark;
 			^nextEv.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
@@ -240,13 +241,12 @@ EndoExoStream  {
 			nextWait,
 			maybeMark;
 		event = event.copy;
-		nextNChildren = nChildren.next(event);
 		//logic gets convoluted here, since we only pull the incoming streams as
 		// needed and we want to allow any of them to terminate the stream.
 		// in principle, I guess we do.
 		// why do I care?
 		// help.
-		 
+		nextNChildren = nChildren.next(event); 
 		maybeMark = mark.next(event);
 		nextWait = wait.next(event);
 		
@@ -296,6 +296,15 @@ EndoExoStream  {
 		},{
 			var step;
 			nextEvent = priorityQ.pop;
+			//may be a taken indicating we should check for an exo event
+			//(These queue each other sequentially, so there is only ever one)
+			(nextEvent === \exosurrogate).if({
+				nextEvent = this.nextExo(event);
+				//exo stream may have terminated...
+				nextEvent.notNil.if({
+					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
+				});
+			});
 			\nexty.postln;
 			nextEvent.isNil.if({
 				\empty.postln;
@@ -306,10 +315,6 @@ EndoExoStream  {
 			}, {
 				//outevent existed, so we emit it and queue its children
 				\nonnil.postln;
-				(nextEvent === \exosurrogate).if({
-					nextEvent = this.nextExo(event);
-					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
-				});
 				nextEvent.postcs;
 				// requeue substream
 				nextEvent.nChildren.do({
