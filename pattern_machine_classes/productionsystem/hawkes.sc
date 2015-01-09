@@ -226,7 +226,7 @@ EndoExoStream  {
 				nChildren: nextNChildren,
 				wait: nextWait,
 				mark: nextMark,
-				exo: true,
+				generation: 0,
 			))
 		}, {
 			^nil
@@ -263,7 +263,7 @@ EndoExoStream  {
 				nChildren: nextNChildren,
 				wait: nextWait,
 				mark: maybeMark,
-				exo: false,
+				generation: event.generation + 1,
 			))
 		}, {
 			^nil
