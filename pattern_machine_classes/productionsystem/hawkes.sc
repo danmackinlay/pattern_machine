@@ -1,4 +1,3 @@
-//TODO: move accum logic into event keys rather than stream vars.
 
 PEndo : Pattern {
 	var <>nChildren; // eta param; keep it less than 1 if you know what's good for you.
@@ -182,7 +181,6 @@ EndoExoStream  {
 	var <>now;
 	var <>event;
 	var <>exoStream;
-	var <>accumMark; 
 	
 	*new { |nChildren, wait, mark, accum, exoPattern|
 		^super.new.nChildren_(nChildren.asStream
@@ -224,7 +222,6 @@ EndoExoStream  {
 			).and(nextMark.notNil
 			).and(nextNChildren.notNil)
 		).if({
-			accumMark = nextMark;
 			^nextEv.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
@@ -240,36 +237,32 @@ EndoExoStream  {
 			nextNChildren,
 			nextWait,
 			maybeMark;
-		event = event.copy;
-		//logic gets convoluted here, since we only pull the incoming streams as
-		// needed and we want to allow any of them to terminate the stream.
-		// in principle, I guess we do.
-		// why do I care?
-		// help.
+		// logic gets convoluted here, 
+		// since we only pull the incoming streams as
+		// needed and we to allow any of them to terminate the stream.
 		nextNChildren = nChildren.next(event); 
 		maybeMark = mark.next(event);
 		nextWait = wait.next(event);
 		
-		accum.if({
-			accumMark = accumMark + maybeMark
-		}, {
-			accumMark = maybeMark
-		});
 		\endoextranexty.postln;
 		[\event, event].postcs;
 		[\exoStream, exoStream].postcs;
 		[\nextNChildren, nextNChildren].postcs;
 		[\nextWait, nextWait].postcs;
-		[\accumMark, accumMark].postcs;
 		((
 			nextWait.notNil
-			).and(accumMark.notNil
+			).and(maybeMark.notNil
 			).and(nextNChildren.notNil)
 		).if({
+			accum.if({
+				maybeMark = event.mark + maybeMark
+			}, {
+				maybeMark = maybeMark
+			});
 			^event.copy.putAll((
 				nChildren: nextNChildren,
 				wait: nextWait,
-				mark: accumMark,
+				mark: maybeMark,
 				exo: false,
 			))
 		}, {
@@ -319,7 +312,7 @@ EndoExoStream  {
 				// requeue substream
 				nextEvent.nChildren.do({
 					var nextEndo;
-					nextEndo = this.nextEndo(event);
+					nextEndo = this.nextEndo(nextEvent);
 					nextEndo.notNil.if({
 						priorityQ.put(now + (nextEndo.wait), nextEndo);
 					});
