@@ -213,6 +213,7 @@ p.asStream.nextN(10);
 (Pbind(\degree, Pkey(\mark)) <> p).play;
 q=p.asEndoStream;
 p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:true, exoPattern: Pbind(\degree, Pn(0, inf)));
+p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:true, exoPattern: Pbind(\degree, Pn(0, inf), \mark, Pseq([0, 1, 4], inf)));
 p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:false, exoPattern: Pbind(\degree, Pn(0, inf)));
 p=PEndoExo(nChildren: 0, wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, exoPattern: Pbind(\degree, 0));
 p=PEndoExo(nChildren: 0, wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf));
