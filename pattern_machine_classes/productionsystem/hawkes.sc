@@ -1,137 +1,5 @@
-
-PEndo : Pattern {
-	var <>nChildren; // eta param; keep it less than 1 if you know what's good for you.
-	var <>wait; //when to spawn
-	var <>mark; //process marks
-	var <>accum; // whether marks are cumulative
-	var <>startMark; //cumulative marks start from here
-	var <>protoEvent; //proto event. Do I actually USE this?
-	// IF I do, SHOULD I?
-	*new { arg nChildren,
-			wait,
-			mark,
-			accum=false,
-			startMark,
-			protoEvent;
-		//normalise here?
-		^super.new.nChildren_(nChildren
-			).wait_(wait
-			).mark_(mark
-			).accum_(accum
-			).startMark_(startMark
-			).protoEvent_(protoEvent ?? Event.default
-		).initPEndo;
-	}
-	initPEndo {
-		
-	}
-	
-	asStream {
-		^Routine({ | ev | this.embedInStream(ev) })
-	}
-	storeArgs { ^[nChildren, wait, mark, accum, startMark, protoEvent]}
-
-	asEndoStream {
-		^EndoStream(nChildren,
-			wait,
-			mark,
-			accum,
-			startMark,
-			protoEvent,
-		)
-	}
-
-	embedInStream { | inevent, cleanup |
-		^this.asEndoStream.embedInStream(
-			inevent,
-			cleanup ?? { EventStreamCleanup.new }
-		);
-	}
-}
-
-
-EndoStream {
-	var <>nChildren;
-	var <>wait;
-	var <>mark;
-	var <>accum;
-	var <>startMark;
-	var <>protoEvent;
-	var <>priorityQ;
-	var <>now;
-	var <>event;
-
-	*new { |nChildren, wait, mark, accum, startMark, protoEvent|
-		^super.new.nChildren_(nChildren.asStream
-			).wait_(wait.asStream
-			).mark_(mark.asStream
-			).accum_(accum
-			).startMark_(startMark
-			).protoEvent_(protoEvent ?? Event.default
-		).init;
-	}
-
-	init { 
-		priorityQ = PriorityQueue.new;
-		now = 0;
-	}
-	nextProto { |event, startMark|
-		var nextNChildren = nChildren.next(event);
-		var nextWait = wait.next(event);
-		var nextMark = startMark ?? {mark.next(event)};
-		((nextWait.notNil).and(nextMark.notNil).and(nextNChildren.notNil)).if({
-			^(
-				nChildren: nextNChildren,
-				wait: nextWait,
-				mark: nextMark
-			)
-		}, {
-			^nil
-		});
-	}
-
-	embedInStream { | inevent, cleanup|
-		var outevent, event, nexttime;
-		event = this.next(inevent, startMark);
-		event.notNil.if({
-			priorityQ.put(now, event);
-		});
-		
-		///based on the EndoExo one, this entire section has highly suspect logic.
-		cleanup ?? { cleanup = EventStreamCleanup.new };
-
-		while({
-			priorityQ.notEmpty
-		},{
-			outevent = priorityQ.pop.asEvent;
-			outevent.isNil.if({
-				//out event was nil, so we are done. go home.
-				priorityQ.clear;
-				^cleanup.exit(event);
-			}, {
-				//outevent  existed, so we emit it and queue its children
-				\nonempty.postln;
-				outevent.postcs;
-				cleanup.update(outevent);
-				// requeue stream
-				outevent.nChildren.do({
-					var nextEvent = this.next(event);
-					nextEvent.notNil.if({
-						accum.if({
-							nextEvent.mark_((outevent.mark) + (nextEvent.mark));
-						});
-						priorityQ.put(now + (nextEvent.wait), nextEvent);
-					});
-				});
-				nexttime = priorityQ.topPriority ? now;
-				outevent.put(\delta, nexttime - now);
-				event = outevent.yield;
-				now = nexttime;
-			});
-		});
-		^event;
-	}
-}
+//Hawkes process in SC
+//TODO: manage total # of notes at near criticality
 
 PEndoExo : Pattern {
 	var <>exoPattern;
@@ -211,13 +79,6 @@ EndoExoStream  {
 		nextNChildren = nChildren.next(event);
 		nextWait = nextEv.wait ?? nextEv.delta ?? 1;
 		nextMark = nextEv.mark ?? {mark.next(event)};
-		\exoextranexty.postln;
-		[\event, event].postcs;
-		[\exoStream, exoStream].postcs;
-		[\nextEv, nextEv].postcs;
-		[\nextNChildren, nextNChildren].postcs;
-		[\nextWait, nextWait].postcs;
-		[\nextMark, nextMark].postcs;
 		((nextWait.notNil
 			).and(nextMark.notNil
 			).and(nextNChildren.notNil)
@@ -244,11 +105,6 @@ EndoExoStream  {
 		maybeMark = mark.next(event);
 		nextWait = wait.next(event);
 		
-		\endoextranexty.postln;
-		[\event, event].postcs;
-		[\exoStream, exoStream].postcs;
-		[\nextNChildren, nextNChildren].postcs;
-		[\nextWait, nextWait].postcs;
 		((
 			nextWait.notNil
 			).and(maybeMark.notNil
@@ -276,13 +132,11 @@ EndoExoStream  {
 	
 	embedInStream { | inevent, cleanup|
 		var outevent, event, nexttime, nextExo, nextEvent;
-		[\inny1, inevent].postcs;
 		event = inevent;
 		
 		priorityQ.put(now, \exosurrogate);
 		
 		cleanup ?? { cleanup = EventStreamCleanup.new };
-		[\inny2, nextExo].postcs;
 		
 		while({
 			priorityQ.notEmpty
@@ -298,17 +152,12 @@ EndoExoStream  {
 					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
 				});
 			});
-			\nexty.postln;
 			nextEvent.isNil.if({
-				\empty.postln;
-				nextEvent.postcs;
 				//out event was nil, so we are done. go home.
 				priorityQ.clear;
 				^cleanup.exit(inevent);
 			}, {
 				//outevent existed, so we emit it and queue its children
-				\nonnil.postln;
-				nextEvent.postcs;
 				// requeue substream
 				nextEvent.nChildren.do({
 					var nextEndo;
@@ -319,7 +168,6 @@ EndoExoStream  {
 				});
 				nexttime = priorityQ.topPriority ? now;
 				step = nexttime - now;
-				[\step,step].postcs;
 				nextEvent.put(\delta, step);
 				now = nexttime;
 				cleanup.update(nextEvent);
