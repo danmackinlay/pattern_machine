@@ -38,6 +38,21 @@ PexpS : Pattern {
 	}
 }
 
+PGeomRV {
+	*newFromCluster {
+		arg m, length=inf;
+		^this.newFromMean(1-(m.reciprocal), length);
+	}
+	*newFromP {
+		arg p, length=inf;
+		^PGeomP(p, length);
+	}
+	*newFromMean {
+		arg mean, length=inf;
+		^PGeomM(mean, length)
+	}
+}
+
 //Geometric RV (prob parameterisation)
 PGeomP : Pattern {
 	var <>p, <>length;
