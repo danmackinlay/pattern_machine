@@ -20,7 +20,6 @@ MIDIClient.init;
 MIDIIn.connectAll;
 SCDoc.indexAllDocuments;
 
-~state.jumps=[1,4,8,10,12,16];
 (
 ~spy = (
 	instrument: \jack__1,

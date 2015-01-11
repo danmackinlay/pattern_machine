@@ -2,7 +2,8 @@
 Wavvie
 TODO:
 1. Misc shit
-* I really woudl like some modulateable indexes to the grains's synth params
+* I really would like some modulateable indexes to the grains's synth params
+* maybe ditch PSStreamer after all
 * by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
 * ArrayWarp should extend mm's ArrayWarp (in Autogui) by subclassing and do two things:
   * allow exponential interpolation
@@ -207,21 +208,8 @@ state.server.waitForBoot({
 ~state.paramwalker.writeFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.gui;
-
-p=PEndo(nChildren: PGeomM(0.99), wait: Pwhite(0.0,1.0), mark: Prand([-1,1],inf), protoEvent: (degree:0));
-p.asStream.nextN(10);
-(Pbind(\degree, Pkey(\mark)) <> p).play;
-q=p.asEndoStream;
-p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:true, exoPattern: Pbind(\degree, Pn(0, inf)));
-p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:true, exoPattern: Pbind(\degree, Pn(0, inf), \mark, Pseq([0, 1, 4], inf)));
-p=PEndoExo(nChildren: PGeomM(0.8), wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf), accum:false, exoPattern: Pbind(\degree, Pn(0, inf)));
-p=PEndoExo(nChildren: 0, wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, exoPattern: Pbind(\degree, 0));
-p=PEndoExo(nChildren: 0, wait: Pwhite(0.0,2.0), mark: Prand([-1,1],inf));
-p.trace.play;
+Event.
+p=PHawkes(nChildren: PGeomRV.newFromCluster(30), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, exoPattern: Pbind(\degree, Pn(0, inf), \mark, Pseq([0, 1, 4], inf)));
 (Pbind(\degree, Pkey(\mark)) <> p).trace.play;
-q=p.asEndoExoStream;
-q.exoStream.next(Event.default);
-q.next(Event.default);
-q.priorityQ.topPriority
-q.priorityQ.notEmpty
-q.priorityQ.pop;
+p=PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true);
+p=PHawkes.cluster(nChildren:Ppoisson.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true);
