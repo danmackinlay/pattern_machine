@@ -1,7 +1,7 @@
 //Hawkes process in SC
 //TODO: manage total # of notes at near criticality
 
-PEndoExo : Pattern {
+PHawkes : Pattern {
 	var <>exoPattern;
 	var <>nChildren;
 	var <>wait;
@@ -18,9 +18,9 @@ PEndoExo : Pattern {
 			).wait_(wait
 			).mark_(mark
 			).accum_(accum
-		).initPEndoExo;
+		).initPHawkes;
 	}
-	initPEndoExo {
+	initPHawkes {
 		
 	}
 	storeArgs { ^[exoPattern, nChildren, wait, mark, accum]}
