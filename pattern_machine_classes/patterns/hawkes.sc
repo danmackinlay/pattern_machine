@@ -13,12 +13,29 @@ PHawkes : Pattern {
 			wait,
 			mark,
 			accum=false;
-		^super.new.exoPattern_(exoPattern ? Pn(Event.default,1)
+		^super.new.exoPattern_(
+				(exoPattern ?? 
+					{Pbind(\mark, Pn(0, 1))}
+				)
 			).nChildren_(nChildren
 			).wait_(wait
 			).mark_(mark
 			).accum_(accum
 		).initPHawkes;
+	}
+	//Also support a cluster from 1 event
+	*cluster { arg exoEvent, 
+			nChildren,
+			wait,
+			mark,
+			accum=false;
+		^this.new(
+			exoPattern: Pn(exoEvent ?? {(mark: 0)}, 1),
+			nChildren: nChildren,
+			wait: wait,
+			mark: mark,
+			accum: accum
+		);
 	}
 	initPHawkes {
 		
