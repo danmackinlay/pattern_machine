@@ -160,7 +160,7 @@ EndoExoStream  {
 		},{
 			var step;
 			nextEvent = priorityQ.pop;
-			//may be a taken indicating we should check for an exo event
+			//may be a token indicating we should check for an exo event
 			//(These queue each other sequentially, so there is only ever one)
 			(nextEvent === \exosurrogate).if({
 				nextEvent = this.nextExo(event);
@@ -169,11 +169,7 @@ EndoExoStream  {
 					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
 				});
 			});
-			nextEvent.isNil.if({
-				//out event was nil, so we are done. go home.
-				priorityQ.clear;
-				^cleanup.exit(inevent);
-			}, {
+			nextEvent.notNil.if({
 				//outevent existed, so we emit it and queue its children
 				// requeue substream
 				nextEvent.nChildren.do({
@@ -191,6 +187,7 @@ EndoExoStream  {
 				event = nextEvent.yield;
 			});
 		});
-		^event;
+		// Now we are done. go home.
+		^cleanup.exit(event);
 	}
 }
