@@ -9,7 +9,6 @@ PHawkes : Pattern {
 	var <>mark;
 	var <>accum;
 	var <>maxGen;
-	//var <>minMeanGap;
 	
 	*new { arg exoPattern, 
 			nChildren,
@@ -27,7 +26,6 @@ PHawkes : Pattern {
 			).mark_(mark
 			).accum_(accum
 			).maxGen_(maxGen
-			//).minMeanGap_(minMeanGap
 		).initPHawkes;
 	}
 	//Also support a cluster from 1 event
@@ -37,7 +35,6 @@ PHawkes : Pattern {
 			mark,
 			accum=false,
 			maxGen=inf; //forcibly cull after certain generation to end clusters
-			//minMeanGap=inf; //suppress notes when there are too many
 		^this.new(
 			exoPattern: Pn(exoEvent ?? {(mark: 0)}, 1),
 			nChildren: nChildren,
@@ -45,7 +42,6 @@ PHawkes : Pattern {
 			mark: mark,
 			accum: accum,
 			maxGen: maxGen,
-			//minMeanGap: minMeanGap
 		);
 	}
 	initPHawkes {
@@ -72,7 +68,6 @@ PHawkes : Pattern {
 			mark,
 			accum,
 			maxGen,
-			//minMeanGap
 		)
 	}
 }
@@ -83,12 +78,10 @@ EndoExoStream  {
 	var <>mark;
 	var <>accum;
 	var <>maxGen;
-	//var <>minMeanGap;
 	var <>priorityQ;
 	var <>now;
 	var <>event;
 	var <>exoStream;
-	//var <>meanGap;
 	
 	*new { 
 		arg exoPattern,
@@ -97,13 +90,11 @@ EndoExoStream  {
 			mark,
 			accum,
 			maxGen=inf;
-			//minMeanGap=0;
 		^super.new.nChildren_(nChildren.asStream
 			).wait_(wait.asStream
 			).mark_(mark.asStream
 			).accum_(accum
 			).maxGen_(maxGen
-			//).minMeanGap_(minMeanGap
 			).exoStream_(exoPattern.asStream
 		).init;
 	}
@@ -112,7 +103,6 @@ EndoExoStream  {
 		var nextEvent;
 		priorityQ = PriorityQueue.new;
 		now = 0;
-		//meanGap = minMeanGap*2;
 	}
 	nextExo { |event|
 		var nextEv,
@@ -217,17 +207,6 @@ EndoExoStream  {
 				});
 				nexttime = priorityQ.topPriority ? now;
 				step = nexttime - now;
-				/*
-				nextGap = (meanGap * 0.8) + (step*0.2);
-				while({nextGap<minMeanGap},{
-					[\skipping, step, nextGap].postln;
-					priorityQ.pop;
-					nexttime = priorityQ.topPriority ? now;
-					step = nexttime - now;
-					nextGap = (meanGap * 0.9) + (step*0.1);
-				});
-				meanGap = nextGap;
-				*/
 				nextEvent.put(\delta, step);
 				now = nexttime;
 				cleanup.update(nextEvent);
