@@ -81,3 +81,16 @@ Pcutdur : FilterPattern {
 		}
 	}
 }
+//Handy abstraction to alter events with a lazy-evaluated function executed in the current event, with a state ref.
+PStateEnvirfunc  {
+	*new {
+		arg nextFunc, resetFunc, state;
+		^Pfunc({
+			arg ev;
+			ev.make({nextFunc.value(state)});
+		}, {
+			arg ev;
+			ev.make({resetFunc.value(state)});
+		});
+	}
+}

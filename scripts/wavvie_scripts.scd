@@ -208,13 +208,19 @@ state.server.waitForBoot({
 ~state.paramwalker.writeFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
 ~state.gui;
-
-p=PHawkes(nChildren: PGeomRV.newFromCluster(30), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, exoPattern: Pbind(\degree, Pn(0, inf), \mark, Pseq([0, 1, 4], inf)));
+p=PHawkes(nChildren: PGeomRV.newFromMean(1.1), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\degree, Pn(0, 1), \mark, Pseq([0, 1, 4], inf)));
 p.play.postcs;
 p.asStream.next
 p.postcs;
 (Pbind(\degree, Pkey(\mark)) <> p).trace.play;
-p=PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true);
+p=PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true).play;
 p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:Ppoisson.newFromCluster(200), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
 p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
-p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromMean(1.5), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
+p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromMean(1.5), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10)).play;
+t=(degrees:[0,3,5]);
+v = {|state|
+	~degree = state.degrees.choose;
+	currentEnvironment.postcs;
+};
+p=(PStateEnvirfunc(v, state:t) <> PHawkes.cluster(nChildren:Ppoisson.newFromCluster(200), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:inf)).play;
+p=(PStateEnvirfunc(v, state:t) <> PHawkes(nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\delta, Pn(1, inf)))).play;
