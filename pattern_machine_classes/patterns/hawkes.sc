@@ -158,7 +158,7 @@ EndoExoStream  {
 				maybeMark = maybeMark
 			});
 			^event.copy.putAll((
-				nChildren: nextNChildren,
+				nChildren: nextNChildren.round,
 				wait: nextWait,
 				mark: maybeMark,
 				generation: nextGen,
