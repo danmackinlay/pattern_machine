@@ -112,7 +112,7 @@ PSSamplingStrip {
 			sourcesoundsynth = this.freeable(Synth.new(
 				"bufrd_or_live__1x1",
 				(
-				looptime: this.beat2sec(16),
+				looptime: this.clock.beats2secs(16),
 				offset: 0.0,
 				out: inbus,
 				bufnum: samples.at(0),
@@ -200,11 +200,6 @@ PSSamplingStrip {
 		stream << this.class.asString <<"(id:" << id.asString << ")";
 	}
 	
-	//utility conversions
-	beat2sec {|beats| ^beats/(clock.tempo)}
-	sec2beat {|secs| ^secs * (clock.tempo)}
-	beat2freq {|beats| ^(clock.tempo)/beats}
-	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 PSAnalysingSamplingStrip : PSSamplingStrip {
 	var <analbufs;

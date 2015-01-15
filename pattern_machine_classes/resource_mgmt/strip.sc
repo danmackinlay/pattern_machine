@@ -131,11 +131,6 @@ PSMasterOut {
 	printOn { |stream|
 		stream << this.class.asString <<"(id:" << id.asString << ")";
 	}
-	//utility conversions
-	beat2sec {|beats| ^beats/(clock.tempo)}
-	sec2beat {|secs| ^secs * (clock.tempo)}
-	beat2freq {|beats| ^(clock.tempo)/beats}
-	freq2beat {|freq| ^(clock.tempo) / freq}
 }
 
 PSMasterExternalMixer {
