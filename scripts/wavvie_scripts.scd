@@ -222,6 +222,7 @@ v = {|state|
 	~degree = state.degrees.choose;
 	currentEnvironment.postcs;
 };
-p=(PStateEnvirfunc(v, state:t) <> PHawkes.cluster(nChildren:Ppoisson.newFromCluster(200), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:inf)).play;
-p=(PStateEnvirfunc(v, state:t) <> PHawkes(nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\delta, Pn(1, inf)))).play;
+p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Pfunc({Array.rand2(3,1)}), accum:true, maxGen:10);
+(PStateEnvirfunc(v, state:t) <> p).trace.play;
+)
 t.degrees=[0,4,7]

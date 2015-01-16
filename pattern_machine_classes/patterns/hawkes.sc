@@ -9,14 +9,14 @@ PHawkes : Pattern {
 	var <>mark;
 	var <>accum;
 	var <>maxGen;
-	
+	var <>seed;
 	*new { arg exoPattern, 
 			nChildren,
 			wait,
 			mark,
 			accum=false,
-			maxGen=inf;
-			//minMeanGap=0;
+			maxGen=inf, //forcibly cull after certain generation
+			seed=nil;
 		^super.new.exoPattern_(
 				(exoPattern ?? 
 					{Pbind(\mark, Pn(0, 1))}
@@ -26,6 +26,7 @@ PHawkes : Pattern {
 			).mark_(mark
 			).accum_(accum
 			).maxGen_(maxGen
+			).seed_(seed
 		).initPHawkes;
 	}
 	//Also support a cluster from 1 event
@@ -34,7 +35,8 @@ PHawkes : Pattern {
 			wait,
 			mark,
 			accum=false,
-			maxGen=inf; //forcibly cull after certain generation to end clusters
+			maxGen=inf,
+			seed=nil;
 		^this.new(
 			exoPattern: Pn(exoEvent ?? {(mark: 0)}, 1),
 			nChildren: nChildren,
@@ -42,6 +44,7 @@ PHawkes : Pattern {
 			mark: mark,
 			accum: accum,
 			maxGen: maxGen,
+			seed: seed
 		);
 	}
 	initPHawkes {
@@ -53,7 +56,7 @@ PHawkes : Pattern {
 		mark,
 		accum,
 		maxGen,
-		//minMeanGap
+		seed
 	]}
 
 	asStream {
@@ -68,6 +71,7 @@ PHawkes : Pattern {
 			mark,
 			accum,
 			maxGen,
+			seed
 		)
 	}
 }
@@ -80,10 +84,16 @@ HawkesStream  {
 	var <>mark;
 	var <>accum;
 	var <>maxGen;
+	var <>exoPattern;
 	var <>priorityQ;
 	var <>now;
 	var <>event;
-	var <>exoStream;
+	var <>seed;
+	var <nChildrenStream;
+	var <waitStream;
+	var <markStream;
+	var <exoStream;
+	var <thread;
 	
 	*new { 
 		arg exoPattern,
@@ -91,13 +101,15 @@ HawkesStream  {
 			wait,
 			mark,
 			accum,
-			maxGen=inf;
-		^super.new.nChildren_(nChildren.asStream
-			).wait_(wait.asStream
-			).mark_(mark.asStream
+			maxGen,
+			seed;
+		^super.new.nChildren_(nChildren
+			).wait_(wait
+			).mark_(mark
 			).accum_(accum
 			).maxGen_(maxGen
-			).exoStream_(exoPattern.asStream
+			).seed_(seed
+			).exoPattern_(exoPattern
 		).init;
 	}
 
@@ -114,13 +126,12 @@ HawkesStream  {
 		event = event.copy;
 		nextEv = exoStream.next(event);
 		nextEv.isNil.if({^nil});
-		
 		// logic gets convoluted here
 		// pull the incoming streams as
 		// needed and allow any of them to terminate the stream.
-		nextNChildren = nChildren.next(event);
+		nextNChildren = nChildrenStream.next(event);
 		nextWait = nextEv.wait ?? nextEv.delta ?? 1;
-		nextMark = nextEv.mark ?? {mark.next(event)};
+		nextMark = nextEv.mark ?? {markStream.next(event)};
 		((nextWait.notNil
 			).and(nextMark.notNil
 			).and(nextNChildren.notNil)
@@ -144,9 +155,9 @@ HawkesStream  {
 		// logic gets convoluted here, 
 		// since we only pull the incoming streams as
 		// needed and we to allow any of them to terminate the stream.
-		nextNChildren = nChildren.next(event); 
-		maybeMark = mark.next(event);
-		nextWait = wait.next(event);
+		nextNChildren = nChildrenStream.next(event); 
+		maybeMark = markStream.next(event);
+		nextWait = waitStream.next(event);
 		nextGen = event.generation + 1;
 		((
 			nextWait.notNil
@@ -171,17 +182,30 @@ HawkesStream  {
 	}
 
 	asStream {
-		^Routine({ | ev | this.embedInStream(ev) })
+		thread = Routine({ | ev | this.embedInStream(ev) });
+		////Doesn't work:
+		//seed !? {thread.randSeed_(seed)}
+		^thread
 	}
 	
 	embedInStream { | inevent, cleanup|
 		var outevent, event, nexttime, nextExo, nextEvent;
+		nChildrenStream = nChildren.asStream;
+		waitStream = wait.asStream;
+		markStream = mark.asStream;
+		exoStream = exoPattern.asStream;
+		seed !? {
+			var thisRandData;
+			thisThread.randSeed_(seed);
+			thisRandData = thisThread.randData;
+			nChildrenStream.tryPerform(\randData_, thisRandData);
+			waitStream.tryPerform(\randData_, thisRandData);
+			markStream.tryPerform(\randData_, thisRandData);
+			exoStream.tryPerform(\randData_, thisRandData);
+		};
 		event = inevent;
-		
 		priorityQ.put(now, \exosurrogate);
-		
 		cleanup ?? { cleanup = EventStreamCleanup.new };
-		
 		while({
 			priorityQ.notEmpty
 		},{
@@ -189,6 +213,7 @@ HawkesStream  {
 			nextEvent = priorityQ.pop;
 			//may be a token indicating we should check for an exo event
 			//(These queue each other sequentially, so there is only ever one)
+			
 			(nextEvent === \exosurrogate).if({
 				nextEvent = this.nextExo(event);
 				//exo stream may have terminated...
@@ -196,6 +221,7 @@ HawkesStream  {
 					priorityQ.put(now + (nextEvent.delta), \exosurrogate);
 				});
 			});
+			
 			nextEvent.notNil.if({
 				//var nextGap;
 				//outevent existed, so we emit it and queue its children
@@ -211,6 +237,7 @@ HawkesStream  {
 				step = nexttime - now;
 				nextEvent.put(\delta, step);
 				now = nexttime;
+				//Additionally, allow reseeding here:
 				cleanup.update(nextEvent);
 				event = nextEvent.yield;
 			});
