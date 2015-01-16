@@ -57,11 +57,11 @@ PHawkes : Pattern {
 	]}
 
 	asStream {
-		^Routine({ | ev | this.asEndoExoStream.embedInStream(ev) })
+		^this.asHawkesStream.asStream;
 	}
 
-	asEndoExoStream {
-		^EndoExoStream.new(
+	asHawkesStream {
+		^HawkesStream.new(
 			exoPattern,
 			nChildren,
 			wait,
@@ -72,7 +72,9 @@ PHawkes : Pattern {
 	}
 }
 
-EndoExoStream  {
+//This class should be created by the PHawkes pattern;
+// just easier to do the book-keeping that way.
+HawkesStream  {
 	var <>nChildren;
 	var <>wait;
 	var <>mark;
