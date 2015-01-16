@@ -102,12 +102,17 @@ state = (
 
 ~state=state;
 state.server.waitForBoot({
-	var samplingstrip, samples, streamer;
-	samples = this.executeFile(PS.scriptpath +/+ "wavvie_samples.scd").value(state);
+	var samplingstrip, samples, streamer, clock;
+	clock = TempoClock(140/60);
+	samples = this.executeFile(
+		PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
-	samplingstrip = PSSamplingStrip.new(state:state, samples: samples, inbus: state.inbus, outbus:state.outbus);
+	samplingstrip = PSSamplingStrip.new(
+		state:state, samples: samples,
+		inbus: state.inbus, outbus:state.outbus,
+		clock:clock);
 	CmdPeriod.doOnce({ samplingstrip.free});
 	streamer = PSStreamer.new(
 		state: state,
@@ -145,6 +150,7 @@ state.server.waitForBoot({
 (
 	var state = ~state, paramspace, paramwalker;
 	state.paramspace = paramspace = PSParamSpace(\wavviebasic);
+
 	//should this even be structured in terms of mean/covariance/deviation?
 	//That could be its own meta-param constructothing
 	//Then I would be learning a linear regression against a control param, basically.
@@ -169,6 +175,7 @@ state.server.waitForBoot({
 	//ignored
 	//paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
 	//paramspace.newParam(\sustainDur, [0.25, 16]);
+	//p=(PStateEnvirfunc(v, state:t) <> PHawkes(nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\delta, Pn(1, inf)))).play(state.clock, protoEvent: samplingstrip.baseEvent, quant:1), ;
 
 	state.paramwalker = paramwalker = PSParamwalker.new(
 		paramspace,
@@ -196,8 +203,6 @@ state.server.waitForBoot({
 ~state.samplingstrip.sourceBuf(\people,0);
 ~state.samplingstrip.sourceBuf(\siren,0);
 ~state.samplingstrip.sourceBuf(\desolation,0);
-~state.streamer.removeAt(2);
-~state.streamer.stopChildren;
 ~state.samples.at(\tuneful, 2);
 ~state.paramwalker.vel;
 ~state.paramwalker.accelMag;
@@ -210,13 +215,13 @@ state.server.waitForBoot({
 ~state.gui;
 p=PHawkes(nChildren: PGeomRV.newFromMean(1.1), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\degree, Pn(0, 1), \mark, Pseq([0, 1, 4], inf)));
 p.play.postcs;
-p.asStream.next
 p.postcs;
 (Pbind(\degree, Pkey(\mark)) <> p).trace.play;
 p=PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true).play;
 p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:Ppoisson.newFromCluster(200), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
 p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
 p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromMean(1.5), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10)).play;
+(
 t=(degrees:[0,3,5]);
 v = {|state|
 	~degree = state.degrees.choose;

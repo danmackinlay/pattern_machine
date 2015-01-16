@@ -1,5 +1,5 @@
 //A particular sampling doohickey;
-//No sample path between mono input and stereo output;
+//No signal path between mono input and stereo output;
 //that comes from resampling the sample buffer.
 PSSamplingStrip {
 	var <id;
