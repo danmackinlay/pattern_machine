@@ -102,7 +102,7 @@ state = (
 
 ~state=state;
 state.server.waitForBoot({
-	var samplingstrip, samples, streamer, clock;
+	var samplingstrip, samples, clock;
 	clock = TempoClock(140/60);
 	samples = this.executeFile(
 		PS.scriptpath +/+ "wavvie_samples.scd").value(state);
@@ -114,37 +114,17 @@ state.server.waitForBoot({
 		inbus: state.inbus, outbus:state.outbus,
 		clock:clock);
 	CmdPeriod.doOnce({ samplingstrip.free});
-	streamer = PSStreamer.new(
-		state: state,
-	);
-	//streamer.parentEvent_(Event.default.putAll(samplingstrip.baseEvent));
-	streamer.play(
-		//trace: true
-	);
-	CmdPeriod.doOnce({ streamer.free});
 
 	state.make({
 		~samplingstrip = samplingstrip;
 		~samples = samples;
-		~streamer = streamer;
 		s.sync;
 		{samplingstrip.rec(10.0);}.defer(1.0);
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
 		~param = 1;
 	});
-	//clean way to set non-OSC actions? right now have to comeback afterwards and add
-	state.streamer.notecallback = #{|evt, state, streamer|
-		evt.use({
-			//nothing ATM
-		});
-		//evt.postcs;
-		//state.paramwalker.post;
-		evt;
-	};
-	state.streamer.tickcallback = #{|time, state, streamer|
-		//[\localtime, time].postcs;
-	};
+
 });
 )
 (
@@ -152,7 +132,7 @@ state.server.waitForBoot({
 	state.paramspace = paramspace = PSParamSpace(\wavviebasic);
 
 	//should this even be structured in terms of mean/covariance/deviation?
-	//That could be its own meta-param constructothing
+	//That could be its own meta-param constructo thing
 	//Then I would be learning a linear regression against a control param, basically.
 	//Could be nice.
 	//Also can I store params in multiple slots?
@@ -231,3 +211,4 @@ p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisso
 (PStateEnvirfunc(v, state:t) <> p).trace.play;
 )
 t.degrees=[0,4,7]
+NetAddr.langPort
