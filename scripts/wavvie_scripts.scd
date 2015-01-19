@@ -211,4 +211,11 @@ p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisso
 (PStateEnvirfunc(v, state:t) <> p).trace.play;
 )
 t.degrees=[0,4,7]
-NetAddr.langPort
+
+(
+var controlstate = (
+
+);
+~controlstate = controlstate;
+OSCdef(\trigx, "/chan1/trig/x");
+)
