@@ -3,16 +3,14 @@
 PSHawkesLemurControlChan {
 	var <state;
 	var <prefix="chan1";
-	var <myAddr;
 	var <intAddr;
 	var <oscFuncs;
 	var <>trace;
 	
-	*new {arg state, prefix="/chan1", myAddr, trace=false;
+	*new {arg state, prefix="/chan1", trace=false;
 		^super.newCopyArgs(
 			state ?? {()},
 			prefix,
-			myAddr ? NetAddr.localAddr
 		).initPSHawkesControl.trace_(trace);
 	}
 	initPSHawkesControl {
@@ -27,7 +25,7 @@ PSHawkesLemurControlChan {
 		oscFuncs = Array.new(20);
 		this.addHandler("/cluster/x", { arg msg;
 			state[\cluster] = msg[0].linlin(0.0,1.0,0.0,6.0).exp;
-			intAddr !? intAddr.sendMsg(
+			this.trySendMsg(
 				prefix ++ "/cluster_disp/value", state[\cluster]
 			);
 		});
@@ -51,9 +49,28 @@ PSHawkesLemurControlChan {
 			state[\pitchset] = state[\pitchsetA] + (state[\pitchsetB].reciprocal);
 		});
 		this.addHandler("/int/x", { arg msg;
-			intAddr !? intAddr.sendMsg(prefix ++ "/int_disp/value", msg[0]);
+			this.trySendMsg(prefix ++ "/int_disp/value", msg[0]);
 			state[\int] = msg[0];
 		});
+	}
+	intAddr_{
+		//called when we first know the return address 
+		// (or when manually fored later I suppose)
+		arg addr;
+		intAddr = addr;
+		//could update interface from state here.
+		this.updateInt;
+	}
+	updateInt {
+		this.sendMsg("/buffer/items", *state[\buffers]);
+	}
+	sendMsg {
+		arg path ... msg;
+		intAddr.sendMsg(prefix ++ path, *msg);
+	}
+	trySendMsg {
+		arg path ... msg;
+		intAddr.notNil.if({intAddr.sendMsg(prefix ++ path, *msg)});
 	}
 	//handler func factory
 	//updates state vars
@@ -61,17 +78,17 @@ PSHawkesLemurControlChan {
 	oscHandler {
 		arg func;
 		^{
-			arg msg, time, addr, recvPort;
+			arg msg, time, replyAddr, recvPort;
 			trace.if({
-				[msg, time, addr, recvPort].postln;
+				[\trace, msg, time, replyAddr, recvPort].postln;
 			});
+			intAddr.isNil.if({this.intAddr_(replyAddr)});
 			(msg.size>1).if({
 				var path;
 				path = msg.removeAt(0);
-				intAddr = intAddr ? addr;
 				func.value(msg);
 			}, {
-				("weird message:" + msg.asCompileString).warn;
+				("contentless message:" + msg.asCompileString).warn;
 			});
 		};
 	}
