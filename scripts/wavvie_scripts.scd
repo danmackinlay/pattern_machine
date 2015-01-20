@@ -213,7 +213,7 @@ p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisso
 t.degrees=[0,4,7]
 
 (
-i = PSHawkesLemurControl.new;
+i = PSHawkesLemurControlChan.new;
 )
 i.state;
 i.sendMsg

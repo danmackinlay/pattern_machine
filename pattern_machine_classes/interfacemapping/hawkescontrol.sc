@@ -1,6 +1,6 @@
 //Shamelessly specific mapping for a particular OSC interface I have
-
-PSHawkesLemurControl {
+//TODO: make all controls update bidirectionally.
+PSHawkesLemurControlChan {
 	var <state;
 	var <prefix="chan1";
 	var <myAddr;
@@ -27,7 +27,9 @@ PSHawkesLemurControl {
 		oscFuncs = Array.new(20);
 		this.addHandler("/cluster/x", { arg msg;
 			state[\cluster] = msg[0].linlin(0.0,1.0,0.0,6.0).exp;
-			intAddr !? intAddr.sendMsg(prefix ++ "/cluster_disp/value", state[\cluster]);
+			intAddr !? intAddr.sendMsg(
+				prefix ++ "/cluster_disp/value", state[\cluster]
+			);
 		});
 		this.addHandler("/decay/x", { arg msg;
 			state[\decay] = msg[0].linlin(0.0,1.0,-20.0,0.0);
