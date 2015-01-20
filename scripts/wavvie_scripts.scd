@@ -161,8 +161,8 @@ state.server.waitForBoot({
 		paramspace,
 		speed: 0.05,
 	);
-	~state.streamer.add(
-		~state.samplingstrip.basePattern <> paramwalker.asPattern <> Pbind(
+	state.clock.play(
+		paramwalker.asPattern <> state.samplingstrip.basePattern <> Pbind(
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
