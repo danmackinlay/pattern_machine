@@ -73,6 +73,9 @@
 <WINDOW class="Monitor" text="cluster_disp" x="273" y="580" width="58" height="27" id="13" state="245" group="0" font="tahoma,10,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="1596013" label="0" precision="2" unit="" value="1">
 <VARIABLE name="value=120.35" send="0" osc_target="0" osc_trigger="1" osc_message="/chan1/cluster_disp/value" midi_target="-1" midi_trigger="1" midi_message="0x90,0x90,0,0" midi_scale="0,16383" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
 </WINDOW>
+<WINDOW class="LemurMenu" text="buffer" x="265" y="9" width="160" height="40" id="14" state="241" group="0" font="tahoma,14,0" send="1" osc_target="-2" midi_target="-2" kbmouse_target="-2" color="1596013" scale="0" content="Option 1,Option 2">
+<PARAM name="selection=" value="1.000000" send="1" osc_target="-2" osc_trigger="1" osc_message="/chan1/buffer/selection" midi_target="0" midi_trigger="1" midi_message="0xB0,0xB0,9,9" midi_scale="0,16383" osc_scale="0.000000,1.000000" kbmouse_target="-1" kbmouse_trigger="1" kbmouse_message="0,0,0" kbmouse_scale="0,1,0,1"/>
+</WINDOW>
 </WINDOW>
 </WINDOW>
 </JZML>

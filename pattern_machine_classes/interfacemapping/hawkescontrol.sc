@@ -19,6 +19,7 @@ PSHawkesLemurControlChan {
 		state[\decay] = state.atFail(\decay, -1.0);
 		state[\corr] = state.atFail(\corr, [0.5, 0.5]);
 		state[\int] = state.atFail(\int, 4);
+		state[\buffers] = state.atFail(\buffers, [\buf0, \buf1]);
 		state[\pitchset] = state.atFail(\pitchset, Array.fill(8, 0));
 		state[\pitchsetA] = state.atFail(\pitchsetA, Array.fill(8, 0));
 		state[\pitchsetB] = state.atFail(\pitchsetB, Array.fill(8, 0));
@@ -52,6 +53,9 @@ PSHawkesLemurControlChan {
 			this.trySendMsg(prefix ++ "/int_disp/value", msg[0]);
 			state[\int] = msg[0];
 		});
+		this.addHandler("/buffer/selection", { arg msg;
+			state[\bufferInd] = msg[0];
+		});
 	}
 	intAddr_{
 		//called when we first know the return address 
@@ -62,7 +66,7 @@ PSHawkesLemurControlChan {
 		this.updateInt;
 	}
 	updateInt {
-		this.sendMsg("/buffer/items", *state[\buffers]);
+		this.sendMsg("/buffer", "@items", *state[\buffers]);
 	}
 	sendMsg {
 		arg path ... msg;

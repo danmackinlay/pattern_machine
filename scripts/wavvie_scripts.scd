@@ -211,14 +211,9 @@ p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisso
 (PStateEnvirfunc(v, state:t) <> p).trace.play;
 )
 t.degrees=[0,4,7]
-
 (
-i = PSHawkesLemurControlChan.new;
+i = PSHawkesLemurControlChan.new(trace:false, state: (buffers:["a", "b", "c"]));
 )
 i.state;
-i.sendMsg
-i.intAddr
-OSCFunc.trace
-l=[1]
-l.removeAt(0)
-l.notEmpty
+i.intAddr;
+OSCFunc.trace(false);
