@@ -26,9 +26,7 @@ PSHawkesLemurControlChan {
 		oscFuncs = Array.new(20);
 		this.addHandler("/cluster/x", { arg msg;
 			state[\cluster] = msg[0].linlin(0.0,1.0,0.0,6.0).exp;
-			this.trySendMsg(
-				prefix ++ "/cluster_disp/value", state[\cluster]
-			);
+			this.trySendMsg("/cluster_disp/value", state[\cluster]);
 		});
 		this.addHandler("/decay/x", { arg msg;
 			state[\decay] = msg[0].linlin(0.0,1.0,-20.0,0.0);
@@ -50,7 +48,7 @@ PSHawkesLemurControlChan {
 			state[\pitchset] = state[\pitchsetA] + (state[\pitchsetB].reciprocal);
 		});
 		this.addHandler("/int/x", { arg msg;
-			this.trySendMsg(prefix ++ "/int_disp/value", msg[0]);
+			this.trySendMsg("/int_disp/value", msg[0]);
 			state[\int] = msg[0];
 		});
 		this.addHandler("/buffer/selection", { arg msg;
@@ -78,13 +76,15 @@ PSHawkesLemurControlChan {
 	}
 	//handler func factory
 	//updates state vars
+	//may provide additional feedback on the lemur
+	//but does not update everything else
 	//ignores empty messages
 	oscHandler {
-		arg func;
+		arg func, pathEnd;
 		^{
 			arg msg, time, replyAddr, recvPort;
 			trace.if({
-				[\trace, msg, time, replyAddr, recvPort].postln;
+				[\trace, pathEnd, msg, time, replyAddr, recvPort].postln;
 			});
 			intAddr.isNil.if({this.intAddr_(replyAddr)});
 			(msg.size>1).if({
@@ -92,7 +92,7 @@ PSHawkesLemurControlChan {
 				path = msg.removeAt(0);
 				func.value(msg);
 			}, {
-				("contentless message:" + msg.asCompileString).warn;
+				("contentless message:" + pathEnd + msg.asCompileString).warn;
 			});
 		};
 	}
@@ -100,7 +100,7 @@ PSHawkesLemurControlChan {
 	addHandler {
 		arg pathEnd, func;
 		oscFuncs = oscFuncs.add(
-			OSCFunc(this.oscHandler(func), prefix ++ pathEnd)
+			OSCFunc(this.oscHandler(func, pathEnd), prefix ++ pathEnd)
 		);
 	}
 	free {
