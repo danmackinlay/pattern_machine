@@ -17,7 +17,7 @@ PSHawkesLemurControl {
 	}
 	initPSHawkesControl {
 		state[\inits] = state.atFail(\inits, []);
-		state[\clusterSize] = state.atFail(\clusterSize, 10);
+		state[\cluster] = state.atFail(\cluster, 10);
 		state[\decay] = state.atFail(\decay, -1.0);
 		state[\corr] = state.atFail(\corr, [0.5, 0.5]);
 		state[\int] = state.atFail(\int, 4);
@@ -54,14 +54,20 @@ PSHawkesLemurControl {
 		});
 	}
 	//handler func factory
+	//updates state vars
+	//ignores empy messages
 	oscHandler {
 		arg func;
 		^{
 			arg msg, time, addr, recvPort;
-			var path;
-			path = msg.removeAt(0);
-			intAddr = intAddr ? addr;
-			func.value(msg);
+			msg.notEmpty.if({
+				var path;
+				path = msg.removeAt(0);
+				intAddr = intAddr ? addr;
+				msg.notEmpty.if({
+					func.value(msg);
+				});
+			});
 		};
 	}
 	//add handler

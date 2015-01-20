@@ -219,3 +219,6 @@ i.state;
 i.sendMsg
 i.intAddr
 OSCFunc.trace
+l=[1]
+l.removeAt(0)
+l.notEmpty
