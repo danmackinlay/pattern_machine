@@ -6,14 +6,14 @@ PSHawkesLemurControl {
 	var <myAddr;
 	var <intAddr;
 	var <oscFuncs;
-
-	*new {arg state, prefix="/chan1", myAddr, intAddr;
+	var <>trace;
+	
+	*new {arg state, prefix="/chan1", myAddr, trace=false;
 		^super.newCopyArgs(
 			state ?? {()},
 			prefix,
-			myAddr ? NetAddr.localAddr,
-			intAddr
-		).initPSHawkesControl;
+			myAddr ? NetAddr.localAddr
+		).initPSHawkesControl.trace_(trace);
 	}
 	initPSHawkesControl {
 		state[\inits] = state.atFail(\inits, []);
@@ -55,18 +55,21 @@ PSHawkesLemurControl {
 	}
 	//handler func factory
 	//updates state vars
-	//ignores empy messages
+	//ignores empty messages
 	oscHandler {
 		arg func;
 		^{
 			arg msg, time, addr, recvPort;
-			msg.notEmpty.if({
+			trace.if({
+				[msg, time, addr, recvPort].postln;
+			});
+			(msg.size>1).if({
 				var path;
 				path = msg.removeAt(0);
 				intAddr = intAddr ? addr;
-				msg.notEmpty.if({
-					func.value(msg);
-				});
+				func.value(msg);
+			}, {
+				("weird message:" + msg.asCompileString).warn;
 			});
 		};
 	}
