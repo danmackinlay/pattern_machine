@@ -213,9 +213,8 @@ p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisso
 t.degrees=[0,4,7]
 
 (
-var controlstate = (
-
-);
-~controlstate = controlstate;
-OSCdef(\trigx, "/chan1/trig/x");
+i = PSHawkesLemurControl.new;
 )
+i.state
+i.intAddr
+OSCFunc.trace
