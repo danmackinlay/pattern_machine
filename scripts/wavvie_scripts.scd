@@ -215,6 +215,7 @@ t.degrees=[0,4,7]
 (
 i = PSHawkesLemurControl.new;
 )
-i.state
+i.state;
+i.sendMsg
 i.intAddr
 OSCFunc.trace

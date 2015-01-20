@@ -17,7 +17,7 @@ PSHawkesLemurControl {
 	}
 	initPSHawkesControl {
 		state[\inits] = state.atFail(\inits, []);
-		state[\clusterSize] = state.atFail(\inits, 10);
+		state[\clusterSize] = state.atFail(\clusterSize, 10);
 		state[\decay] = state.atFail(\decay, -1.0);
 		state[\corr] = state.atFail(\corr, [0.5, 0.5]);
 		state[\int] = state.atFail(\int, 4);
@@ -25,38 +25,51 @@ PSHawkesLemurControl {
 		state[\pitchsetA] = state.atFail(\pitchsetA, Array.fill(8, 0));
 		state[\pitchsetB] = state.atFail(\pitchsetB, Array.fill(8, 0));
 		oscFuncs = Array.new(20);
-		oscFuncs = oscFuncs.add(OSCFunc({
-			arg msg, time, addr, recvPort;
-			intAddr = intAddr ? addr;
-			msg.removeAt(0);
-			
-		}, prefix ++ "/trig/x"));
-		oscFuncs = oscFuncs.add(OSCFunc({
-			arg msg, time, addr, recvPort;
-			msg.removeAt(0);
-			
-		}, prefix ++ "/trig/y"));
-		oscFuncs = oscFuncs.add(OSCFunc({
-			arg msg, time, addr, recvPort;
-			intAddr = intAddr ? addr;
-			msg.removeAt(0);
+		this.addHandler("/cluster/x", { arg msg;
+			state[\cluster] = msg[0].linlin(0.0,1.0,0.0,6.0).exp;
+			intAddr !? intAddr.sendMsg(prefix ++ "/cluster_disp/value", state[\cluster]);
+		});
+		this.addHandler("/decay/x", { arg msg;
+			state[\decay] = msg[0].linlin(0.0,1.0,-20.0,0.0);
+		});
+		this.addHandler("/trig/x", { arg msg;
+		});
+		this.addHandler("/trig/y", { arg msg;
+		});
+		this.addHandler("/evolve/x", { arg msg;
+		});
+		this.addHandler("/evolve/y", { arg msg;
+		});
+		this.addHandler("/pitchset1/x", { arg msg;
 			state[\pitchsetA] = msg;
 			state[\pitchset] = state[\pitchsetA] + (state[\pitchsetB].reciprocal);
-		}, prefix ++ "/pitchset1/x"));
-		oscFuncs = oscFuncs.add(OSCFunc({
-			arg msg, time, addr, recvPort;
-			intAddr = intAddr ? addr;
-			msg.removeAt(0);
+		});
+		this.addHandler("/pitchset2/x", { arg msg;
 			state[\pitchsetB] = msg;
 			state[\pitchset] = state[\pitchsetA] + (state[\pitchsetB].reciprocal);
-		}, prefix ++ "/pitchset2/x"));
-		oscFuncs = oscFuncs.add(OSCFunc({
-			arg msg, time, addr, recvPort;
-			msg.removeAt(0);
-			intAddr = intAddr ? addr;
+		});
+		this.addHandler("/int/x", { arg msg;
 			intAddr !? intAddr.sendMsg(prefix ++ "/int_disp/value", msg[0]);
 			state[\int] = msg[0];
-		}, prefix ++ "/int/x"));
+		});
+	}
+	//handler func factory
+	oscHandler {
+		arg func;
+		^{
+			arg msg, time, addr, recvPort;
+			var path;
+			path = msg.removeAt(0);
+			intAddr = intAddr ? addr;
+			func.value(msg);
+		};
+	}
+	//add handler
+	addHandler {
+		arg pathEnd, func;
+		oscFuncs = oscFuncs.add(
+			OSCFunc(this.oscHandler(func), prefix ++ pathEnd)
+		);
 	}
 	free {
 		oscFuncs.do(_.free);
