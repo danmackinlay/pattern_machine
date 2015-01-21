@@ -128,14 +128,11 @@ state.server.waitForBoot({
 });
 )
 (
-	var state = ~state, paramspace, paramwalker;
+	var state = ~state, paramspace, controlchan;
 	state.paramspace = paramspace = PSParamSpace(\wavviebasic);
+	state.paramspace = paramspace = PSHawkesLemurControlChan(
+		state: (buffers:["a", "b", "c"]));
 
-	//should this even be structured in terms of mean/covariance/deviation?
-	//That could be its own meta-param constructo thing
-	//Then I would be learning a linear regression against a control param, basically.
-	//Could be nice.
-	//Also can I store params in multiple slots?
 	paramspace.newParam(\lfomodf, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\lfobasef, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\lfomodamp, [0.001, 1.0, \exp]);
@@ -156,13 +153,9 @@ state.server.waitForBoot({
 	//paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
 	//paramspace.newParam(\sustainDur, [0.25, 16]);
 	//p=(PStateEnvirfunc(v, state:t) <> PHawkes(nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\delta, Pn(1, inf)))).play(state.clock, protoEvent: samplingstrip.baseEvent, quant:1), ;
-
-	state.paramwalker = paramwalker = PSParamwalker.new(
-		paramspace,
-		speed: 0.05,
-	);
+	state.clock.play({});
 	state.clock.play(
-		paramwalker.asPattern <> state.samplingstrip.basePattern <> Pbind(
+		state.samplingstrip.basePattern <> Pbind(
 			\instrument, \ps_bufgrain_type_2__1x2,
 			\type, \note,
 			\sendGate, false,
@@ -184,15 +177,6 @@ state.server.waitForBoot({
 ~state.samplingstrip.sourceBuf(\siren,0);
 ~state.samplingstrip.sourceBuf(\desolation,0);
 ~state.samples.at(\tuneful, 2);
-~state.paramwalker.vel;
-~state.paramwalker.accelMag;
-~state.paramwalker.speed;
-~state.paramwalker.pos;
-~state.paramwalker.speed=0.1;
-~state.paramwalker.event;
-~state.paramwalker.writeFile(PS.pmpath +/+ "presets/wavvie.json");
-~state.paramwalker.readFile(PS.pmpath +/+ "presets/wavvie.json");
-~state.gui;
 p=PHawkes(nChildren: PGeomRV.newFromMean(1.1), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\degree, Pn(0, 1), \mark, Pseq([0, 1, 4], inf)));
 p.play.postcs;
 p.postcs;
@@ -217,3 +201,4 @@ i = PSHawkesLemurControlChan.new(trace:false, state: (buffers:["a", "b", "c"]));
 i.state;
 i.intAddr;
 OSCFunc.trace(false);
+TempoClock
