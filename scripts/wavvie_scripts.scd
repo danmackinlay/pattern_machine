@@ -123,16 +123,14 @@ state.server.waitForBoot({
 		~lfo2del = 0.0;
 		~lfomodamp = 1/2;
 		~param = 1;
+		~interval = 2;
 	});
 
 });
 )
 (
-	var state = ~state, paramspace, controlchan;
+	var state = ~state, paramspace, controlchan, scheduletask, playfunc;
 	state.paramspace = paramspace = PSParamSpace(\wavviebasic);
-	state.paramspace = paramspace = PSHawkesLemurControlChan(
-		state: (buffers:["a", "b", "c"]));
-
 	paramspace.newParam(\lfomodf, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\lfobasef, PSLookupSpec([1/4,1/3,1/2,1,2,3,4,6]));
 	paramspace.newParam(\lfomodamp, [0.001, 1.0, \exp]);
@@ -150,23 +148,43 @@ state.server.waitForBoot({
 	paramspace.newParam(\allpdecayratio, [1,8,\exp]);
 	paramspace.newParam(\posrate, PSLookupSpec([-1,-1/2,-1/4,0,1/4,1/2,1]));
 	//ignored
-	//paramspace.newParam(\delta, PSLookupSpec([1,2,4,8]/8));
 	//paramspace.newParam(\sustainDur, [0.25, 16]);
-	//p=(PStateEnvirfunc(v, state:t) <> PHawkes(nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\delta, Pn(1, inf)))).play(state.clock, protoEvent: samplingstrip.baseEvent, quant:1), ;
-	state.clock.play({});
-	state.clock.play(
-		state.samplingstrip.basePattern <> Pbind(
-			\instrument, \ps_bufgrain_type_2__1x2,
-			\type, \note,
-			\sendGate, false,
-			//\degree, PGeomRep(0, 0.95), //hack to terminate after random time
-			\lfophase, 0,
-			\db, -10.0,
-			\overlaps, 4,
-			\delta, 1,
-			\sustainDur, 2,
-		)
-	);
+	state.controlchan = controlchan = PSHawkesLemurControlChan.new(
+		trace:false, state: (buffers:["a", "b", "c"]));
+
+	state.playfunc = playfunc = {
+		\playing.postcs;
+		PHawkes.cluster(
+			nChildren:Ppoisson.newFromCluster(20),
+			wait: 2.pow(Prand((-4..1),inf)),
+			mark: Prand([-2,2],inf),
+			accum:true, maxGen:10,
+			exoEvent: (
+				instrument: \ps_bufgrain_type_2__1x2,
+				sendGate: false,
+				lfophase: 0,
+				db: -10.0,
+				overlaps: 4,
+				delta: 1,
+				sustainDur: 2,
+			)
+		).play(
+			clock: state.clock,
+			protoEvent: state.samplingstrip.baseEvent,
+			quant:1
+		);
+	};
+	scheduletask = Routine({
+		var ctr=0;
+		inf.do({
+			ctr = (ctr + 1) % (state.interval);
+			[\ctr, ctr].postln;
+			(ctr==0).if({
+				playfunc.value;
+			});
+			1.yield;
+		})
+	}).play(state.clock, 1);
 )
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(60.0);
@@ -177,28 +195,7 @@ state.server.waitForBoot({
 ~state.samplingstrip.sourceBuf(\siren,0);
 ~state.samplingstrip.sourceBuf(\desolation,0);
 ~state.samples.at(\tuneful, 2);
-p=PHawkes(nChildren: PGeomRV.newFromMean(1.1), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10, exoPattern: Pbind(\degree, Pn(0, 1), \mark, Pseq([0, 1, 4], inf)));
-p.play.postcs;
-p.postcs;
-(Pbind(\degree, Pkey(\mark)) <> p).trace.play;
-p=PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true).play;
-p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:Ppoisson.newFromCluster(200), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
-p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromCluster(2000), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true)).play;
-p=(Pbind(\degree, Pkey(\mark)) <> PHawkes.cluster(nChildren:PGeomRV.newFromMean(1.5), wait: Pwhite(0.0,2.0), mark: Prand([-2,2],inf), accum:true, maxGen:10)).play;
-(
-t=(degrees:[0,3,5]);
-v = {|state|
-	~degree = state.degrees.choose;
-	currentEnvironment.postcs;
-};
-p=PHawkes.cluster(seed: 2, exoEvent:(delta:1, mark: 0.dup(3)), nChildren:Ppoisson.newFromCluster(20), wait: 2.pow(Prand((-4..1),inf)), mark: Pfunc({Array.rand2(3,1)}), accum:true, maxGen:10);
-(PStateEnvirfunc(v, state:t) <> p).trace.play;
-)
-t.degrees=[0,4,7]
-(
-i = PSHawkesLemurControlChan.new(trace:false, state: (buffers:["a", "b", "c"]));
-)
+~state.interval=2
 i.state;
 i.intAddr;
 OSCFunc.trace(false);
-TempoClock
