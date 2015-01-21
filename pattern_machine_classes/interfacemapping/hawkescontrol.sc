@@ -3,17 +3,19 @@
 PSHawkesLemurControlChan {
 	var <state;
 	var <prefix="chan1";
+	var <parent;
 	var <intAddr;
 	var <oscFuncs;
 	var <>trace;
 	
-	*new {arg state, prefix="/chan1", trace=false;
+	*new {arg state, prefix="/chan1", parent, trace=false;
 		^super.newCopyArgs(
 			state ?? {()},
 			prefix,
-		).initPSHawkesControl.trace_(trace);
+			parent,
+		).initPSHawkesLemurControlChan.trace_(trace);
 	}
-	initPSHawkesControl {
+	initPSHawkesLemurControlChan {
 		state[\inits] = state.atFail(\inits, []);
 		state[\cluster] = state.atFail(\cluster, 10);
 		state[\decay] = state.atFail(\decay, -1.0);
@@ -106,4 +108,17 @@ PSHawkesLemurControlChan {
 	free {
 		oscFuncs.do(_.free);
 	}
+}
+PSWavvieLemurControl {
+	var <childHawkesControls;
+	*new {
+		
+	}
+	init {
+		
+	}
+	free {
+		childHawkesControls.do(_.free);
+	}
+	
 }
