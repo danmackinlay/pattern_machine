@@ -153,7 +153,7 @@ state.server.waitForBoot({
 		trace:false, state: (buffers:["a", "b", "c"]));
 
 	state.playfunc = playfunc = {
-		\playing.postcs;
+		//\playing.postcs;
 		PHawkes.cluster(
 			nChildren:Ppoisson.newFromCluster(20),
 			wait: 2.pow(Prand((-4..1),inf)),
@@ -178,7 +178,7 @@ state.server.waitForBoot({
 		var ctr=0;
 		inf.do({
 			ctr = (ctr + 1) % (state.interval);
-			[\ctr, ctr].postln;
+			//[\ctr, ctr, thisThread.beats].postln;
 			(ctr==0).if({
 				playfunc.value;
 			});
@@ -186,6 +186,7 @@ state.server.waitForBoot({
 		})
 	}).play(state.clock, 1);
 )
+
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(60.0);
 ~state.samplingstrip.sourceBuf(3);
@@ -199,3 +200,4 @@ state.server.waitForBoot({
 i.state;
 i.intAddr;
 OSCFunc.trace(false);
+~state.postcs
