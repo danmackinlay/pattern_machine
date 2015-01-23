@@ -20,11 +20,16 @@ PSHawkesLemurControlChan {
 		state[\cluster] = state.atFail(\cluster, 10);
 		state[\decay] = state.atFail(\decay, -1.0);
 		state[\corr] = state.atFail(\corr, [0.5, 0.5]);
-		state[\int] = state.atFail(\int, 4);
+		state[\interval] = state.atFail(\interval, 4);
 		state[\buffers] = state.atFail(\buffers, [\buf0, \buf1]);
+		state[\buffIdx] = state.atFail(\buffIdx, 0);
 		state[\pitchset] = state.atFail(\pitchset, Array.fill(8, 0));
 		state[\pitchsetA] = state.atFail(\pitchsetA, Array.fill(8, 0));
 		state[\pitchsetB] = state.atFail(\pitchsetB, Array.fill(8, 0));
+		state[\evolvegen] = state.atFail(\evolvegen, 0);
+		state[\evolvemark] = state.atFail(\evolvemark, 0);
+		state[\trig] = state.atFail(\trig,  Array.fill(8, 0));
+		state[\trignum] = state.atFail(\trignum, 1);
 		oscFuncs = Array.new(20);
 		this.addHandler("/cluster/x", { arg msg;
 			var val = msg[0].linlin(0.0,1.0,0.0,6.0).exp;
@@ -32,8 +37,12 @@ PSHawkesLemurControlChan {
 			this.trySendMsg("/cluster_disp/value", val);
 		});
 		this.addHandler("/reseed/x", { arg msg;
-			var val = msg[0];
-			state[\reseed] = val;
+			var val= msg[0];
+			(val>0).if({
+				state[\reseed] = val;
+				},{
+				state[\reseed] = nil;
+			});
 			this.trySendMsg("/reseed_disp/value", val);
 		});
 		this.addHandler("/decay/x", { arg msg;
@@ -43,12 +52,16 @@ PSHawkesLemurControlChan {
 			state[\disorder] = msg[0];
 		});
 		this.addHandler("/trig/x", { arg msg;
+			state[\trig] = msg[0];
 		});
-		this.addHandler("/trig/y", { arg msg;
+		this.addHandler("/trignum/x", { arg msg;
+			state[\trignum] = msg[0];
 		});
 		this.addHandler("/evolve/x", { arg msg;
+			state[\evolvegen] = msg[0];
 		});
 		this.addHandler("/evolve/y", { arg msg;
+			state[\evolvemark] = msg[0];
 		});
 		this.addHandler("/pitchset1/x", { arg msg;
 			state[\pitchsetA] = msg;
@@ -60,7 +73,7 @@ PSHawkesLemurControlChan {
 		});
 		this.addHandler("/int/x", { arg msg;
 			this.trySendMsg("/int_disp/value", msg[0]);
-			state[\int] = msg[0];
+			state[\interval] = msg[0];
 		});
 		this.addHandler("/buffer/selection", { arg msg;
 			state[\bufferInd] = msg[0];
@@ -68,7 +81,7 @@ PSHawkesLemurControlChan {
 	}
 	intAddr_{
 		//called when we first know the return address 
-		// (or when manually fored later I suppose)
+		// (or when manually forced later I suppose)
 		arg addr;
 		intAddr = addr;
 		//could update interface from state here.
@@ -87,8 +100,8 @@ PSHawkesLemurControlChan {
 	}
 	//handler func factory
 	//updates state vars
-	//may provide additional feedback on the lemur
-	//but does not update everything else
+	//may provide additional control-specific feedback on the lemur
+	//but does not update everything
 	//ignores empty messages
 	oscHandler {
 		arg func, pathEnd;

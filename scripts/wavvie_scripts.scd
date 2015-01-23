@@ -87,8 +87,7 @@ TODO:
 ServerTreeGui.makeWindow(s);
 Server.default = PS.serverboot.(\local, \builtin);
 (
-var masterstrip,
-	samples,
+var samples,
 	server,
 	state;
 
@@ -124,6 +123,7 @@ state.server.waitForBoot({
 		~lfomodamp = 1/2;
 		~param = 1;
 		~interval = 2;
+		~buffers = ["a", "b", "c"];
 	});
 
 });
@@ -150,15 +150,16 @@ state.server.waitForBoot({
 	//ignored
 	//paramspace.newParam(\sustainDur, [0.25, 16]);
 	state.controlchan = controlchan = PSHawkesLemurControlChan.new(
-		trace:false, state: (buffers:["a", "b", "c"]));
+		trace:false, state: state);
 
 	state.playfunc = playfunc = {
 		//\playing.postcs;
 		PHawkes.cluster(
-			nChildren:Ppoisson.newFromCluster(20),
+		    nChildren: Ppoisson.newFromCluster(state.cluster),
 			wait: 2.pow(Prand((-4..1),inf)),
 			mark: Prand([-2,2],inf),
-			accum:true, maxGen:10,
+			accum:true,
+			maxGen:12,
 			exoEvent: (
 				instrument: \ps_bufgrain_type_2__1x2,
 				sendGate: false,
@@ -168,7 +169,7 @@ state.server.waitForBoot({
 				delta: 1,
 				sustainDur: 2,
 			)
-		).play(
+		).trace.play(
 			clock: state.clock,
 			protoEvent: state.samplingstrip.baseEvent,
 			quant:1
