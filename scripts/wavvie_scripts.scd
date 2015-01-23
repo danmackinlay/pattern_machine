@@ -3,7 +3,6 @@ Wavvie
 TODO:
 1. Misc shit
 * I really would like some modulateable indexes to the grains's synth params
-* maybe ditch PSStreamer after all
 * by the way, looks like Pfset or esp Pproto could clean up resource allocation. Later.
 * ArrayWarp should extend mm's ArrayWarp (in Autogui) by subclassing and do two things:
   * allow exponential interpolation
@@ -20,10 +19,8 @@ TODO:
 * click track for recording sync
 * manual tuning of transpositions
 * create evolving long-lived sequences
-* Do same using a conditional branching process
 * might make more sense to, instead of having different mixer channels, to mix at the pattern level for different samples.
 * Audit for zipper noise
-* switch from Event type Note to Grain, and avoid having to think about it. (Actually, SC throws a tantrum.)
 * Spectrum is a little thick; inbuilt filtering would be nice
 * switch between external (live, RME) and internal mixers
 * visualisation; something minimal.
@@ -38,8 +35,6 @@ TODO:
 * consider adding a new EventType which has my requisite transforms in;
   In particular it could do certain perturbations in values depending on other parameters.
 * interesting param map
-  * poss Martin Marier's excellent PresetInterpolator in mmExtension
-  * or Marje Baalman's predecessor, ParameterSpace in SenseWorld
   * Or Wekinator
   * Or multivariate logistic regression against different possible parameterisations to construct a basis set of axes.
     If we assumed monotonicity, this would be quite easy using, e.g. multiple linear regression.
@@ -73,14 +68,6 @@ TODO:
 * I could set up my kuramoto network (would even be natural on the server - could even multiplex the output of single synth into 24, or at least 16, subsynths)
 * how do i get deterministic repetition?
 * create a meta-preset, giving whole ranges of parameters
-* how to control this shit?
-* Baalman's ParameterSpace and Marier's PresetInterpolator are both very nice, but
-  * ParameterSpace is too coupled to the 2d schtick
-  * Marier's presumes highly specific binding logic and sorta wants you use Interpolator
-  * both have lovely GUIs though, which is a serious plus if you had GUI programming as much as I do.
-  * neither support general Hilbert space operations, which i think is essential.
-  * to extend or rewrite?
-  * PSParamSpace here we come
 
 */
 
