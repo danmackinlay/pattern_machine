@@ -109,7 +109,7 @@ PSLookupSpec : ControlSpec {
 			maxval: steps.size-1,
 			warp: warp,
 			step: 0.0,
-			default: default ? steps[0],
+			default: default ? steps[(steps.size/2).floor],
 			units: units,
 			grid: grid
 		).steps_(steps.asArray).interp_(interp.asFloat);
@@ -120,7 +120,7 @@ PSLookupSpec : ControlSpec {
 	}
 
 	storeArgs { ^[steps, interp, warp.asSpecifier, default, units, grid] }
-	
+
 	//NB not robust against mutation of collection. oh well.
 	steps_ {
 		arg v;
