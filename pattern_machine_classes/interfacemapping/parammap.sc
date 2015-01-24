@@ -80,7 +80,6 @@ PSMetaParamMap {
 		prng.reset;
 		combiners = outDims.collect({|i|this.genCombiner(i)});
 		paramDirty = true;
-		this.value;
 	}
 	genCombiner {|i|
 		//generate actual coefs; could be tidier
@@ -143,6 +142,10 @@ PSMetaParamMap {
 			paramDirty = false;
 		});
 		^outParams;
+	}
+	value {|vals, lo=(-1.0), hi=1.0|
+		(vals?[]).do({|v,i| this.set(i,v,lo,hi)});
+		^this.next;
 	}
 	plot {|name="metaparams", bounds, parent, plotrate=0.1|
 		plotter ?? {this.free;};
