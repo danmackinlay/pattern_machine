@@ -5,6 +5,9 @@ TODO:
 * seeding
 * reversing
 * multistrip
+* time decoherence
+* correlation matrix re-generation
+* centrepoint management
 */
 
 ServerTreeGui.makeWindow(s);

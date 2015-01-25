@@ -1,7 +1,3 @@
-/* Ignores input; outputs a Markov chain of 1st order,
-which is the only non-bullshit order.
-
-*/
 PMarkovChain : Pattern {
 	/* Ignores input; outputs a Markov chain of 1st order,
 	which is the only non-bullshit order.
@@ -82,9 +78,14 @@ PMarkovChain : Pattern {
 	printOn { |stream|
 		this.storeOn(stream)
 	}
-	//TODO: generate my own routine and just pull values from this when embedding;
-	//otherwise not much point exposing a writeable state.
-	//OTOH since RNGs are thread- and hence Routine-local, this breaks seedability
+	/*
+	TODO: generate my own Routine and just pull values from this
+	  when embedding;
+	Otherwise not much point exposing a writeable state.
+	OTOH since RNGs are thread- and hence Routine-local,
+	  and they don't seem to inherit especially intuitively,
+	  this breaks seedability.
+	*/
 	embedInStream { arg inval;
 		state = initState.value;
 		//we more or less ignore the input value.
