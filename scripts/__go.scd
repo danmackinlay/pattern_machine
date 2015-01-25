@@ -32,3 +32,4 @@ SCDoc.indexAllDocuments;
 ).play;
 )
 ~spy.free;
+QuickLauncher().front;
