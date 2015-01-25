@@ -1,5 +1,10 @@
 /*
 Markovy (Wavvie-lite)
+
+TODO:
+* seeding
+* reversing
+* multistrip
 */
 
 ServerTreeGui.makeWindow(s);
@@ -75,26 +80,26 @@ state.server.waitForBoot({
 
 	state.playfunc = playfunc = {
 		\playing.postcs;
-		//Pseed(4,
-			(Pfunc({|ev|
-				ev.putAll(paramspace.eventFromPreset(state.mapper.value([
-					(ev.generation/(state.meanLength)).fold(0,1),
-					ev.mark], 0, 1)));
-				[\pfunc,ev].postcs;
-				ev;
-			}) <> Pfin(state.meanLength.geomM, Pbind(
-				\mark, PMarkovChain.auto(
+		(Pfunc({|ev|
+			ev.putAll(paramspace.eventFromPreset(state.mapper.value([
+				(ev.generation/(state.meanLength)).fold(0,1),
+				ev.mark], 0, 1)));
+			[\pfunc,ev].postcs;
+			ev;
+		}) <> Pfin(state.meanLength.geomM, Pbind(
+			\mark, //Pseed(4,
+				PMarkovChain.auto(
 					disorder:0.2,
-					nstates:5,
+					nstates: 9,
 					initState:\rand,
 					halt:nil,
 					ordertype: \drunk,
-					expressions: \unit),
-				\generation, Pseries.new,
-			) <> (state.samplingstrip.basePattern)
-			))
-		//)
-		.play(
+					expressions: \unit
+				//)
+			),
+			\generation, Pseries.new,
+		)) <> (state.samplingstrip.basePattern)
+		).play(
 			clock: state.clock,
 			protoEvent: (
 				instrument: \ps_bufgrain_type_2__1x2,
