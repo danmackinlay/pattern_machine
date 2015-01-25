@@ -1,7 +1,6 @@
 /* Ignores input; outputs a Markov chain of 1st order,
 which is the only non-bullshit order.
 
-TODO allow a non-deterministic first step; 'tis traditional, and handy.
 */
 PMarkovChain : Pattern {
 	/* Ignores input; outputs a Markov chain of 1st order,
@@ -41,18 +40,20 @@ PMarkovChain : Pattern {
 		expressions.notNil.if({
 			nstates = expressions.size;
 		});
-		order = Array.series(nstates);
-		//Some basic most-common-transition-types
-		ordertype.switch(
-			\static, nil,
-			\inc, {order = (order+1) % nstates},
-			\chaos, {order = order.scramble},
-			{"unknown ordertype '%'".format(ordertype.asString).throw}
-		);
-		probs = order.collect({
-			arg dest, rownum;
+		probs = nstates.collect({
+			arg rownum;
 			var disordered, ordered = 0.dup(nstates);
-			ordered[dest] = 1;
+			
+			//Some basic most-common-transition-types
+			ordertype.switch(
+				\static, {ordered[rownum] = 1},
+				\inc, {ordered[(rownum+1)%nstates] = 1},
+				\drunk, {
+					ordered[(rownum+1)%nstates] = 1/2;
+					ordered[(rownum-1)%nstates] = 1/2;},
+				\scrambled, {ordered[nstates.rand] = 1},
+				{"unknown ordertype '%'".format(ordertype.asString).throw}
+			);
 			disordered = Array.rand(nstates, 0.0, 1.0);
 			((disorder * disordered) + ((1-disorder) * ordered)).normalizeSum;
 		});
@@ -75,9 +76,13 @@ PMarkovChain : Pattern {
 		});
 	}
 	storeArgs { ^[probs, halt, expressions, initState, state]}
-	//TODO generate my own routine and just pull values from this when embedding;
+
+	printOn { |stream|
+		this.storeOn(stream)
+	}
+	//TODO: generate my own routine and just pull values from this when embedding;
 	//otherwise not much point exposing a writeable state.
-	//OTOH since RNGs are thread- and hence routine-local, this breaks seedability
+	//OTOH since RNGs are thread- and hence Routine-local, this breaks seedability
 	embedInStream { arg inval;
 		state = initState.value;
 		//we more or less ignore the input value.

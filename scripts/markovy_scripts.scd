@@ -87,7 +87,7 @@ state.server.waitForBoot({
 				nstates:5,
 				initState:\rand,
 				halt:nil,
-				ordertype: \static,
+				ordertype: \drunk,
 				expressions: \unit,
 				seed:1),
 			\generation, Pseries.new,
