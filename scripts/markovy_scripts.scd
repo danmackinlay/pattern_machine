@@ -8,6 +8,10 @@ TODO:
 * time decoherence
 * correlation matrix re-generation
 * centrepoint management
+* magnitude of evolution
+* updating scales. ?.
+* updating tempos. ?.
+* heartbeat
 */
 
 ServerTreeGui.makeWindow(s);
@@ -23,21 +27,23 @@ state = (
 	server: server,
 	inbus: server.inputBus.subBus(0,1),
 	outbus: server.outputBus.subBus(0,2),
+	clock: TempoClock.new(140/60),
 );
 
 ~state=state;
 state.server.waitForBoot({
-	var samplingstrip, samples, clock;
-	clock = TempoClock(140/60);
+	var samplingstrip, samples;
 	samples = this.executeFile(
 		PS.scriptpath +/+ "wavvie_samples.scd").value(state);
 	CmdPeriod.doOnce({ samples.free});
 	this.executeFile(PS.scriptpath +/+ "wavvie_synths.scd").value(state);
 	s.sync;
 	samplingstrip = PSSamplingStrip.new(
-		state:state, samples: samples,
-		inbus: state.inbus, outbus:state.outbus,
-		clock:clock);
+		state:state,
+		samples: samples,
+		inbus: state.inbus,
+		outbus:state.outbus,
+		clock: state.clock);
 	CmdPeriod.doOnce({ samplingstrip.free});
 
 	state.make({
@@ -50,7 +56,7 @@ state.server.waitForBoot({
 		~param = 1;
 		~interval = 2;
 		~buffers = ["a", "b", "c"];
-		~meanLength = 4;
+		~cluster = 4;
 	});
 });
 )
@@ -80,16 +86,17 @@ state.server.waitForBoot({
 
 	state.controlchan = controlchan = PSHawkesLemurControlChan.new(
 		trace:false, state: state);
-
 	state.playfunc = playfunc = {
 		\playing.postcs;
 		(Pfunc({|ev|
 			ev.putAll(paramspace.eventFromPreset(state.mapper.value([
-				(ev.generation/(state.meanLength)).fold(0,1),
+				(ev.generation/(state.cluster)).fold(0,1),
 				ev.mark], 0, 1)));
+			ev.delta = ev.delta * ((state.decohere/2.0).rand2+1);
+			ev.db = (ev.generation) * (state.decay) + (ev.db?0);
 			[\pfunc,ev].postcs;
 			ev;
-		}) <> Pfin(state.meanLength.geomM, Pbind(
+		}) <> Pfin(state.cluster.geomM, Pbind(
 			\mark, //Pseed(4,
 				PMarkovChain.auto(
 					disorder:0.2,
@@ -119,16 +126,17 @@ state.server.waitForBoot({
 		inf.do({
 			ctr = (ctr + 1) % (state.interval);
 			//[\ctr, ctr, thisThread.beats].postln;
-			(ctr==0).if({
+			(ctr==0).and(state.interval>0).if({
 				playfunc.value;
 			});
+			controlchan.heartbeat(1);
+			state.clock.sched(0.25, {controlchan.heartbeat(1);});
 			1.yield;
 		})
 	}).play(state.clock, 1);
+	controlchan.bangCallback={playfunc.value};
 )
-
 ~state.paramspace.newPresetDefault
-
 ~state.samplingstrip.rec(1.0);
 ~state.samplingstrip.rec(60.0);
 ~state.samplingstrip.sourceBuf(3);
@@ -143,5 +151,6 @@ i.state;
 i.intAddr;
 OSCFunc.trace(false);
 ~state.seed;
-
+~state.clock.postcs;
 ~state.postcs;
+

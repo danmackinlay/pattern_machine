@@ -4,22 +4,25 @@ PSHawkesLemurControlChan {
 	var <state;
 	var <prefix="chan1";
 	var <parent;
+	var <>bangCallback;
 	var <intAddr;
 	var <oscFuncs;
 	var <>trace;
 	
-	*new {arg state, prefix="/chan1", parent, trace=false;
+	*new {arg state, prefix="/chan1", bangCallback, parent, trace=false;
 		^super.newCopyArgs(
 			state ?? {()},
 			prefix,
 			parent,
-		).initPSHawkesLemurControlChan.trace_(trace);
+		).initPSHawkesLemurControlChan.trace_(
+			trace
+		).bangCallback_(bangCallback);
 	}
 	initPSHawkesLemurControlChan {
 		state[\inits] = state.atFail(\inits, []);
 		state[\cluster] = state.atFail(\cluster, 10);
-		state[\decay] = state.atFail(\decay, -1.0);
-		state[\corr] = state.atFail(\corr, [0.5, 0.5]);
+		state[\decay] = state.atFail(\decay, -3.0);
+		state[\gain] = state.atFail(\gain, -6.0);
 		state[\interval] = state.atFail(\interval, 4);
 		state[\buffers] = state.atFail(\buffers, [\buf0, \buf1]);
 		state[\buffIdx] = state.atFail(\buffIdx, 0);
@@ -48,6 +51,9 @@ PSHawkesLemurControlChan {
 		});
 		this.addHandler("/decay/x", { arg msg;
 			state[\decay] = msg[0].linlin(0.0,1.0,-20.0,0.0);
+		});
+		this.addHandler("/gain/x", { arg msg;
+			state[\gain] = msg[0].linlin(0.0,1.0,-20.0,6.0);
 		});
 		this.addHandler("/decohere/x", { arg msg;
 			state[\decohere] = msg[0];
@@ -79,6 +85,10 @@ PSHawkesLemurControlChan {
 		this.addHandler("/buffer/selection", { arg msg;
 			state[\bufferInd] = msg[0];
 		});
+		this.addHandler("/bang/x", { arg msg;
+			this.bangCallback.value(this, msg);
+		});
+		
 	}
 	intAddr_{
 		//called when we first know the return address 
@@ -127,6 +137,11 @@ PSHawkesLemurControlChan {
 		oscFuncs = oscFuncs.add(
 			OSCFunc(this.oscHandler(func, pathEnd), prefix ++ pathEnd)
 		);
+	}
+	heartbeat { |val=1|
+		//none of these actually seem to create visual feedback
+		this.trySendMsg("/heartbeat1/value", val);
+		this.trySendMsg("/heartbeat2/x", val);
 	}
 	free {
 		oscFuncs.do(_.free);
