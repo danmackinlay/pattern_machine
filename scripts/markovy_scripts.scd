@@ -96,7 +96,7 @@ state.server.waitForBoot({
 			ev.db = (ev.generation) * (state.decay) + (ev.db?0);
 			[\pfunc,ev].postcs;
 			ev;
-		}) <> Pfin(state.cluster.geomM, Pbind(
+		}) <> PGeomRepM(Pbind(
 			\mark, //Pseed(4,
 				PMarkovChain.auto(
 					disorder:0.2,
@@ -107,8 +107,9 @@ state.server.waitForBoot({
 					expressions: \unit
 				//)
 			),
-			\generation, Pseries.new,
-		)) <> (state.samplingstrip.basePattern)
+			\generation, Pseries.new,),
+			Pfunc({state.cluster})
+		) <> (state.samplingstrip.basePattern)
 		).play(
 			clock: state.clock,
 			protoEvent: (
@@ -153,4 +154,3 @@ OSCFunc.trace(false);
 ~state.seed;
 ~state.clock.postcs;
 ~state.postcs;
-

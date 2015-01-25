@@ -88,3 +88,65 @@ PGeomM : Pattern {
 	}
 }
 
+//embed a geometric number of times
+PGeomRepP : FilterPattern {
+	var <>prob;
+	
+	*new { arg pattern, prob;
+		//normalise here?
+		^super.newCopyArgs(pattern, prob);
+	}
+	storeArgs { ^[pattern, prob]}
+	embedInStream { 
+		arg origin;
+		var next, in, stream, probStream;
+		//[\prob, prob].postcs;
+		//[\origin, origin].postcs;
+		in = origin;
+		stream = pattern.asStream;
+		probStream = prob.asStream;
+		{(probStream.next(in) ? 0.0).coin}.while({
+			next = stream.next(in);
+			//[\next, next].postcs;
+			//in ?? { ^origin  }; //exit on nil
+			in = next.yield;
+			//[\in, in].postcs;
+		}, {
+			^origin;
+		});
+		^origin;
+	}
+}
+
+PGeomRepM : FilterPattern {
+	var <>mean;
+	
+	*new { arg pattern, mean;
+		//normalise here?
+		^super.newCopyArgs(pattern, mean);
+	}
+	storeArgs { ^[pattern, mean]}
+	embedInStream { 
+		arg origin;
+		var next, in, stream, meanStream, nextMean;
+		//[\mean, mean].postcs;
+		//[\origin, origin].postcs;
+		in = origin;
+		stream = pattern.asStream;
+		meanStream = mean.asStream;
+		nextMean = meanStream.next(in) ? 0;
+		{(nextMean/(1.0+nextMean)).coin}.while({
+			next = stream.next(in);
+			nextMean = meanStream.next(in) ? 0;
+			//[\next, next].postcs;
+			//in ?? { ^origin  }; //exit on nil
+			in = next.yield;
+			//[\in, in].postcs;
+		}, {
+			^origin;
+		});
+		^origin;
+	}
+}
+
+

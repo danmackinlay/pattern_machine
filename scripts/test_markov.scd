@@ -36,6 +36,6 @@ probs = order.collect({
 });
 )
 
-PGeomRep(3, 0.9).asStream.nextN(20);
-PGeomRep(Pn(3, inf), 0.9).asStream.nextN(20);
-Pbind(\delta, PGeomRep(1, 0.9), \degree, 0).trace.play;
+PGeomRepP(3, 0.9).asStream.nextN(20);
+PGeomRepP(Pn(3, inf), 0.9).asStream.nextN(20);
+Pbind(\delta, PGeomRepP(1, 0.9), \degree, 0).trace.play;
