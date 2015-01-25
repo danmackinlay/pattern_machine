@@ -65,21 +65,25 @@ state.server.waitForBoot({
 	paramspace.newParam(\allpdecayratio, [1,8,\exp,0,1]);
 	paramspace.newParam(\posrate, PSLookupSpec([-1,-1/2,-1/4,0,1/4,1/2,1]));
 	paramspace.newParam(\sustainDur, ControlSpec(minval:0.25, maxval:8, warp:\exp, default:2));
-	state.mapper = mapper PSMetaParamMap.new(inDims:2, outDims:paramspace.newPresetDefault.size);
+	paramspace.newParam(\delta, PSLookupSpec([1,2,4,8,16,32]/8));
+
+	state.mapper = mapper = PSMetaParamMap.new(
+		inDims:2, outDims:paramspace.newPresetDefault.size);
 
 	state.controlchan = controlchan = PSHawkesLemurControlChan.new(
 		trace:false, state: state);
 
 	state.playfunc = playfunc = {
-		//\playing.postcs;
-		Pfunc({|ev|
-			/* mapper.value([
+		\playing.postcs;
+		(Pfunc({|ev|
+			ev.putAll(paramspace.eventFromPreset(state.mapper.value([
 				(ev.generation/(state.meanLength)).fold(0,1),
-				ev.mark], 0, 1);*/
-			ev.postcs;
+				ev.mark], 0, 1)));
+			[\pfunc,ev].postcs;
+			ev;
 		}) <> Pfin(state.meanLength.geomM, Pbind(
 			\mark, PMarkovChain.random(
-				disorder:0.1,
+				disorder:0.4,
 				nstates:5,
 				initState:\rand,
 				halt:nil,
@@ -87,7 +91,7 @@ state.server.waitForBoot({
 				expressions: \unit,
 				seed:1),
 			\generation, Pseries.new,
-		) <> (state.samplingstrip.basePattern)).play(
+		) <> (state.samplingstrip.basePattern))).play(
 			clock: state.clock,
 			protoEvent: (
 				instrument: \ps_bufgrain_type_2__1x2,
@@ -95,8 +99,6 @@ state.server.waitForBoot({
 				lfophase: 0,
 				db: -10.0,
 				overlaps: 4,
-				delta: 1,
-				sustainDur: 2,
 			),
 			quant:1
 		);
