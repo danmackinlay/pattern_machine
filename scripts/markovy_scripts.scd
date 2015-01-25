@@ -82,14 +82,13 @@ state.server.waitForBoot({
 			[\pfunc,ev].postcs;
 			ev;
 		}) <> Pfin(state.meanLength.geomM, Pbind(
-			\mark, PMarkovChain.random(
-				disorder:0.4,
+			\mark, PMarkovChain.auto(
+				disorder:0.2,
 				nstates:5,
 				initState:\rand,
 				halt:nil,
 				ordertype: \drunk,
-				expressions: \unit,
-				seed:1),
+				expressions: \unit),
 			\generation, Pseries.new,
 		) <> (state.samplingstrip.basePattern))).play(
 			clock: state.clock,

@@ -25,13 +25,9 @@ PMarkovChain : Pattern {
 	//If I were a wanker, I might parameterise in terms of entropy rate, but something more ad hoc will do I think.
 	// could also choose uniform probs
 	// could go for sparsity. wevs.
-	*random {
-		arg nstates=4, disorder=0.25, ordertype=\static, halt, initState=\rand, expressions, seed;
-		var order, probs, prevRndState;
-		seed.notNil.if({
-			prevRndState = thisThread.randData;
-			thisThread.randSeed = seed;
-		});
+	*auto {
+		arg nstates=4, disorder=0.25, stride=1, ordertype=\static, halt, initState=\rand, expressions;
+		var order, probs;
 		//If we give nstates but set expressions to special \unit, they are mapped onto 0,1
 		(expressions==\unit).if({
 			expressions = Array.series(nstates)/(nstates-1);
@@ -42,25 +38,20 @@ PMarkovChain : Pattern {
 		});
 		probs = nstates.collect({
 			arg rownum;
-			var disordered, ordered = 0.dup(nstates);
+			var row = 0.dup(nstates);
 			
 			//Some basic most-common-transition-types
 			ordertype.switch(
-				\static, {ordered[rownum] = 1},
-				\inc, {ordered[(rownum+1)%nstates] = 1},
+				\static, {row[rownum] = 1},
+				\inc, {row[(rownum+stride)%nstates] = 1},
 				\drunk, {
-					ordered[(rownum+1)%nstates] = 1/2;
-					ordered[(rownum-1)%nstates] = 1/2;},
-				\scrambled, {ordered[nstates.rand] = 1},
+					row[(rownum+stride)%nstates] = 1/2;
+					row[(rownum-stride)%nstates] = 1/2;},
 				{"unknown ordertype '%'".format(ordertype.asString).throw}
 			);
-			disordered = Array.rand(nstates, 0.0, 1.0);
-			((disorder * disordered) + ((1-disorder) * ordered)).normalizeSum;
+			row * (1-disorder) + disorder;
 		});
-		seed.notNil.if({
-			thisThread.randData = prevRndState;
-		});
-		//initstate can be a scalar, a function or a special \rand symbol, meaning "boom"
+		//initstate can be a scalar, a function or a special \rand symbol, meaning "uniform"
 		(initState==\rand).if({
 			initState = {nstates.rand};
 		});
@@ -68,6 +59,17 @@ PMarkovChain : Pattern {
 			initState = 0;
 		});
 		^this.new(probs, halt, expressions, initState);
+	}
+	randomize {|seed, randomness=0.25, shuffleness=1|
+		var prevRndState;
+		seed.notNil.if({
+			prevRndState = thisThread.randData;
+			thisThread.randSeed = seed;
+		});
+		//under construction
+		seed.notNil.if({
+			thisThread.randData = prevRndState;
+		});
 	}
 	initPMarkov {
 		stateidx = Array.series(probs.size);
