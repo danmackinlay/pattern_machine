@@ -28,6 +28,7 @@ PSHawkesLemurControlChan {
 		state[\pitchsetB] = state.atFail(\pitchsetB, Array.fill(8, 0));
 		state[\evolvegen] = state.atFail(\evolvegen, 0);
 		state[\evolvemark] = state.atFail(\evolvemark, 0);
+		state[\decohere] = state.atFail(\decohere, 0);
 		state[\trig] = state.atFail(\trig,  Array.fill(8, 0));
 		state[\trignum] = state.atFail(\trignum, 1);
 		oscFuncs = Array.new(20);
@@ -48,8 +49,8 @@ PSHawkesLemurControlChan {
 		this.addHandler("/decay/x", { arg msg;
 			state[\decay] = msg[0].linlin(0.0,1.0,-20.0,0.0);
 		});
-		this.addHandler("/disorder/x", { arg msg;
-			state[\disorder] = msg[0];
+		this.addHandler("/decohere/x", { arg msg;
+			state[\decohere] = msg[0];
 		});
 		this.addHandler("/trig/x", { arg msg;
 			state[\trig] = msg[0];
